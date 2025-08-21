@@ -1,0 +1,9 @@
+services:
+  jj-db:
+    image: postgres:16
+    ports:
+      - "9432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: jack_and_jill

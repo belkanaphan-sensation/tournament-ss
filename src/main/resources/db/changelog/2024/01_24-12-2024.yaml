@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 01_24-12-2024-1
+      author: Elena Vasilyeva
+      comment: "create unique index on users(email)"
+      changes:
+        - sql:
+            sql: |
+              CREATE UNIQUE INDEX unique_email ON users(email) WHERE email IS NOT NULL;
+  - changeSet:
+      id: 01_24-12-2024-2
+      author: Elena Vasilyeva
+      comment: "create unique index on users(username)"
+      changes:
+        - sql:
+            sql: |
+              CREATE UNIQUE INDEX unique_username ON users(username);
