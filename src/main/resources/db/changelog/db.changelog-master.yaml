@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - include:
+      id: 05-12-2024-ev-0
+      author: Elena Vasilyeva
+      relativeToChangelogFile: true
+      file: init/init-db.yml
+  - include:
+      id: 25-08-2025-ev-0
+      author: Elena Vasilyeva
+      relativeToChangelogFile: true
+      file: 2024/01_24-12-2024.yaml

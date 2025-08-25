@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: jack-and-jill
+  datasource:
+    url: jdbc:postgresql://localhost:9432/jack_and_jill
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+        show-sql: true
+        default_schema: jack
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    default-schema: jack
+    liquibase-schema: public
+  docker:
+    compose:
+      enabled: true
+      file: docker-compose/docker-compose.yml
+#       Необязательно, но полезно:
+#       profiles:
+#         active: dev
+#       lifecycle-management: start_and_stop  # или start_only
+#       readiness:
+#         timeout: 2m
+
+app:
+  swagger-ui:
+    api-version: 1.0
+    api-title: 'jack and jill'
+    api-description: 'api for jack and jill application'
+    contact-name: Elena
+    contact-email: email.email.com
+  jwt:
+    security:
+      #     todo hide secret
+      secret: "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970"
+      header: "Authorization"
+      expiration: 24
+
+logging:
+  level:
+    liquibase: INFO

@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: 05-12-2024-100
+      author: elena
+      comment: "description"
+      changes:
+        - sql:
+            sql: |
+              SELECT * 
+              FROM RATING;

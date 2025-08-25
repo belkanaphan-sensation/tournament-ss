@@ -2,11 +2,22 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '4.0.0-SNAPSHOT'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.liquibase.gradle' version '2.2.0'
 }
 
 group = 'org.bn'
 version = '0.0.1-SNAPSHOT'
 description = 'jack-and-jill'
+
+ext {
+    set('jwtVersion', '0.12.6')
+    set('springBootVersion', '3.5.5')
+    set('lombokVersion', '1.18.36')
+    set('validationVersion', '3.1.0')
+    set('liquibaseVersion', '4.33.0')
+    set('openApiVersion', '2.7.0')
+    set('mapstructVersion', '1.6.3')
+}
 
 java {
     toolchain {
@@ -24,15 +35,57 @@ repositories {
     mavenCentral()
     maven { url = 'https://repo.spring.io/snapshot' }
 }
-
+    //проверить версии
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    compileOnly 'org.projectlombok:lombok'
-    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
-    runtimeOnly 'org.postgresql:postgresql'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    //swagger
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:$openApiVersion"
+
+    implementation "org.springframework.boot:spring-boot-starter:$springBootVersion"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion"
+    implementation "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
+    implementation "org.springframework.boot:spring-boot-starter-security:$springBootVersion"
+    implementation "jakarta.validation:jakarta.validation-api:$validationVersion"
+
+    compileOnly "org.projectlombok:lombok:$lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+
+    implementation 'org.postgresql:postgresql'
+    implementation 'org.liquibase:liquibase-core'
+
+    implementation "org.mapstruct:mapstruct:$mapstructVersion"
+    annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion" //аннотации
+
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation "io.jsonwebtoken:jjwt-api:$jwtVersion"
+    implementation "io.jsonwebtoken:jjwt-impl:$jwtVersion"
+    implementation "io.jsonwebtoken:jjwt-jackson:$jwtVersion"
+
+    testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+}
+    //хз надо или нет
+//таким образом мы даем возможность имплементить без указания версии в дочерние депенденси
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:$springBootVersion"
+    }
+}
+
+//настройка плагина для ручного запуска миграции
+//todo спрятать креды
+liquibase {
+    activities {
+        register("main") {
+            changeLogFile = 'src/main/resources/db/changelog/db.changelog-master.yaml'
+            url = 'jdbc:postgresql://localhost:9432/jack_and_jill'
+            username = 'postgres'
+            password = 'postgres'
+            defaultSchemaName = 'jack'
+        }
+    }
+    runList = ['main']
 }
 
 tasks.named('test') {
