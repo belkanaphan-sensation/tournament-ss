@@ -2,7 +2,7 @@ spring:
   application:
     name: jack-and-jill
   datasource:
-    url: jdbc:postgresql://localhost:9432/jack_and_jill
+    url: jdbc:postgresql://localhost:9432/sensation
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -17,7 +17,7 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:/db/changelog/db.changelog-master.yaml
-    default-schema: jack
+    default-schema: sensation
     liquibase-schema: public
   docker:
     compose:
