@@ -4,9 +4,11 @@ FROM eclipse-temurin:23-jdk-alpine AS build
 WORKDIR /app
 
 COPY build.gradle settings.gradle ./
+COPY gradlew .
 COPY gradle ./gradle
 COPY src ./src
 
+RUN chmod +x gradlew
 RUN ./gradlew build -x test
 
 # Финальный образ
