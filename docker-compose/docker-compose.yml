@@ -1,9 +1,25 @@
 services:
-  jj-db:
-    image: postgres:16
+  sensation-db:
+    image: postgres:15
+    container_name: sensation-postgres
+    restart: unless-stopped
     ports:
       - "9432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: jack_and_jill
+      POSTGRES_DB: sensation
+#    это нужно для файла который на сервере
+#    volumes:
+#      - ./data:/var/lib/postgresql/data
+#      - ./backups:/backups
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: adminpassword
+    ports:
+      - "9433:80"
