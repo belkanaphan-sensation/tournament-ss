@@ -7,7 +7,7 @@
 
 ```bash
 # Сборка Docker-образа
-docker build --platform linux/amd64 -t ghcr.io/belkanaphan-sensation/tournament-ss:0.0.1-SNAPSHOT .
+docker build --platform linux/amd64 -t ghcr.io/belkanaphan-sensation/tournament-ss:0.0.1-31082025.0 .
 
 # Логин в GHCR
 echo $CR_PAT | docker login ghcr.io -u belkanaphan --password-stdin
