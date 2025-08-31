@@ -17,3 +17,4 @@ docker push ghcr.io/belkanaphan-sensation/tournament-ss:0.0.1-SNAPSHOT
 ```
 
 * `$CR_PAT` — переменная окружения с токеном.
+ 
