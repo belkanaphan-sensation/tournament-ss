@@ -2,7 +2,7 @@ spring:
   application:
     name: jack-and-jill
   datasource:
-    url: jdbc:postgresql://localhost:9432/sensation
+    url: jdbc:postgresql://192.168.1.89:9432/sensation
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
