@@ -1,13 +1,12 @@
 package org.bn.sensation.entity;
 
-import java.util.List;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,13 +22,12 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class Judge extends Human {
 
-    @OneToOne
-    private User user;
+    @OneToOne private User user;
+
     @ManyToMany
     @JoinTable(
             name = "JUDGES_TO_COMPETITION",
             joinColumns = @JoinColumn(name = "JUDGE_ID", referencedColumnName = "ID"),
-            inverseJoinColumns = @JoinColumn(name = "COMPETITION_ID", referencedColumnName = "ID")
-    )
+            inverseJoinColumns = @JoinColumn(name = "COMPETITION_ID", referencedColumnName = "ID"))
     List<Competition> competitions;
 }

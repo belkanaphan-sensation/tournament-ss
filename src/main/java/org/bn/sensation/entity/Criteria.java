@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.bn.sensation.common.entity.BaseEntity;
 
 @Entity
 @Table(name = "criteria")
@@ -16,7 +17,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Criteria extends BaseEntity{
+public class Criteria extends BaseEntity {
 
     @Column(unique = true, nullable = false, name = "criteria")
     private String criteria;

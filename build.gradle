@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot' version '4.0.0-SNAPSHOT'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.liquibase.gradle' version '2.2.0'
+    id 'com.diffplug.spotless' version '6.25.0' // Проверьте актуальную версию
 }
 
 group = 'org.bn'
@@ -91,3 +92,32 @@ liquibase {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+spotless {
+    java {
+        target 'src/**/*.java'
+        // Удаляет неиспользуемые импорты
+        removeUnusedImports()
+        // Форматирование Google Java Format
+        googleJavaFormat('1.22.0').aosp().reflowLongStrings()
+        // Убирает trailing пробелы
+        trimTrailingWhitespace()
+        // Заменяет табы на пробелы
+        indentWithSpaces(4)
+        // Убирает пустые строки в конце файла
+        endWithNewline()
+    }
+
+    // Для других типов файлов (опционально)
+    format 'misc', {
+        target '**/*.gradle', '**/*.md', '**/.gitignore'
+        trimTrailingWhitespace()
+        indentWithSpaces(4)
+        endWithNewline()
+    }
+}
+//
+//// Полезные задачи для разработки
+//tasks.named('spotlessJava').configure {
+//    dependsOn 'spotlessCheck'
+//}

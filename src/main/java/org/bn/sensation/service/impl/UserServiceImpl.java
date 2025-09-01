@@ -34,17 +34,20 @@ public class UserServiceImpl implements UserService {
         if (!request.newPassword().equals(request.confirmPassword())) {
             throw new IllegalArgumentException("Password are not the same");
         }
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("User with username not found: " + userDetails.getUsername()));
+        User user =
+                userRepository
+                        .findByUsername(userDetails.getUsername())
+                        .orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                "User with username not found: "
+                                                        + userDetails.getUsername()));
         user.setPassword(passwordEncoder.encode(request.newPassword()));
 
         userRepository.save(user);
     }
 
-
     @Override
     @Async
-    public void sendEmail(ForgotPasswordRequest request) {
-
-    }
+    public void sendEmail(ForgotPasswordRequest request) {}
 }

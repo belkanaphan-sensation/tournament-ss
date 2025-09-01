@@ -1,5 +1,8 @@
 package org.bn.sensation.auth;
 
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bn.sensation.entity.User;
@@ -8,19 +11,13 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 @RequiredArgsConstructor
 public class SecurityUser implements UserDetails {
 
     private final String username;
     private final String password;
-    @Getter
-    private final String email;
-    @Getter
-    private final boolean isActive;
+    @Getter private final String email;
+    @Getter private final boolean isActive;
     private final Set<SimpleGrantedAuthority> authorities;
 
     @Override
@@ -66,7 +63,6 @@ public class SecurityUser implements UserDetails {
                 user.getStatus().equals(Status.ACTIVE),
                 user.getRole().getPermissions().stream()
                         .map(permission -> new SimpleGrantedAuthority(permission.getPermission()))
-                        .collect(Collectors.toSet())
-        );
+                        .collect(Collectors.toSet()));
     }
 }

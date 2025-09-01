@@ -1,9 +1,8 @@
 package org.bn.sensation.auth;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
-
-import lombok.Getter;
 
 @Getter
 public class JwtAuthenticationException extends AuthenticationException {

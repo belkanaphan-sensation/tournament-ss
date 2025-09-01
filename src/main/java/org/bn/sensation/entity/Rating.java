@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.bn.sensation.common.entity.BaseEntity;
 
 @Entity
 @Table(name = "rating")

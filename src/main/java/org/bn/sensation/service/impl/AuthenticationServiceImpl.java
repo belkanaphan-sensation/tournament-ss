@@ -30,15 +30,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Transactional(readOnly = true)
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.username(),
-                        request.password()
-                )
-        );
-        User user = userRepository.findByUsername(request.username())
-                .or(() -> userRepository.findByEmail(request.username()))
-                .orElseThrow(() ->
-                        new UsernameNotFoundException(String.format("User %s doesn't exists", request.username())));
+                new UsernamePasswordAuthenticationToken(request.username(), request.password()));
+        User user =
+                userRepository
+                        .findByUsername(request.username())
+                        .or(() -> userRepository.findByEmail(request.username()))
+                        .orElseThrow(
+                                () ->
+                                        new UsernameNotFoundException(
+                                                String.format(
+                                                        "User %s doesn't exists",
+                                                        request.username())));
         String token = jwtTokenProvider.createToken(user.getUsername(), user.getRole().name());
         return new AuthenticationResponse(token);
     }
@@ -46,15 +48,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     @Transactional
     public AuthenticationResponse register(RegisterRequest request) {
-        User user = User.builder()
-                .username(request.username())
-                .password(passwordEncoder.encode(request.password()))
-                .email(request.email())
-                .role(UserMapper.INSTANCE.map(request.role()))
-                .status(Status.ACTIVE)
-                .build();
+        User user =
+                User.builder()
+                        .username(request.username())
+                        .password(passwordEncoder.encode(request.password()))
+                        .email(request.email())
+                        .role(UserMapper.INSTANCE.map(request.role()))
+                        .status(Status.ACTIVE)
+                        .build();
         User savedUser = userRepository.save(user);
-        String token = jwtTokenProvider.createToken(savedUser.getUsername(), savedUser.getRole().name());
+        String token =
+                jwtTokenProvider.createToken(savedUser.getUsername(), savedUser.getRole().name());
         return new AuthenticationResponse(token);
     }
 }
