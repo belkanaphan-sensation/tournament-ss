@@ -1,11 +1,13 @@
 package org.bn.sensation.core.activity.service;
 
-import org.bn.sensation.common.service.BaseService;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.activity.service.dto.ActivityDto;
 import org.bn.sensation.core.activity.service.mapper.ActivityDtoMapper;
+import org.bn.sensation.core.common.service.BaseService;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ActivityServiceImpl extends BaseService<ActivityEntity, ActivityDto>
         implements ActivityService {
 
