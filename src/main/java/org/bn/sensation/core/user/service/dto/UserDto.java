@@ -3,19 +3,19 @@ package org.bn.sensation.core.user.service.dto;
 import java.util.Set;
 
 import org.bn.sensation.core.common.dto.BaseDto;
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.dto.PersonDto;
-import org.bn.sensation.core.organization.service.dto.OrganizationDto;
-import org.bn.sensation.core.role.service.dto.RoleDto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Пользователь системы")
@@ -31,8 +31,8 @@ public class UserDto extends BaseDto {
     private PersonDto person;
 
     @Schema(description = "Организация пользователя")
-    private OrganizationDto organization;
+    private EntityLinkDto organization;
 
     @Schema(description = "Список ролей пользователя")
-    private Set<RoleDto> roles;
+    private Set<EntityLinkDto> roles;
 }

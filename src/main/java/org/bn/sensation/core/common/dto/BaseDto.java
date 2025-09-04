@@ -7,11 +7,13 @@ import jakarta.validation.constraints.Min;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @NoArgsConstructor
 @Data
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@SuperBuilder(toBuilder = true)
 public abstract class BaseDto {
 
   @Schema(description = "Id в БД", example = "5", accessMode = Schema.AccessMode.READ_ONLY)

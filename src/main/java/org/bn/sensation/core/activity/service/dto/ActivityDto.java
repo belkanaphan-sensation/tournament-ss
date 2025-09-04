@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.dto.BaseDto;
-import org.bn.sensation.core.occasion.service.dto.OccasionDto;
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -13,11 +13,12 @@ import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Активность (событие в рамках мероприятия)")
@@ -43,5 +44,5 @@ public class ActivityDto extends BaseDto {
     private AddressDto address;
 
     @Schema(description = "Мероприятие, частью которого является активность")
-    private OccasionDto occasion;
+    private EntityLinkDto occasion;
 }
