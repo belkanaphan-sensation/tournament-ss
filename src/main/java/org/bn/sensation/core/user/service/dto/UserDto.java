@@ -24,6 +24,10 @@ public class UserDto extends BaseDto {
     @Schema(description = "Имя пользователя (уникальное)", example = "john_doe")
     private String username;
 
+    //todo: временно показываем. На проде удалить
+    @Schema(description = "Пароль", example = "password")
+    private String password;
+
     @Schema(description = "Статус пользователя", example = "ACTIVE")
     private String status;
 
