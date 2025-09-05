@@ -3,17 +3,18 @@ package org.bn.sensation.core.occasion.service.dto;
 import java.time.LocalDate;
 
 import org.bn.sensation.core.common.dto.BaseDto;
-import org.bn.sensation.core.organization.service.dto.OrganizationDto;
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Мероприятие (высокоуровневое событие, содержащее активности)")
@@ -32,5 +33,5 @@ public class OccasionDto extends BaseDto {
     private LocalDate endDate;
 
     @Schema(description = "Организация, проводящая мероприятие")
-    private OrganizationDto organization;
+    private EntityLinkDto organization;
 }

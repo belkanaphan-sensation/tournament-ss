@@ -4,8 +4,8 @@ databaseChangeLog:
       author: belkanaphan
       relativeToChangelogFile: true
       file: init/init-db.yml
-#  - include:
-#      id: 01-02-2025-bn-0
-#      author: belkanaphan
-#      relativeToChangelogFile: true
-#      file: 2025/02_01-2025.yaml
+  - include:
+      id: 04-09-2025-bn-0
+      author: belkanaphan
+      relativeToChangelogFile: true
+      file: 2025/04-09-2025.yml

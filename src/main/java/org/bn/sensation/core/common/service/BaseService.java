@@ -1,31 +1,32 @@
 package org.bn.sensation.core.common.service;
 
+import java.util.Optional;
+
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+public interface BaseService<T extends BaseEntity, R extends BaseDto> {
 
-@Slf4j
-@Transactional
-@RequiredArgsConstructor
-public abstract class BaseService<T extends BaseEntity, R extends BaseDto> {
+    BaseRepository<T> getRepository();
 
-  protected final BaseRepository<T> baseRepository;
-  protected final BaseDtoMapper<T, R> baseDtoMapper;
+    BaseDtoMapper<T, R> getMapper();
 
-  public R save(T entity) {
-    return baseDtoMapper.toDto(baseRepository.save(entity));
-  }
+    @Transactional
+    default R save(T entity) {
+        return getMapper().toDto(getRepository().save(entity));
+    }
 
-  public void delete(T entity) {
-    baseRepository.delete(entity);
-  }
+    @Transactional
+    default void delete(T entity) {
+        getRepository().delete(entity);
+    }
 
-  public R findById(Long id) {
-    return baseDtoMapper.toDto(baseRepository.findById(id).orElse(null));
-  }
+    @Transactional(readOnly = true)
+    default Optional<R> findById(Long id) {
+        return getRepository().findById(id)
+                .map(getMapper()::toDto);
+    }
 }
