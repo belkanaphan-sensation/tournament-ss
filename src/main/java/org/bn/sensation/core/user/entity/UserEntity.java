@@ -42,7 +42,11 @@ public class UserEntity extends BaseEntity {
     @Embedded
     private Person person;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "organization_id")
-    private OrganizationEntity organization;
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "users_organizations_association",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "organization_id"))
+    @Builder.Default
+    private Set<OrganizationEntity> organizations = new HashSet<>();
 }

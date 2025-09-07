@@ -229,10 +229,14 @@ databaseChangeLog:
             sql: |
               CREATE TABLE IF NOT EXISTS round (
                 id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255),
+                description TEXT,
+                milestone_id BIGINT,
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
-                modified_by VARCHAR(255)
+                modified_by VARCHAR(255),
+                FOREIGN KEY (milestone_id) REFERENCES milestone(id)
               );
       rollback:
         - sql:

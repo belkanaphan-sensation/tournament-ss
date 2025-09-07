@@ -9,11 +9,14 @@ import org.bn.sensation.core.organization.service.dto.CreateOrganizationRequest;
 import org.bn.sensation.core.organization.service.dto.OrganizationDto;
 import org.bn.sensation.core.organization.service.dto.UpdateOrganizationRequest;
 import org.bn.sensation.core.organization.service.mapper.OrganizationDtoMapper;
+import org.bn.sensation.core.organization.service.mapper.CreateOrganizationRequestMapper;
+import org.bn.sensation.core.organization.service.mapper.UpdateOrganizationRequestMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -22,6 +25,8 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     private final OrganizationRepository organizationRepository;
     private final OrganizationDtoMapper organizationDtoMapper;
+    private final CreateOrganizationRequestMapper createOrganizationRequestMapper;
+    private final UpdateOrganizationRequestMapper updateOrganizationRequestMapper;
 
     @Override
     public BaseRepository<OrganizationEntity> getRepository() {
@@ -57,19 +62,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         }
 
         // Create organization entity
-        OrganizationEntity organization = OrganizationEntity.builder()
-                .name(request.getName())
-                .description(request.getDescription())
-                .phoneNumber(request.getPhoneNumber())
-                .email(request.getEmail())
-                .address(request.getAddress() != null ? Address.builder()
-                        .country(request.getAddress().getCountry())
-                        .city(request.getAddress().getCity())
-                        .streetName(request.getAddress().getStreetName())
-                        .streetNumber(request.getAddress().getStreetNumber())
-                        .comment(request.getAddress().getComment())
-                        .build() : null)
-                .build();
+        OrganizationEntity organization = createOrganizationRequestMapper.toEntity(request);
 
         OrganizationEntity saved = organizationRepository.save(organization);
         return organizationDtoMapper.toDto(saved);
@@ -79,7 +72,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Transactional
     public OrganizationDto update(Long id, UpdateOrganizationRequest request) {
         OrganizationEntity organization = organizationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Organization not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Organization not found with id: " + id));
 
         // Check if name already exists (if changed)
         if (request.getName() != null && !request.getName().isBlank()
@@ -100,10 +93,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         }
 
         // Update organization fields
-        if (request.getName() != null) organization.setName(request.getName());
-        if (request.getDescription() != null) organization.setDescription(request.getDescription());
-        if (request.getPhoneNumber() != null) organization.setPhoneNumber(request.getPhoneNumber());
-        if (request.getEmail() != null) organization.setEmail(request.getEmail());
+        updateOrganizationRequestMapper.updateOrganizationFromRequest(request, organization);
 
         // Update address
         if (request.getAddress() != null) {
@@ -111,14 +101,7 @@ public class OrganizationServiceImpl implements OrganizationService {
             if (address == null) {
                 address = Address.builder().build();
             }
-
-            if (request.getAddress().getCountry() != null) address.setCountry(request.getAddress().getCountry());
-            if (request.getAddress().getCity() != null) address.setCity(request.getAddress().getCity());
-            if (request.getAddress().getStreetName() != null) address.setStreetName(request.getAddress().getStreetName());
-            if (request.getAddress().getStreetNumber() != null) address.setStreetNumber(request.getAddress().getStreetNumber());
-            if (request.getAddress().getComment() != null) address.setComment(request.getAddress().getComment());
-
-            organization.setAddress(address);
+            updateOrganizationRequestMapper.updateAddressFromRequest(request.getAddress(), address);
         }
 
         OrganizationEntity saved = organizationRepository.save(organization);

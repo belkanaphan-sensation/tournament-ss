@@ -1,6 +1,7 @@
 package org.bn.sensation.core.occasion.service.dto;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
@@ -8,7 +9,10 @@ import org.bn.sensation.core.common.dto.EntityLinkDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Data
@@ -34,4 +38,7 @@ public class OccasionDto extends BaseDto {
 
     @Schema(description = "Организация, проводящая мероприятие")
     private EntityLinkDto organization;
+
+    @Schema(description = "Список активностей мероприятия")
+    private Set<EntityLinkDto> activities;
 }

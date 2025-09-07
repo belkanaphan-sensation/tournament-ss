@@ -1,16 +1,14 @@
 package org.bn.sensation.core.organization.entity;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.BaseEntity;
+import org.bn.sensation.core.user.entity.UserEntity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
@@ -36,4 +34,8 @@ public class OrganizationEntity extends BaseEntity {
 
     @Embedded
     private Address address;
+
+    @ManyToMany(mappedBy = "organizations")
+    @Builder.Default
+    private Set<UserEntity> users = new HashSet<>();
 }

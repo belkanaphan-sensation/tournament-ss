@@ -11,7 +11,6 @@ version = '0.0.1-SNAPSHOT'
 description = 'sensation tournament module'
 
 ext {
-    set('jwtVersion', '0.12.6')
     set('springBootVersion', '3.5.5')
     set('lombokVersion', '1.18.36')
     set('validationVersion', '3.1.0')
@@ -57,9 +56,10 @@ dependencies {
     annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion" //аннотации
 
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation "io.jsonwebtoken:jjwt-api:$jwtVersion"
-    implementation "io.jsonwebtoken:jjwt-impl:$jwtVersion"
-    implementation "io.jsonwebtoken:jjwt-jackson:$jwtVersion"
+
+    //для распознавания передаваемых дат в формате 2025-04-15
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    implementation "com.google.guava:guava:33.4.8-jre"
 
     testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

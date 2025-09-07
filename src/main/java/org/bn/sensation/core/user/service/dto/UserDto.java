@@ -34,8 +34,8 @@ public class UserDto extends BaseDto {
     @Schema(description = "Личная информация")
     private PersonDto person;
 
-    @Schema(description = "Организация пользователя")
-    private EntityLinkDto organization;
+    @Schema(description = "Список организаций пользователя")
+    private Set<EntityLinkDto> organizations;
 
     @Schema(description = "Список ролей пользователя")
     private Set<EntityLinkDto> roles;

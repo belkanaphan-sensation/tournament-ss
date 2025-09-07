@@ -2,20 +2,27 @@ package org.bn.sensation.core.user.service.dto;
 
 import java.util.Set;
 
+import org.bn.sensation.core.common.dto.EmptyDto;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
+@EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Запрос на обновление пользователя")
-public class UpdateUserRequest {
+public class UpdateUserRequest extends EmptyDto {
 
     @Size(max = 100)
     @Schema(description = "Имя", example = "Иван")

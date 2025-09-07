@@ -6,6 +6,8 @@ import org.bn.sensation.core.activity.service.dto.ActivityDto;
 import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.activity.service.mapper.ActivityDtoMapper;
+import org.bn.sensation.core.activity.service.mapper.CreateActivityRequestMapper;
+import org.bn.sensation.core.activity.service.mapper.UpdateActivityRequestMapper;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
@@ -16,6 +18,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Preconditions;
+
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -24,6 +29,8 @@ public class ActivityServiceImpl implements ActivityService {
 
     private final ActivityRepository activityRepository;
     private final ActivityDtoMapper activityDtoMapper;
+    private final CreateActivityRequestMapper createActivityRequestMapper;
+    private final UpdateActivityRequestMapper updateActivityRequestMapper;
     private final OccasionRepository occasionRepository;
 
     @Override
@@ -46,27 +53,12 @@ public class ActivityServiceImpl implements ActivityService {
     @Transactional
     public ActivityDto create(CreateActivityRequest request) {
         // Validate occasion exists
-        OccasionEntity occasion = null;
-        if (request.getOccasionId() != null) {
-            occasion = occasionRepository.findById(request.getOccasionId())
-                    .orElseThrow(() -> new IllegalArgumentException("Occasion not found with id: " + request.getOccasionId()));
-        }
+        OccasionEntity occasion = occasionRepository.findById(request.getOccasionId())
+                .orElseThrow(() -> new EntityNotFoundException("Occasion not found with id: " + request.getOccasionId()));
 
         // Create activity entity
-        ActivityEntity activity = ActivityEntity.builder()
-                .name(request.getName())
-                .description(request.getDescription())
-                .startDateTime(request.getStartDateTime())
-                .endDateTime(request.getEndDateTime())
-                .address(request.getAddress() != null ? Address.builder()
-                        .country(request.getAddress().getCountry())
-                        .city(request.getAddress().getCity())
-                        .streetName(request.getAddress().getStreetName())
-                        .streetNumber(request.getAddress().getStreetNumber())
-                        .comment(request.getAddress().getComment())
-                        .build() : null)
-                .occasion(occasion)
-                .build();
+        ActivityEntity activity = createActivityRequestMapper.toEntity(request);
+        activity.setOccasion(occasion);
 
         ActivityEntity saved = activityRepository.save(activity);
         return activityDtoMapper.toDto(saved);
@@ -75,14 +67,13 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional
     public ActivityDto update(Long id, UpdateActivityRequest request) {
+        Preconditions.checkArgument(id != null, "Activity id must not be null");
+
         ActivityEntity activity = activityRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Activity not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Activity not found with id: " + id));
 
         // Update activity fields
-        if (request.getName() != null) activity.setName(request.getName());
-        if (request.getDescription() != null) activity.setDescription(request.getDescription());
-        if (request.getStartDateTime() != null) activity.setStartDateTime(request.getStartDateTime());
-        if (request.getEndDateTime() != null) activity.setEndDateTime(request.getEndDateTime());
+        updateActivityRequestMapper.updateActivityFromRequest(request, activity);
 
         // Update address
         if (request.getAddress() != null) {
@@ -90,20 +81,13 @@ public class ActivityServiceImpl implements ActivityService {
             if (address == null) {
                 address = Address.builder().build();
             }
-
-            if (request.getAddress().getCountry() != null) address.setCountry(request.getAddress().getCountry());
-            if (request.getAddress().getCity() != null) address.setCity(request.getAddress().getCity());
-            if (request.getAddress().getStreetName() != null) address.setStreetName(request.getAddress().getStreetName());
-            if (request.getAddress().getStreetNumber() != null) address.setStreetNumber(request.getAddress().getStreetNumber());
-            if (request.getAddress().getComment() != null) address.setComment(request.getAddress().getComment());
-
-            activity.setAddress(address);
+            updateActivityRequestMapper.updateAddressFromRequest(request.getAddress(), address);
         }
 
         // Update occasion
         if (request.getOccasionId() != null) {
             OccasionEntity occasion = occasionRepository.findById(request.getOccasionId())
-                    .orElseThrow(() -> new IllegalArgumentException("Occasion not found with id: " + request.getOccasionId()));
+                    .orElseThrow(() -> new EntityNotFoundException("Occasion not found with id: " + request.getOccasionId()));
             activity.setOccasion(occasion);
         }
 

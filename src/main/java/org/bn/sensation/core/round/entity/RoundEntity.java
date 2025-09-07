@@ -30,11 +30,7 @@ public class RoundEntity extends BaseEntity {
     @JoinColumn(name = "milestone_id")
     private MilestoneEntity milestone;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-            name = "rounds_participants_association",
-            joinColumns = @JoinColumn(name = "round_id"),
-            inverseJoinColumns = @JoinColumn(name = "participant_id"))
+    @ManyToMany(mappedBy = "rounds")
     @Builder.Default
     private Set<ParticipantEntity> participants = new HashSet<>();
 }

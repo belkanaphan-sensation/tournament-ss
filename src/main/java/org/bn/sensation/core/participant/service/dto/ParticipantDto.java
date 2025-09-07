@@ -1,12 +1,18 @@
 package org.bn.sensation.core.participant.service.dto;
 
+import java.util.Set;
+
 import org.bn.sensation.core.common.dto.BaseDto;
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.dto.PersonDto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Data
@@ -23,4 +29,10 @@ public class ParticipantDto extends BaseDto {
 
     @Schema(description = "Стартовый номер участника", example = "A-102")
     private String number;
+
+    @Schema(description = "Активность участника")
+    private EntityLinkDto activity;
+
+    @Schema(description = "Список раундов участника")
+    private Set<EntityLinkDto> rounds;
 }

@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.organization.entity.OrganizationEntity;
+import org.bn.sensation.core.organization.repository.OrganizationRepository;
 import org.bn.sensation.core.role.entity.Role;
 import org.bn.sensation.core.role.entity.RoleEntity;
 import org.bn.sensation.core.role.repository.RoleRepository;
@@ -16,6 +18,8 @@ import org.bn.sensation.core.user.entity.UserEntity;
 import org.bn.sensation.core.user.repository.UserRepository;
 import org.bn.sensation.core.user.service.dto.*;
 import org.bn.sensation.core.user.service.mapper.UserDtoMapper;
+import org.bn.sensation.core.user.service.mapper.CreateUserRequestMapper;
+import org.bn.sensation.core.user.service.mapper.UpdateUserRequestMapper;
 import org.bn.sensation.security.AesPasswordEncoder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +28,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +41,11 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final OrganizationRepository organizationRepository;
     private final UserDtoMapper userDtoMapper;
+    private final CreateUserRequestMapper createUserRequestMapper;
+    private final UpdateUserRequestMapper updateUserRequestMapper;
+
     //    private final PasswordEncoder passwordEncoder;
     private final AesPasswordEncoder passwordEncoder;
 
@@ -64,7 +73,7 @@ public class UserServiceImpl implements UserService {
                         .findByUsername(userDetails.getUsername())
                         .orElseThrow(
                                 () ->
-                                        new IllegalArgumentException(
+                                        new EntityNotFoundException(
                                                 "User with username not found: " + userDetails.getUsername()));
         user.setPassword(passwordEncoder.encode(request.newPassword()));
 
@@ -87,7 +96,7 @@ public class UserServiceImpl implements UserService {
             user = userRepository.findByPersonEmail(request.email()).orElse(null);
         }
         if (user == null) {
-            throw new IllegalArgumentException("User not found by provided username or email");
+            throw new EntityNotFoundException("User not found by provided username or email");
         }
 
         String tempPassword = generateTempPassword(14);
@@ -168,28 +177,12 @@ public class UserServiceImpl implements UserService {
         }
 
         // Get roles
-        Set<RoleEntity> roles = Set.of();
-        if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
-            roles = request.getRoleIds().stream()
-                    .map(roleId -> roleRepository.findById(roleId)
-                            .orElseThrow(() -> new IllegalArgumentException("Role not found with id: " + roleId)))
-                    .collect(Collectors.toSet());
-        }
+        Set<RoleEntity> roles = findRolesByIds(request.getRoleIds());
 
         // Create user entity
-        UserEntity user = UserEntity.builder()
-                .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .status(Status.valueOf(request.getStatus()))
-                .roles(roles)
-                .person(Person.builder()
-                        .name(request.getName())
-                        .surname(request.getSurname())
-                        .secondName(request.getSecondName())
-                        .email(request.getEmail())
-                        .phoneNumber(request.getPhoneNumber())
-                        .build())
-                .build();
+        UserEntity user = createUserRequestMapper.toEntity(request);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRoles(roles);
 
         UserEntity saved = userRepository.save(user);
         return userDtoMapper.toDto(saved);
@@ -199,7 +192,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto update(Long id, UpdateUserRequest request) {
         UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
 
         // Check if email already exists (if changed)
         if (request.getEmail() != null && !request.getEmail().isBlank()
@@ -210,31 +203,12 @@ public class UserServiceImpl implements UserService {
                     });
         }
 
-        // Update person data
-        Person person = user.getPerson();
-        if (person == null) {
-            person = Person.builder().build();
-        }
-
-        if (request.getName() != null) person.setName(request.getName());
-        if (request.getSurname() != null) person.setSurname(request.getSurname());
-        if (request.getSecondName() != null) person.setSecondName(request.getSecondName());
-        if (request.getEmail() != null) person.setEmail(request.getEmail());
-        if (request.getPhoneNumber() != null) person.setPhoneNumber(request.getPhoneNumber());
-
-        user.setPerson(person);
-
-        // Update status
-        if (request.getStatus() != null) {
-            user.setStatus(Status.valueOf(request.getStatus()));
-        }
+        // Update user fields
+        updateUserRequestMapper.updateUserFromRequest(request, user);
 
         // Update roles
         if (request.getRoleIds() != null) {
-            Set<RoleEntity> roles = request.getRoleIds().stream()
-                    .map(roleId -> roleRepository.findById(roleId)
-                            .orElseThrow(() -> new IllegalArgumentException("Role not found with id: " + roleId)))
-                    .collect(Collectors.toSet());
+            Set<RoleEntity> roles = findRolesByIds(request.getRoleIds());
             user.setRoles(roles);
         }
 
@@ -246,9 +220,21 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteById(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new IllegalArgumentException("User not found with id: " + id);
+            throw new EntityNotFoundException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public UserDto assignUserToOrganization(Long userId, Long organizationId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        OrganizationEntity org = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new EntityNotFoundException("Organization not found"));
+
+        user.getOrganizations().add(org);
+        return userDtoMapper.toDto(userRepository.save(user));
     }
 
     private static String generateTempPassword(int length) {
@@ -258,5 +244,15 @@ public class UserServiceImpl implements UserService {
             sb.append(alphabet.charAt(rnd.nextInt(alphabet.length())));
         }
         return sb.toString();
+    }
+
+    private Set<RoleEntity> findRolesByIds(Set<Long> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return Set.of();
+        }
+        return roleIds.stream()
+                .map(roleId -> roleRepository.findById(roleId)
+                        .orElseThrow(() -> new EntityNotFoundException("Role not found with id: " + roleId)))
+                .collect(Collectors.toSet());
     }
 }

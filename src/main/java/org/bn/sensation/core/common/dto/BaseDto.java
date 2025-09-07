@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @SuperBuilder(toBuilder = true)
-public abstract class BaseDto {
+public abstract class BaseDto extends EmptyDto{
 
   @Schema(description = "Id в БД", example = "5", accessMode = Schema.AccessMode.READ_ONLY)
   @Min(value = 0, message = "ID должен быть больше или равно 0")

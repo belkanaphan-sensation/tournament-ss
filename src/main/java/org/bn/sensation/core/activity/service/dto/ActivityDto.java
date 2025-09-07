@@ -1,6 +1,7 @@
 package org.bn.sensation.core.activity.service.dto;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.dto.BaseDto;
@@ -12,7 +13,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Data
@@ -45,4 +49,10 @@ public class ActivityDto extends BaseDto {
 
     @Schema(description = "Мероприятие, частью которого является активность")
     private EntityLinkDto occasion;
+
+    @Schema(description = "Список участников")
+    private Set<EntityLinkDto> participants;
+
+    @Schema(description = "Список этапов")
+    private Set<EntityLinkDto> milestones;
 }

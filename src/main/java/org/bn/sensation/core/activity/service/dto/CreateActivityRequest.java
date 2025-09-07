@@ -3,24 +3,31 @@ package org.bn.sensation.core.activity.service.dto;
 import java.time.LocalDateTime;
 
 import org.bn.sensation.core.common.dto.AddressDto;
+import org.bn.sensation.core.common.dto.EmptyDto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
+@EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Запрос на создание активности")
-public class CreateActivityRequest {
+public class CreateActivityRequest extends EmptyDto {
 
-    @NotBlank
     @Size(max = 255)
+    @NotBlank
     @Schema(description = "Название активности", example = "Открытие турнира")
     private String name;
 
@@ -28,6 +35,7 @@ public class CreateActivityRequest {
     @Schema(description = "Описание активности", example = "Церемония открытия, приветственное слово организаторов")
     private String description;
 
+    @NotNull
     @Schema(description = "Дата и время начала", example = "2025-09-15T10:00:00")
     private LocalDateTime startDateTime;
 
@@ -37,6 +45,7 @@ public class CreateActivityRequest {
     @Schema(description = "Адрес проведения")
     private AddressDto address;
 
+    @NotNull
     @Schema(description = "ID мероприятия, частью которого является активность")
     private Long occasionId;
 }

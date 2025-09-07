@@ -9,11 +9,14 @@ import org.bn.sensation.core.role.service.dto.CreateRoleRequest;
 import org.bn.sensation.core.role.service.dto.RoleDto;
 import org.bn.sensation.core.role.service.dto.UpdateRoleRequest;
 import org.bn.sensation.core.role.service.mapper.RoleDtoMapper;
+import org.bn.sensation.core.role.service.mapper.CreateRoleRequestMapper;
+import org.bn.sensation.core.role.service.mapper.UpdateRoleRequestMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -22,6 +25,8 @@ public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
     private final RoleDtoMapper roleDtoMapper;
+    private final CreateRoleRequestMapper createRoleRequestMapper;
+    private final UpdateRoleRequestMapper updateRoleRequestMapper;
 
     @Override
     public BaseRepository<RoleEntity> getRepository() {
@@ -49,9 +54,7 @@ public class RoleServiceImpl implements RoleService {
         }
 
         // Create role entity
-        RoleEntity role = RoleEntity.builder()
-                .role(Role.valueOf(request.getRole()))
-                .build();
+        RoleEntity role = createRoleRequestMapper.toEntity(request);
 
         RoleEntity saved = roleRepository.save(role);
         return roleDtoMapper.toDto(saved);
@@ -61,7 +64,7 @@ public class RoleServiceImpl implements RoleService {
     @Transactional
     public RoleDto update(Long id, UpdateRoleRequest request) {
         RoleEntity role = roleRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Role not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Role not found with id: " + id));
 
         // Check if new role value already exists (if changed)
         if (request.getRole() != null && !request.getRole().equals(role.getRole().name())) {
@@ -72,9 +75,7 @@ public class RoleServiceImpl implements RoleService {
         }
 
         // Update role
-        if (request.getRole() != null) {
-            role.setRole(Role.valueOf(request.getRole()));
-        }
+        updateRoleRequestMapper.updateRoleFromRequest(request, role);
 
         RoleEntity saved = roleRepository.save(role);
         return roleDtoMapper.toDto(saved);
