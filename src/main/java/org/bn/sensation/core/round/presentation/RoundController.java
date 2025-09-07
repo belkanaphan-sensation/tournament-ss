@@ -1,0 +1,64 @@
+package org.bn.sensation.core.round.presentation;
+
+import org.bn.sensation.core.round.service.RoundService;
+import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
+import org.bn.sensation.core.round.service.dto.RoundDto;
+import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/api/v1/round")
+@RequiredArgsConstructor
+@SecurityRequirement(name = "cookieAuth")
+@Tag(name = "Round", description = "The Round API")
+public class RoundController {
+
+    private final RoundService roundService;
+
+    @Operation(summary = "Get round by id")
+    @GetMapping(path = "/{id}")
+    public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
+        return roundService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(404).build());
+    }
+
+    @Operation(summary = "Get all rounds with pagination")
+    @GetMapping
+    public ResponseEntity<Page<RoundDto>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(roundService.findAll(pageable));
+    }
+
+    @Operation(summary = "Create new round")
+    @PostMapping
+    public ResponseEntity<RoundDto> create(@Valid @RequestBody CreateRoundRequest request) {
+        RoundDto created = roundService.create(request);
+        return ResponseEntity.ok(created);
+    }
+
+    @Operation(summary = "Update round by id")
+    @PutMapping("/{id}")
+    public ResponseEntity<RoundDto> update(@PathVariable("id") @NotNull Long id,
+                                         @Valid @RequestBody UpdateRoundRequest request) {
+        RoundDto updated = roundService.update(id, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    @Operation(summary = "Delete round by id")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
+        roundService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+}

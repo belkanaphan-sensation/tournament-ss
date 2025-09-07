@@ -99,18 +99,20 @@ spotless {
         // Удаляет неиспользуемые импорты
         removeUnusedImports()
         // Задаём порядок импортов + пустые строки между группами
-        importOrder(
-                'static javax',
-                'static org',
-                'static com',
-                'static',
-
-                'java',
-                'javax',
-                'org',
-                'com',
-                ''
-        )
+        // Мне больше нравится поручать это форматирование идее, т.к. она форматирует на лету
+        // и не надо ничего дополнительно применять, потому я убрала
+//        importOrder(
+//                'static javax',
+//                'static org',
+//                'static com',
+//                'static',
+//
+//                'java',
+//                'javax',
+//                'org',
+//                'com',
+//                ''
+//        )
 
         // Убирает trailing пробелы
         trimTrailingWhitespace()

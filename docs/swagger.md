@@ -6,9 +6,8 @@
 
       ```
       http://<host>:<port>/login
-      http://localhost:8080/login
       ```
-    * Введите логин и пароль.
+    * Введите логин и пароль в [login](http://localhost:8080/login)
     * После успешной аутентификации Spring выдаст cookie `JSESSIONID`.
 
 2. **Получение куки**
@@ -18,11 +17,10 @@
 
 3. **Авторизация в Swagger**
 
-    * Перейдите в Swagger UI:
+    * Перейдите в Swagger UI: [swagger](http://localhost:8080/swagger-ui/index.html)
 
       ```
       http://<host>:<port>/swagger-ui/index.html
-      http://localhost:8080/swagger-ui/index.html
       ```
     * Нажмите кнопку **Authorize**.
     * Вставьте скопированное значение `JSESSIONID` в поле авторизации.
