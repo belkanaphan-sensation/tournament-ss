@@ -22,10 +22,6 @@ import lombok.experimental.SuperBuilder;
 public class CreateRoleRequest extends EmptyDto {
 
     @NotBlank
-//    @Pattern(regexp = "^(SUPERADMIN|ADMIN|OCCASION_ADMIN|USER|READER)$",
-//             message = "Role must be one of: SUPERADMIN, ADMIN, OCCASION_ADMIN, USER, READER")
-//    @Schema(description = "Название роли", example = "ADMIN",
-//            allowableValues = {"SUPERADMIN", "ADMIN", "OCCASION_ADMIN", "USER", "READER"})
     @Schema(description = "Название роли", example = "ADMIN")
     private String role;
 }

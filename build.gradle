@@ -3,7 +3,7 @@ plugins {
     id 'org.springframework.boot' version '3.5.5'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.liquibase.gradle' version '2.2.0'
-    id 'com.diffplug.spotless' version '6.25.0' // Проверьте актуальную версию
+    id 'com.diffplug.spotless' version '6.25.0'
 }
 
 group = 'org.bn'
@@ -17,6 +17,8 @@ ext {
     set('liquibaseVersion', '4.33.0')
     set('openApiVersion', '2.7.0')
     set('mapstructVersion', '1.6.3')
+    set('mockitoVersion', '5.14.0')
+    set('guavaVersion', '33.4.8-jre')
 }
 
 java {
@@ -29,6 +31,8 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    // конфигурация для mockito-agent
+    mockitoAgent
 }
 
 repositories {
@@ -53,29 +57,32 @@ dependencies {
     implementation 'org.liquibase:liquibase-core'
 
     implementation "org.mapstruct:mapstruct:$mapstructVersion"
-    annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion" //аннотации
+    annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
 
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-    //для распознавания передаваемых дат в формате 2025-04-15
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    implementation "com.google.guava:guava:33.4.8-jre"
+    implementation "com.google.guava:guava:$guavaVersion"
 
     testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
+    testImplementation 'com.h2database:h2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // mockito
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
+    mockitoAgent("org.mockito:mockito-core:$mockitoVersion") {
+        transitive = false
+    }
 
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 }
-    //хз надо или нет
-//таким образом мы даем возможность имплементить без указания версии в дочерние депенденси
+
 dependencyManagement {
     imports {
         mavenBom "org.springframework.boot:spring-boot-dependencies:$springBootVersion"
     }
 }
 
-//настройка плагина для ручного запуска миграции
-//todo спрятать креды
 liquibase {
     activities {
         register("main") {
@@ -91,6 +98,8 @@ liquibase {
 
 tasks.named('test') {
     useJUnitPlatform()
+    // подключение mockito agent
+    jvmArgs += "-javaagent:${configurations.mockitoAgent.asPath}"
 }
 
 spotless {

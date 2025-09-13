@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.common.entity.Status;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -41,4 +42,7 @@ public class OccasionDto extends BaseDto {
 
     @Schema(description = "Список активностей мероприятия")
     private Set<EntityLinkDto> activities;
+
+    @Schema(description = "Статус мероприятия", example = "DRAFT")
+    private Status status;
 }

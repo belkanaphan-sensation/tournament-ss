@@ -1,6 +1,6 @@
 spring:
   application:
-    name: jack-and-jill
+    name: tournament
   datasource:
     url: jdbc:postgresql://192.168.1.89:9432/sensation
     username: postgres

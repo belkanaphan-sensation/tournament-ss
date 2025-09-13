@@ -11,6 +11,10 @@ import org.mapstruct.*;
 public interface UpdateOrganizationRequestMapper extends BaseDtoMapper<OrganizationEntity, UpdateOrganizationRequest> {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "address.city", source = "address.city")
+    @Mapping(target = "address.streetName", source = "address.streetName")
+    @Mapping(target = "address.streetNumber", source = "address.streetNumber")
+    @Mapping(target = "users", ignore = true)
     void updateOrganizationFromRequest(UpdateOrganizationRequest request, @MappingTarget OrganizationEntity entity);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

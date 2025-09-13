@@ -52,11 +52,11 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional
     public ActivityDto create(CreateActivityRequest request) {
-        // Validate occasion exists
+        // Проверяем существование события
         OccasionEntity occasion = occasionRepository.findById(request.getOccasionId())
-                .orElseThrow(() -> new EntityNotFoundException("Occasion not found with id: " + request.getOccasionId()));
+                .orElseThrow(() -> new EntityNotFoundException("Событие не найдено с id: " + request.getOccasionId()));
 
-        // Create activity entity
+        // Создаем сущность активности
         ActivityEntity activity = createActivityRequestMapper.toEntity(request);
         activity.setOccasion(occasion);
 
@@ -67,15 +67,15 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional
     public ActivityDto update(Long id, UpdateActivityRequest request) {
-        Preconditions.checkArgument(id != null, "Activity id must not be null");
+        Preconditions.checkArgument(id != null, "ID активности не может быть null");
 
         ActivityEntity activity = activityRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Activity not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + id));
 
-        // Update activity fields
+        // Обновляем поля активности
         updateActivityRequestMapper.updateActivityFromRequest(request, activity);
 
-        // Update address
+        // Обновляем адрес
         if (request.getAddress() != null) {
             Address address = activity.getAddress();
             if (address == null) {
@@ -84,10 +84,10 @@ public class ActivityServiceImpl implements ActivityService {
             updateActivityRequestMapper.updateAddressFromRequest(request.getAddress(), address);
         }
 
-        // Update occasion
+        // Обновляем событие
         if (request.getOccasionId() != null) {
             OccasionEntity occasion = occasionRepository.findById(request.getOccasionId())
-                    .orElseThrow(() -> new EntityNotFoundException("Occasion not found with id: " + request.getOccasionId()));
+                    .orElseThrow(() -> new EntityNotFoundException("Событие не найдено с id: " + request.getOccasionId()));
             activity.setOccasion(occasion);
         }
 
@@ -99,7 +99,7 @@ public class ActivityServiceImpl implements ActivityService {
     @Transactional
     public void deleteById(Long id) {
         if (!activityRepository.existsById(id)) {
-            throw new IllegalArgumentException("Activity not found with id: " + id);
+            throw new IllegalArgumentException("Активность не найдена с id: " + id);
         }
         activityRepository.deleteById(id);
     }

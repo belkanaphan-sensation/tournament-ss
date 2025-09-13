@@ -7,13 +7,25 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO role (role, created_at) VALUES
-                ('SUPERADMIN', NOW()),
-                ('ADMIN', NOW()),
-                ('OCCASION_ADMIN', NOW()),
-                ('USER', NOW()),
-                ('READER', NOW())
-              ON CONFLICT (role) DO NOTHING;
+              INSERT INTO role (role, created_at, version) 
+              SELECT 'SUPERADMIN', NOW(), 0 
+              WHERE NOT EXISTS (SELECT 1 FROM role WHERE role.role = 'SUPERADMIN');
+              
+              INSERT INTO role (role, created_at, version) 
+              SELECT 'ADMIN', NOW(), 0 
+              WHERE NOT EXISTS (SELECT 1 FROM role WHERE role.role = 'ADMIN');
+              
+              INSERT INTO role (role, created_at, version) 
+              SELECT 'OCCASION_ADMIN', NOW(), 0 
+              WHERE NOT EXISTS (SELECT 1 FROM role WHERE role.role = 'OCCASION_ADMIN');
+              
+              INSERT INTO role (role, created_at, version) 
+              SELECT 'USER', NOW(), 0 
+              WHERE NOT EXISTS (SELECT 1 FROM role WHERE role.role = 'USER');
+              
+              INSERT INTO role (role, created_at, version) 
+              SELECT 'READER', NOW(), 0 
+              WHERE NOT EXISTS (SELECT 1 FROM role WHERE role.role = 'READER');
       rollback:
         - sql:
             sql: |

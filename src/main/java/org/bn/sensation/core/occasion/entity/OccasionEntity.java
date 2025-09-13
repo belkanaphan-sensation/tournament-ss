@@ -1,17 +1,16 @@
 package org.bn.sensation.core.occasion.entity;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.entity.BaseEntity;
+import org.bn.sensation.core.common.entity.Status;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
@@ -35,10 +34,15 @@ public class OccasionEntity extends BaseEntity {
     @Column(name = "end_date")
     private LocalDate endDate; // 15.04.2025
 
+    @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "organization_id")
     private OrganizationEntity organization;
 
-    @OneToMany(mappedBy = "occasion")
-    private List<ActivityEntity> activities;
+    @OneToMany(mappedBy = "occasion", cascade = CascadeType.REMOVE)
+    @Builder.Default
+    private Set<ActivityEntity> activities = new HashSet<>();
 }

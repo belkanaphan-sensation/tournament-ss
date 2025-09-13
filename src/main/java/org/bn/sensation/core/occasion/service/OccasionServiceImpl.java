@@ -49,10 +49,10 @@ public class OccasionServiceImpl implements OccasionService {
     @Override
     @Transactional
     public OccasionDto create(CreateOccasionRequest request) {
-        // Validate organization exists
+        // Проверяем, что организация существует
         OrganizationEntity organization = findOrganizationById(request.getOrganizationId());
 
-        // Create occasion entity
+        // Создаем сущность мероприятия
         OccasionEntity occasion = createOccasionRequestMapper.toEntity(request);
         occasion.setOrganization(organization);
 
@@ -64,12 +64,12 @@ public class OccasionServiceImpl implements OccasionService {
     @Transactional
     public OccasionDto update(Long id, UpdateOccasionRequest request) {
         OccasionEntity occasion = occasionRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Occasion not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Событие не найдено с id: " + id));
 
-        // Update occasion fields
+        // Обновляем поля мероприятия
         updateOccasionRequestMapper.updateOccasionFromRequest(request, occasion);
 
-        // Update organization
+        // Обновляем организацию
         if (request.getOrganizationId() != null) {
             OrganizationEntity organization = findOrganizationById(request.getOrganizationId());
             occasion.setOrganization(organization);
@@ -83,7 +83,7 @@ public class OccasionServiceImpl implements OccasionService {
     @Transactional
     public void deleteById(Long id) {
         if (!occasionRepository.existsById(id)) {
-            throw new IllegalArgumentException("Occasion not found with id: " + id);
+            throw new IllegalArgumentException("Событие не найдено с id: " + id);
         }
         occasionRepository.deleteById(id);
     }
@@ -93,6 +93,6 @@ public class OccasionServiceImpl implements OccasionService {
             return null;
         }
         return organizationRepository.findById(organizationId)
-                .orElseThrow(() -> new EntityNotFoundException("Organization not found with id: " + organizationId));
+                .orElseThrow(() -> new EntityNotFoundException("Организация не найдена с id: " + organizationId));
     }
 }

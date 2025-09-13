@@ -6,6 +6,7 @@ import java.util.Set;
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.common.entity.Status;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -50,9 +51,9 @@ public class ActivityDto extends BaseDto {
     @Schema(description = "Мероприятие, частью которого является активность")
     private EntityLinkDto occasion;
 
-    @Schema(description = "Список участников")
-    private Set<EntityLinkDto> participants;
-
     @Schema(description = "Список этапов")
     private Set<EntityLinkDto> milestones;
+
+    @Schema(description = "Статус активности", example = "DRAFT")
+    private Status status;
 }

@@ -1,6 +1,7 @@
 package org.bn.sensation.core.milestone.service.dto;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
+import org.bn.sensation.core.common.entity.Status;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -29,4 +30,7 @@ public class CreateMilestoneRequest extends EmptyDto {
 
     @Schema(description = "ID активности, частью которой является веха")
     private Long activityId;
+
+    @Schema(description = "Статус вехи", example = "DRAFT")
+    private Status status;
 }

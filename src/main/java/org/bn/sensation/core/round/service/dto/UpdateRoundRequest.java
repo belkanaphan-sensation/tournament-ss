@@ -3,6 +3,7 @@ package org.bn.sensation.core.round.service.dto;
 import java.util.Set;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
+import org.bn.sensation.core.common.entity.Status;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -36,4 +37,7 @@ public class UpdateRoundRequest extends EmptyDto {
 
     @Schema(description = "Список ID участников")
     private Set<Long> participantIds;
+
+    @Schema(description = "Статус раунда", example = "DRAFT")
+    private Status status;
 }

@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.common.entity.Status;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -31,4 +32,7 @@ public class MilestoneDto extends BaseDto {
 
     @Schema(description = "Список раундов")
     private Set<EntityLinkDto> rounds;
+
+    @Schema(description = "Статус вехи", example = "DRAFT")
+    private Status status;
 }

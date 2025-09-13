@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.dto.EmptyDto;
+import org.bn.sensation.core.common.entity.Status;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -43,4 +44,7 @@ public class UpdateActivityRequest extends EmptyDto {
 
     @Schema(description = "ID мероприятия, частью которого является активность")
     private Long occasionId;
+
+    @Schema(description = "Статус активности", example = "DRAFT")
+    private Status status;
 }

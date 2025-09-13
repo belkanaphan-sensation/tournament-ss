@@ -1,0 +1,36 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        show-sql: false
+        format_sql: false
+  
+  h2:
+    console:
+      enabled: true
+  
+  security:
+    user:
+      name: test
+      password: test
+
+logging:
+  level:
+    org.bn.sensation: DEBUG
+    org.springframework.security: DEBUG
+#    ДЛя отображения sql - DEBUG
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# Test specific configurations
+test:
+  user:
+    default-role: USER
+    default-status: ACTIVE

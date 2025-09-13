@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.common.entity.Status;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -34,4 +35,7 @@ public class RoundDto extends BaseDto {
 
     @Schema(description = "Список участников раунда")
     private Set<EntityLinkDto> participants;
+
+    @Schema(description = "Статус раунда", example = "DRAFT")
+    private Status status;
 }

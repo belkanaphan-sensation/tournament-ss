@@ -49,10 +49,10 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     @Transactional
     public MilestoneDto create(CreateMilestoneRequest request) {
-        // Validate activity exists
+        // Проверяем, что активность существует
         ActivityEntity activity = findActivityById(request.getActivityId());
 
-        // Create milestone entity
+        // Создаем сущность вехи
         MilestoneEntity milestone = createMilestoneRequestMapper.toEntity(request);
         milestone.setActivity(activity);
 
@@ -64,12 +64,12 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Transactional
     public MilestoneDto update(Long id, UpdateMilestoneRequest request) {
         MilestoneEntity milestone = milestoneRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Milestone not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + id));
 
-        // Update milestone fields
+        // Обновляем поля вехи
         updateMilestoneRequestMapper.updateMilestoneFromRequest(request, milestone);
 
-        // Update activity
+        // Обновляем активность
         if (request.getActivityId() != null) {
             ActivityEntity activity = findActivityById(request.getActivityId());
             milestone.setActivity(activity);
@@ -83,7 +83,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Transactional
     public void deleteById(Long id) {
         if (!milestoneRepository.existsById(id)) {
-            throw new IllegalArgumentException("Milestone not found with id: " + id);
+            throw new IllegalArgumentException("Этап не найден с id: " + id);
         }
         milestoneRepository.deleteById(id);
     }
@@ -93,6 +93,6 @@ public class MilestoneServiceImpl implements MilestoneService {
             return null;
         }
         return activityRepository.findById(activityId)
-                .orElseThrow(() -> new EntityNotFoundException("Activity not found with id: " + activityId));
+                .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + activityId));
     }
 }

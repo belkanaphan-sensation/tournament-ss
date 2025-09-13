@@ -64,7 +64,7 @@ public class CreateUserRequest extends EmptyDto {
     private String status;
 
     @Schema(description = "ID организации")
-    private Long organizationId;
+    private Set<Long> organizationIds;
 
     @Schema(description = "Список ID ролей")
     private Set<Long> roleIds;

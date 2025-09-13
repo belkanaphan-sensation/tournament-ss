@@ -11,6 +11,8 @@ import org.bn.sensation.core.role.entity.RoleEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "users")
@@ -37,7 +39,7 @@ public class UserEntity extends BaseEntity {
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private UserStatus status;
 
     @Embedded
     private Person person;
@@ -47,6 +49,7 @@ public class UserEntity extends BaseEntity {
             name = "users_organizations_association",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "organization_id"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @Builder.Default
     private Set<OrganizationEntity> organizations = new HashSet<>();
 }

@@ -1,10 +1,13 @@
 package org.bn.sensation.core.round.service.dto;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
+import org.bn.sensation.core.common.entity.Status;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,12 +26,17 @@ public class CreateRoundRequest extends EmptyDto {
 
     @Size(max = 255)
     @Schema(description = "Название раунда", example = "Первый раунд")
+    @NotBlank
     private String name;
 
     @Size(max = 2000)
     @Schema(description = "Описание раунда", example = "Квалификационный раунд")
     private String description;
 
-    @Schema(description = "ID вехи, частью которой является раунд")
+    @Schema(description = "ID этапа, частью которой является раунд")
+    @NotNull
     private Long milestoneId;
+
+    @Schema(description = "Статус раунда", example = "DRAFT")
+    private Status status;
 }

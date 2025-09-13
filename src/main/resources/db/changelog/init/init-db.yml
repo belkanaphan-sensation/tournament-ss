@@ -21,7 +21,8 @@ databaseChangeLog:
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
-                modified_by VARCHAR(255)
+                modified_by VARCHAR(255),
+                version BIGINT NOT NULL DEFAULT 0
               );
       rollback:
         - sql:
@@ -42,7 +43,8 @@ databaseChangeLog:
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
-                modified_by VARCHAR(255)
+                modified_by VARCHAR(255),
+                version BIGINT NOT NULL DEFAULT 0
               );
       rollback:
         - sql:
@@ -72,6 +74,7 @@ databaseChangeLog:
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
                 modified_by VARCHAR(255),
+                version BIGINT NOT NULL DEFAULT 0,
                 FOREIGN KEY (organization_id) REFERENCES organization(id)
               );
       rollback:
@@ -111,6 +114,7 @@ databaseChangeLog:
                 id BIGSERIAL PRIMARY KEY,
                 name VARCHAR(255),
                 description TEXT,
+                status VARCHAR(20) NOT NULL,
                 start_date DATE,
                 end_date DATE,
                 organization_id BIGINT,
@@ -118,6 +122,7 @@ databaseChangeLog:
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
                 modified_by VARCHAR(255),
+                version BIGINT NOT NULL DEFAULT 0,
                 FOREIGN KEY (organization_id) REFERENCES organization(id)
               );
       rollback:
@@ -137,6 +142,7 @@ databaseChangeLog:
                 id BIGSERIAL PRIMARY KEY,
                 name VARCHAR(255),
                 description TEXT,
+                status VARCHAR(20) NOT NULL,
                 start_date_time TIMESTAMP,
                 end_date_time TIMESTAMP,
                 country VARCHAR(100),
@@ -149,6 +155,7 @@ databaseChangeLog:
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
                 modified_by VARCHAR(255),
+                version BIGINT NOT NULL DEFAULT 0,
                 FOREIGN KEY (occasion_id) REFERENCES occasion(id)
               );
       rollback:
@@ -169,7 +176,8 @@ databaseChangeLog:
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
-                modified_by VARCHAR(255)
+                modified_by VARCHAR(255),
+                version BIGINT NOT NULL DEFAULT 0
               );
       rollback:
         - sql:
@@ -187,11 +195,13 @@ databaseChangeLog:
               CREATE TABLE IF NOT EXISTS milestone (
                 id BIGSERIAL PRIMARY KEY,
                 name VARCHAR(255),
+                status VARCHAR(20) NOT NULL,
                 activity_id BIGINT,
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
                 modified_by VARCHAR(255),
+                version BIGINT NOT NULL DEFAULT 0,
                 FOREIGN KEY (activity_id) REFERENCES activity(id)
               );
       rollback:
@@ -212,7 +222,8 @@ databaseChangeLog:
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
-                modified_by VARCHAR(255)
+                modified_by VARCHAR(255),
+                version BIGINT NOT NULL DEFAULT 0
               );
       rollback:
         - sql:
@@ -231,11 +242,13 @@ databaseChangeLog:
                 id BIGSERIAL PRIMARY KEY,
                 name VARCHAR(255),
                 description TEXT,
+                status VARCHAR(20) NOT NULL,
                 milestone_id BIGINT,
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
                 modified_by VARCHAR(255),
+                version BIGINT NOT NULL DEFAULT 0,
                 FOREIGN KEY (milestone_id) REFERENCES milestone(id)
               );
       rollback:
@@ -265,6 +278,7 @@ databaseChangeLog:
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
                 modified_by VARCHAR(255),
+                version BIGINT NOT NULL DEFAULT 0,
                 FOREIGN KEY (activity_id) REFERENCES activity(id),
                 FOREIGN KEY (round_id) REFERENCES round(id)
               );

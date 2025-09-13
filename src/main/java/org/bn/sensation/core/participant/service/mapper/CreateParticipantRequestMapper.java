@@ -16,9 +16,19 @@ public interface CreateParticipantRequestMapper extends BaseDtoMapper<Participan
     @Override
     @Mapping(target = "activity", source = "activityId")
     @Mapping(target = "rounds", ignore = true)
+    @Mapping(target = "person.name", source = "name")
+    @Mapping(target = "person.surname", source = "surname")
+    @Mapping(target = "person.secondName", source = "secondName")
+    @Mapping(target = "person.email", source = "email")
+    @Mapping(target = "person.phoneNumber", source = "phoneNumber")
     ParticipantEntity toEntity(CreateParticipantRequest dto);
 
     @Override
+    @Mapping(target = "name", source = "person.name")
+    @Mapping(target = "surname", source = "person.surname")
+    @Mapping(target = "secondName", source = "person.secondName")
+    @Mapping(target = "email", source = "person.email")
+    @Mapping(target = "phoneNumber", source = "person.phoneNumber")
     @Mapping(target = "activityId", source = "activity.id")
     @Mapping(target = "roundIds", source = "rounds")
     CreateParticipantRequest toDto(ParticipantEntity entity);
@@ -40,4 +50,5 @@ public interface CreateParticipantRequestMapper extends BaseDtoMapper<Participan
                 .map(RoundEntity::getId)
                 .collect(Collectors.toSet());
     }
+
 }

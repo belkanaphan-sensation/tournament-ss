@@ -3,7 +3,6 @@ package org.bn.sensation.core.role.presentation;
 import org.bn.sensation.core.role.service.RoleService;
 import org.bn.sensation.core.role.service.dto.CreateRoleRequest;
 import org.bn.sensation.core.role.service.dto.RoleDto;
-import org.bn.sensation.core.role.service.dto.UpdateRoleRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -47,13 +46,6 @@ public class RoleController {
         return ResponseEntity.ok(created);
     }
 
-    @Operation(summary = "Update role by id")
-    @PutMapping("/{id}")
-    public ResponseEntity<RoleDto> update(@PathVariable("id") @NotNull Long id,
-                                        @Valid @RequestBody UpdateRoleRequest request) {
-        RoleDto updated = roleService.update(id, request);
-        return ResponseEntity.ok(updated);
-    }
 
     @Operation(summary = "Delete role by id")
     @DeleteMapping("/{id}")

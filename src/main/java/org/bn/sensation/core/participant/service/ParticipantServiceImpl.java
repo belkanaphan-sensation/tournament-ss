@@ -1,5 +1,6 @@
 package org.bn.sensation.core.participant.service;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -55,13 +56,13 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     @Transactional
     public ParticipantDto create(CreateParticipantRequest request) {
-        // Validate activity exists
+        // Проверяем существование активности
         ActivityEntity activity = findActivityById(request.getActivityId());
 
-        // Get rounds
+        // Получаем раунды
         Set<RoundEntity> rounds = findRoundsByIds(request.getRoundIds());
 
-        // Create participant entity
+        // Создаем сущность участника
         ParticipantEntity participant = createParticipantRequestMapper.toEntity(request);
         participant.setActivity(activity);
         participant.setRounds(rounds);
@@ -75,16 +76,16 @@ public class ParticipantServiceImpl implements ParticipantService {
     public ParticipantDto update(Long id, UpdateParticipantRequest request) {
         ParticipantEntity participant = findParticipantById(id);
 
-        // Update participant fields
+        // Обновляем поля участника
         updateParticipantRequestMapper.updateParticipantFromRequest(request, participant);
 
-        // Update activity
+        // Обновляем активность
         if (request.getActivityId() != null) {
             ActivityEntity activity = findActivityById(request.getActivityId());
             participant.setActivity(activity);
         }
 
-        // Update rounds
+        // Обновляем раунды
         if (request.getRoundIds() != null) {
             Set<RoundEntity> rounds = findRoundsByIds(request.getRoundIds());
             participant.setRounds(rounds);
@@ -98,7 +99,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Transactional
     public void deleteById(Long id) {
         if (!participantRepository.existsById(id)) {
-            throw new IllegalArgumentException("Participant not found with id: " + id);
+            throw new EntityNotFoundException("Участник не найден с id: " + id);
         }
         participantRepository.deleteById(id);
     }
@@ -118,12 +119,12 @@ public class ParticipantServiceImpl implements ParticipantService {
             return null;
         }
         return activityRepository.findById(activityId)
-                .orElseThrow(() -> new EntityNotFoundException("Activity not found with id: " + activityId));
+                .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + activityId));
     }
 
     private Set<RoundEntity> findRoundsByIds(Set<Long> roundIds) {
         if (roundIds == null || roundIds.isEmpty()) {
-            return Set.of();
+            return new HashSet<>();
         }
         return roundIds.stream()
                 .map(this::findRoundById)
@@ -132,11 +133,11 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     private RoundEntity findRoundById(Long roundId) {
         return roundRepository.findById(roundId)
-                .orElseThrow(() -> new EntityNotFoundException("Round not found with id: " + roundId));
+                .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + roundId));
     }
 
     private ParticipantEntity findParticipantById(Long participantId) {
         return participantRepository.findById(participantId)
-                .orElseThrow(() -> new EntityNotFoundException("Participant not found with id: " + participantId));
+                .orElseThrow(() -> new EntityNotFoundException("Участник не найден с id: " + participantId));
     }
 }

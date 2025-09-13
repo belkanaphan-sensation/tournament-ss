@@ -10,6 +10,13 @@ import org.mapstruct.*;
 public interface UpdateParticipantRequestMapper extends BaseDtoMapper<ParticipantEntity, UpdateParticipantRequest> {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "person.name", source = "name")
+    @Mapping(target = "person.surname", source = "surname")
+    @Mapping(target = "person.secondName", source = "secondName")
+    @Mapping(target = "person.email", source = "email")
+    @Mapping(target = "person.phoneNumber", source = "phoneNumber")
+    @Mapping(target = "activity", ignore = true)
+    @Mapping(target = "rounds", ignore = true)
     void updateParticipantFromRequest(UpdateParticipantRequest request, @MappingTarget ParticipantEntity entity);
 
     default ActivityEntity map(Long activityId) {

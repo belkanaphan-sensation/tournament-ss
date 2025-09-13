@@ -1,0 +1,561 @@
+package org.bn.sensation.core.participant.service;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
+import org.bn.sensation.core.activity.entity.ActivityEntity;
+import org.bn.sensation.core.activity.repository.ActivityRepository;
+import org.bn.sensation.core.common.entity.Address;
+import org.bn.sensation.core.common.entity.Person;
+import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.occasion.entity.OccasionEntity;
+import org.bn.sensation.core.occasion.repository.OccasionRepository;
+import org.bn.sensation.core.organization.entity.OrganizationEntity;
+import org.bn.sensation.core.organization.repository.OrganizationRepository;
+import org.bn.sensation.core.participant.entity.ParticipantEntity;
+import org.bn.sensation.core.participant.repository.ParticipantRepository;
+import org.bn.sensation.core.participant.service.dto.*;
+import org.bn.sensation.core.round.entity.RoundEntity;
+import org.bn.sensation.core.round.repository.RoundRepository;
+import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityNotFoundException;
+
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
+class ParticipantServiceIntegrationTest {
+
+    @Autowired
+    private ParticipantService participantService;
+
+    @Autowired
+    private ParticipantRepository participantRepository;
+
+    @Autowired
+    private ActivityRepository activityRepository;
+
+    @Autowired
+    private RoundRepository roundRepository;
+
+    @Autowired
+    private MilestoneRepository milestoneRepository;
+
+    @Autowired
+    private OccasionRepository occasionRepository;
+
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
+    private ActivityEntity testActivity;
+    private RoundEntity testRound;
+    private RoundEntity testRound1;
+    private OccasionEntity testOccasion;
+    private OrganizationEntity testOrganization;
+    private MilestoneEntity testMilestone;
+    private ParticipantEntity testParticipant;
+
+    @BeforeEach
+    void setUp() {
+        // Clean up existing data
+        participantRepository.deleteAll();
+        roundRepository.deleteAll();
+        milestoneRepository.deleteAll();
+        activityRepository.deleteAll();
+        occasionRepository.deleteAll();
+        organizationRepository.deleteAll();
+
+        // Create test organization
+        testOrganization = OrganizationEntity.builder()
+                .name("Test Organization")
+                .build();
+        testOrganization = organizationRepository.save(testOrganization);
+
+        // Create test occasion
+        testOccasion = OccasionEntity.builder()
+                .name("Test Occasion")
+                .description("Test Description")
+                .status(Status.DRAFT)
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(3))
+                .organization(testOrganization)
+                .build();
+        testOccasion = occasionRepository.save(testOccasion);
+
+        // Create test activity
+        testActivity = ActivityEntity.builder()
+                .name("Test Activity")
+                .description("Test Activity Description")
+                .status(Status.DRAFT)
+                .startDateTime(LocalDateTime.now())
+                .endDateTime(LocalDateTime.now().plusDays(1))
+                .address(Address.builder()
+                        .city("Test City")
+                        .streetName("Test Street")
+                        .streetNumber("123")
+                        .build())
+                .occasion(testOccasion)
+                .build();
+        testActivity = activityRepository.save(testActivity);
+
+        // Create test milestone
+        testMilestone = MilestoneEntity.builder()
+                .name("Test Milestone")
+                .status(Status.DRAFT)
+                .activity(testActivity)
+                .build();
+        testMilestone = milestoneRepository.save(testMilestone);
+
+        // Create test rounds
+        testRound = RoundEntity.builder()
+                .name("Test Round")
+                .status(Status.DRAFT)
+                .description("Test Round Description")
+                .milestone(testMilestone)
+                .build();
+        testRound = roundRepository.save(testRound);
+
+        testRound1 = RoundEntity.builder()
+                .name("Test Round 1")
+                .status(Status.DRAFT)
+                .description("Test Round 1 Description")
+                .milestone(testMilestone)
+                .build();
+        testRound1 = roundRepository.save(testRound1);
+
+        // Create test participant
+        testParticipant = ParticipantEntity.builder()
+                .person(Person.builder()
+                        .name("John")
+                        .surname("Doe")
+                        .email("john.doe@example.com")
+                        .phoneNumber("+1234567890")
+                        .build())
+                .number("001")
+                .activity(testActivity)
+                .rounds(new HashSet<>(Set.of(testRound)))
+                .build();
+        testParticipant = participantRepository.save(testParticipant);
+    }
+
+    @Test
+    void testCreateParticipant() {
+        // Given
+        CreateParticipantRequest request = CreateParticipantRequest.builder()
+                .name("Jane")
+                .surname("Smith")
+                .secondName("Middle")
+                .email("jane.smith@example.com")
+                .phoneNumber("+0987654321")
+                .number("002")
+                .activityId(testActivity.getId())
+                .roundIds(Set.of(testRound.getId()))
+                .build();
+
+        // When
+        ParticipantDto result = participantService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(request.getName(), result.getPerson().getName());
+        assertEquals(request.getSurname(), result.getPerson().getSurname());
+        assertEquals(request.getSecondName(), result.getPerson().getSecondName());
+        assertEquals(request.getEmail(), result.getPerson().getEmail());
+        assertEquals(request.getPhoneNumber(), result.getPerson().getPhoneNumber());
+        assertEquals(request.getNumber(), result.getNumber());
+        assertNotNull(result.getActivity());
+        assertEquals(testActivity.getId(), result.getActivity().getId());
+        assertEquals(1, result.getRounds().size());
+
+        // Verify participant was saved to database
+        Optional<ParticipantEntity> savedParticipant = participantRepository.findById(result.getId());
+        assertTrue(savedParticipant.isPresent());
+        assertEquals(request.getName(), savedParticipant.get().getPerson().getName());
+        assertEquals(request.getSurname(), savedParticipant.get().getPerson().getSurname());
+        assertEquals(request.getSecondName(), savedParticipant.get().getPerson().getSecondName());
+        assertEquals(request.getEmail(), savedParticipant.get().getPerson().getEmail());
+        assertEquals(request.getPhoneNumber(), savedParticipant.get().getPerson().getPhoneNumber());
+        assertEquals(request.getNumber(), savedParticipant.get().getNumber());
+        assertEquals(testActivity.getId(), savedParticipant.get().getActivity().getId());
+        assertEquals(1, savedParticipant.get().getRounds().size());
+    }
+
+    @Test
+    void testCreateParticipantWithNonExistentActivity() {
+        // Given
+        CreateParticipantRequest request = CreateParticipantRequest.builder()
+                .name("Jane")
+                .surname("Smith")
+                .email("jane.smith@example.com")
+                .activityId(999L) // Non-existent activity
+                .build();
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            participantService.create(request);
+        });
+    }
+
+    @Test
+    void testCreateParticipantWithNonExistentRound() {
+        // Given
+        CreateParticipantRequest request = CreateParticipantRequest.builder()
+                .name("Jane")
+                .surname("Smith")
+                .email("jane.smith@example.com")
+                .activityId(testActivity.getId())
+                .roundIds(Set.of(999L)) // Non-existent round
+                .build();
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            participantService.create(request);
+        });
+    }
+
+    @Test
+    void testCreateParticipantWithMultipleRounds() {
+        // Given
+        CreateParticipantRequest request = CreateParticipantRequest.builder()
+                .name("Jane")
+                .surname("Smith")
+                .email("jane.smith@example.com")
+                .activityId(testActivity.getId())
+                .roundIds(Set.of(testRound.getId(), testRound1.getId()))
+                .build();
+
+        // When
+        ParticipantDto result = participantService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.getRounds().size());
+
+        // Verify participant was saved with multiple rounds
+        Optional<ParticipantEntity> savedParticipant = participantRepository.findById(result.getId());
+        assertTrue(savedParticipant.isPresent());
+        assertEquals(2, savedParticipant.get().getRounds().size());
+        assertTrue(savedParticipant.get().getRounds().contains(testRound));
+        assertTrue(savedParticipant.get().getRounds().contains(testRound1));
+    }
+
+    @Test
+    void testUpdateParticipant() {
+        // Given
+        UpdateParticipantRequest request = UpdateParticipantRequest.builder()
+                .name("Updated")
+                .surname("Participant")
+                .secondName("New")
+                .email("updated@example.com")
+                .phoneNumber("+1111111111")
+                .number("999")
+                .activityId(testActivity.getId())
+                .roundIds(Set.of(testRound1.getId()))
+                .build();
+
+        // When
+        ParticipantDto result = participantService.update(testParticipant.getId(), request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(testParticipant.getId(), result.getId());
+        assertEquals(request.getName(), result.getPerson().getName());
+        assertEquals(request.getSurname(), result.getPerson().getSurname());
+        assertEquals(request.getSecondName(), result.getPerson().getSecondName());
+        assertEquals(request.getEmail(), result.getPerson().getEmail());
+        assertEquals(request.getPhoneNumber(), result.getPerson().getPhoneNumber());
+        assertEquals(request.getNumber(), result.getNumber());
+        assertEquals(1, result.getRounds().size());
+
+        // Verify participant was updated in database
+        Optional<ParticipantEntity> updatedParticipant = participantRepository.findById(testParticipant.getId());
+        assertTrue(updatedParticipant.isPresent());
+        assertEquals(request.getName(), updatedParticipant.get().getPerson().getName());
+        assertEquals(request.getSurname(), updatedParticipant.get().getPerson().getSurname());
+        assertEquals(request.getSecondName(), updatedParticipant.get().getPerson().getSecondName());
+        assertEquals(request.getEmail(), updatedParticipant.get().getPerson().getEmail());
+        assertEquals(request.getPhoneNumber(), updatedParticipant.get().getPerson().getPhoneNumber());
+        assertEquals(request.getNumber(), updatedParticipant.get().getNumber());
+        assertEquals(1, updatedParticipant.get().getRounds().size());
+        assertTrue(updatedParticipant.get().getRounds().contains(testRound1));
+    }
+
+    @Test
+    void testUpdateParticipantWithNonExistentActivity() {
+        // Given
+        UpdateParticipantRequest request = UpdateParticipantRequest.builder()
+                .name("Updated")
+                .activityId(999L) // Non-existent activity
+                .build();
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            participantService.update(testParticipant.getId(), request);
+        });
+    }
+
+    @Test
+    void testUpdateParticipantWithNonExistentRound() {
+        // Given
+        UpdateParticipantRequest request = UpdateParticipantRequest.builder()
+                .name("Updated")
+                .roundIds(Set.of(999L)) // Non-existent round
+                .build();
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            participantService.update(testParticipant.getId(), request);
+        });
+    }
+
+    @Test
+    void testUpdateParticipantWithEmptyRounds() {
+        // Given
+        UpdateParticipantRequest request = UpdateParticipantRequest.builder()
+                .name("Updated")
+                .roundIds(new HashSet<>()) // Empty set
+                .build();
+
+        // When
+        ParticipantDto result = participantService.update(testParticipant.getId(), request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(testParticipant.getId(), result.getId());
+
+        // Verify participant rounds were cleared
+        Optional<ParticipantEntity> updatedParticipant = participantRepository.findById(testParticipant.getId());
+        assertTrue(updatedParticipant.isPresent());
+        assertTrue(updatedParticipant.get().getRounds().isEmpty());
+    }
+
+    @Test
+    void testUpdateParticipantWithNonExistentParticipant() {
+        // Given
+        UpdateParticipantRequest request = UpdateParticipantRequest.builder()
+                .name("Updated")
+                .build();
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            participantService.update(999L, request);
+        });
+    }
+
+    @Test
+    void testFindAllParticipants() {
+        // Create additional participants
+        ParticipantEntity participant2 = ParticipantEntity.builder()
+                .person(Person.builder()
+                        .name("Alice")
+                        .surname("Johnson")
+                        .email("alice@example.com")
+                        .phoneNumber("+2222222222")
+                        .build())
+                .number("003")
+                .activity(testActivity)
+                .build();
+        participantRepository.save(participant2);
+
+        ParticipantEntity participant3 = ParticipantEntity.builder()
+                .person(Person.builder()
+                        .name("Bob")
+                        .surname("Wilson")
+                        .email("bob@example.com")
+                        .phoneNumber("+3333333333")
+                        .build())
+                .number("004")
+                .activity(testActivity)
+                .build();
+        participantRepository.save(participant3);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<ParticipantDto> result = participantService.findAll(pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(3, result.getTotalElements());
+        assertEquals(3, result.getContent().size());
+    }
+
+    @Test
+    void testFindParticipantById() {
+        // When
+        Optional<ParticipantDto> result = participantService.findById(testParticipant.getId());
+
+        // Then
+        assertTrue(result.isPresent());
+        assertEquals(testParticipant.getId(), result.get().getId());
+        assertEquals(testParticipant.getPerson().getName(), result.get().getPerson().getName());
+        assertEquals(testParticipant.getPerson().getSurname(), result.get().getPerson().getSurname());
+        assertEquals(testParticipant.getPerson().getEmail(), result.get().getPerson().getEmail());
+        assertEquals(testParticipant.getPerson().getPhoneNumber(), result.get().getPerson().getPhoneNumber());
+        assertEquals(testParticipant.getNumber(), result.get().getNumber());
+        assertNotNull(result.get().getActivity());
+        assertEquals(testActivity.getId(), result.get().getActivity().getId());
+        assertEquals(1, result.get().getRounds().size());
+    }
+
+    @Test
+    void testFindParticipantByIdNotFound() {
+        // When
+        Optional<ParticipantDto> result = participantService.findById(999L);
+
+        // Then
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    void testDeleteParticipant() {
+        // Given
+        Long participantId = testParticipant.getId();
+
+        // When
+        participantService.deleteById(participantId);
+
+        // Then
+        assertFalse(participantRepository.existsById(participantId));
+    }
+
+    @Test
+    void testDeleteParticipantNotFound() {
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            participantService.deleteById(999L);
+        });
+    }
+
+    @Test
+    void testAssignParticipantToRound() {
+        // When
+        ParticipantDto result = participantService.assignParticipantToRound(testParticipant.getId(), testRound1.getId());
+
+        // Then
+        assertNotNull(result);
+        assertEquals(testParticipant.getId(), result.getId());
+
+        // Verify participant was assigned to round
+        Optional<ParticipantEntity> updatedParticipant = participantRepository.findById(testParticipant.getId());
+        assertTrue(updatedParticipant.isPresent());
+        assertEquals(2, updatedParticipant.get().getRounds().size());
+        assertTrue(updatedParticipant.get().getRounds().contains(testRound));
+        assertTrue(updatedParticipant.get().getRounds().contains(testRound1));
+    }
+
+    @Test
+    void testAssignParticipantToRoundWithNonExistentParticipant() {
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            participantService.assignParticipantToRound(999L, testRound.getId());
+        });
+    }
+
+    @Test
+    void testAssignParticipantToRoundWithNonExistentRound() {
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            participantService.assignParticipantToRound(testParticipant.getId(), 999L);
+        });
+    }
+
+    @Test
+    void testParticipantWithNullPersonFields() {
+        // Given
+        CreateParticipantRequest request = CreateParticipantRequest.builder()
+                .name("Test")
+                .surname("User")
+                .secondName(null) // Null second name
+                .email(null) // Null email
+                .phoneNumber(null) // Null phone
+                .activityId(testActivity.getId())
+                .build();
+
+        // When
+        ParticipantDto result = participantService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(request.getName(), result.getPerson().getName());
+        assertEquals(request.getSurname(), result.getPerson().getSurname());
+        assertNull(result.getPerson().getSecondName());
+        assertNull(result.getPerson().getEmail());
+        assertNull(result.getPerson().getPhoneNumber());
+
+        // Verify participant was saved with null fields
+        Optional<ParticipantEntity> savedParticipant = participantRepository.findById(result.getId());
+        assertTrue(savedParticipant.isPresent());
+        assertEquals(request.getName(), savedParticipant.get().getPerson().getName());
+        assertEquals(request.getSurname(), savedParticipant.get().getPerson().getSurname());
+        assertNull(savedParticipant.get().getPerson().getSecondName());
+        assertNull(savedParticipant.get().getPerson().getEmail());
+        assertNull(savedParticipant.get().getPerson().getPhoneNumber());
+    }
+
+    @Test
+    void testParticipantPersonMapping() {
+        // Given
+        CreateParticipantRequest request = CreateParticipantRequest.builder()
+                .name("Mapping")
+                .surname("Test")
+                .secondName("Validation")
+                .email("mapping@test.com")
+                .phoneNumber("+5555555555")
+                .activityId(testActivity.getId())
+                .build();
+
+        // When
+        ParticipantDto result = participantService.create(request);
+
+        // Then - Verify all Person fields are correctly mapped
+        assertNotNull(result.getPerson());
+        assertEquals("Mapping", result.getPerson().getName());
+        assertEquals("Test", result.getPerson().getSurname());
+        assertEquals("Validation", result.getPerson().getSecondName());
+        assertEquals("mapping@test.com", result.getPerson().getEmail());
+        assertEquals("+5555555555", result.getPerson().getPhoneNumber());
+
+        // Verify in database
+        Optional<ParticipantEntity> savedParticipant = participantRepository.findById(result.getId());
+        assertTrue(savedParticipant.isPresent());
+        Person savedPerson = savedParticipant.get().getPerson();
+        assertNotNull(savedPerson);
+        assertEquals("Mapping", savedPerson.getName());
+        assertEquals("Test", savedPerson.getSurname());
+        assertEquals("Validation", savedPerson.getSecondName());
+        assertEquals("mapping@test.com", savedPerson.getEmail());
+        assertEquals("+5555555555", savedPerson.getPhoneNumber());
+    }
+
+    @Test
+    void testParticipantCascadeDelete() {
+        // Given
+        Long participantId = testParticipant.getId();
+
+        // When
+        participantService.deleteById(participantId);
+
+        // Then
+        assertFalse(participantRepository.existsById(participantId));
+
+        // Verify related entities still exist (no cascade delete)
+        assertTrue(roundRepository.existsById(testRound.getId()));
+        assertTrue(activityRepository.existsById(testActivity.getId()));
+    }
+}

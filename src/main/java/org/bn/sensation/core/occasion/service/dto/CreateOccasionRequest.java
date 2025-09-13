@@ -3,6 +3,7 @@ package org.bn.sensation.core.occasion.service.dto;
 import java.time.LocalDate;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
+import org.bn.sensation.core.common.entity.Status;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -44,4 +45,7 @@ public class CreateOccasionRequest extends EmptyDto {
 
     @Schema(description = "ID организации, проводящей мероприятие")
     private Long organizationId;
+
+    @Schema(description = "Статус мероприятия", example = "DRAFT")
+    private Status status;
 }
