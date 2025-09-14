@@ -29,28 +29,6 @@ databaseChangeLog:
             sql: |
               DROP TABLE IF EXISTS organization;
 
-  # Role table
-  - changeSet:
-      id: 2025-02-01-2
-      author: belkanaphan
-      onFail: MARK_RAN
-      changes:
-        - sql:
-            sql: |
-              CREATE TABLE IF NOT EXISTS role (
-                id BIGSERIAL PRIMARY KEY,
-                role VARCHAR(50) NOT NULL UNIQUE,
-                created_at TIMESTAMP,
-                created_by VARCHAR(255),
-                modified_at TIMESTAMP,
-                modified_by VARCHAR(255),
-                version BIGINT NOT NULL DEFAULT 0
-              );
-      rollback:
-        - sql:
-            sql: |
-              DROP TABLE IF EXISTS role;
-
   # Users table
   - changeSet:
       id: 2025-02-01-3
@@ -82,25 +60,24 @@ databaseChangeLog:
             sql: |
               DROP TABLE IF EXISTS users;
 
-  # User-Role association table
+  # User-Roles table (ElementCollection for enum roles)
   - changeSet:
-      id: 2025-02-01-4
+      id: 2025-02-01-2
       author: belkanaphan
       onFail: MARK_RAN
       changes:
         - sql:
             sql: |
-              CREATE TABLE IF NOT EXISTS user_role_association (
+              CREATE TABLE IF NOT EXISTS user_roles (
                 user_id BIGINT NOT NULL,
-                role_id BIGINT NOT NULL,
-                PRIMARY KEY (user_id, role_id),
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                FOREIGN KEY (role_id) REFERENCES role(id) ON DELETE CASCADE
+                role VARCHAR(50) NOT NULL,
+                PRIMARY KEY (user_id, role),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
               );
       rollback:
         - sql:
             sql: |
-              DROP TABLE IF EXISTS user_role_association;
+              DROP TABLE IF EXISTS user_roles;
 
   # Occasion table
   - changeSet:

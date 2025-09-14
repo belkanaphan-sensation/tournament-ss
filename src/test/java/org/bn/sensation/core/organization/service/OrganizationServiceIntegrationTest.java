@@ -18,9 +18,7 @@ import org.bn.sensation.core.organization.service.dto.*;
 import org.bn.sensation.core.user.entity.UserEntity;
 import org.bn.sensation.core.user.entity.UserStatus;
 import org.bn.sensation.core.user.repository.UserRepository;
-import org.bn.sensation.core.role.entity.Role;
-import org.bn.sensation.core.role.entity.RoleEntity;
-import org.bn.sensation.core.role.repository.RoleRepository;
+import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.core.common.entity.Person;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,9 +49,6 @@ class OrganizationServiceIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
     private OccasionRepository occasionRepository;
 
     @Autowired
@@ -61,7 +56,6 @@ class OrganizationServiceIntegrationTest {
 
     private OrganizationEntity testOrganization;
     private UserEntity testUser;
-    private RoleEntity testRole;
 
     @BeforeEach
     void setUp() {
@@ -80,10 +74,6 @@ class OrganizationServiceIntegrationTest {
         TransactionTemplate fillTx = new TransactionTemplate(transactionManager);
         fillTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         fillTx.execute(status -> {
-            // Находим существующую роль USER из базы данных
-            testRole = roleRepository.findByRole(Role.USER)
-                    .orElseThrow(() -> new RuntimeException("USER role not found in database"));
-
             // Создаем тестовую организацию
             testOrganization = OrganizationEntity.builder()
                     .name("Test Organization")
@@ -110,7 +100,7 @@ class OrganizationServiceIntegrationTest {
                             .email("test@user.com")
                             .phoneNumber("+0987654321")
                             .build())
-                    .roles(Set.of(testRole))
+                    .roles(Set.of(Role.USER))
                     .organizations(Set.of(testOrganization))
                     .build();
             testUser = userRepository.save(testUser);
@@ -455,7 +445,7 @@ class OrganizationServiceIntegrationTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             organizationService.deleteById(testOrganization.getId());
         });
-        
+
         // Проверяем сообщение об ошибке
         assertTrue(exception.getMessage().contains("Нельзя удалить организацию, у которой есть активные мероприятия"));
         assertTrue(exception.getMessage().contains("Active Occasion"));
@@ -486,7 +476,7 @@ class OrganizationServiceIntegrationTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             organizationService.deleteById(testOrganization.getId());
         });
-        
+
         // Проверяем сообщение об ошибке
         assertTrue(exception.getMessage().contains("Нельзя удалить организацию, у которой есть активные мероприятия"));
         assertTrue(exception.getMessage().contains("Ready Occasion"));

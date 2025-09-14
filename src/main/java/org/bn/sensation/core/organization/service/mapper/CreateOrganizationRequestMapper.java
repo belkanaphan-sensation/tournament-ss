@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 
 @Mapper(config = BaseDtoMapper.class)
 public interface CreateOrganizationRequestMapper extends BaseDtoMapper<OrganizationEntity, CreateOrganizationRequest> {
-    
+
     @Override
     @Mapping(target = "address.city", source = "address.city")
     @Mapping(target = "address.streetName", source = "address.streetName")

@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.core.common.dto.PersonDto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -38,5 +39,5 @@ public class UserDto extends BaseDto {
     private Set<EntityLinkDto> organizations;
 
     @Schema(description = "Список ролей пользователя")
-    private Set<EntityLinkDto> roles;
+    private Set<Role> roles;
 }

@@ -66,7 +66,7 @@ public class SecurityUser implements UserDetails {
                 user.getPerson().getEmail(),
                 user.getStatus().equals(UserStatus.ACTIVE),
                 user.getRoles().stream()
-                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getRole().name()))
+                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
                         .collect(Collectors.toSet()));
     }
 }

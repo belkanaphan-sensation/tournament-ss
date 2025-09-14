@@ -1,4 +1,4 @@
-package org.bn.sensation.core.role.entity;
+package org.bn.sensation.core.user.entity;
 
 public enum Role {
     SUPERADMIN,

@@ -3,6 +3,7 @@ package org.bn.sensation.core.user.service.dto;
 import java.util.Set;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
+import org.bn.sensation.core.user.entity.Role;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -51,6 +52,6 @@ public class UpdateUserRequest extends EmptyDto {
     @Schema(description = "ID организации")
     private Set<Long> organizationIds;
 
-    @Schema(description = "Список ID ролей")
-    private Set<Long> roleIds;
+    @Schema(description = "Список ролей")
+    private Set<Role> roles;
 }
