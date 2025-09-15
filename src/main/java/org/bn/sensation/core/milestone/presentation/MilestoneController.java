@@ -26,7 +26,7 @@ public class MilestoneController {
 
     private final MilestoneService milestoneService;
 
-    @Operation(summary = "Get milestone by id")
+    @Operation(summary = "Получить веху по ID")
     @GetMapping(path = "/{id}")
     public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return milestoneService.findById(id)
@@ -34,20 +34,20 @@ public class MilestoneController {
                 .orElseGet(() -> ResponseEntity.status(404).build());
     }
 
-    @Operation(summary = "Get all milestones with pagination")
+    @Operation(summary = "Получить все вехи с пагинацией")
     @GetMapping
     public ResponseEntity<Page<MilestoneDto>> getAll(Pageable pageable) {
         return ResponseEntity.ok(milestoneService.findAll(pageable));
     }
 
-    @Operation(summary = "Create new milestone")
+    @Operation(summary = "Создать новую веху")
     @PostMapping
     public ResponseEntity<MilestoneDto> create(@Valid @RequestBody CreateMilestoneRequest request) {
         MilestoneDto created = milestoneService.create(request);
         return ResponseEntity.ok(created);
     }
 
-    @Operation(summary = "Update milestone by id")
+    @Operation(summary = "Обновить веху по ID")
     @PutMapping("/{id}")
     public ResponseEntity<MilestoneDto> update(@PathVariable("id") @NotNull Long id,
                                              @Valid @RequestBody UpdateMilestoneRequest request) {
@@ -55,7 +55,7 @@ public class MilestoneController {
         return ResponseEntity.ok(updated);
     }
 
-    @Operation(summary = "Delete milestone by id")
+    @Operation(summary = "Удалить веху по ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         milestoneService.deleteById(id);

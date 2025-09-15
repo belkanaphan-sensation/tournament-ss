@@ -28,7 +28,7 @@ public class ActivityController {
 
     private final ActivityService activityService;
 
-    @Operation(summary = "Get activity by id")
+    @Operation(summary = "Получить активность по ID")
     @GetMapping(path = "/{id}")
     public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return activityService.findById(id)
@@ -36,20 +36,20 @@ public class ActivityController {
                 .orElseGet(() -> ResponseEntity.status(404).build());
     }
 
-    @Operation(summary = "Get all activities with pagination")
+    @Operation(summary = "Получить все активности с пагинацией")
     @GetMapping
     public ResponseEntity<Page<ActivityDto>> getAll(Pageable pageable) {
         return ResponseEntity.ok(activityService.findAll(pageable));
     }
 
-    @Operation(summary = "Create new activity")
+    @Operation(summary = "Создать новую активность")
     @PostMapping
     public ResponseEntity<ActivityDto> create(@Valid @RequestBody CreateActivityRequest request) {
         ActivityDto created = activityService.create(request);
         return ResponseEntity.ok(created);
     }
 
-    @Operation(summary = "Update activity by id")
+    @Operation(summary = "Обновить активность по ID")
     @PutMapping("/{id}")
     public ResponseEntity<ActivityDto> update(@PathVariable("id") @NotNull Long id,
                                             @Valid @RequestBody UpdateActivityRequest request) {
@@ -57,7 +57,7 @@ public class ActivityController {
         return ResponseEntity.ok(updated);
     }
 
-    @Operation(summary = "Delete activity by id")
+    @Operation(summary = "Удалить активность по ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         activityService.deleteById(id);

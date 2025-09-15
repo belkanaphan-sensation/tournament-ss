@@ -26,7 +26,7 @@ public class UserController {
 
     private final UserService userService;
 
-    @Operation(summary = "Get user by id")
+    @Operation(summary = "Получить пользователя по ID")
     @GetMapping(path = "/{id}")
     public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return userService.findById(id)
@@ -34,20 +34,20 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.status(404).build());
     }
 
-    @Operation(summary = "Get all users with pagination")
+    @Operation(summary = "Получить всех пользователей с пагинацией")
     @GetMapping
     public ResponseEntity<Page<UserDto>> getAll(Pageable pageable) {
         return ResponseEntity.ok(userService.findAll(pageable));
     }
 
-    @Operation(summary = "Create new user")
+    @Operation(summary = "Создать нового пользователя")
     @PostMapping
     public ResponseEntity<UserDto> create(@Valid @RequestBody CreateUserRequest request) {
         UserDto created = userService.create(request);
         return ResponseEntity.ok(created);
     }
 
-    @Operation(summary = "Update user by id")
+    @Operation(summary = "Обновить пользователя по ID")
     @PutMapping("/{id}")
     public ResponseEntity<UserDto> update(@PathVariable("id") @NotNull Long id,
                                         @Valid @RequestBody UpdateUserRequest request) {
@@ -55,7 +55,7 @@ public class UserController {
         return ResponseEntity.ok(updated);
     }
 
-    @Operation(summary = "Delete user by id")
+    @Operation(summary = "Удалить пользователя по ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         userService.deleteById(id);
