@@ -2,19 +2,27 @@ package org.bn.sensation.core.occasion.service.dto;
 
 import java.time.LocalDate;
 
+import org.bn.sensation.core.common.dto.EmptyDto;
+import org.bn.sensation.core.common.entity.Status;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
+@EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Запрос на обновление мероприятия")
-public class UpdateOccasionRequest {
+public class UpdateOccasionRequest extends EmptyDto {
 
     @Size(max = 255)
     @Schema(description = "Название мероприятия", example = "SBF")
@@ -32,4 +40,7 @@ public class UpdateOccasionRequest {
 
     @Schema(description = "ID организации, проводящей мероприятие")
     private Long organizationId;
+
+    @Schema(description = "Статус мероприятия", example = "DRAFT")
+    private Status status;
 }

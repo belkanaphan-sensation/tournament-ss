@@ -37,4 +37,6 @@ public interface UserService extends BaseService<UserEntity, UserDto>{
     default Optional<UserDto> findById(Long id) {
         return BaseService.super.findById(id);
     }
+
+    UserDto assignUserToOrganization(Long userId, Long organizationId);
 }

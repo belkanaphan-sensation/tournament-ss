@@ -61,4 +61,12 @@ public class ParticipantController {
         participantService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Привязать участника к раунду")
+    @PostMapping("/{participantId}/rounds/{roundId}")
+    public ResponseEntity<ParticipantDto> addParticipantToRound(@PathVariable Long participantId,
+                                                         @PathVariable Long roundId) {
+        ParticipantDto updated = participantService.assignParticipantToRound(participantId, roundId);
+        return ResponseEntity.ok(updated);
+    }
 }

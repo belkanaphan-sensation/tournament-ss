@@ -18,4 +18,6 @@ public interface ParticipantService extends BaseService<ParticipantEntity, Parti
     ParticipantDto update(Long id, UpdateParticipantRequest request);
 
     void deleteById(Long id);
+
+    ParticipantDto assignParticipantToRound(Long participantId, Long roundId);
 }

@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.bn.sensation.core.user.entity.Status;
+import org.bn.sensation.core.user.entity.UserStatus;
 import org.bn.sensation.core.user.entity.UserEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -64,9 +64,9 @@ public class SecurityUser implements UserDetails {
                 user.getUsername(),
                 user.getPassword(),
                 user.getPerson().getEmail(),
-                user.getStatus().equals(Status.ACTIVE),
+                user.getStatus().equals(UserStatus.ACTIVE),
                 user.getRoles().stream()
-                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getRole().name()))
+                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
                         .collect(Collectors.toSet()));
     }
 }

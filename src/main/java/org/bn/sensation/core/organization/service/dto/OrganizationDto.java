@@ -1,12 +1,18 @@
 package org.bn.sensation.core.organization.service.dto;
 
+import java.util.Set;
+
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.dto.BaseDto;
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Data
@@ -32,4 +38,7 @@ public class OrganizationDto extends BaseDto {
 
     @Schema(description = "Адрес организации")
     private AddressDto address;
+
+    @Schema(description = "Список связанных юзеров")
+    private Set<EntityLinkDto> users;
 }

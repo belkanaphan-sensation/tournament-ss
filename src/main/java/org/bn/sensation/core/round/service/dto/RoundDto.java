@@ -1,11 +1,18 @@
 package org.bn.sensation.core.round.service.dto;
 
+import java.util.Set;
+
 import org.bn.sensation.core.common.dto.BaseDto;
+import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.common.entity.Status;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Data
@@ -22,4 +29,16 @@ public class RoundDto extends BaseDto {
 
     @Schema(description = "Описание раунда", example = "Матчи по круговой системе")
     private String description;
+
+    @Schema(description = "активность, к которому принадлежит этап")
+    private EntityLinkDto activity;
+
+    @Schema(description = "Этап, к которому принадлежит раунд")
+    private EntityLinkDto milestone;
+
+    @Schema(description = "Список участников раунда")
+    private Set<EntityLinkDto> participants;
+
+    @Schema(description = "Статус раунда", example = "DRAFT")
+    private Status status;
 }

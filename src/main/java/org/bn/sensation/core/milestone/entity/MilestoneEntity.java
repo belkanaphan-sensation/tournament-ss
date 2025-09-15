@@ -1,16 +1,15 @@
 package org.bn.sensation.core.milestone.entity;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.entity.BaseEntity;
+import org.bn.sensation.core.common.entity.Status;
 import org.bn.sensation.core.round.entity.RoundEntity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
@@ -25,8 +24,13 @@ public class MilestoneEntity extends BaseEntity {
     @Column(name = "name")
     private String name;
 
-    @OneToMany(mappedBy = "milestone")
-    private List<RoundEntity> rounds;
+    @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
+    @OneToMany(mappedBy = "milestone", cascade = CascadeType.REMOVE)
+    @Builder.Default
+    private Set<RoundEntity> rounds =  new HashSet<>();
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "activity_id")

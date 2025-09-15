@@ -1,0 +1,521 @@
+package org.bn.sensation.core.activity.service;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.Set;
+
+import org.bn.sensation.core.activity.entity.ActivityEntity;
+import org.bn.sensation.core.activity.repository.ActivityRepository;
+import org.bn.sensation.core.activity.service.dto.ActivityDto;
+import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
+import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
+import org.bn.sensation.core.common.dto.AddressDto;
+import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.common.entity.Address;
+import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.bn.sensation.core.occasion.entity.OccasionEntity;
+import org.bn.sensation.core.occasion.repository.OccasionRepository;
+import org.bn.sensation.core.organization.entity.OrganizationEntity;
+import org.bn.sensation.core.organization.repository.OrganizationRepository;
+import org.bn.sensation.core.user.entity.Role;
+import org.bn.sensation.core.user.entity.UserEntity;
+import org.bn.sensation.core.user.entity.UserStatus;
+import org.bn.sensation.core.user.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import jakarta.persistence.EntityNotFoundException;
+
+@SpringBootTest
+@ActiveProfiles("test")
+class ActivityServiceIntegrationTest {
+
+    @Autowired
+    private ActivityService activityService;
+
+    @Autowired
+    private ActivityRepository activityRepository;
+
+    @Autowired
+    private MilestoneRepository milestoneRepository;
+
+    @Autowired
+    private OccasionRepository occasionRepository;
+
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    private OccasionEntity testOccasion;
+    private OrganizationEntity testOrganization;
+    private UserEntity testUser;
+
+    @BeforeEach
+    void setUp() {
+        // Очистка данных в отдельной транзакции
+        new TransactionTemplate(transactionManager).execute(status -> {
+            milestoneRepository.deleteAll();
+            activityRepository.deleteAll();
+            occasionRepository.deleteAll();
+            organizationRepository.deleteAll();
+            userRepository.deleteAll();
+            return null;
+        });
+
+        // Создание тестовых данных в отдельной транзакции
+        new TransactionTemplate(transactionManager).execute(status -> {
+            // Создание тестового пользователя
+            testUser = UserEntity.builder()
+                    .username("testuser" + System.currentTimeMillis())
+                    .password("password123")
+                    .person(org.bn.sensation.core.common.entity.Person.builder()
+                            .name("Test")
+                            .surname("User")
+                            .email("test@example.com")
+                            .phoneNumber("+1234567890")
+                            .build())
+                    .status(UserStatus.ACTIVE)
+                    .roles(Set.of(Role.USER))
+                    .build();
+            testUser = userRepository.save(testUser);
+
+            // Создание тестовой организации
+            testOrganization = OrganizationEntity.builder()
+                    .name("Test Organization")
+                    .description("Test Description")
+                    .address(Address.builder()
+                            .country("Russia")
+                            .city("Moscow")
+                            .streetName("Test Street")
+                            .streetNumber("1")
+                            .comment("Test Address")
+                            .build())
+                    .build();
+            testOrganization = organizationRepository.save(testOrganization);
+
+            // Создание тестового мероприятия
+            testOccasion = OccasionEntity.builder()
+                    .name("Test Occasion")
+                    .description("Test Description")
+                    .startDate(java.time.LocalDate.now())
+                    .endDate(java.time.LocalDate.now().plusDays(3))
+                    .status(Status.DRAFT)
+                    .organization(testOrganization)
+                    .build();
+            testOccasion = occasionRepository.save(testOccasion);
+
+            return null;
+        });
+    }
+
+    @Test
+    @Transactional
+    void testCreateActivity() {
+        // Given
+        CreateActivityRequest request = CreateActivityRequest.builder()
+                .name("Test Activity")
+                .description("Test Description")
+                .startDateTime(LocalDateTime.now())
+                .endDateTime(LocalDateTime.now().plusHours(2))
+                .address(AddressDto.builder()
+                        .country("Russia")
+                        .city("Moscow")
+                        .streetName("Activity Street")
+                        .streetNumber("2")
+                        .comment("Activity Address")
+                        .build())
+                .occasionId(testOccasion.getId())
+                .status(Status.DRAFT)
+                .build();
+
+        // When
+        ActivityDto result = activityService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertNotNull(result.getId());
+        assertEquals("Test Activity", result.getName());
+        assertEquals("Test Description", result.getDescription());
+        assertNotNull(result.getOccasion());
+        assertEquals(testOccasion.getId(), result.getOccasion().getId());
+        assertEquals(Status.DRAFT, result.getStatus());
+
+        // Проверяем, что активность сохранена в БД
+        Optional<ActivityEntity> savedActivity = activityRepository.findById(result.getId());
+        assertTrue(savedActivity.isPresent());
+        assertEquals("Test Activity", savedActivity.get().getName());
+        assertEquals(testOccasion.getId(), savedActivity.get().getOccasion().getId());
+    }
+
+    @Test
+    @Transactional
+    void testCreateActivityWithNonExistentOccasion() {
+        // Given
+        CreateActivityRequest request = CreateActivityRequest.builder()
+                .name("Test Activity")
+                .description("Test Description")
+                .startDateTime(LocalDateTime.now())
+                .endDateTime(LocalDateTime.now().plusHours(2))
+                .occasionId(999L) // Несуществующее мероприятие
+                .status(Status.DRAFT)
+                .build();
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            activityService.create(request);
+        });
+    }
+
+    @Test
+    @Transactional
+    void testFindAllActivities() {
+        // Given
+        createTestActivity("Activity 1", "Description 1");
+        createTestActivity("Activity 2", "Description 2");
+        createTestActivity("Activity 3", "Description 3");
+
+        // When
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ActivityDto> result = activityService.findAll(pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(3, result.getTotalElements());
+        assertEquals(3, result.getContent().size());
+    }
+
+    @Test
+    @Transactional
+    void testFindActivityById() {
+        // Given
+        ActivityEntity activity = createTestActivity("Test Activity", "Test Description");
+
+        // When
+        Optional<ActivityDto> result = activityService.findById(activity.getId());
+
+        // Then
+        assertTrue(result.isPresent());
+        assertEquals("Test Activity", result.get().getName());
+        assertEquals("Test Description", result.get().getDescription());
+        assertEquals(testOccasion.getId(), result.get().getOccasion().getId());
+        assertEquals(Status.DRAFT, result.get().getStatus());
+    }
+
+    @Test
+    @Transactional
+    void testFindActivityByIdNotFound() {
+        // When
+        Optional<ActivityDto> result = activityService.findById(999L);
+
+        // Then
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    @Transactional
+    void testUpdateActivity() {
+        // Given
+        ActivityEntity activity = createTestActivity("Original Name", "Original Description");
+
+        UpdateActivityRequest request = UpdateActivityRequest.builder()
+                .name("Updated Name")
+                .description("Updated Description")
+                .startDateTime(LocalDateTime.now().plusHours(1))
+                .endDateTime(LocalDateTime.now().plusHours(3))
+                .status(Status.READY)
+                .occasionId(testOccasion.getId())
+                .build();
+
+        // When
+        ActivityDto result = activityService.update(activity.getId(), request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("Updated Name", result.getName());
+        assertEquals("Updated Description", result.getDescription());
+        assertEquals(Status.READY, result.getStatus());
+
+        // Проверяем, что изменения сохранены в БД
+        Optional<ActivityEntity> savedActivity = activityRepository.findById(activity.getId());
+        assertTrue(savedActivity.isPresent());
+        assertEquals("Updated Name", savedActivity.get().getName());
+        assertEquals("Updated Description", savedActivity.get().getDescription());
+        assertEquals(Status.READY, savedActivity.get().getStatus());
+    }
+
+    @Test
+    @Transactional
+    void testUpdateActivityPartial() {
+        // Given
+        ActivityEntity activity = createTestActivity("Original Name", "Original Description");
+
+        UpdateActivityRequest request = UpdateActivityRequest.builder()
+                .name("Updated Name")
+                .build();
+
+        // When
+        ActivityDto result = activityService.update(activity.getId(), request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("Updated Name", result.getName());
+        assertEquals("Original Description", result.getDescription()); // Не изменилось
+        assertEquals(Status.DRAFT, result.getStatus()); // Не изменилось
+
+        // Проверяем, что изменения сохранены в БД
+        Optional<ActivityEntity> savedActivity = activityRepository.findById(activity.getId());
+        assertTrue(savedActivity.isPresent());
+        assertEquals("Updated Name", savedActivity.get().getName());
+        assertEquals("Original Description", savedActivity.get().getDescription());
+        assertEquals(Status.DRAFT, savedActivity.get().getStatus());
+    }
+
+    @Test
+    @Transactional
+    void testUpdateActivityNotFound() {
+        // Given
+        UpdateActivityRequest request = UpdateActivityRequest.builder()
+                .name("Updated Name")
+                .build();
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            activityService.update(999L, request);
+        });
+    }
+
+    @Test
+    @Transactional
+    void testUpdateActivityWithNonExistentOccasion() {
+        // Given
+        ActivityEntity activity = createTestActivity("Test Activity", "Test Description");
+
+        UpdateActivityRequest request = UpdateActivityRequest.builder()
+                .occasionId(999L) // Несуществующее мероприятие
+                .build();
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            activityService.update(activity.getId(), request);
+        });
+    }
+
+    @Test
+    @Transactional
+    void testDeleteActivity() {
+        // Given
+        ActivityEntity activity = createTestActivity("Test Activity", "Test Description");
+        Long activityId = activity.getId();
+
+        // When
+        activityService.deleteById(activityId);
+
+        // Then
+        assertFalse(activityRepository.existsById(activityId));
+    }
+
+    @Test
+    @Transactional
+    void testDeleteActivityNotFound() {
+        // When & Then
+        assertThrows(IllegalArgumentException.class, () -> {
+            activityService.deleteById(999L);
+        });
+    }
+
+    @Test
+    @Transactional
+    void testActivityStatusMapping() {
+        // Given
+        CreateActivityRequest request = CreateActivityRequest.builder()
+                .name("Test Activity")
+                .description("Test Description")
+                .startDateTime(LocalDateTime.now())
+                .endDateTime(LocalDateTime.now().plusHours(2))
+                .occasionId(testOccasion.getId())
+                .status(Status.ACTIVE)
+                .build();
+
+        // When
+        ActivityDto result = activityService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(Status.ACTIVE, result.getStatus());
+
+        // Проверяем, что статус сохранен в БД
+        Optional<ActivityEntity> savedActivity = activityRepository.findById(result.getId());
+        assertTrue(savedActivity.isPresent());
+        assertEquals(Status.ACTIVE, savedActivity.get().getStatus());
+    }
+
+    @Test
+    @Transactional
+    void testActivityWithMilestones() {
+        // Given - создаем activity и milestone в отдельной транзакции
+        TransactionTemplate newTx = new TransactionTemplate(transactionManager);
+        newTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+        ActivityEntity activity = newTx.execute(status -> {
+            // Создаем occasion в той же транзакции
+            OccasionEntity occasion = OccasionEntity.builder()
+                    .name("Test Occasion")
+                    .description("Test Occasion Description")
+                    .startDate(LocalDate.now())
+                    .endDate(LocalDate.now().plusDays(1))
+                    .status(Status.DRAFT)
+                    .build();
+            OccasionEntity savedOccasion = occasionRepository.save(occasion);
+
+            // Создаем activity с ссылкой на occasion
+            ActivityEntity activityEntity = ActivityEntity.builder()
+                    .name("Test Activity")
+                    .description("Test Description")
+                    .startDateTime(LocalDateTime.now())
+                    .endDateTime(LocalDateTime.now().plusHours(2))
+                    .status(Status.DRAFT)
+                    .occasion(savedOccasion)
+                    .build();
+            ActivityEntity savedActivity = activityRepository.save(activityEntity);
+
+            // Создаем milestone для этой активности
+            MilestoneEntity milestone = MilestoneEntity.builder()
+                    .name("Test Milestone")
+                    .status(Status.DRAFT)
+                    .activity(savedActivity)
+                    .build();
+            milestoneRepository.save(milestone);
+
+            return savedActivity;
+        });
+
+        // When - загружаем activity через сервис
+        ActivityDto result = activityService.findById(activity.getId()).orElse(null);
+
+        // Then - проверяем результат
+        assertNotNull(result);
+        assertNotNull(result.getMilestones());
+        assertEquals(1, result.getMilestones().size());
+
+        // Проверяем содержимое milestone
+        EntityLinkDto milestoneLink = result.getMilestones().iterator().next();
+        assertEquals("Test Milestone", milestoneLink.getValue());
+    }
+
+    @Test
+    @Transactional
+    void testActivityOccasionMapping() {
+        // Given
+        CreateActivityRequest request = CreateActivityRequest.builder()
+                .name("Test Activity")
+                .description("Test Description")
+                .startDateTime(LocalDateTime.now())
+                .endDateTime(LocalDateTime.now().plusHours(2))
+                .occasionId(testOccasion.getId())
+                .status(Status.DRAFT)
+                .build();
+
+        // When
+        ActivityDto result = activityService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertNotNull(result.getOccasion());
+        assertEquals(testOccasion.getId(), result.getOccasion().getId());
+        assertEquals(testOccasion.getName(), result.getOccasion().getValue());
+    }
+
+    @Test
+    @Transactional
+    void testActivityAddressMapping() {
+        // Given
+        CreateActivityRequest request = CreateActivityRequest.builder()
+                .name("Test Activity")
+                .description("Test Description")
+                .startDateTime(LocalDateTime.now())
+                .endDateTime(LocalDateTime.now().plusHours(2))
+                .address(AddressDto.builder()
+                        .country("Russia")
+                        .city("Moscow")
+                        .streetName("Test Street")
+                        .streetNumber("123")
+                        .comment("Test Address")
+                        .build())
+                .occasionId(testOccasion.getId())
+                .status(Status.DRAFT)
+                .build();
+
+        // When
+        ActivityDto result = activityService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertNotNull(result.getAddress());
+        assertEquals("Russia", result.getAddress().getCountry());
+        assertEquals("Moscow", result.getAddress().getCity());
+        assertEquals("Test Street", result.getAddress().getStreetName());
+        assertEquals("123", result.getAddress().getStreetNumber());
+        assertEquals("Test Address", result.getAddress().getComment());
+    }
+
+    @Test
+    @Transactional
+    void testActivityWithoutAddress() {
+        // Given
+        CreateActivityRequest request = CreateActivityRequest.builder()
+                .name("Test Activity")
+                .description("Test Description")
+                .startDateTime(LocalDateTime.now())
+                .endDateTime(LocalDateTime.now().plusHours(2))
+                .occasionId(testOccasion.getId())
+                .status(Status.DRAFT)
+                .build();
+
+        // When
+        ActivityDto result = activityService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertNull(result.getAddress());
+
+        // Проверяем, что в БД адрес тоже null
+        Optional<ActivityEntity> savedActivity = activityRepository.findById(result.getId());
+        assertTrue(savedActivity.isPresent());
+        assertNull(savedActivity.get().getAddress());
+    }
+
+    // Вспомогательный метод для создания тестовой активности
+    private ActivityEntity createTestActivity(String name, String description) {
+        return new TransactionTemplate(transactionManager).execute(status -> {
+            ActivityEntity activity = ActivityEntity.builder()
+                    .name(name)
+                    .description(description)
+                    .startDateTime(LocalDateTime.now())
+                    .endDateTime(LocalDateTime.now().plusHours(2))
+                    .status(Status.DRAFT)
+                    .occasion(testOccasion)
+                    .build();
+            return activityRepository.save(activity);
+        });
+    }
+}

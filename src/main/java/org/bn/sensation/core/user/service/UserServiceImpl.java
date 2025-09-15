@@ -1,6 +1,7 @@
 package org.bn.sensation.core.user.service;
 
 import java.security.SecureRandom;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -8,13 +9,15 @@ import java.util.stream.Collectors;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.role.entity.Role;
-import org.bn.sensation.core.role.entity.RoleEntity;
-import org.bn.sensation.core.role.repository.RoleRepository;
-import org.bn.sensation.core.user.entity.Status;
+import org.bn.sensation.core.organization.entity.OrganizationEntity;
+import org.bn.sensation.core.organization.repository.OrganizationRepository;
+import org.bn.sensation.core.user.entity.Role;
+import org.bn.sensation.core.user.entity.UserStatus;
 import org.bn.sensation.core.user.entity.UserEntity;
 import org.bn.sensation.core.user.repository.UserRepository;
 import org.bn.sensation.core.user.service.dto.*;
+import org.bn.sensation.core.user.service.mapper.CreateUserRequestMapper;
+import org.bn.sensation.core.user.service.mapper.UpdateUserRequestMapper;
 import org.bn.sensation.core.user.service.mapper.UserDtoMapper;
 import org.bn.sensation.security.AesPasswordEncoder;
 import org.springframework.data.domain.Page;
@@ -24,6 +27,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Preconditions;
+
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,8 +41,11 @@ public class UserServiceImpl implements UserService {
     private final static String alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*";
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
+    private final OrganizationRepository organizationRepository;
     private final UserDtoMapper userDtoMapper;
+    private final CreateUserRequestMapper createUserRequestMapper;
+    private final UpdateUserRequestMapper updateUserRequestMapper;
+
     //    private final PasswordEncoder passwordEncoder;
     private final AesPasswordEncoder passwordEncoder;
 
@@ -54,17 +63,17 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void changePassword(ChangePasswordRequest request, UserDetails userDetails) {
         if (!passwordEncoder.matches(request.currentPassword(), userDetails.getPassword())) {
-            throw new IllegalArgumentException("Wrong password");
+            throw new IllegalArgumentException("Неверный пароль");
         }
         if (!request.newPassword().equals(request.confirmPassword())) {
-            throw new IllegalArgumentException("Password are not the same");
+            throw new IllegalArgumentException("Пароли не совпадают");
         }
         UserEntity user =
                 userRepository
                         .findByUsername(userDetails.getUsername())
                         .orElseThrow(
                                 () ->
-                                        new IllegalArgumentException(
+                                        new EntityNotFoundException(
                                                 "User with username not found: " + userDetails.getUsername()));
         user.setPassword(passwordEncoder.encode(request.newPassword()));
 
@@ -76,7 +85,7 @@ public class UserServiceImpl implements UserService {
     public void sendEmail(ForgotPasswordRequest request) {
         if ((request.username() == null || request.username().isBlank())
                 && (request.email() == null || request.email().isBlank())) {
-            throw new IllegalArgumentException("Username or email must be provided");
+            throw new IllegalArgumentException("Необходимо указать имя пользователя или email");
         }
 
         UserEntity user = null;
@@ -87,7 +96,7 @@ public class UserServiceImpl implements UserService {
             user = userRepository.findByPersonEmail(request.email()).orElse(null);
         }
         if (user == null) {
-            throw new IllegalArgumentException("User not found by provided username or email");
+            throw new EntityNotFoundException("Пользователь не найден по указанному имени пользователя или email");
         }
 
         String tempPassword = generateTempPassword(14);
@@ -105,22 +114,16 @@ public class UserServiceImpl implements UserService {
     public UserDto register(RegistrationRequest request) {
         userRepository.findByUsername(request.username())
                 .ifPresent(u -> {
-                    throw new IllegalArgumentException("Username already taken: " + request.username());
+                    throw new IllegalArgumentException("Имя пользователя уже занято: " + request.username());
                 });
-        if (request.email() != null && !request.email().isBlank()) {
-            userRepository.findByPersonEmail(request.email())
-                    .ifPresent(u -> {
-                        throw new IllegalArgumentException("Email already in use: " + request.email());
-                    });
-        }
+        validateEmailUniqueness(request.email(), null);
+        validatePhoneNumberUniqueness(request.phoneNumber(), null);
 
-        //todo изменить механизм выставления ролей. Вероятно рассмотреть кэш
-        RoleEntity byRole = roleRepository.findByRole(Role.SUPERADMIN);
         UserEntity user = UserEntity.builder()
                 .username(request.username())
                 .password(passwordEncoder.encode(request.password()))
-                .status(Status.ACTIVE)
-                .roles(Set.of(byRole))
+                .status(UserStatus.ACTIVE)
+                .roles(Set.of(Role.USER))
                 .person(Person.builder()
                         .name(request.name())
                         .surname(request.surname())
@@ -153,43 +156,25 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto create(CreateUserRequest request) {
-        // Check if username already exists
+        // Проверяем, существует ли имя пользователя уже
         userRepository.findByUsername(request.getUsername())
                 .ifPresent(u -> {
-                    throw new IllegalArgumentException("Username already taken: " + request.getUsername());
+                    throw new IllegalArgumentException("Имя пользователя уже занято: " + request.getUsername());
                 });
 
-        // Check if email already exists
-        if (request.getEmail() != null && !request.getEmail().isBlank()) {
-            userRepository.findByPersonEmail(request.getEmail())
-                    .ifPresent(u -> {
-                        throw new IllegalArgumentException("Email already in use: " + request.getEmail());
-                    });
-        }
+        validateEmailUniqueness(request.getEmail(), null);
+        validatePhoneNumberUniqueness(request.getPhoneNumber(), null);
 
-        // Get roles
-        Set<RoleEntity> roles = Set.of();
-        if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
-            roles = request.getRoleIds().stream()
-                    .map(roleId -> roleRepository.findById(roleId)
-                            .orElseThrow(() -> new IllegalArgumentException("Role not found with id: " + roleId)))
-                    .collect(Collectors.toSet());
-        }
+        // Получаем роли напрямую из запроса
+        Set<Role> roles = request.getRoles() != null ? request.getRoles() : Set.of(Role.USER);
 
-        // Create user entity
-        UserEntity user = UserEntity.builder()
-                .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .status(Status.valueOf(request.getStatus()))
-                .roles(roles)
-                .person(Person.builder()
-                        .name(request.getName())
-                        .surname(request.getSurname())
-                        .secondName(request.getSecondName())
-                        .email(request.getEmail())
-                        .phoneNumber(request.getPhoneNumber())
-                        .build())
-                .build();
+        // Создаем сущность пользователя
+        UserEntity user = createUserRequestMapper.toEntity(request);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRoles(roles);
+
+        // Назначаем пользователя в организации
+        assignUserToOrganizations(user, request.getOrganizationIds());
 
         UserEntity saved = userRepository.save(user);
         return userDtoMapper.toDto(saved);
@@ -199,43 +184,36 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto update(Long id, UpdateUserRequest request) {
         UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден с id: " + id));
 
-        // Check if email already exists (if changed)
+
+        if(request.getName()!=null) {
+            Preconditions.checkArgument(!request.getName().trim().isEmpty(), "Имя пользователя не может быть пустым");
+        }
+
+        // Проверяем, существует ли email уже (если изменился)
         if (request.getEmail() != null && !request.getEmail().isBlank()
                 && !request.getEmail().equals(user.getPerson().getEmail())) {
-            userRepository.findByPersonEmail(request.getEmail())
-                    .ifPresent(u -> {
-                        throw new IllegalArgumentException("Email already in use: " + request.getEmail());
-                    });
+            validateEmailUniqueness(request.getEmail(), user.getId());
         }
 
-        // Update person data
-        Person person = user.getPerson();
-        if (person == null) {
-            person = Person.builder().build();
+        // Проверяем, существует ли номер телефона уже (если изменился)
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().isBlank()
+                && !request.getPhoneNumber().equals(user.getPerson().getPhoneNumber())) {
+            validatePhoneNumberUniqueness(request.getPhoneNumber(), user.getId());
         }
 
-        if (request.getName() != null) person.setName(request.getName());
-        if (request.getSurname() != null) person.setSurname(request.getSurname());
-        if (request.getSecondName() != null) person.setSecondName(request.getSecondName());
-        if (request.getEmail() != null) person.setEmail(request.getEmail());
-        if (request.getPhoneNumber() != null) person.setPhoneNumber(request.getPhoneNumber());
+        // Обновляем поля пользователя
+        updateUserRequestMapper.updateUserFromRequest(request, user);
 
-        user.setPerson(person);
-
-        // Update status
-        if (request.getStatus() != null) {
-            user.setStatus(Status.valueOf(request.getStatus()));
+        // Обновляем роли
+        if (request.getRoles() != null) {
+            user.setRoles(new HashSet<>(request.getRoles()));
         }
 
-        // Update roles
-        if (request.getRoleIds() != null) {
-            Set<RoleEntity> roles = request.getRoleIds().stream()
-                    .map(roleId -> roleRepository.findById(roleId)
-                            .orElseThrow(() -> new IllegalArgumentException("Role not found with id: " + roleId)))
-                    .collect(Collectors.toSet());
-            user.setRoles(roles);
+        // Обновляем организации
+        if (request.getOrganizationIds() != null) {
+            assignUserToOrganizations(user, request.getOrganizationIds());
         }
 
         UserEntity saved = userRepository.save(user);
@@ -246,9 +224,21 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteById(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new IllegalArgumentException("User not found with id: " + id);
+            throw new EntityNotFoundException("Пользователь не найден с id: " + id);
         }
         userRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public UserDto assignUserToOrganization(Long userId, Long organizationId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
+        OrganizationEntity org = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new EntityNotFoundException("Организация не найдена"));
+
+        user.getOrganizations().add(org);
+        return userDtoMapper.toDto(userRepository.save(user));
     }
 
     private static String generateTempPassword(int length) {
@@ -258,5 +248,81 @@ public class UserServiceImpl implements UserService {
             sb.append(alphabet.charAt(rnd.nextInt(alphabet.length())));
         }
         return sb.toString();
+    }
+
+    /**
+     * Проверяет, не используется ли email другим пользователем
+     *
+     * @param email         проверяемый email
+     * @param excludeUserId ID пользователя, который исключается из проверки (для обновления)
+     */
+    private void validateEmailUniqueness(String email, Long excludeUserId) {
+        if (email == null || email.isBlank()) {
+            return;
+        }
+
+        userRepository.findByPersonEmail(email)
+                .ifPresent(user -> {
+                    if (excludeUserId == null || !user.getId().equals(excludeUserId)) {
+                        throw new IllegalArgumentException("Email уже используется: " + email);
+                    }
+                });
+    }
+
+    /**
+     * Проверяет, не используется ли номер телефона другим пользователем
+     *
+     * @param phoneNumber   проверяемый номер телефона
+     * @param excludeUserId ID пользователя, который исключается из проверки (для обновления)
+     */
+    private void validatePhoneNumberUniqueness(String phoneNumber, Long excludeUserId) {
+        if (phoneNumber == null || phoneNumber.isBlank()) {
+            return;
+        }
+
+        userRepository.findByPersonPhoneNumber(phoneNumber)
+                .ifPresent(user -> {
+                    if (excludeUserId == null || !user.getId().equals(excludeUserId)) {
+                        throw new IllegalArgumentException("Номер телефона уже используется: " + phoneNumber);
+                    }
+                });
+    }
+
+    /**
+     * Находит организацию по ID и проверяет её существование
+     *
+     * @param organizationId ID организации
+     * @return OrganizationEntity
+     * @throws EntityNotFoundException если организация не найдена
+     */
+    private OrganizationEntity findOrganizationById(Long organizationId) {
+        if (organizationId == null) {
+            return null;
+        }
+        return organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new EntityNotFoundException("Организация не найдена с id: " + organizationId));
+    }
+
+    /**
+     * Привязывает пользователя к организациям
+     *
+     * @param user            пользователь
+     * @param organizationIds ID организаций
+     */
+    private void assignUserToOrganizations(UserEntity user, Set<Long> organizationIds) {
+        if (organizationIds == null) {
+            return;
+        }
+
+        if (organizationIds.isEmpty()) {
+            user.setOrganizations(new HashSet<>());
+            return;
+        }
+
+        Set<OrganizationEntity> organizations = organizationIds.stream()
+                .map(this::findOrganizationById)
+                .collect(Collectors.toSet());
+
+        user.setOrganizations(new HashSet<>(organizations));
     }
 }

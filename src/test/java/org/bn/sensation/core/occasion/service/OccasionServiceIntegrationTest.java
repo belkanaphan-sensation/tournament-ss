@@ -1,0 +1,405 @@
+package org.bn.sensation.core.occasion.service;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.time.LocalDate;
+import java.util.Optional;
+import java.util.Set;
+
+import org.bn.sensation.core.common.entity.Address;
+import org.bn.sensation.core.common.entity.Person;
+import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.occasion.entity.OccasionEntity;
+import org.bn.sensation.core.occasion.repository.OccasionRepository;
+import org.bn.sensation.core.occasion.service.dto.CreateOccasionRequest;
+import org.bn.sensation.core.occasion.service.dto.OccasionDto;
+import org.bn.sensation.core.occasion.service.dto.UpdateOccasionRequest;
+import org.bn.sensation.core.organization.entity.OrganizationEntity;
+import org.bn.sensation.core.organization.repository.OrganizationRepository;
+import org.bn.sensation.core.user.entity.Role;
+import org.bn.sensation.core.user.entity.UserEntity;
+import org.bn.sensation.core.user.entity.UserStatus;
+import org.bn.sensation.core.user.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import jakarta.persistence.EntityNotFoundException;
+
+@SpringBootTest
+@ActiveProfiles("test")
+class OccasionServiceIntegrationTest {
+
+    @Autowired
+    private OccasionService occasionService;
+
+    @Autowired
+    private OccasionRepository occasionRepository;
+
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
+    private OrganizationEntity testOrganization;
+    private UserEntity testUser;
+
+    @BeforeEach
+    void setUp() {
+        // Очистка данных в отдельной транзакции
+        transactionTemplate.execute(status -> {
+            occasionRepository.deleteAll();
+            organizationRepository.deleteAll();
+            userRepository.deleteAll();
+            return null;
+        });
+
+        // Создание тестовых данных в отдельной транзакции
+        transactionTemplate.execute(status -> {
+            // Создание тестового пользователя
+            testUser = UserEntity.builder()
+                    .username("testuser" + System.currentTimeMillis())
+                    .password("password123")
+                    .person(Person.builder()
+                            .name("Test")
+                            .surname("User")
+                            .email("test@example.com")
+                            .phoneNumber("+1234567890")
+                            .build())
+                    .status(UserStatus.ACTIVE)
+                    .roles(Set.of(Role.USER))
+                    .build();
+            testUser = userRepository.save(testUser);
+
+            // Создание тестовой организации
+            testOrganization = OrganizationEntity.builder()
+                    .name("Test Organization")
+                    .description("Test Description")
+                    .address(Address.builder()
+                            .country("Russia")
+                            .city("Moscow")
+                            .streetName("Test Street")
+                            .streetNumber("1")
+                            .comment("Test Address")
+                            .build())
+                    .build();
+            testOrganization = organizationRepository.save(testOrganization);
+
+            return null;
+        });
+    }
+
+    @Test
+    @Transactional
+    void testCreateOccasion() {
+        // Given
+        CreateOccasionRequest request = CreateOccasionRequest.builder()
+                .name("Test Occasion")
+                .description("Test Description")
+                .status(Status.DRAFT)
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(3))
+                .organizationId(testOrganization.getId())
+                .build();
+
+        // When
+        OccasionDto result = occasionService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertNotNull(result.getId());
+        assertEquals("Test Occasion", result.getName());
+        assertEquals("Test Description", result.getDescription());
+        assertEquals(LocalDate.now(), result.getStartDate());
+        assertEquals(LocalDate.now().plusDays(3), result.getEndDate());
+        assertNotNull(result.getOrganization());
+        assertEquals(testOrganization.getId(), result.getOrganization().getId());
+
+        // Проверяем, что событие сохранено в БД
+        Optional<OccasionEntity> savedOccasion = occasionRepository.findById(result.getId());
+        assertTrue(savedOccasion.isPresent());
+        assertEquals("Test Occasion", savedOccasion.get().getName());
+        assertEquals(testOrganization.getId(), savedOccasion.get().getOrganization().getId());
+    }
+
+    @Test
+    @Transactional
+    void testCreateOccasionWithNonExistentOrganization() {
+        // Given
+        CreateOccasionRequest request = CreateOccasionRequest.builder()
+                .name("Test Occasion")
+                .description("Test Description")
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(3))
+                .organizationId(999L) // Несуществующая организация
+                .build();
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            occasionService.create(request);
+        });
+    }
+
+    @Test
+    @Transactional
+    void testFindAllOccasions() {
+        // Given
+        createTestOccasion("Occasion 1", "Description 1");
+        createTestOccasion("Occasion 2", "Description 2");
+        createTestOccasion("Occasion 3", "Description 3");
+
+        // When
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<OccasionDto> result = occasionService.findAll(pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(3, result.getTotalElements());
+        assertEquals(3, result.getContent().size());
+    }
+
+    @Test
+    @Transactional
+    void testFindOccasionById() {
+        // Given
+        OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
+
+        // When
+        Optional<OccasionDto> result = occasionService.findById(occasion.getId());
+
+        // Then
+        assertTrue(result.isPresent());
+        assertEquals("Test Occasion", result.get().getName());
+        assertEquals("Test Description", result.get().getDescription());
+        assertEquals(testOrganization.getId(), result.get().getOrganization().getId());
+    }
+
+    @Test
+    @Transactional
+    void testFindOccasionByIdNotFound() {
+        // When
+        Optional<OccasionDto> result = occasionService.findById(999L);
+
+        // Then
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    @Transactional
+    void testUpdateOccasion() {
+        // Given
+        OccasionEntity occasion = createTestOccasion("Original Name", "Original Description");
+
+        UpdateOccasionRequest request = UpdateOccasionRequest.builder()
+                .name("Updated Name")
+                .description("Updated Description")
+                .startDate(LocalDate.now().plusDays(1))
+                .endDate(LocalDate.now().plusDays(5))
+                .organizationId(testOrganization.getId())
+                .build();
+
+        // When
+        OccasionDto result = occasionService.update(occasion.getId(), request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("Updated Name", result.getName());
+        assertEquals("Updated Description", result.getDescription());
+        assertEquals(LocalDate.now().plusDays(1), result.getStartDate());
+        assertEquals(LocalDate.now().plusDays(5), result.getEndDate());
+
+        // Проверяем, что изменения сохранены в БД
+        Optional<OccasionEntity> savedOccasion = occasionRepository.findById(occasion.getId());
+        assertTrue(savedOccasion.isPresent());
+        assertEquals("Updated Name", savedOccasion.get().getName());
+        assertEquals("Updated Description", savedOccasion.get().getDescription());
+    }
+
+    @Test
+    @Transactional
+    void testUpdateOccasionPartial() {
+        // Given
+        OccasionEntity occasion = createTestOccasion("Original Name", "Original Description");
+
+        UpdateOccasionRequest request = UpdateOccasionRequest.builder()
+                .name("Updated Name")
+                .build();
+
+        // When
+        OccasionDto result = occasionService.update(occasion.getId(), request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("Updated Name", result.getName());
+        assertEquals("Original Description", result.getDescription()); // Не изменилось
+        assertEquals(occasion.getStartDate(), result.getStartDate()); // Не изменилось
+        assertEquals(occasion.getEndDate(), result.getEndDate()); // Не изменилось
+    }
+
+    @Test
+    @Transactional
+    void testUpdateOccasionNotFound() {
+        // Given
+        UpdateOccasionRequest request = UpdateOccasionRequest.builder()
+                .name("Updated Name")
+                .build();
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            occasionService.update(999L, request);
+        });
+    }
+
+    @Test
+    @Transactional
+    void testUpdateOccasionWithNonExistentOrganization() {
+        // Given
+        OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
+
+        UpdateOccasionRequest request = UpdateOccasionRequest.builder()
+                .organizationId(999L) // Несуществующая организация
+                .build();
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            occasionService.update(occasion.getId(), request);
+        });
+    }
+
+    @Test
+    @Transactional
+    void testDeleteOccasion() {
+        // Given
+        OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
+        Long occasionId = occasion.getId();
+
+        // When
+        occasionService.deleteById(occasionId);
+
+        // Then
+        assertFalse(occasionRepository.existsById(occasionId));
+    }
+
+    @Test
+    void testDeleteOccasionNotFound() {
+        // When & Then
+        assertThrows(IllegalArgumentException.class, () -> {
+            occasionService.deleteById(999L);
+        });
+    }
+
+    @Test
+    @Transactional
+    void testOccasionStatusMapping() {
+        // Given
+        CreateOccasionRequest request = CreateOccasionRequest.builder()
+                .name("Test Occasion")
+                .description("Test Description")
+                .status(Status.DRAFT)
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(3))
+                .organizationId(testOrganization.getId())
+                .build();
+
+        // When
+        OccasionDto result = occasionService.create(request);
+
+        // Then
+        assertNotNull(result);
+        // Проверяем, что статус установлен по умолчанию (DRAFT)
+        Optional<OccasionEntity> savedOccasion = occasionRepository.findById(result.getId());
+        assertTrue(savedOccasion.isPresent());
+        assertEquals(Status.DRAFT, savedOccasion.get().getStatus());
+    }
+
+    @Test
+    @Transactional
+    void testOccasionWithActivities() {
+        // Given
+        OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
+
+        // When
+        OccasionDto result = occasionService.findById(occasion.getId()).orElse(null);
+
+        // Then
+        assertNotNull(result);
+        assertNotNull(result.getActivities());
+        // Начально список активностей пуст
+        assertTrue(result.getActivities().isEmpty());
+    }
+
+    @Test
+    @Transactional
+    void testOccasionOrganizationMapping() {
+        // Given
+        CreateOccasionRequest request = CreateOccasionRequest.builder()
+                .name("Test Occasion")
+                .description("Test Description")
+                .status(Status.DRAFT)
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(3))
+                .organizationId(testOrganization.getId())
+                .build();
+
+        // When
+        OccasionDto result = occasionService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertNotNull(result.getOrganization());
+        assertEquals(testOrganization.getId(), result.getOrganization().getId());
+        assertEquals(testOrganization.getName(), result.getOrganization().getValue());
+    }
+
+    @Test
+    @Transactional
+    void testOccasionWithoutOrganization() {
+        // Given
+        CreateOccasionRequest request = CreateOccasionRequest.builder()
+                .name("Test Occasion")
+                .description("Test Description")
+                .status(Status.DRAFT)
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(3))
+                .organizationId(null) // Без организации
+                .build();
+
+        // When
+        OccasionDto result = occasionService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertNull(result.getOrganization());
+
+        // Проверяем, что в БД организация тоже null
+        Optional<OccasionEntity> savedOccasion = occasionRepository.findById(result.getId());
+        assertTrue(savedOccasion.isPresent());
+        assertNull(savedOccasion.get().getOrganization());
+    }
+
+    // Вспомогательный метод для создания тестового события
+    private OccasionEntity createTestOccasion(String name, String description) {
+        return transactionTemplate.execute(status -> {
+            OccasionEntity occasion = OccasionEntity.builder()
+                    .name(name)
+                    .description(description)
+                    .startDate(LocalDate.now())
+                    .endDate(LocalDate.now().plusDays(3))
+                    .status(Status.DRAFT)
+                    .organization(testOrganization)
+                    .build();
+            return occasionRepository.save(occasion);
+        });
+    }
+}

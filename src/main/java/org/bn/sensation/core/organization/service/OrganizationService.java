@@ -10,7 +10,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface OrganizationService extends BaseService<OrganizationEntity, OrganizationDto> {
 
-    // CRUD operations
+    // CRUD операции
     Page<OrganizationDto> findAll(Pageable pageable);
 
     OrganizationDto create(CreateOrganizationRequest request);

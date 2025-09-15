@@ -1,10 +1,12 @@
 package org.bn.sensation.core.activity.entity;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.BaseEntity;
+import org.bn.sensation.core.common.entity.Status;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 
@@ -35,10 +37,15 @@ public class ActivityEntity extends BaseEntity {
     @Embedded
     private Address address;
 
+    @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "occasion_id")
     private OccasionEntity occasion;
 
-    @OneToMany(mappedBy = "activity")
-    private List<MilestoneEntity> milestones;
+    @OneToMany(mappedBy = "activity", cascade = CascadeType.REMOVE)
+    @Builder.Default
+    private Set<MilestoneEntity> milestones =  new HashSet<>();
 }

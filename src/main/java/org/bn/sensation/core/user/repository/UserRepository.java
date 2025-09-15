@@ -9,4 +9,6 @@ public interface UserRepository extends BaseRepository<UserEntity> {
     Optional<UserEntity> findByUsername(String username);
 
     Optional<UserEntity> findByPersonEmail(String email);
+
+    Optional<UserEntity> findByPersonPhoneNumber(String phoneNumber);
 }

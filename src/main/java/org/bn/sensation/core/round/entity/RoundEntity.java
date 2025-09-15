@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
+import org.bn.sensation.core.common.entity.Status;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 
@@ -30,11 +31,11 @@ public class RoundEntity extends BaseEntity {
     @JoinColumn(name = "milestone_id")
     private MilestoneEntity milestone;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-            name = "rounds_participants_association",
-            joinColumns = @JoinColumn(name = "round_id"),
-            inverseJoinColumns = @JoinColumn(name = "participant_id"))
+    @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
+    @ManyToMany(mappedBy = "rounds")
     @Builder.Default
     private Set<ParticipantEntity> participants = new HashSet<>();
 }

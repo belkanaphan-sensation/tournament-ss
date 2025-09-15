@@ -10,11 +10,14 @@ import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
 import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.mapper.MilestoneDtoMapper;
+import org.bn.sensation.core.milestone.service.mapper.CreateMilestoneRequestMapper;
+import org.bn.sensation.core.milestone.service.mapper.UpdateMilestoneRequestMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -23,6 +26,8 @@ public class MilestoneServiceImpl implements MilestoneService {
 
     private final MilestoneRepository milestoneRepository;
     private final MilestoneDtoMapper milestoneDtoMapper;
+    private final CreateMilestoneRequestMapper createMilestoneRequestMapper;
+    private final UpdateMilestoneRequestMapper updateMilestoneRequestMapper;
     private final ActivityRepository activityRepository;
 
     @Override
@@ -44,18 +49,12 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     @Transactional
     public MilestoneDto create(CreateMilestoneRequest request) {
-        // Validate activity exists
-        ActivityEntity activity = null;
-        if (request.getActivityId() != null) {
-            activity = activityRepository.findById(request.getActivityId())
-                    .orElseThrow(() -> new IllegalArgumentException("Activity not found with id: " + request.getActivityId()));
-        }
+        // Проверяем, что активность существует
+        ActivityEntity activity = findActivityById(request.getActivityId());
 
-        // Create milestone entity
-        MilestoneEntity milestone = MilestoneEntity.builder()
-                .name(request.getName())
-                .activity(activity)
-                .build();
+        // Создаем сущность вехи
+        MilestoneEntity milestone = createMilestoneRequestMapper.toEntity(request);
+        milestone.setActivity(activity);
 
         MilestoneEntity saved = milestoneRepository.save(milestone);
         return milestoneDtoMapper.toDto(saved);
@@ -65,15 +64,14 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Transactional
     public MilestoneDto update(Long id, UpdateMilestoneRequest request) {
         MilestoneEntity milestone = milestoneRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Milestone not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + id));
 
-        // Update milestone fields
-        if (request.getName() != null) milestone.setName(request.getName());
+        // Обновляем поля вехи
+        updateMilestoneRequestMapper.updateMilestoneFromRequest(request, milestone);
 
-        // Update activity
+        // Обновляем активность
         if (request.getActivityId() != null) {
-            ActivityEntity activity = activityRepository.findById(request.getActivityId())
-                    .orElseThrow(() -> new IllegalArgumentException("Activity not found with id: " + request.getActivityId()));
+            ActivityEntity activity = findActivityById(request.getActivityId());
             milestone.setActivity(activity);
         }
 
@@ -85,8 +83,16 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Transactional
     public void deleteById(Long id) {
         if (!milestoneRepository.existsById(id)) {
-            throw new IllegalArgumentException("Milestone not found with id: " + id);
+            throw new IllegalArgumentException("Этап не найден с id: " + id);
         }
         milestoneRepository.deleteById(id);
+    }
+
+    private ActivityEntity findActivityById(Long activityId) {
+        if (activityId == null) {
+            return null;
+        }
+        return activityRepository.findById(activityId)
+                .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + activityId));
     }
 }

@@ -1,7 +1,7 @@
 package org.bn.sensation.core.round.service;
 
+import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
@@ -14,12 +14,17 @@ import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
 import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
+import org.bn.sensation.core.round.service.mapper.CreateRoundRequestMapper;
 import org.bn.sensation.core.round.service.mapper.RoundDtoMapper;
+import org.bn.sensation.core.round.service.mapper.UpdateRoundRequestMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Preconditions;
+
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -28,6 +33,8 @@ public class RoundServiceImpl implements RoundService {
 
     private final RoundRepository roundRepository;
     private final RoundDtoMapper roundDtoMapper;
+    private final CreateRoundRequestMapper createRoundRequestMapper;
+    private final UpdateRoundRequestMapper updateRoundRequestMapper;
     private final MilestoneRepository milestoneRepository;
     private final ParticipantRepository participantRepository;
 
@@ -50,29 +57,12 @@ public class RoundServiceImpl implements RoundService {
     @Override
     @Transactional
     public RoundDto create(CreateRoundRequest request) {
-        // Validate milestone exists
-        MilestoneEntity milestone = null;
-        if (request.getMilestoneId() != null) {
-            milestone = milestoneRepository.findById(request.getMilestoneId())
-                    .orElseThrow(() -> new IllegalArgumentException("Milestone not found with id: " + request.getMilestoneId()));
-        }
+        // Проверяем существование этапа
+        MilestoneEntity milestone = findMilestoneById(request.getMilestoneId());
 
-        // Get participants
-        Set<ParticipantEntity> participants = Set.of();
-        if (request.getParticipantIds() != null && !request.getParticipantIds().isEmpty()) {
-            participants = request.getParticipantIds().stream()
-                    .map(participantId -> participantRepository.findById(participantId)
-                            .orElseThrow(() -> new IllegalArgumentException("Participant not found with id: " + participantId)))
-                    .collect(Collectors.toSet());
-        }
-
-        // Create round entity
-        RoundEntity round = RoundEntity.builder()
-                .name(request.getName())
-                .description(request.getDescription())
-                .milestone(milestone)
-                .participants(participants)
-                .build();
+        // Создаем сущность раунда
+        RoundEntity round = createRoundRequestMapper.toEntity(request);
+        round.setMilestone(milestone);
 
         RoundEntity saved = roundRepository.save(round);
         return roundDtoMapper.toDto(saved);
@@ -82,25 +72,24 @@ public class RoundServiceImpl implements RoundService {
     @Transactional
     public RoundDto update(Long id, UpdateRoundRequest request) {
         RoundEntity round = roundRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Round not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + id));
 
-        // Update round fields
-        if (request.getName() != null) round.setName(request.getName());
-        if (request.getDescription() != null) round.setDescription(request.getDescription());
+        if(request.getName()!=null) {
+            Preconditions.checkArgument(!request.getName().trim().isEmpty(), "Название раунда не может быть пустым");
+        }
 
-        // Update milestone
+        // Обновляем поля раунда
+        updateRoundRequestMapper.updateRoundFromRequest(request, round);
+
+        // Обновляем этап
         if (request.getMilestoneId() != null) {
-            MilestoneEntity milestone = milestoneRepository.findById(request.getMilestoneId())
-                    .orElseThrow(() -> new IllegalArgumentException("Milestone not found with id: " + request.getMilestoneId()));
+            MilestoneEntity milestone = findMilestoneById(request.getMilestoneId());
             round.setMilestone(milestone);
         }
 
-        // Update participants
+        // Обновляем участников
         if (request.getParticipantIds() != null) {
-            Set<ParticipantEntity> participants = request.getParticipantIds().stream()
-                    .map(participantId -> participantRepository.findById(participantId)
-                            .orElseThrow(() -> new IllegalArgumentException("Participant not found with id: " + participantId)))
-                    .collect(Collectors.toSet());
+            Set<ParticipantEntity> participants = findParticipantsByIds(request.getParticipantIds());
             round.setParticipants(participants);
         }
 
@@ -112,8 +101,29 @@ public class RoundServiceImpl implements RoundService {
     @Transactional
     public void deleteById(Long id) {
         if (!roundRepository.existsById(id)) {
-            throw new IllegalArgumentException("Round not found with id: " + id);
+            throw new EntityNotFoundException("Раунд не найден с id: " + id);
         }
         roundRepository.deleteById(id);
+    }
+
+    private MilestoneEntity findMilestoneById(Long milestoneId) {
+        if (milestoneId == null) {
+            return null;
+        }
+        return milestoneRepository.findById(milestoneId)
+                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
+    }
+
+    private Set<ParticipantEntity> findParticipantsByIds(Set<Long> participantIds) {
+        if (participantIds == null || participantIds.isEmpty()) {
+            return new HashSet<>();
+        }
+        Set<ParticipantEntity> participants = new HashSet<>();
+        for (Long participantId : participantIds) {
+            ParticipantEntity participant = participantRepository.findById(participantId)
+                    .orElseThrow(() -> new EntityNotFoundException("Участник не найден с id: " + participantId));
+            participants.add(participant);
+        }
+        return participants;
     }
 }

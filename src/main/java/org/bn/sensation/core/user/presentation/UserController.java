@@ -61,4 +61,12 @@ public class UserController {
         userService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Привязать организацию к пользователю")
+    @PostMapping("/{userId}/organizations/{orgId}")
+    public ResponseEntity<UserDto> addUserToOrganization(@PathVariable Long userId,
+                                                      @PathVariable Long orgId) {
+        UserDto updated = userService.assignUserToOrganization(userId, orgId);
+        return ResponseEntity.ok(updated);
+    }
 }

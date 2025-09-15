@@ -1,12 +1,18 @@
 package org.bn.sensation.core.milestone.service.dto;
 
+import java.util.Set;
+
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.common.entity.Status;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Data
@@ -23,4 +29,10 @@ public class MilestoneDto extends BaseDto {
 
     @Schema(description = "Активность, частью которой является веха")
     private EntityLinkDto activity;
+
+    @Schema(description = "Список раундов")
+    private Set<EntityLinkDto> rounds;
+
+    @Schema(description = "Статус вехи", example = "DRAFT")
+    private Status status;
 }

@@ -1,19 +1,24 @@
 package org.bn.sensation.core.organization.service;
 
 import org.bn.sensation.core.common.entity.Address;
+import org.bn.sensation.core.common.entity.Status;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.organization.repository.OrganizationRepository;
 import org.bn.sensation.core.organization.service.dto.CreateOrganizationRequest;
 import org.bn.sensation.core.organization.service.dto.OrganizationDto;
 import org.bn.sensation.core.organization.service.dto.UpdateOrganizationRequest;
 import org.bn.sensation.core.organization.service.mapper.OrganizationDtoMapper;
+import org.bn.sensation.core.organization.service.mapper.CreateOrganizationRequestMapper;
+import org.bn.sensation.core.organization.service.mapper.UpdateOrganizationRequestMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -22,6 +27,8 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     private final OrganizationRepository organizationRepository;
     private final OrganizationDtoMapper organizationDtoMapper;
+    private final CreateOrganizationRequestMapper createOrganizationRequestMapper;
+    private final UpdateOrganizationRequestMapper updateOrganizationRequestMapper;
 
     @Override
     public BaseRepository<OrganizationEntity> getRepository() {
@@ -42,34 +49,22 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     @Transactional
     public OrganizationDto create(CreateOrganizationRequest request) {
-        // Check if organization with same name already exists
+        // Проверяем, существует ли организация с таким названием уже
         organizationRepository.findByName(request.getName())
                 .ifPresent(org -> {
-                    throw new IllegalArgumentException("Organization with name already exists: " + request.getName());
+                    throw new IllegalArgumentException("Организация с таким названием уже существует: " + request.getName());
                 });
 
-        // Check if email already exists
+        // Проверяем, существует ли email уже
         if (request.getEmail() != null && !request.getEmail().isBlank()) {
             organizationRepository.findByEmail(request.getEmail())
                     .ifPresent(org -> {
-                        throw new IllegalArgumentException("Organization with email already exists: " + request.getEmail());
+                        throw new IllegalArgumentException("Организация с таким email уже существует: " + request.getEmail());
                     });
         }
 
-        // Create organization entity
-        OrganizationEntity organization = OrganizationEntity.builder()
-                .name(request.getName())
-                .description(request.getDescription())
-                .phoneNumber(request.getPhoneNumber())
-                .email(request.getEmail())
-                .address(request.getAddress() != null ? Address.builder()
-                        .country(request.getAddress().getCountry())
-                        .city(request.getAddress().getCity())
-                        .streetName(request.getAddress().getStreetName())
-                        .streetNumber(request.getAddress().getStreetNumber())
-                        .comment(request.getAddress().getComment())
-                        .build() : null)
-                .build();
+        // Создаем сущность организации
+        OrganizationEntity organization = createOrganizationRequestMapper.toEntity(request);
 
         OrganizationEntity saved = organizationRepository.save(organization);
         return organizationDtoMapper.toDto(saved);
@@ -79,46 +74,36 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Transactional
     public OrganizationDto update(Long id, UpdateOrganizationRequest request) {
         OrganizationEntity organization = organizationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Organization not found with id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Организация не найдена с id: " + id));
 
-        // Check if name already exists (if changed)
+        // Проверяем, существует ли название уже (если изменилось)
         if (request.getName() != null && !request.getName().isBlank()
                 && !request.getName().equals(organization.getName())) {
             organizationRepository.findByName(request.getName())
                     .ifPresent(org -> {
-                        throw new IllegalArgumentException("Organization with name already exists: " + request.getName());
+                        throw new IllegalArgumentException("Организация с таким названием уже существует: " + request.getName());
                     });
         }
 
-        // Check if email already exists (if changed)
+        // Проверяем, существует ли email уже (если изменился)
         if (request.getEmail() != null && !request.getEmail().isBlank()
                 && !request.getEmail().equals(organization.getEmail())) {
             organizationRepository.findByEmail(request.getEmail())
                     .ifPresent(org -> {
-                        throw new IllegalArgumentException("Organization with email already exists: " + request.getEmail());
+                        throw new IllegalArgumentException("Организация с таким email уже существует: " + request.getEmail());
                     });
         }
 
-        // Update organization fields
-        if (request.getName() != null) organization.setName(request.getName());
-        if (request.getDescription() != null) organization.setDescription(request.getDescription());
-        if (request.getPhoneNumber() != null) organization.setPhoneNumber(request.getPhoneNumber());
-        if (request.getEmail() != null) organization.setEmail(request.getEmail());
+        // Обновляем поля организации
+        updateOrganizationRequestMapper.updateOrganizationFromRequest(request, organization);
 
-        // Update address
+        // Обновляем адрес
         if (request.getAddress() != null) {
             Address address = organization.getAddress();
             if (address == null) {
                 address = Address.builder().build();
             }
-
-            if (request.getAddress().getCountry() != null) address.setCountry(request.getAddress().getCountry());
-            if (request.getAddress().getCity() != null) address.setCity(request.getAddress().getCity());
-            if (request.getAddress().getStreetName() != null) address.setStreetName(request.getAddress().getStreetName());
-            if (request.getAddress().getStreetNumber() != null) address.setStreetNumber(request.getAddress().getStreetNumber());
-            if (request.getAddress().getComment() != null) address.setComment(request.getAddress().getComment());
-
-            organization.setAddress(address);
+            updateOrganizationRequestMapper.updateAddressFromRequest(request.getAddress(), address);
         }
 
         OrganizationEntity saved = organizationRepository.save(organization);
@@ -128,9 +113,25 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     @Transactional
     public void deleteById(Long id) {
-        if (!organizationRepository.existsById(id)) {
-            throw new IllegalArgumentException("Organization not found with id: " + id);
-        }
+        OrganizationEntity organization = organizationRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Организация не найдена с id: " + id));
+
+        // Проверяем, можно ли удалить организацию
+        validateOrganizationCanBeDeleted(organization);
+
+        // Удаляем организацию (Hibernate автоматически удалит связи из промежуточной таблицы)
         organizationRepository.deleteById(id);
+    }
+
+    private void validateOrganizationCanBeDeleted(OrganizationEntity organization) {
+        // Проверяем статус связанных мероприятий
+        if (organization.getOccasions() != null) {
+            for (OccasionEntity occasion : organization.getOccasions()) {
+                if (occasion.getStatus() != Status.DRAFT && occasion.getStatus() != Status.COMPLETED) {
+                    throw new IllegalArgumentException("Нельзя удалить организацию, у которой есть активные мероприятия. " +
+                            "Мероприятие '" + occasion.getName() + "' имеет статус: " + occasion.getStatus());
+                }
+            }
+        }
     }
 }

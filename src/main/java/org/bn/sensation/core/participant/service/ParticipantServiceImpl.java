@@ -1,11 +1,5 @@
 package org.bn.sensation.core.participant.service;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.bn.sensation.core.activity.entity.ActivityEntity;
-import org.bn.sensation.core.activity.repository.ActivityRepository;
-import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
@@ -14,6 +8,8 @@ import org.bn.sensation.core.participant.service.dto.CreateParticipantRequest;
 import org.bn.sensation.core.participant.service.dto.ParticipantDto;
 import org.bn.sensation.core.participant.service.dto.UpdateParticipantRequest;
 import org.bn.sensation.core.participant.service.mapper.ParticipantDtoMapper;
+import org.bn.sensation.core.participant.service.mapper.CreateParticipantRequestMapper;
+import org.bn.sensation.core.participant.service.mapper.UpdateParticipantRequestMapper;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
 import org.springframework.data.domain.Page;
@@ -21,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -28,9 +25,10 @@ import lombok.RequiredArgsConstructor;
 public class ParticipantServiceImpl implements ParticipantService {
 
     private final ParticipantRepository participantRepository;
-    private final ParticipantDtoMapper participantDtoMapper;
-    private final ActivityRepository activityRepository;
     private final RoundRepository roundRepository;
+    private final ParticipantDtoMapper participantDtoMapper;
+    private final CreateParticipantRequestMapper createParticipantRequestMapper;
+    private final UpdateParticipantRequestMapper updateParticipantRequestMapper;
 
     @Override
     public BaseRepository<ParticipantEntity> getRepository() {
@@ -51,35 +49,8 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     @Transactional
     public ParticipantDto create(CreateParticipantRequest request) {
-        // Validate activity exists
-        ActivityEntity activity = null;
-        if (request.getActivityId() != null) {
-            activity = activityRepository.findById(request.getActivityId())
-                    .orElseThrow(() -> new IllegalArgumentException("Activity not found with id: " + request.getActivityId()));
-        }
-
-        // Get rounds
-        Set<RoundEntity> rounds = Set.of();
-        if (request.getRoundIds() != null && !request.getRoundIds().isEmpty()) {
-            rounds = request.getRoundIds().stream()
-                    .map(roundId -> roundRepository.findById(roundId)
-                            .orElseThrow(() -> new IllegalArgumentException("Round not found with id: " + roundId)))
-                    .collect(Collectors.toSet());
-        }
-
-        // Create participant entity
-        ParticipantEntity participant = ParticipantEntity.builder()
-                .person(Person.builder()
-                        .name(request.getName())
-                        .surname(request.getSurname())
-                        .secondName(request.getSecondName())
-                        .email(request.getEmail())
-                        .phoneNumber(request.getPhoneNumber())
-                        .build())
-                .number(request.getNumber())
-                .activity(activity)
-                .rounds(rounds)
-                .build();
+        // Создаем сущность участника
+        ParticipantEntity participant = createParticipantRequestMapper.toEntity(request);
 
         ParticipantEntity saved = participantRepository.save(participant);
         return participantDtoMapper.toDto(saved);
@@ -88,41 +59,10 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     @Transactional
     public ParticipantDto update(Long id, UpdateParticipantRequest request) {
-        ParticipantEntity participant = participantRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Participant not found with id: " + id));
+        ParticipantEntity participant = findParticipantById(id);
 
-        // Update person data
-        Person person = participant.getPerson();
-        if (person == null) {
-            person = Person.builder().build();
-        }
-
-        if (request.getName() != null) person.setName(request.getName());
-        if (request.getSurname() != null) person.setSurname(request.getSurname());
-        if (request.getSecondName() != null) person.setSecondName(request.getSecondName());
-        if (request.getEmail() != null) person.setEmail(request.getEmail());
-        if (request.getPhoneNumber() != null) person.setPhoneNumber(request.getPhoneNumber());
-
-        participant.setPerson(person);
-
-        // Update other fields
-        if (request.getNumber() != null) participant.setNumber(request.getNumber());
-
-        // Update activity
-        if (request.getActivityId() != null) {
-            ActivityEntity activity = activityRepository.findById(request.getActivityId())
-                    .orElseThrow(() -> new IllegalArgumentException("Activity not found with id: " + request.getActivityId()));
-            participant.setActivity(activity);
-        }
-
-        // Update rounds
-        if (request.getRoundIds() != null) {
-            Set<RoundEntity> rounds = request.getRoundIds().stream()
-                    .map(roundId -> roundRepository.findById(roundId)
-                            .orElseThrow(() -> new IllegalArgumentException("Round not found with id: " + roundId)))
-                    .collect(Collectors.toSet());
-            participant.setRounds(rounds);
-        }
+        // Обновляем поля участника
+        updateParticipantRequestMapper.updateParticipantFromRequest(request, participant);
 
         ParticipantEntity saved = participantRepository.save(participant);
         return participantDtoMapper.toDto(saved);
@@ -132,8 +72,29 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Transactional
     public void deleteById(Long id) {
         if (!participantRepository.existsById(id)) {
-            throw new IllegalArgumentException("Participant not found with id: " + id);
+            throw new EntityNotFoundException("Участник не найден с id: " + id);
         }
         participantRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public ParticipantDto assignParticipantToRound(Long participantId, Long roundId) {
+        ParticipantEntity participant = findParticipantById(participantId);
+        RoundEntity round = findRoundById(roundId);
+
+        participant.getRounds().add(round);
+        return participantDtoMapper.toDto(participantRepository.save(participant));
+    }
+
+
+    private RoundEntity findRoundById(Long roundId) {
+        return roundRepository.findById(roundId)
+                .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + roundId));
+    }
+
+    private ParticipantEntity findParticipantById(Long participantId) {
+        return participantRepository.findById(participantId)
+                .orElseThrow(() -> new EntityNotFoundException("Участник не найден с id: " + participantId));
     }
 }
