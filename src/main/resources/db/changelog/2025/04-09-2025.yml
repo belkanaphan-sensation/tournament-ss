@@ -1,2 +1,0 @@
-databaseChangeLog:
-  # Роли теперь enum, не нужно создавать в БД

@@ -46,6 +46,7 @@ public class CreateOccasionRequest extends EmptyDto {
     @Schema(description = "ID организации, проводящей мероприятие")
     private Long organizationId;
 
+    @NotNull
     @Schema(description = "Статус мероприятия", example = "DRAFT")
     private Status status;
 }

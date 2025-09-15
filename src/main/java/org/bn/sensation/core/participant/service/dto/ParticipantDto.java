@@ -33,6 +33,9 @@ public class ParticipantDto extends BaseDto {
     @Schema(description = "Активность участника")
     private EntityLinkDto activity;
 
+    @Schema(description = "Список этапов")
+    private Set<EntityLinkDto> milestones;
+
     @Schema(description = "Список раундов участника")
     private Set<EntityLinkDto> rounds;
 }

@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -60,7 +59,7 @@ public class CreateUserRequest extends EmptyDto {
     @Schema(description = "Номер телефона", example = "+7 777 123 45 67")
     private String phoneNumber;
 
-    @NotNull
+    @NotBlank
     @Schema(description = "Статус пользователя", example = "ACTIVE")
     private String status;
 

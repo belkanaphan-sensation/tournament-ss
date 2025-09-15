@@ -140,7 +140,6 @@ class RoundServiceIntegrationTest {
                         .phoneNumber("+1234567890")
                         .build())
                 .number("001")
-                .activity(testActivity)
                 .build();
         testParticipant = participantRepository.save(testParticipant);
 
@@ -152,7 +151,6 @@ class RoundServiceIntegrationTest {
                         .phoneNumber("+0987654321")
                         .build())
                 .number("002")
-                .activity(testActivity)
                 .build();
         testParticipant1 = participantRepository.save(testParticipant1);
 

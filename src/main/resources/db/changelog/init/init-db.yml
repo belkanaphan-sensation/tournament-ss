@@ -64,7 +64,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-02-01-2
       author: belkanaphan
-      onFail: MARK_RAN
+      onFail: WARN
       changes:
         - sql:
             sql: |

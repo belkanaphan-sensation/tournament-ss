@@ -13,17 +13,19 @@ import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.organization.repository.OrganizationRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
-import org.bn.sensation.core.participant.service.dto.*;
+import org.bn.sensation.core.participant.service.dto.CreateParticipantRequest;
+import org.bn.sensation.core.participant.service.dto.ParticipantDto;
+import org.bn.sensation.core.participant.service.dto.UpdateParticipantRequest;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.milestone.entity.MilestoneEntity;
-import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,7 +149,6 @@ class ParticipantServiceIntegrationTest {
                         .phoneNumber("+1234567890")
                         .build())
                 .number("001")
-                .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         testParticipant = participantRepository.save(testParticipant);
@@ -163,8 +164,6 @@ class ParticipantServiceIntegrationTest {
                 .email("jane.smith@example.com")
                 .phoneNumber("+0987654321")
                 .number("002")
-                .activityId(testActivity.getId())
-                .roundIds(Set.of(testRound.getId()))
                 .build();
 
         // When
@@ -191,67 +190,7 @@ class ParticipantServiceIntegrationTest {
         assertEquals(request.getEmail(), savedParticipant.get().getPerson().getEmail());
         assertEquals(request.getPhoneNumber(), savedParticipant.get().getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), savedParticipant.get().getNumber());
-        assertEquals(testActivity.getId(), savedParticipant.get().getActivity().getId());
         assertEquals(1, savedParticipant.get().getRounds().size());
-    }
-
-    @Test
-    void testCreateParticipantWithNonExistentActivity() {
-        // Given
-        CreateParticipantRequest request = CreateParticipantRequest.builder()
-                .name("Jane")
-                .surname("Smith")
-                .email("jane.smith@example.com")
-                .activityId(999L) // Non-existent activity
-                .build();
-
-        // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
-            participantService.create(request);
-        });
-    }
-
-    @Test
-    void testCreateParticipantWithNonExistentRound() {
-        // Given
-        CreateParticipantRequest request = CreateParticipantRequest.builder()
-                .name("Jane")
-                .surname("Smith")
-                .email("jane.smith@example.com")
-                .activityId(testActivity.getId())
-                .roundIds(Set.of(999L)) // Non-existent round
-                .build();
-
-        // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
-            participantService.create(request);
-        });
-    }
-
-    @Test
-    void testCreateParticipantWithMultipleRounds() {
-        // Given
-        CreateParticipantRequest request = CreateParticipantRequest.builder()
-                .name("Jane")
-                .surname("Smith")
-                .email("jane.smith@example.com")
-                .activityId(testActivity.getId())
-                .roundIds(Set.of(testRound.getId(), testRound1.getId()))
-                .build();
-
-        // When
-        ParticipantDto result = participantService.create(request);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(2, result.getRounds().size());
-
-        // Verify participant was saved with multiple rounds
-        Optional<ParticipantEntity> savedParticipant = participantRepository.findById(result.getId());
-        assertTrue(savedParticipant.isPresent());
-        assertEquals(2, savedParticipant.get().getRounds().size());
-        assertTrue(savedParticipant.get().getRounds().contains(testRound));
-        assertTrue(savedParticipant.get().getRounds().contains(testRound1));
     }
 
     @Test
@@ -264,8 +203,6 @@ class ParticipantServiceIntegrationTest {
                 .email("updated@example.com")
                 .phoneNumber("+1111111111")
                 .number("999")
-                .activityId(testActivity.getId())
-                .roundIds(Set.of(testRound1.getId()))
                 .build();
 
         // When
@@ -296,55 +233,6 @@ class ParticipantServiceIntegrationTest {
     }
 
     @Test
-    void testUpdateParticipantWithNonExistentActivity() {
-        // Given
-        UpdateParticipantRequest request = UpdateParticipantRequest.builder()
-                .name("Updated")
-                .activityId(999L) // Non-existent activity
-                .build();
-
-        // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
-            participantService.update(testParticipant.getId(), request);
-        });
-    }
-
-    @Test
-    void testUpdateParticipantWithNonExistentRound() {
-        // Given
-        UpdateParticipantRequest request = UpdateParticipantRequest.builder()
-                .name("Updated")
-                .roundIds(Set.of(999L)) // Non-existent round
-                .build();
-
-        // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
-            participantService.update(testParticipant.getId(), request);
-        });
-    }
-
-    @Test
-    void testUpdateParticipantWithEmptyRounds() {
-        // Given
-        UpdateParticipantRequest request = UpdateParticipantRequest.builder()
-                .name("Updated")
-                .roundIds(new HashSet<>()) // Empty set
-                .build();
-
-        // When
-        ParticipantDto result = participantService.update(testParticipant.getId(), request);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(testParticipant.getId(), result.getId());
-
-        // Verify participant rounds were cleared
-        Optional<ParticipantEntity> updatedParticipant = participantRepository.findById(testParticipant.getId());
-        assertTrue(updatedParticipant.isPresent());
-        assertTrue(updatedParticipant.get().getRounds().isEmpty());
-    }
-
-    @Test
     void testUpdateParticipantWithNonExistentParticipant() {
         // Given
         UpdateParticipantRequest request = UpdateParticipantRequest.builder()
@@ -368,7 +256,6 @@ class ParticipantServiceIntegrationTest {
                         .phoneNumber("+2222222222")
                         .build())
                 .number("003")
-                .activity(testActivity)
                 .build();
         participantRepository.save(participant2);
 
@@ -380,7 +267,6 @@ class ParticipantServiceIntegrationTest {
                         .phoneNumber("+3333333333")
                         .build())
                 .number("004")
-                .activity(testActivity)
                 .build();
         participantRepository.save(participant3);
 
@@ -484,7 +370,6 @@ class ParticipantServiceIntegrationTest {
                 .secondName(null) // Null second name
                 .email(null) // Null email
                 .phoneNumber(null) // Null phone
-                .activityId(testActivity.getId())
                 .build();
 
         // When
@@ -517,7 +402,6 @@ class ParticipantServiceIntegrationTest {
                 .secondName("Validation")
                 .email("mapping@test.com")
                 .phoneNumber("+5555555555")
-                .activityId(testActivity.getId())
                 .build();
 
         // When

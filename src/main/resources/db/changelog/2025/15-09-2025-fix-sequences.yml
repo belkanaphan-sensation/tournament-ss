@@ -1,0 +1,37 @@
+databaseChangeLog:
+  # Fix sequences to avoid ID conflicts
+  - changeSet:
+      id: 2025-09-15-11
+      author: belkanaphan
+      changes:
+        - sql:
+            sql: |
+              -- Обновляем последовательности для всех таблиц, чтобы избежать конфликтов ID
+              -- PostgreSQL автоматически создает последовательности для SERIAL/BIGSERIAL полей
+              
+              -- Для organization (максимальный ID = 2)
+              SELECT setval('organization_id_seq', (SELECT MAX(id) FROM organization));
+              
+              -- Для users (максимальный ID = 3)
+              SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
+              
+              -- Для occasion (максимальный ID = 2)
+              SELECT setval('occasion_id_seq', (SELECT MAX(id) FROM occasion));
+              
+              -- Для activity (максимальный ID = 3)
+              SELECT setval('activity_id_seq', (SELECT MAX(id) FROM activity));
+              
+              -- Для milestone (максимальный ID = 4)
+              SELECT setval('milestone_id_seq', (SELECT MAX(id) FROM milestone));
+              
+              -- Для round (максимальный ID = 4)
+              SELECT setval('round_id_seq', (SELECT MAX(id) FROM round));
+              
+              -- Для participant (максимальный ID = 4)
+              SELECT setval('participant_id_seq', (SELECT MAX(id) FROM participant));
+              
+#              -- Для activity_rule (если есть данные)
+#              SELECT setval('activity_rule_id_seq', COALESCE((SELECT MAX(id) FROM activity_rule), 0));
+#
+#              -- Для milestone_rule (если есть данные)
+#              SELECT setval('milestone_rule_id_seq', COALESCE((SELECT MAX(id) FROM milestone_rule), 0));

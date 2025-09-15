@@ -1,11 +1,5 @@
 package org.bn.sensation.core.participant.service;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.bn.sensation.core.activity.entity.ActivityEntity;
-import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
@@ -35,7 +29,6 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final ParticipantDtoMapper participantDtoMapper;
     private final CreateParticipantRequestMapper createParticipantRequestMapper;
     private final UpdateParticipantRequestMapper updateParticipantRequestMapper;
-    private final ActivityRepository activityRepository;
 
     @Override
     public BaseRepository<ParticipantEntity> getRepository() {
@@ -56,16 +49,8 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     @Transactional
     public ParticipantDto create(CreateParticipantRequest request) {
-        // Проверяем существование активности
-        ActivityEntity activity = findActivityById(request.getActivityId());
-
-        // Получаем раунды
-        Set<RoundEntity> rounds = findRoundsByIds(request.getRoundIds());
-
         // Создаем сущность участника
         ParticipantEntity participant = createParticipantRequestMapper.toEntity(request);
-        participant.setActivity(activity);
-        participant.setRounds(rounds);
 
         ParticipantEntity saved = participantRepository.save(participant);
         return participantDtoMapper.toDto(saved);
@@ -78,18 +63,6 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         // Обновляем поля участника
         updateParticipantRequestMapper.updateParticipantFromRequest(request, participant);
-
-        // Обновляем активность
-        if (request.getActivityId() != null) {
-            ActivityEntity activity = findActivityById(request.getActivityId());
-            participant.setActivity(activity);
-        }
-
-        // Обновляем раунды
-        if (request.getRoundIds() != null) {
-            Set<RoundEntity> rounds = findRoundsByIds(request.getRoundIds());
-            participant.setRounds(rounds);
-        }
 
         ParticipantEntity saved = participantRepository.save(participant);
         return participantDtoMapper.toDto(saved);
@@ -114,22 +87,6 @@ public class ParticipantServiceImpl implements ParticipantService {
         return participantDtoMapper.toDto(participantRepository.save(participant));
     }
 
-    private ActivityEntity findActivityById(Long activityId) {
-        if (activityId == null) {
-            return null;
-        }
-        return activityRepository.findById(activityId)
-                .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + activityId));
-    }
-
-    private Set<RoundEntity> findRoundsByIds(Set<Long> roundIds) {
-        if (roundIds == null || roundIds.isEmpty()) {
-            return new HashSet<>();
-        }
-        return roundIds.stream()
-                .map(this::findRoundById)
-                .collect(Collectors.toSet());
-    }
 
     private RoundEntity findRoundById(Long roundId) {
         return roundRepository.findById(roundId)

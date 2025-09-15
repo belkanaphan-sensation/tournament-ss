@@ -43,3 +43,6 @@ app:
 logging:
   level:
     liquibase: INFO
+#    org.springframework.web.servlet.resource.ResourceHttpRequestHandler: WARN
+#    org.springframework.web.servlet.DispatcherServlet: WARN
+#    org.springframework.web: WARN

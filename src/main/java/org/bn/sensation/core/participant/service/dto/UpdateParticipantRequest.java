@@ -1,7 +1,5 @@
 package org.bn.sensation.core.participant.service.dto;
 
-import java.util.Set;
-
 import org.bn.sensation.core.common.dto.EmptyDto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -48,10 +46,4 @@ public class UpdateParticipantRequest extends EmptyDto {
     @Size(max = 50)
     @Schema(description = "Стартовый номер участника", example = "A-102")
     private String number;
-
-    @Schema(description = "ID активности, в которой участвует участник")
-    private Long activityId;
-
-    @Schema(description = "Список ID раундов")
-    private Set<Long> roundIds;
 }

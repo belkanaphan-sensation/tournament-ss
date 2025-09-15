@@ -50,6 +50,7 @@ public class CreateActivityRequest extends EmptyDto {
     @Schema(description = "ID мероприятия, частью которого является активность")
     private Long occasionId;
 
+    @NotNull
     @Schema(description = "Статус активности", example = "DRAFT")
     private Status status;
 }

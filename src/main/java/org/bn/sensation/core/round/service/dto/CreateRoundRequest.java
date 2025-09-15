@@ -37,6 +37,7 @@ public class CreateRoundRequest extends EmptyDto {
     @NotNull
     private Long milestoneId;
 
+    @NotNull
     @Schema(description = "Статус раунда", example = "DRAFT")
     private Status status;
 }

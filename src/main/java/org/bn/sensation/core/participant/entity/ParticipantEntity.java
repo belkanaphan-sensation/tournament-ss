@@ -3,7 +3,6 @@ package org.bn.sensation.core.participant.entity;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.round.entity.RoundEntity;
@@ -35,8 +34,4 @@ public class ParticipantEntity extends BaseEntity {
             inverseJoinColumns = @JoinColumn(name = "round_id"))
     @Builder.Default
     private Set<RoundEntity> rounds = new HashSet<>();
-
-    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "activity_id")
-    private ActivityEntity activity;
 }
