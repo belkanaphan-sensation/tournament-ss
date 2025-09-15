@@ -9,7 +9,7 @@ import org.mapstruct.Mapping;
 
 @Mapper(config = BaseDtoMapper.class, uses = {EntityLinkMapper.class})
 public interface UserActivityAssignmentDtoMapper extends BaseDtoMapper<UserActivityAssignmentEntity, UserActivityAssignmentDto> {
-    
+
     @Override
     UserActivityAssignmentEntity toEntity(UserActivityAssignmentDto dto);
 

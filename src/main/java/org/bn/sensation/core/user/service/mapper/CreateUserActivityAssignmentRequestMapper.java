@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 
 @Mapper(config = BaseDtoMapper.class)
 public interface CreateUserActivityAssignmentRequestMapper extends BaseDtoMapper<UserActivityAssignmentEntity, CreateUserActivityAssignmentRequest> {
-    
+
     @Override
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "activity", ignore = true)

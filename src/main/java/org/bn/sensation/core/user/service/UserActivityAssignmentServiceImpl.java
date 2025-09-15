@@ -58,7 +58,7 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
         Preconditions.checkArgument(request.getUserId() != null, "User ID не может быть null");
         Preconditions.checkArgument(request.getActivityId() != null, "Activity ID не может быть null");
         Preconditions.checkArgument(request.getRole() != null, "Role не может быть null");
-        
+
         // Проверяем, что назначение еще не существует
         if (userActivityAssignmentRepository.existsByUserIdAndActivityId(request.getUserId(), request.getActivityId())) {
             throw new IllegalArgumentException("Пользователь уже назначен на эту активность");
@@ -141,10 +141,10 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
     public UserActivityAssignmentDto findByUserIdAndActivityId(Long userId, Long activityId) {
         Preconditions.checkArgument(userId != null, "User ID не может быть null");
         Preconditions.checkArgument(activityId != null, "Activity ID не может быть null");
-        
+
         UserActivityAssignmentEntity assignment = userActivityAssignmentRepository.findByUserIdAndActivityId(userId, activityId)
                 .orElseThrow(() -> new EntityNotFoundException("Назначение не найдено для пользователя " + userId + " и активности " + activityId));
-        
+
         return userActivityAssignmentDtoMapper.toDto(assignment);
     }
 
@@ -152,7 +152,7 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
     @Transactional(readOnly = true)
     public Page<UserActivityAssignmentDto> findByUserId(Long userId, Pageable pageable) {
         Preconditions.checkArgument(userId != null, "User ID не может быть null");
-        
+
         return userActivityAssignmentRepository.findByUserId(userId, pageable).map(userActivityAssignmentDtoMapper::toDto);
     }
 
@@ -160,7 +160,7 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
     @Transactional(readOnly = true)
     public Page<UserActivityAssignmentDto> findByActivityId(Long activityId, Pageable pageable) {
         Preconditions.checkArgument(activityId != null, "Activity ID не может быть null");
-        
+
         return userActivityAssignmentRepository.findByActivityId(activityId, pageable).map(userActivityAssignmentDtoMapper::toDto);
     }
 
@@ -168,7 +168,7 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
     @Transactional(readOnly = true)
     public Page<UserActivityAssignmentDto> findByRole(UserActivityRole role, Pageable pageable) {
         Preconditions.checkArgument(role != null, "Role не может быть null");
-        
+
         return userActivityAssignmentRepository.findByRole(role, pageable).map(userActivityAssignmentDtoMapper::toDto);
     }
 
@@ -177,7 +177,7 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
     public Page<UserActivityAssignmentDto> findByActivityIdAndRole(Long activityId, UserActivityRole role, Pageable pageable) {
         Preconditions.checkArgument(activityId != null, "Activity ID не может быть null");
         Preconditions.checkArgument(role != null, "Role не может быть null");
-        
+
         return userActivityAssignmentRepository.findByActivityIdAndRole(activityId, role, pageable).map(userActivityAssignmentDtoMapper::toDto);
     }
 }

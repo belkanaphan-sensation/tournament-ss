@@ -6,6 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ActivityRepository extends BaseRepository<ActivityEntity> {
-    
+
     Page<ActivityEntity> findByOccasionId(Long occasionId, Pageable pageable);
 }

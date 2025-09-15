@@ -1,6 +1,6 @@
 package org.bn.sensation.core.user.service;
 
-import org.bn.sensation.core.common.service.BaseService;
+import org.bn.sensation.core.common.service.BaseCrudService;
 import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
 import org.bn.sensation.core.user.entity.UserActivityRole;
 import org.bn.sensation.core.user.service.dto.CreateUserActivityAssignmentRequest;
@@ -11,16 +11,11 @@ import org.springframework.data.domain.Pageable;
 
 import jakarta.validation.constraints.NotNull;
 
-public interface UserActivityAssignmentService extends BaseService<UserActivityAssignmentEntity, UserActivityAssignmentDto> {
-
-    // CRUD operations
-    Page<UserActivityAssignmentDto> findAll(Pageable pageable);
-
-    UserActivityAssignmentDto create(CreateUserActivityAssignmentRequest request);
-
-    UserActivityAssignmentDto update(Long id, UpdateUserActivityAssignmentRequest request);
-
-    void deleteById(Long id);
+public interface UserActivityAssignmentService extends BaseCrudService<
+        UserActivityAssignmentEntity,
+        UserActivityAssignmentDto,
+        CreateUserActivityAssignmentRequest,
+        UpdateUserActivityAssignmentRequest> {
 
     // Custom operations
     UserActivityAssignmentDto findByUserIdAndActivityId(@NotNull Long userId, @NotNull Long activityId);
