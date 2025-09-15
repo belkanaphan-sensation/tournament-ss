@@ -36,6 +36,12 @@ public class ActivityController {
                 .orElseGet(() -> ResponseEntity.status(404).build());
     }
 
+    @Operation(summary = "Получить активности по ID мероприятия")
+    @GetMapping(path = "/occasion/{id}")
+    public ResponseEntity<Page<ActivityDto>> getByOccasionId(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
+        return ResponseEntity.ok(activityService.findByOccasionId(id, pageable));
+    }
+
     @Operation(summary = "Получить все активности с пагинацией")
     @GetMapping
     public ResponseEntity<Page<ActivityDto>> getAll(Pageable pageable) {

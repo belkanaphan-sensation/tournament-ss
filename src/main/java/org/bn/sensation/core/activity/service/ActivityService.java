@@ -8,6 +8,8 @@ import org.bn.sensation.core.common.service.BaseService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import jakarta.validation.constraints.NotNull;
+
 public interface ActivityService extends BaseService<ActivityEntity, ActivityDto> {
 
     // CRUD operations
@@ -18,4 +20,6 @@ public interface ActivityService extends BaseService<ActivityEntity, ActivityDto
     ActivityDto update(Long id, UpdateActivityRequest request);
 
     void deleteById(Long id);
+
+    Page<ActivityDto> findByOccasionId(@NotNull Long id, Pageable pageable);
 }
