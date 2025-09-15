@@ -9,13 +9,14 @@ databaseChangeLog:
       author: belkanaphan
       relativeToChangelogFile: true
       file: 2025/07-09-2025.yml
-  - include:
-      id: 15-09-2025-el-0
-      author: belkanaphan
-      relativeToChangelogFile: true
-      file: 2025/15-09-2025-test-data.yml
-  - include:
-      id: 15-09-2025-el-1
-      author: belkanaphan
-      relativeToChangelogFile: true
-      file: 2025/15-09-2025-fix-sequences.yml
+#      нужно для реальной БД. Для тестов закомментить
+#  - include:
+#      id: 15-09-2025-el-0
+#      author: belkanaphan
+#      relativeToChangelogFile: true
+#      file: 2025/15-09-2025-test-data.yml
+#  - include:
+#      id: 15-09-2025-el-1
+#      author: belkanaphan
+#      relativeToChangelogFile: true
+#      file: 2025/15-09-2025-fix-sequences.yml

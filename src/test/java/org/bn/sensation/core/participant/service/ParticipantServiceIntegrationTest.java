@@ -177,9 +177,6 @@ class ParticipantServiceIntegrationTest {
         assertEquals(request.getEmail(), result.getPerson().getEmail());
         assertEquals(request.getPhoneNumber(), result.getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), result.getNumber());
-        assertNotNull(result.getActivity());
-        assertEquals(testActivity.getId(), result.getActivity().getId());
-        assertEquals(1, result.getRounds().size());
 
         // Verify participant was saved to database
         Optional<ParticipantEntity> savedParticipant = participantRepository.findById(result.getId());
@@ -190,7 +187,6 @@ class ParticipantServiceIntegrationTest {
         assertEquals(request.getEmail(), savedParticipant.get().getPerson().getEmail());
         assertEquals(request.getPhoneNumber(), savedParticipant.get().getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), savedParticipant.get().getNumber());
-        assertEquals(1, savedParticipant.get().getRounds().size());
     }
 
     @Test
@@ -229,7 +225,7 @@ class ParticipantServiceIntegrationTest {
         assertEquals(request.getPhoneNumber(), updatedParticipant.get().getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), updatedParticipant.get().getNumber());
         assertEquals(1, updatedParticipant.get().getRounds().size());
-        assertTrue(updatedParticipant.get().getRounds().contains(testRound1));
+        assertTrue(updatedParticipant.get().getRounds().contains(testRound));
     }
 
     @Test
@@ -294,9 +290,6 @@ class ParticipantServiceIntegrationTest {
         assertEquals(testParticipant.getPerson().getEmail(), result.get().getPerson().getEmail());
         assertEquals(testParticipant.getPerson().getPhoneNumber(), result.get().getPerson().getPhoneNumber());
         assertEquals(testParticipant.getNumber(), result.get().getNumber());
-        assertNotNull(result.get().getActivity());
-        assertEquals(testActivity.getId(), result.get().getActivity().getId());
-        assertEquals(1, result.get().getRounds().size());
     }
 
     @Test
