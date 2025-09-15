@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.Set;
 
+import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.entity.Status;
@@ -23,19 +24,17 @@ import org.bn.sensation.core.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import jakarta.persistence.EntityNotFoundException;
 
-@SpringBootTest
-@ActiveProfiles("test")
-class OccasionServiceIntegrationTest {
+@Transactional
+class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private OccasionService occasionService;
@@ -56,7 +55,11 @@ class OccasionServiceIntegrationTest {
     private UserEntity testUser;
 
     @BeforeEach
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void setUp() {
+        // Очистка базы данных перед каждым тестом
+        cleanDatabase();
+
         // Очистка данных в отдельной транзакции
         transactionTemplate.execute(status -> {
             occasionRepository.deleteAll();
@@ -101,7 +104,6 @@ class OccasionServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testCreateOccasion() {
         // Given
         CreateOccasionRequest request = CreateOccasionRequest.builder()
@@ -134,7 +136,6 @@ class OccasionServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testCreateOccasionWithNonExistentOrganization() {
         // Given
         CreateOccasionRequest request = CreateOccasionRequest.builder()
@@ -152,7 +153,6 @@ class OccasionServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testFindAllOccasions() {
         // Given
         createTestOccasion("Occasion 1", "Description 1");
@@ -170,7 +170,6 @@ class OccasionServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testFindOccasionById() {
         // Given
         OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
@@ -186,7 +185,6 @@ class OccasionServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testFindOccasionByIdNotFound() {
         // When
         Optional<OccasionDto> result = occasionService.findById(999L);
@@ -196,7 +194,6 @@ class OccasionServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateOccasion() {
         // Given
         OccasionEntity occasion = createTestOccasion("Original Name", "Original Description");
@@ -227,7 +224,6 @@ class OccasionServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateOccasionPartial() {
         // Given
         OccasionEntity occasion = createTestOccasion("Original Name", "Original Description");
@@ -248,7 +244,6 @@ class OccasionServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateOccasionNotFound() {
         // Given
         UpdateOccasionRequest request = UpdateOccasionRequest.builder()
@@ -262,7 +257,6 @@ class OccasionServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateOccasionWithNonExistentOrganization() {
         // Given
         OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
@@ -278,7 +272,6 @@ class OccasionServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testDeleteOccasion() {
         // Given
         OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
@@ -300,7 +293,6 @@ class OccasionServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testOccasionStatusMapping() {
         // Given
         CreateOccasionRequest request = CreateOccasionRequest.builder()
@@ -324,7 +316,6 @@ class OccasionServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testOccasionWithActivities() {
         // Given
         OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
@@ -340,7 +331,6 @@ class OccasionServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testOccasionOrganizationMapping() {
         // Given
         CreateOccasionRequest request = CreateOccasionRequest.builder()
@@ -363,7 +353,6 @@ class OccasionServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testOccasionWithoutOrganization() {
         // Given
         CreateOccasionRequest request = CreateOccasionRequest.builder()

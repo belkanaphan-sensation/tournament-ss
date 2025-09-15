@@ -54,7 +54,7 @@ public class UserActivityAssignmentController {
             @Parameter @PathVariable("activityId") @NotNull Long activityId,
             @Parameter @PathVariable("role") @NotNull UserActivityRole role,
             Pageable pageable) {
-        return ResponseEntity.ok(userActivityAssignmentService.findByActivityIdAndRole(activityId, role, pageable));
+        return ResponseEntity.ok(userActivityAssignmentService.findByActivityIdAndActivityRole(activityId, role, pageable));
     }
 
     @Operation(summary = "Получить все назначения")
@@ -81,7 +81,7 @@ public class UserActivityAssignmentController {
     @GetMapping(path = "/role/{role}")
     public ResponseEntity<Page<UserActivityAssignmentDto>> getByRole(
             @Parameter @PathVariable("role") @NotNull UserActivityRole role, Pageable pageable) {
-        return ResponseEntity.ok(userActivityAssignmentService.findByRole(role, pageable));
+        return ResponseEntity.ok(userActivityAssignmentService.findByActivityRole(role, pageable));
     }
 
     @Operation(summary = "Создать новое назначение")

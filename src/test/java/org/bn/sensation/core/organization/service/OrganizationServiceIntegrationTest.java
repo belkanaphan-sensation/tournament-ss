@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Status;
@@ -23,11 +24,10 @@ import org.bn.sensation.core.common.entity.Person;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -35,9 +35,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import jakarta.persistence.EntityNotFoundException;
 
-@SpringBootTest
-@ActiveProfiles("test")
-class OrganizationServiceIntegrationTest {
+@Transactional
+class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private OrganizationService organizationService;
@@ -58,7 +57,11 @@ class OrganizationServiceIntegrationTest {
     private UserEntity testUser;
 
     @BeforeEach
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void setUp() {
+        // Очистка базы данных перед каждым тестом
+        cleanDatabase();
+
         // Очистка базы данных в отдельной транзакции
         TransactionTemplate clearTx = new TransactionTemplate(transactionManager);
         clearTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -110,7 +113,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testCreateOrganization() {
         // Дано
         CreateOrganizationRequest request = CreateOrganizationRequest.builder()
@@ -153,7 +155,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testCreateOrganizationWithExistingName() {
         // Дано
         CreateOrganizationRequest request = CreateOrganizationRequest.builder()
@@ -168,7 +169,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testCreateOrganizationWithExistingEmail() {
         // Дано
         CreateOrganizationRequest request = CreateOrganizationRequest.builder()
@@ -183,7 +183,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testCreateOrganizationWithNullAddress() {
         // Дано
         CreateOrganizationRequest request = CreateOrganizationRequest.builder()
@@ -207,7 +206,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateOrganization() {
         // Дано
         UpdateOrganizationRequest request = UpdateOrganizationRequest.builder()
@@ -251,7 +249,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateOrganizationWithExistingName() {
         // Дано
         // Сначала создаем другую организацию
@@ -272,7 +269,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateOrganizationWithExistingEmail() {
         // Дано
         // Сначала создаем другую организацию
@@ -293,7 +289,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateOrganizationWithSameName() {
         // Дано
         UpdateOrganizationRequest request = UpdateOrganizationRequest.builder()
@@ -312,7 +307,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateOrganizationWithSameEmail() {
         // Дано
         UpdateOrganizationRequest request = UpdateOrganizationRequest.builder()
@@ -331,7 +325,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateOrganizationWithNonExistentOrganization() {
         // Дано
         UpdateOrganizationRequest request = UpdateOrganizationRequest.builder()
@@ -345,7 +338,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testFindAllOrganizations() {
         // Создаем дополнительные организации
         OrganizationEntity organization2 = OrganizationEntity.builder()
@@ -372,7 +364,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testFindOrganizationById() {
         // Когда
         Optional<OrganizationDto> result = organizationService.findById(testOrganization.getId());
@@ -392,7 +383,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testFindOrganizationByIdNotFound() {
         // Когда
         Optional<OrganizationDto> result = organizationService.findById(999L);
@@ -555,7 +545,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testOrganizationWithNullAddressFields() {
         // Дано
         CreateOrganizationRequest request = CreateOrganizationRequest.builder()
@@ -588,7 +577,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testOrganizationAddressMapping() {
         // Дано
         CreateOrganizationRequest request = CreateOrganizationRequest.builder()
@@ -636,7 +624,6 @@ class OrganizationServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateOrganizationWithPartialAddress() {
         // Дано
         UpdateOrganizationRequest request = UpdateOrganizationRequest.builder()

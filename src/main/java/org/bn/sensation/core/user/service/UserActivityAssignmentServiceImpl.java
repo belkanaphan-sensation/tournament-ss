@@ -74,7 +74,7 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
 
         // Бизнес-правило: только один главный судья на активность
         if (request.getRole() == UserActivityRole.JUDGE_CHIEF) {
-            long chiefCount = userActivityAssignmentRepository.countByActivityIdAndRole(request.getActivityId(), UserActivityRole.JUDGE_CHIEF);
+            long chiefCount = userActivityAssignmentRepository.countByActivityIdAndActivityRole(request.getActivityId(), UserActivityRole.JUDGE_CHIEF);
             if (chiefCount > 0) {
                 throw new IllegalArgumentException("В активности уже есть главный судья");
             }
@@ -115,7 +115,7 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
         if (request.getRole() != null) {
             // Бизнес-правило: только один главный судья на активность
             if (request.getRole() == UserActivityRole.JUDGE_CHIEF) {
-                long chiefCount = userActivityAssignmentRepository.countByActivityIdAndRole(assignment.getActivity().getId(), UserActivityRole.JUDGE_CHIEF);
+                long chiefCount = userActivityAssignmentRepository.countByActivityIdAndActivityRole(assignment.getActivity().getId(), UserActivityRole.JUDGE_CHIEF);
                 if (chiefCount > 0 && !assignment.getActivityRole().equals(UserActivityRole.JUDGE_CHIEF)) {
                     throw new IllegalArgumentException("В активности уже есть главный судья");
                 }
@@ -166,18 +166,18 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserActivityAssignmentDto> findByRole(UserActivityRole role, Pageable pageable) {
-        Preconditions.checkArgument(role != null, "Role не может быть null");
+    public Page<UserActivityAssignmentDto> findByActivityRole(UserActivityRole activityRole, Pageable pageable) {
+        Preconditions.checkArgument(activityRole != null, "ActivityRole не может быть null");
 
-        return userActivityAssignmentRepository.findByRole(role, pageable).map(userActivityAssignmentDtoMapper::toDto);
+        return userActivityAssignmentRepository.findByActivityRole(activityRole, pageable).map(userActivityAssignmentDtoMapper::toDto);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserActivityAssignmentDto> findByActivityIdAndRole(Long activityId, UserActivityRole role, Pageable pageable) {
+    public Page<UserActivityAssignmentDto> findByActivityIdAndActivityRole(Long activityId, UserActivityRole activityRole, Pageable pageable) {
         Preconditions.checkArgument(activityId != null, "Activity ID не может быть null");
-        Preconditions.checkArgument(role != null, "Role не может быть null");
+        Preconditions.checkArgument(activityRole != null, "ActivityRole не может быть null");
 
-        return userActivityAssignmentRepository.findByActivityIdAndRole(activityId, role, pageable).map(userActivityAssignmentDtoMapper::toDto);
+        return userActivityAssignmentRepository.findByActivityIdAndActivityRole(activityId, activityRole, pageable).map(userActivityAssignmentDtoMapper::toDto);
     }
 }

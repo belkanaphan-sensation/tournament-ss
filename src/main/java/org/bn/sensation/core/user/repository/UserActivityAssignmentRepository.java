@@ -16,11 +16,11 @@ public interface UserActivityAssignmentRepository extends BaseRepository<UserAct
 
     Page<UserActivityAssignmentEntity> findByActivityId(Long activityId, Pageable pageable);
 
-    Page<UserActivityAssignmentEntity> findByRole(UserActivityRole role, Pageable pageable);
+    Page<UserActivityAssignmentEntity> findByActivityRole(UserActivityRole activityRole, Pageable pageable);
 
-    Page<UserActivityAssignmentEntity> findByActivityIdAndRole(Long activityId, UserActivityRole role, Pageable pageable);
+    Page<UserActivityAssignmentEntity> findByActivityIdAndActivityRole(Long activityId, UserActivityRole activityRole, Pageable pageable);
 
     boolean existsByUserIdAndActivityId(Long userId, Long activityId);
 
-    long countByActivityIdAndRole(Long activityId, UserActivityRole role);
+    long countByActivityIdAndActivityRole(Long activityId, UserActivityRole activityRole);
 }
