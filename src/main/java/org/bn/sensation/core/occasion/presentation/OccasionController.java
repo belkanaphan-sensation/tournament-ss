@@ -26,7 +26,7 @@ public class OccasionController {
 
     private final OccasionService occasionService;
 
-    @Operation(summary = "Get occasion by id")
+    @Operation(summary = "Получить мероприятие по ID")
     @GetMapping(path = "/{id}")
     public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return occasionService.findById(id)
@@ -34,20 +34,20 @@ public class OccasionController {
                 .orElseGet(() -> ResponseEntity.status(404).build());
     }
 
-    @Operation(summary = "Get all occasions with pagination")
+    @Operation(summary = "Получить все мероприятия с пагинацией")
     @GetMapping
     public ResponseEntity<Page<OccasionDto>> getAll(Pageable pageable) {
         return ResponseEntity.ok(occasionService.findAll(pageable));
     }
 
-    @Operation(summary = "Create new occasion")
+    @Operation(summary = "Создать новое мероприятие")
     @PostMapping
     public ResponseEntity<OccasionDto> create(@Valid @RequestBody CreateOccasionRequest request) {
         OccasionDto created = occasionService.create(request);
         return ResponseEntity.ok(created);
     }
 
-    @Operation(summary = "Update occasion by id")
+    @Operation(summary = "Обновить мероприятие по ID")
     @PutMapping("/{id}")
     public ResponseEntity<OccasionDto> update(@PathVariable("id") @NotNull Long id,
                                             @Valid @RequestBody UpdateOccasionRequest request) {
@@ -55,7 +55,7 @@ public class OccasionController {
         return ResponseEntity.ok(updated);
     }
 
-    @Operation(summary = "Delete occasion by id")
+    @Operation(summary = "Удалить мероприятие по ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         occasionService.deleteById(id);

@@ -11,6 +11,7 @@ spring:
       ddl-auto: none
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         show-sql: true
 #        default_schema: sensation

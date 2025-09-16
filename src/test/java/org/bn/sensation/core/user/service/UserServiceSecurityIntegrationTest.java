@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.organization.repository.OrganizationRepository;
@@ -17,19 +18,16 @@ import org.bn.sensation.core.user.service.dto.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityNotFoundException;
 
-@SpringBootTest
-@ActiveProfiles("test")
 @Transactional
-class UserServiceSecurityIntegrationTest {
+class UserServiceSecurityIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private UserService userService;
@@ -52,7 +50,11 @@ class UserServiceSecurityIntegrationTest {
     private UserEntity regularUser;
 
     @BeforeEach
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void setUp() {
+        // Очистка базы данных перед каждым тестом
+        cleanDatabase();
+
         // Clean up existing data
         userRepository.deleteAll();
         organizationRepository.deleteAll();

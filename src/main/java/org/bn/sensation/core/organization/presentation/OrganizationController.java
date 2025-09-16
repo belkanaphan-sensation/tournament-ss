@@ -26,7 +26,7 @@ public class OrganizationController {
 
     private final OrganizationService organizationService;
 
-    @Operation(summary = "Get organization by id")
+    @Operation(summary = "Получить организацию по ID")
     @GetMapping(path = "/{id}")
     public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return organizationService.findById(id)
@@ -34,20 +34,20 @@ public class OrganizationController {
                 .orElseGet(() -> ResponseEntity.status(404).build());
     }
 
-    @Operation(summary = "Get all organizations with pagination")
+    @Operation(summary = "Получить все организации с пагинацией")
     @GetMapping
     public ResponseEntity<Page<OrganizationDto>> getAll(Pageable pageable) {
         return ResponseEntity.ok(organizationService.findAll(pageable));
     }
 
-    @Operation(summary = "Create new organization")
+    @Operation(summary = "Создать новую организацию")
     @PostMapping
     public ResponseEntity<OrganizationDto> create(@Valid @RequestBody CreateOrganizationRequest request) {
         OrganizationDto created = organizationService.create(request);
         return ResponseEntity.ok(created);
     }
 
-    @Operation(summary = "Update organization by id")
+    @Operation(summary = "Обновить организацию по ID")
     @PutMapping("/{id}")
     public ResponseEntity<OrganizationDto> update(@PathVariable("id") @NotNull Long id,
                                                 @Valid @RequestBody UpdateOrganizationRequest request) {
@@ -55,7 +55,7 @@ public class OrganizationController {
         return ResponseEntity.ok(updated);
     }
 
-    @Operation(summary = "Delete organization by id")
+    @Operation(summary = "Удалить организацию по ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         organizationService.deleteById(id);

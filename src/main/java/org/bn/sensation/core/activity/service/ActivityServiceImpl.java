@@ -50,6 +50,13 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<ActivityDto> findByOccasionId(Long id, Pageable pageable) {
+        Preconditions.checkArgument(id != null, "ID мероприятия не может быть null");
+        return activityRepository.findByOccasionId(id, pageable).map(activityDtoMapper::toDto);
+    }
+
+    @Override
     @Transactional
     public ActivityDto create(CreateActivityRequest request) {
         // Проверяем существование события

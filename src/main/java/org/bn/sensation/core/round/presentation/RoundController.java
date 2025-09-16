@@ -26,7 +26,7 @@ public class RoundController {
 
     private final RoundService roundService;
 
-    @Operation(summary = "Get round by id")
+    @Operation(summary = "Получить раунд по ID")
     @GetMapping(path = "/{id}")
     public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return roundService.findById(id)
@@ -34,20 +34,20 @@ public class RoundController {
                 .orElseGet(() -> ResponseEntity.status(404).build());
     }
 
-    @Operation(summary = "Get all rounds with pagination")
+    @Operation(summary = "Получить все раунды с пагинацией")
     @GetMapping
     public ResponseEntity<Page<RoundDto>> getAll(Pageable pageable) {
         return ResponseEntity.ok(roundService.findAll(pageable));
     }
 
-    @Operation(summary = "Create new round")
+    @Operation(summary = "Создать новый раунд")
     @PostMapping
     public ResponseEntity<RoundDto> create(@Valid @RequestBody CreateRoundRequest request) {
         RoundDto created = roundService.create(request);
         return ResponseEntity.ok(created);
     }
 
-    @Operation(summary = "Update round by id")
+    @Operation(summary = "Обновить раунд по ID")
     @PutMapping("/{id}")
     public ResponseEntity<RoundDto> update(@PathVariable("id") @NotNull Long id,
                                          @Valid @RequestBody UpdateRoundRequest request) {
@@ -55,7 +55,7 @@ public class RoundController {
         return ResponseEntity.ok(updated);
     }
 
-    @Operation(summary = "Delete round by id")
+    @Operation(summary = "Удалить раунд по ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         roundService.deleteById(id);

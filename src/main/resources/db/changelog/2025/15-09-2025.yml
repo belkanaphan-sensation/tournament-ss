@@ -1,0 +1,28 @@
+databaseChangeLog:
+  # Create user_activity_assignment table
+  - changeSet:
+      id: 2025-09-15-1
+      author: belkanaphan
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS user_activity_assignment (
+                id BIGSERIAL PRIMARY KEY,
+                user_id BIGINT NOT NULL,
+                activity_id BIGINT NOT NULL,
+                activity_role VARCHAR(50) NOT NULL,
+                assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                modified_by VARCHAR(255),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (activity_id) REFERENCES activity(id) ON DELETE CASCADE,
+                version BIGINT NOT NULL DEFAULT 0,
+                UNIQUE (user_id, activity_id)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS user_activity_assignment;

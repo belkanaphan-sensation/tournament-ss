@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 
+import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
@@ -26,19 +27,17 @@ import org.bn.sensation.core.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import jakarta.persistence.EntityNotFoundException;
 
-@SpringBootTest
-@ActiveProfiles("test")
-class MilestoneServiceIntegrationTest {
+@Transactional
+class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private MilestoneService milestoneService;
@@ -66,7 +65,11 @@ class MilestoneServiceIntegrationTest {
     private UserEntity testUser;
 
     @BeforeEach
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void setUp() {
+        // Очистка базы данных перед каждым тестом
+        cleanDatabase();
+
         // Очистка данных в отдельной транзакции
         transactionTemplate.execute(status -> {
             milestoneRepository.deleteAll();
@@ -142,7 +145,6 @@ class MilestoneServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testCreateMilestone() {
         // Given
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()
@@ -170,7 +172,6 @@ class MilestoneServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testCreateMilestoneWithNonExistentActivity() {
         // Given
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()
@@ -186,7 +187,6 @@ class MilestoneServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testFindAllMilestones() {
         // Given
         createTestMilestone("Milestone 1");
@@ -204,7 +204,6 @@ class MilestoneServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testFindMilestoneById() {
         // Given
         MilestoneEntity milestone = createTestMilestone("Test Milestone");
@@ -220,7 +219,6 @@ class MilestoneServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testFindMilestoneByIdNotFound() {
         // When
         Optional<MilestoneDto> result = milestoneService.findById(999L);
@@ -230,7 +228,6 @@ class MilestoneServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateMilestone() {
         // Given
         MilestoneEntity milestone = createTestMilestone("Original Name");
@@ -257,7 +254,6 @@ class MilestoneServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateMilestonePartial() {
         // Given
         MilestoneEntity milestone = createTestMilestone("Original Name");
@@ -282,7 +278,6 @@ class MilestoneServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateMilestoneNotFound() {
         // Given
         UpdateMilestoneRequest request = UpdateMilestoneRequest.builder()
@@ -296,7 +291,6 @@ class MilestoneServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateMilestoneWithNonExistentActivity() {
         // Given
         MilestoneEntity milestone = createTestMilestone("Test Milestone");
@@ -312,7 +306,6 @@ class MilestoneServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testDeleteMilestone() {
         // Given
         MilestoneEntity milestone = createTestMilestone("Test Milestone");
@@ -334,7 +327,6 @@ class MilestoneServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testMilestoneStatusMapping() {
         // Given
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()
@@ -357,7 +349,6 @@ class MilestoneServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testMilestoneWithRounds() {
         // Given
         MilestoneEntity milestone = createTestMilestone("Test Milestone");
@@ -373,7 +364,6 @@ class MilestoneServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testMilestoneActivityMapping() {
         // Given
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()
@@ -393,7 +383,6 @@ class MilestoneServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testMilestoneWithoutActivity() {
         // Given
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()

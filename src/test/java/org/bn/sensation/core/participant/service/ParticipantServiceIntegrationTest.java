@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
@@ -29,19 +30,16 @@ import org.bn.sensation.core.round.repository.RoundRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityNotFoundException;
 
-@SpringBootTest
-@ActiveProfiles("test")
 @Transactional
-class ParticipantServiceIntegrationTest {
+class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private ParticipantService participantService;
@@ -73,7 +71,11 @@ class ParticipantServiceIntegrationTest {
     private ParticipantEntity testParticipant;
 
     @BeforeEach
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void setUp() {
+        // Очистка базы данных перед каждым тестом
+        cleanDatabase();
+
         // Clean up existing data
         participantRepository.deleteAll();
         roundRepository.deleteAll();

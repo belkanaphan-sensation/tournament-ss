@@ -65,7 +65,9 @@ dependencies {
     implementation "com.google.guava:guava:$guavaVersion"
 
     testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
-    testImplementation 'com.h2database:h2'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // mockito
@@ -100,6 +102,14 @@ tasks.named('test') {
     useJUnitPlatform()
     // подключение mockito agent
     jvmArgs += "-javaagent:${configurations.mockitoAgent.asPath}"
+
+    // Настройки для Testcontainers
+    systemProperty "testcontainers.reuse.enable", "true"
+    systemProperty "testcontainers.checks.disable", "true"
+
+    // Настройки для лучшей производительности тестов
+    maxParallelForks = 1 // Запускаем тесты последовательно для избежания конфликтов
+    forkEvery = 1
 }
 
 spotless {

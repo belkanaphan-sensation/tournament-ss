@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 
+import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.activity.service.dto.ActivityDto;
@@ -29,21 +30,19 @@ import org.bn.sensation.core.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import jakarta.persistence.EntityNotFoundException;
 
-@SpringBootTest
-@ActiveProfiles("test")
-class ActivityServiceIntegrationTest {
+@Transactional
+class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private ActivityService activityService;
@@ -71,65 +70,60 @@ class ActivityServiceIntegrationTest {
     private UserEntity testUser;
 
     @BeforeEach
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void setUp() {
-        // Очистка данных в отдельной транзакции
-        new TransactionTemplate(transactionManager).execute(status -> {
-            milestoneRepository.deleteAll();
-            activityRepository.deleteAll();
-            occasionRepository.deleteAll();
-            organizationRepository.deleteAll();
-            userRepository.deleteAll();
-            return null;
-        });
+        // Очистка базы данных перед каждым тестом
+        cleanDatabase();
 
-        // Создание тестовых данных в отдельной транзакции
-        new TransactionTemplate(transactionManager).execute(status -> {
-            // Создание тестового пользователя
-            testUser = UserEntity.builder()
-                    .username("testuser" + System.currentTimeMillis())
-                    .password("password123")
-                    .person(org.bn.sensation.core.common.entity.Person.builder()
-                            .name("Test")
-                            .surname("User")
-                            .email("test@example.com")
-                            .phoneNumber("+1234567890")
-                            .build())
-                    .status(UserStatus.ACTIVE)
-                    .roles(Set.of(Role.USER))
-                    .build();
-            testUser = userRepository.save(testUser);
+        // Очистка данных
+        milestoneRepository.deleteAll();
+        activityRepository.deleteAll();
+        occasionRepository.deleteAll();
+        organizationRepository.deleteAll();
+        userRepository.deleteAll();
 
-            // Создание тестовой организации
-            testOrganization = OrganizationEntity.builder()
-                    .name("Test Organization")
-                    .description("Test Description")
-                    .address(Address.builder()
-                            .country("Russia")
-                            .city("Moscow")
-                            .streetName("Test Street")
-                            .streetNumber("1")
-                            .comment("Test Address")
-                            .build())
-                    .build();
-            testOrganization = organizationRepository.save(testOrganization);
+        // Создание тестового пользователя
+        testUser = UserEntity.builder()
+                .username("testuser" + System.currentTimeMillis())
+                .password("password123")
+                .person(org.bn.sensation.core.common.entity.Person.builder()
+                        .name("Test")
+                        .surname("User")
+                        .email("test@example.com")
+                        .phoneNumber("+1234567890")
+                        .build())
+                .status(UserStatus.ACTIVE)
+                .roles(Set.of(Role.USER))
+                .build();
+        testUser = userRepository.save(testUser);
 
-            // Создание тестового мероприятия
-            testOccasion = OccasionEntity.builder()
-                    .name("Test Occasion")
-                    .description("Test Description")
-                    .startDate(java.time.LocalDate.now())
-                    .endDate(java.time.LocalDate.now().plusDays(3))
-                    .status(Status.DRAFT)
-                    .organization(testOrganization)
-                    .build();
-            testOccasion = occasionRepository.save(testOccasion);
+        // Создание тестовой организации
+        testOrganization = OrganizationEntity.builder()
+                .name("Test Organization")
+                .description("Test Description")
+                .address(Address.builder()
+                        .country("Russia")
+                        .city("Moscow")
+                        .streetName("Test Street")
+                        .streetNumber("1")
+                        .comment("Test Address")
+                        .build())
+                .build();
+        testOrganization = organizationRepository.save(testOrganization);
 
-            return null;
-        });
+        // Создание тестового мероприятия
+        testOccasion = OccasionEntity.builder()
+                .name("Test Occasion")
+                .description("Test Description")
+                .startDate(java.time.LocalDate.now())
+                .endDate(java.time.LocalDate.now().plusDays(3))
+                .status(Status.DRAFT)
+                .organization(testOrganization)
+                .build();
+        testOccasion = occasionRepository.save(testOccasion);
     }
 
     @Test
-    @Transactional
     void testCreateActivity() {
         // Given
         CreateActivityRequest request = CreateActivityRequest.builder()
@@ -168,7 +162,6 @@ class ActivityServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testCreateActivityWithNonExistentOccasion() {
         // Given
         CreateActivityRequest request = CreateActivityRequest.builder()
@@ -181,13 +174,10 @@ class ActivityServiceIntegrationTest {
                 .build();
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
-            activityService.create(request);
-        });
+        assertThrows(EntityNotFoundException.class, () -> activityService.create(request));
     }
 
     @Test
-    @Transactional
     void testFindAllActivities() {
         // Given
         createTestActivity("Activity 1", "Description 1");
@@ -205,7 +195,6 @@ class ActivityServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testFindActivityById() {
         // Given
         ActivityEntity activity = createTestActivity("Test Activity", "Test Description");
@@ -222,7 +211,6 @@ class ActivityServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testFindActivityByIdNotFound() {
         // When
         Optional<ActivityDto> result = activityService.findById(999L);
@@ -232,7 +220,6 @@ class ActivityServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateActivity() {
         // Given
         ActivityEntity activity = createTestActivity("Original Name", "Original Description");
@@ -264,7 +251,6 @@ class ActivityServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateActivityPartial() {
         // Given
         ActivityEntity activity = createTestActivity("Original Name", "Original Description");
@@ -291,7 +277,6 @@ class ActivityServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateActivityNotFound() {
         // Given
         UpdateActivityRequest request = UpdateActivityRequest.builder()
@@ -299,13 +284,10 @@ class ActivityServiceIntegrationTest {
                 .build();
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
-            activityService.update(999L, request);
-        });
+        assertThrows(EntityNotFoundException.class, () -> activityService.update(999L, request));
     }
 
     @Test
-    @Transactional
     void testUpdateActivityWithNonExistentOccasion() {
         // Given
         ActivityEntity activity = createTestActivity("Test Activity", "Test Description");
@@ -315,13 +297,10 @@ class ActivityServiceIntegrationTest {
                 .build();
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
-            activityService.update(activity.getId(), request);
-        });
+        assertThrows(EntityNotFoundException.class, () -> activityService.update(activity.getId(), request));
     }
 
     @Test
-    @Transactional
     void testDeleteActivity() {
         // Given
         ActivityEntity activity = createTestActivity("Test Activity", "Test Description");
@@ -335,16 +314,12 @@ class ActivityServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testDeleteActivityNotFound() {
         // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            activityService.deleteById(999L);
-        });
+        assertThrows(IllegalArgumentException.class, () -> activityService.deleteById(999L));
     }
 
     @Test
-    @Transactional
     void testActivityStatusMapping() {
         // Given
         CreateActivityRequest request = CreateActivityRequest.builder()
@@ -370,7 +345,6 @@ class ActivityServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testActivityWithMilestones() {
         // Given - создаем activity и milestone в отдельной транзакции
         TransactionTemplate newTx = new TransactionTemplate(transactionManager);
@@ -409,8 +383,10 @@ class ActivityServiceIntegrationTest {
             return savedActivity;
         });
 
-        // When - загружаем activity через сервис
-        ActivityDto result = activityService.findById(activity.getId()).orElse(null);
+        // When - загружаем activity через сервис в отдельной транзакции
+        ActivityDto result = newTx.execute(status -> {
+            return activityService.findById(activity.getId()).orElse(null);
+        });
 
         // Then - проверяем результат
         assertNotNull(result);
@@ -423,7 +399,6 @@ class ActivityServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testActivityOccasionMapping() {
         // Given
         CreateActivityRequest request = CreateActivityRequest.builder()
@@ -446,7 +421,6 @@ class ActivityServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testActivityAddressMapping() {
         // Given
         CreateActivityRequest request = CreateActivityRequest.builder()
@@ -479,7 +453,6 @@ class ActivityServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testActivityWithoutAddress() {
         // Given
         CreateActivityRequest request = CreateActivityRequest.builder()
@@ -502,6 +475,149 @@ class ActivityServiceIntegrationTest {
         Optional<ActivityEntity> savedActivity = activityRepository.findById(result.getId());
         assertTrue(savedActivity.isPresent());
         assertNull(savedActivity.get().getAddress());
+    }
+
+    @Test
+    void testFindByOccasionId() {
+        // Given - создаем активности для тестового мероприятия
+        createTestActivity("Activity 1", "Description 1");
+        createTestActivity("Activity 2", "Description 2");
+        createTestActivity("Activity 3", "Description 3");
+
+        // When
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ActivityDto> result = activityService.findByOccasionId(testOccasion.getId(), pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(3, result.getTotalElements());
+        assertEquals(3, result.getContent().size());
+
+        // Проверяем, что все активности принадлежат правильному мероприятию
+        result.getContent().forEach(activity -> {
+            assertNotNull(activity.getOccasion());
+            assertEquals(testOccasion.getId(), activity.getOccasion().getId());
+        });
+
+        // Проверяем, что все активности присутствуют в результате
+        assertTrue(result.getContent().stream()
+                .anyMatch(activity -> "Activity 1".equals(activity.getName())));
+        assertTrue(result.getContent().stream()
+                .anyMatch(activity -> "Activity 2".equals(activity.getName())));
+        assertTrue(result.getContent().stream()
+                .anyMatch(activity -> "Activity 3".equals(activity.getName())));
+    }
+
+    @Test
+    void testFindByOccasionIdWithPagination() {
+        // Given - создаем 5 активностей для тестового мероприятия
+        for (int i = 1; i <= 5; i++) {
+            createTestActivity("Activity " + i, "Description " + i);
+        }
+
+        // When - запрашиваем первую страницу с размером 3
+        Pageable pageable = PageRequest.of(0, 3);
+        Page<ActivityDto> firstPage = activityService.findByOccasionId(testOccasion.getId(), pageable);
+
+        // Then
+        assertNotNull(firstPage);
+        assertEquals(5, firstPage.getTotalElements());
+        assertEquals(3, firstPage.getContent().size());
+        assertEquals(0, firstPage.getNumber());
+        assertEquals(3, firstPage.getSize());
+        assertTrue(firstPage.hasNext());
+
+        // When - запрашиваем вторую страницу
+        Pageable secondPageable = PageRequest.of(1, 3);
+        Page<ActivityDto> secondPage = activityService.findByOccasionId(testOccasion.getId(), secondPageable);
+
+        // Then
+        assertNotNull(secondPage);
+        assertEquals(5, secondPage.getTotalElements());
+        assertEquals(2, secondPage.getContent().size());
+        assertEquals(1, secondPage.getNumber());
+        assertEquals(3, secondPage.getSize());
+        assertFalse(secondPage.hasNext());
+    }
+
+    @Test
+    void testFindByOccasionIdWithDifferentOccasions() {
+        // Given - создаем второе мероприятие
+        OccasionEntity secondOccasion = new TransactionTemplate(transactionManager).execute(status -> {
+            OccasionEntity occasion = OccasionEntity.builder()
+                    .name("Second Test Occasion")
+                    .description("Second Test Description")
+                    .startDate(LocalDate.now().plusDays(1))
+                    .endDate(LocalDate.now().plusDays(4))
+                    .status(Status.DRAFT)
+                    .organization(testOrganization)
+                    .build();
+            return occasionRepository.save(occasion);
+        });
+
+        // Создаем активности для первого мероприятия
+        createTestActivity("Activity for Occasion 1", "Description 1");
+        createTestActivity("Activity for Occasion 1 - 2", "Description 2");
+
+        // Создаем активности для второго мероприятия
+        new TransactionTemplate(transactionManager).execute(status -> {
+            ActivityEntity activity = ActivityEntity.builder()
+                    .name("Activity for Occasion 2")
+                    .description("Description 3")
+                    .startDateTime(LocalDateTime.now())
+                    .endDateTime(LocalDateTime.now().plusHours(2))
+                    .status(Status.DRAFT)
+                    .occasion(secondOccasion)
+                    .build();
+            return activityRepository.save(activity);
+        });
+
+        // When - ищем активности для первого мероприятия
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ActivityDto> resultForFirstOccasion = activityService.findByOccasionId(testOccasion.getId(), pageable);
+
+        // Then
+        assertNotNull(resultForFirstOccasion);
+        assertEquals(2, resultForFirstOccasion.getTotalElements());
+        assertEquals(2, resultForFirstOccasion.getContent().size());
+
+        // Проверяем, что все активности принадлежат первому мероприятию
+        resultForFirstOccasion.getContent().forEach(activity -> {
+            assertEquals(testOccasion.getId(), activity.getOccasion().getId());
+            assertTrue(activity.getName().contains("Occasion 1"));
+        });
+
+        // When - ищем активности для второго мероприятия
+        Page<ActivityDto> resultForSecondOccasion = activityService.findByOccasionId(secondOccasion.getId(), pageable);
+
+        // Then
+        assertNotNull(resultForSecondOccasion);
+        assertEquals(1, resultForSecondOccasion.getTotalElements());
+        assertEquals(1, resultForSecondOccasion.getContent().size());
+        assertEquals(secondOccasion.getId(), resultForSecondOccasion.getContent().getFirst().getOccasion().getId());
+        assertEquals("Activity for Occasion 2", resultForSecondOccasion.getContent().getFirst().getName());
+    }
+
+    @Test
+    void testFindByOccasionIdWithNonExistentOccasion() {
+        // Given
+        Long nonExistentOccasionId = 999L;
+
+        // When
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ActivityDto> result = activityService.findByOccasionId(nonExistentOccasionId, pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(0, result.getTotalElements());
+        assertEquals(0, result.getContent().size());
+    }
+
+    @Test
+    void testFindByOccasionIdWithNullId() {
+        // When & Then
+        Pageable pageable = PageRequest.of(0, 10);
+        assertThrows(IllegalArgumentException.class, () -> activityService.findByOccasionId(null, pageable));
     }
 
     // Вспомогательный метод для создания тестовой активности

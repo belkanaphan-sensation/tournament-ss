@@ -26,7 +26,7 @@ public class ParticipantController {
 
     private final ParticipantService participantService;
 
-    @Operation(summary = "Get participant by id")
+    @Operation(summary = "Получить участника по ID")
     @GetMapping(path = "/{id}")
     public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return participantService.findById(id)
@@ -34,20 +34,20 @@ public class ParticipantController {
                 .orElseGet(() -> ResponseEntity.status(404).build());
     }
 
-    @Operation(summary = "Get all participants with pagination")
+    @Operation(summary = "Получить всех участников с пагинацией")
     @GetMapping
     public ResponseEntity<Page<ParticipantDto>> getAll(Pageable pageable) {
         return ResponseEntity.ok(participantService.findAll(pageable));
     }
 
-    @Operation(summary = "Create new participant")
+    @Operation(summary = "Создать нового участника")
     @PostMapping
     public ResponseEntity<ParticipantDto> create(@Valid @RequestBody CreateParticipantRequest request) {
         ParticipantDto created = participantService.create(request);
         return ResponseEntity.ok(created);
     }
 
-    @Operation(summary = "Update participant by id")
+    @Operation(summary = "Обновить участника по ID")
     @PutMapping("/{id}")
     public ResponseEntity<ParticipantDto> update(@PathVariable("id") @NotNull Long id,
                                                @Valid @RequestBody UpdateParticipantRequest request) {
@@ -55,7 +55,7 @@ public class ParticipantController {
         return ResponseEntity.ok(updated);
     }
 
-    @Operation(summary = "Delete participant by id")
+    @Operation(summary = "Удалить участника по ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         participantService.deleteById(id);

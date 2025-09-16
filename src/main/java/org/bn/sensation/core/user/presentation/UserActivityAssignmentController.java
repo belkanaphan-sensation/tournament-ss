@@ -1,0 +1,108 @@
+package org.bn.sensation.core.user.presentation;
+
+import org.bn.sensation.core.user.entity.UserActivityRole;
+import org.bn.sensation.core.user.service.UserActivityAssignmentService;
+import org.bn.sensation.core.user.service.dto.UserActivityAssignmentDto;
+import org.bn.sensation.core.user.service.dto.CreateUserActivityAssignmentRequest;
+import org.bn.sensation.core.user.service.dto.UpdateUserActivityAssignmentRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
+
+
+@RestController
+@RequestMapping("/api/v1/user-activity-assignment")
+@RequiredArgsConstructor
+@Validated
+@SecurityRequirement(name = "cookieAuth")
+@Tag(name = "User Activity Assignment", description = "The User Activity Assignment API")
+public class UserActivityAssignmentController {
+
+    private final UserActivityAssignmentService userActivityAssignmentService;
+
+    @Operation(summary = "Получить назначение по ID")
+    @GetMapping(path = "/{id}")
+    public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
+        return userActivityAssignmentService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(404).build());
+    }
+
+    @Operation(summary = "Получить назначение по ID пользователя и активности")
+    @GetMapping(path = "/user/{userId}/activity/{activityId}")
+    public ResponseEntity<UserActivityAssignmentDto> getByUserIdAndActivityId(
+            @Parameter @PathVariable("userId") @NotNull Long userId,
+            @Parameter @PathVariable("activityId") @NotNull Long activityId) {
+        UserActivityAssignmentDto assignment = userActivityAssignmentService.findByUserIdAndActivityId(userId, activityId);
+        return ResponseEntity.ok(assignment);
+    }
+
+
+    @Operation(summary = "Получить назначения активности по роли")
+    @GetMapping(path = "/activity/{activityId}/role/{role}")
+    public ResponseEntity<Page<UserActivityAssignmentDto>> getByActivityIdAndRole(
+            @Parameter @PathVariable("activityId") @NotNull Long activityId,
+            @Parameter @PathVariable("role") @NotNull UserActivityRole role,
+            Pageable pageable) {
+        return ResponseEntity.ok(userActivityAssignmentService.findByActivityIdAndActivityRole(activityId, role, pageable));
+    }
+
+    @Operation(summary = "Получить все назначения")
+    @GetMapping
+    public ResponseEntity<Page<UserActivityAssignmentDto>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(userActivityAssignmentService.findAll(pageable));
+    }
+
+    @Operation(summary = "Получить назначения пользователя")
+    @GetMapping(path = "/user/{userId}")
+    public ResponseEntity<Page<UserActivityAssignmentDto>> getByUserId(
+            @Parameter @PathVariable("userId") @NotNull Long userId, Pageable pageable) {
+        return ResponseEntity.ok(userActivityAssignmentService.findByUserId(userId, pageable));
+    }
+
+    @Operation(summary = "Получить назначения активности")
+    @GetMapping(path = "/activity/{activityId}")
+    public ResponseEntity<Page<UserActivityAssignmentDto>> getByActivityId(
+            @Parameter @PathVariable("activityId") @NotNull Long activityId, Pageable pageable) {
+        return ResponseEntity.ok(userActivityAssignmentService.findByActivityId(activityId, pageable));
+    }
+
+    @Operation(summary = "Получить назначения по роли")
+    @GetMapping(path = "/role/{role}")
+    public ResponseEntity<Page<UserActivityAssignmentDto>> getByRole(
+            @Parameter @PathVariable("role") @NotNull UserActivityRole role, Pageable pageable) {
+        return ResponseEntity.ok(userActivityAssignmentService.findByActivityRole(role, pageable));
+    }
+
+    @Operation(summary = "Создать новое назначение")
+    @PostMapping
+    public ResponseEntity<UserActivityAssignmentDto> create(@Valid @RequestBody CreateUserActivityAssignmentRequest request) {
+        UserActivityAssignmentDto created = userActivityAssignmentService.create(request);
+        return ResponseEntity.ok(created);
+    }
+
+    @Operation(summary = "Обновить назначение по ID")
+    @PutMapping("/{id}")
+    public ResponseEntity<UserActivityAssignmentDto> update(@PathVariable("id") @NotNull Long id,
+                                                          @Valid @RequestBody UpdateUserActivityAssignmentRequest request) {
+        UserActivityAssignmentDto updated = userActivityAssignmentService.update(id, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    @Operation(summary = "Удалить назначение по ID")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
+        userActivityAssignmentService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+}
