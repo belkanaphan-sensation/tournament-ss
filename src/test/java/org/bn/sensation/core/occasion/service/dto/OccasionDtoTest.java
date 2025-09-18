@@ -28,7 +28,7 @@ class OccasionDtoTest {
 
         // Сериализуем в JSON
         String json = objectMapper.writeValueAsString(occasionDto);
-        
+
         System.out.println("Serialized JSON: " + json);
 
         // Проверяем, что JSON содержит правильный ISO 8601 формат даты
@@ -62,7 +62,7 @@ class OccasionDtoTest {
 
         // Сериализуем в JSON
         String json = objectMapper.writeValueAsString(occasionDto);
-        
+
         System.out.println("Serialized JSON (no microseconds): " + json);
 
         // Проверяем, что JSON содержит правильный ISO 8601 формат даты без микросекунд

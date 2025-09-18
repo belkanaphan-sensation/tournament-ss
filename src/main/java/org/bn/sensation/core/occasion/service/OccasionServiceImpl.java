@@ -1,11 +1,14 @@
 package org.bn.sensation.core.occasion.service;
 
+import org.bn.sensation.core.activity.repository.ActivityRepository;
+import org.bn.sensation.core.common.entity.Status;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.occasion.service.dto.CreateOccasionRequest;
 import org.bn.sensation.core.occasion.service.dto.OccasionDto;
+import org.bn.sensation.core.occasion.service.dto.OccasionStatisticsDto;
 import org.bn.sensation.core.occasion.service.dto.UpdateOccasionRequest;
 import org.bn.sensation.core.occasion.service.mapper.OccasionDtoMapper;
 import org.bn.sensation.core.occasion.service.mapper.CreateOccasionRequestMapper;
@@ -29,6 +32,7 @@ public class OccasionServiceImpl implements OccasionService {
     private final CreateOccasionRequestMapper createOccasionRequestMapper;
     private final UpdateOccasionRequestMapper updateOccasionRequestMapper;
     private final OrganizationRepository organizationRepository;
+    private final ActivityRepository activityRepository;
 
     @Override
     public BaseRepository<OccasionEntity> getRepository() {
@@ -83,9 +87,38 @@ public class OccasionServiceImpl implements OccasionService {
     @Transactional
     public void deleteById(Long id) {
         if (!occasionRepository.existsById(id)) {
-            throw new IllegalArgumentException("Событие не найдено с id: " + id);
+            throw new EntityNotFoundException("Событие не найдено с id: " + id);
         }
         occasionRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OccasionStatisticsDto getStatistics(Long occasionId) {
+        // Проверяем, что мероприятие существует
+        OccasionEntity occasion = occasionRepository.findById(occasionId)
+                .orElseThrow(() -> new EntityNotFoundException("Occasion not found with id: " + occasionId));
+
+        // Подсчитываем количество активностей по статусам
+        long completedCount = activityRepository.countByOccasionIdAndStatus(occasionId, Status.COMPLETED);
+
+        // Активные активности: не DRAFT, не COMPLETED (то есть READY и ACTIVE)
+        long activeCount = activityRepository.countByOccasionIdAndStatusIn(
+                occasionId,
+                Status.READY,
+                Status.ACTIVE
+        );
+
+        // Общее количество активностей
+        long totalCount = activityRepository.countByOccasionId(occasionId);
+
+        return OccasionStatisticsDto.builder()
+                .occasionId(occasionId)
+                .occasionName(occasion.getName())
+                .completedActivitiesCount(completedCount)
+                .activeActivitiesCount(activeCount)
+                .totalActivitiesCount(totalCount)
+                .build();
     }
 
     private OrganizationEntity findOrganizationById(Long organizationId) {
