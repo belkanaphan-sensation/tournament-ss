@@ -35,4 +35,8 @@ public class MilestoneEntity extends BaseEntity {
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "activity_id")
     private ActivityEntity activity;
+
+    @OneToMany(mappedBy = "milestone", cascade = CascadeType.REMOVE)
+    @Builder.Default
+    private Set<MilestoneCriteriaAssignmentEntity> criteriaAssignments = new HashSet<>();
 }

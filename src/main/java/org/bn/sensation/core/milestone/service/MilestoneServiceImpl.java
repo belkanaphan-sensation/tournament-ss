@@ -4,7 +4,11 @@ import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.criteria.entity.CriteriaEntity;
+import org.bn.sensation.core.criteria.repository.CriteriaRepository;
+import org.bn.sensation.core.milestone.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.repository.MilestoneCriteriaAssignmentRepository;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
@@ -24,11 +28,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MilestoneServiceImpl implements MilestoneService {
 
+    //todo как то откуда-то брать?
+    private static final String DEFAULT_CRITERIA = "Прохождение";
+
     private final MilestoneRepository milestoneRepository;
     private final MilestoneDtoMapper milestoneDtoMapper;
     private final CreateMilestoneRequestMapper createMilestoneRequestMapper;
     private final UpdateMilestoneRequestMapper updateMilestoneRequestMapper;
     private final ActivityRepository activityRepository;
+    private final CriteriaRepository criteriaRepository;
+    private final MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
 
     @Override
     public BaseRepository<MilestoneEntity> getRepository() {
@@ -57,6 +66,10 @@ public class MilestoneServiceImpl implements MilestoneService {
         milestone.setActivity(activity);
 
         MilestoneEntity saved = milestoneRepository.save(milestone);
+
+        // Добавляем критерий по умолчанию, если критерии не указаны
+        addDefaultCriteriaIfNeeded(saved);
+
         return milestoneDtoMapper.toDto(saved);
     }
 
@@ -94,5 +107,23 @@ public class MilestoneServiceImpl implements MilestoneService {
         }
         return activityRepository.findById(activityId)
                 .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + activityId));
+    }
+
+    private void addDefaultCriteriaIfNeeded(MilestoneEntity milestone) {
+        // Проверяем, есть ли уже критерии у этапа
+        if (milestone.getCriteriaAssignments().isEmpty()) {
+            // Получаем критерий по умолчанию по имени "Прохождение"
+            CriteriaEntity defaultCriteria = criteriaRepository.findByName(DEFAULT_CRITERIA)
+                    .orElseThrow(() -> new EntityNotFoundException("Критерий по умолчанию 'Прохождение' не найден"));
+
+            // Создаем связь с критерием по умолчанию
+            MilestoneCriteriaAssignmentEntity assignment = MilestoneCriteriaAssignmentEntity.builder()
+                    .milestone(milestone)
+                    .criteria(defaultCriteria)
+                    .gender(null) // Критерий по умолчанию не привязан к полу
+                    .build();
+
+            milestoneCriteriaAssignmentRepository.save(assignment);
+        }
     }
 }
