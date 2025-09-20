@@ -2,7 +2,8 @@ package org.bn.sensation.core.round.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
@@ -95,9 +96,9 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         testOccasion = OccasionEntity.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .startDate(LocalDate.now())
+                .startDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")))
                 .status(Status.DRAFT)
-                .endDate(LocalDate.now().plusDays(3))
+                .endDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")).plusDays(3))
                 .organization(testOrganization)
                 .build();
         testOccasion = occasionRepository.save(testOccasion);

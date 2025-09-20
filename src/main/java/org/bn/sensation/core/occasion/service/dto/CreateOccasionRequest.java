@@ -1,6 +1,6 @@
 package org.bn.sensation.core.occasion.service.dto;
 
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
 import org.bn.sensation.core.common.entity.Status;
@@ -36,12 +36,12 @@ public class CreateOccasionRequest extends EmptyDto {
     private String description;
 
     @NotNull
-    @Schema(description = "Дата начала", example = "2025-04-13")
-    private LocalDate startDate;
+    @Schema(description = "Дата начала", example = "2025-09-18T16:56:47+04:00[Europe/Samara]")
+    private ZonedDateTime startDate;
 
     @NotNull
-    @Schema(description = "Дата окончания", example = "2025-04-15")
-    private LocalDate endDate;
+    @Schema(description = "Дата окончания", example = "2025-09-18T16:56:47+04:00[Europe/Samara]")
+    private ZonedDateTime endDate;
 
     @Schema(description = "ID организации, проводящей мероприятие")
     private Long organizationId;

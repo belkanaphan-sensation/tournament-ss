@@ -1,6 +1,6 @@
 package org.bn.sensation.core.occasion.entity;
 
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,10 +29,10 @@ public class OccasionEntity extends BaseEntity {
     private String description;
 
     @Column(name = "start_date")
-    private LocalDate startDate; // 13.04.2025
+    private ZonedDateTime startDate; // 2025-09-18T16:56:47+04:00[Europe/Samara]
 
     @Column(name = "end_date")
-    private LocalDate endDate; // 15.04.2025
+    private ZonedDateTime endDate; // 2025-09-18T16:56:47+04:00[Europe/Samara]
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)

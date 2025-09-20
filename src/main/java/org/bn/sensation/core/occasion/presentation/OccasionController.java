@@ -3,6 +3,7 @@ package org.bn.sensation.core.occasion.presentation;
 import org.bn.sensation.core.occasion.service.OccasionService;
 import org.bn.sensation.core.occasion.service.dto.CreateOccasionRequest;
 import org.bn.sensation.core.occasion.service.dto.OccasionDto;
+import org.bn.sensation.core.occasion.service.dto.OccasionStatisticsDto;
 import org.bn.sensation.core.occasion.service.dto.UpdateOccasionRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,5 +61,12 @@ public class OccasionController {
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         occasionService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Получить статистику активностей мероприятия")
+    @GetMapping("/{id}/statistics")
+    public ResponseEntity<OccasionStatisticsDto> getStatistics(@Parameter @PathVariable("id") @NotNull Long id) {
+        OccasionStatisticsDto statistics = occasionService.getStatistics(id);
+        return ResponseEntity.ok(statistics);
     }
 }
