@@ -329,21 +329,6 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void testOccasionWithActivities() {
-        // Given
-        OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
-
-        // When
-        OccasionDto result = occasionService.findById(occasion.getId()).orElse(null);
-
-        // Then
-        assertNotNull(result);
-        assertNotNull(result.getActivities());
-        // Начально список активностей пуст
-        assertTrue(result.getActivities().isEmpty());
-    }
-
-    @Test
     void testOccasionOrganizationMapping() {
         // Given
         ZonedDateTime startDate = ZonedDateTime.now(ZoneId.of("Europe/Samara"));

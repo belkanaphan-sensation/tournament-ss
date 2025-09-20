@@ -1,7 +1,6 @@
 package org.bn.sensation.core.occasion.service.dto;
 
 import java.time.ZonedDateTime;
-import java.util.Set;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
@@ -39,9 +38,6 @@ public class OccasionDto extends BaseDto {
 
     @Schema(description = "Организация, проводящая мероприятие")
     private EntityLinkDto organization;
-
-    @Schema(description = "Список активностей мероприятия")
-    private Set<EntityLinkDto> activities;
 
     @Schema(description = "Статус мероприятия", example = "DRAFT")
     private Status status;
