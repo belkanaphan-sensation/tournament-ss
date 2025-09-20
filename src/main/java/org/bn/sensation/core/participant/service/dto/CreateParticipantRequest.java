@@ -1,12 +1,14 @@
 package org.bn.sensation.core.participant.service.dto;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
+import org.bn.sensation.core.common.entity.Gender;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -50,4 +52,7 @@ public class CreateParticipantRequest extends EmptyDto {
     @Schema(description = "Стартовый номер участника", example = "A-102")
     private String number;
 
+    @NotNull
+    @Schema(description = "Пол участника", example = "MALE")
+    private Gender gender;
 }

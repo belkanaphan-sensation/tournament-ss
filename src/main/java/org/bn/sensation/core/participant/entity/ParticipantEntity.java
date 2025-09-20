@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
+import org.bn.sensation.core.common.entity.Gender;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.round.entity.RoundEntity;
 
@@ -26,6 +27,10 @@ public class ParticipantEntity extends BaseEntity {
     // Номер который присваивается например на джеке или еще где-то
     @Column(name = "number")
     private String number;
+
+    @Column(name = "gender")
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(

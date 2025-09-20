@@ -1,6 +1,7 @@
 package org.bn.sensation.core.participant.service.dto;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
+import org.bn.sensation.core.common.entity.Gender;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -46,4 +47,7 @@ public class UpdateParticipantRequest extends EmptyDto {
     @Size(max = 50)
     @Schema(description = "Стартовый номер участника", example = "A-102")
     private String number;
+
+    @Schema(description = "Пол участника", example = "MALE")
+    private Gender gender;
 }
