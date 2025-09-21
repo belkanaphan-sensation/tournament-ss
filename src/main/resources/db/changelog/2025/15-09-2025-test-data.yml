@@ -6,9 +6,10 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO organization (id, name, description, phone_number, email, country, city, street_name, street_number, comment, created_at, created_by, modified_at, modified_by, version) VALUES
-              (1, 'Sense Organization', 'Ведущая организация по проведению турниров и спортивных мероприятий', '+7 777 123 45 67', 'info@sense.kz', 'Казахстан', 'Алматы', 'ул. Абая', '150', 'Главный офис', '2025-01-01 10:00:00', 'system', '2025-01-01 10:00:00', 'system', 0),
-              (2, 'Fight Club Almaty', 'Спортивный клуб боевых искусств', '+7 727 555 12 34', 'contact@fightclub.kz', 'Казахстан', 'Алматы', 'пр. Достык', '123', 'Тренировочный зал', '2025-02-01 09:00:00', 'admin', '2025-02-01 09:00:00', 'admin', 0);
+              INSERT INTO organization (name, description, phone_number, email, country, city, street_name, street_number, comment, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('Организация 1', 'Минимальная организация с базовыми данными', '+7 777 111 11 11', 'org1@test.kz', 'Казахстан', 'Алматы', 'ул. Тестовая', '1', 'Минимальные данные', '2025-01-01 10:00:00', 'system', '2025-01-01 10:00:00', 'system', 0),
+              ('Организация 2', 'Средняя организация с умеренным количеством данных', '+7 777 222 22 22', 'org2@test.kz', 'Казахстан', 'Астана', 'пр. Средний', '2', 'Средние данные', '2025-02-01 09:00:00', 'admin', '2025-02-01 09:00:00', 'admin', 0),
+              ('Организация 3', 'Максимальная организация с полным набором данных', '+7 777 333 33 33', 'org3@test.kz', 'Казахстан', 'Шымкент', 'ул. Максимальная', '3', 'Максимальные данные', '2025-03-01 08:00:00', 'admin', '2025-03-01 08:00:00', 'admin', 0);
 
   # Test data for users (пароль 1111 у всех)
   - changeSet:
@@ -17,10 +18,29 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO users (id, username, password, status, name, surname, second_name, email, phone_number, created_at, created_by, modified_at, modified_by, version) VALUES
-              (1, 'admin', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Админ', 'Админов', 'Админович', 'admin@sense.kz', '+7 777 000 00 01', '2025-01-01 10:00:00', 'system', '2025-01-01 10:00:00', 'system', 0),
-              (2, 'organizer1', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Айдар', 'Организаторов', 'Организаторович', 'organizer1@sense.kz', '+7 777 000 00 02', '2025-01-15 10:00:00', 'admin', '2025-01-15 10:00:00', 'admin', 0),
-              (3, 'user1', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Жанар', 'Пользователев', 'Пользователевич', 'user1@example.com', '+7 777 000 00 03', '2025-02-01 10:00:00', 'admin', '2025-02-01 10:00:00', 'admin', 0);
+              INSERT INTO users (username, password, status, name, surname, second_name, email, phone_number, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('admin', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Админ', 'Админов', 'Админович', 'admin@test.kz', '+7 777 000 00 01', '2025-01-01 10:00:00', 'system', '2025-01-01 10:00:00', 'system', 0),
+              ('org1_admin', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Организатор', 'Один', 'Организаторович', 'org1_admin@test.kz', '+7 777 001 00 01', '2025-01-15 10:00:00', 'admin', '2025-01-15 10:00:00', 'admin', 0),
+              ('org1_user', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Пользователь', 'Один', 'Пользователевич', 'org1_user@test.kz', '+7 777 001 00 02', '2025-01-20 10:00:00', 'org1_admin', '2025-01-20 10:00:00', 'org1_admin', 0),
+              ('org2_admin', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Организатор', 'Два', 'Организаторович', 'org2_admin@test.kz', '+7 777 002 00 01', '2025-02-01 10:00:00', 'admin', '2025-02-01 10:00:00', 'admin', 0),
+              ('org2_user1', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Пользователь', 'Два', 'Первый', 'org2_user1@test.kz', '+7 777 002 00 02', '2025-02-05 10:00:00', 'org2_admin', '2025-02-05 10:00:00', 'org2_admin', 0),
+              ('org2_user2', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Пользователь', 'Два', 'Второй', 'org2_user2@test.kz', '+7 777 002 00 03', '2025-02-10 10:00:00', 'org2_admin', '2025-02-10 10:00:00', 'org2_admin', 0),
+              ('org3_admin', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Организатор', 'Три', 'Организаторович', 'org3_admin@test.kz', '+7 777 003 00 01', '2025-03-01 10:00:00', 'admin', '2025-03-01 10:00:00', 'admin', 0),
+              ('org3_user1', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Пользователь', 'Три', 'Первый', 'org3_user1@test.kz', '+7 777 003 00 02', '2025-03-05 10:00:00', 'org3_admin', '2025-03-05 10:00:00', 'org3_admin', 0),
+              ('org3_user2', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Пользователь', 'Три', 'Второй', 'org3_user2@test.kz', '+7 777 003 00 03', '2025-03-10 10:00:00', 'org3_admin', '2025-03-10 10:00:00', 'org3_admin', 0),
+              ('org3_user3', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Пользователь', 'Три', 'Третий', 'org3_user3@test.kz', '+7 777 003 00 04', '2025-03-15 10:00:00', 'org3_admin', '2025-03-15 10:00:00', 'org3_admin', 0),
+              -- Судьи для организации 1
+              ('judge1_1', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Судья', 'Один', 'Первый', 'judge1_1@test.kz', '+7 777 101 00 01', '2025-01-25 10:00:00', 'org1_admin', '2025-01-25 10:00:00', 'org1_admin', 0),
+              ('judge1_2', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Судья', 'Один', 'Второй', 'judge1_2@test.kz', '+7 777 101 00 02', '2025-01-30 10:00:00', 'org1_admin', '2025-01-30 10:00:00', 'org1_admin', 0),
+              -- Судьи для организации 2
+              ('judge2_1', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Судья', 'Два', 'Первый', 'judge2_1@test.kz', '+7 777 102 00 01', '2025-02-15 10:00:00', 'org2_admin', '2025-02-15 10:00:00', 'org2_admin', 0),
+              ('judge2_2', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Судья', 'Два', 'Второй', 'judge2_2@test.kz', '+7 777 102 00 02', '2025-02-20 10:00:00', 'org2_admin', '2025-02-20 10:00:00', 'org2_admin', 0),
+              ('judge2_3', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Судья', 'Два', 'Третий', 'judge2_3@test.kz', '+7 777 102 00 03', '2025-02-25 10:00:00', 'org2_admin', '2025-02-25 10:00:00', 'org2_admin', 0),
+              -- Судьи для организации 3
+              ('judge3_1', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Судья', 'Три', 'Первый', 'judge3_1@test.kz', '+7 777 103 00 01', '2025-03-20 10:00:00', 'org3_admin', '2025-03-20 10:00:00', 'org3_admin', 0),
+              ('judge3_2', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Судья', 'Три', 'Второй', 'judge3_2@test.kz', '+7 777 103 00 02', '2025-03-25 10:00:00', 'org3_admin', '2025-03-25 10:00:00', 'org3_admin', 0),
+              ('judge3_3', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Судья', 'Три', 'Третий', 'judge3_3@test.kz', '+7 777 103 00 03', '2025-03-30 10:00:00', 'org3_admin', '2025-03-30 10:00:00', 'org3_admin', 0),
+              ('judge3_4', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Судья', 'Три', 'Четвертый', 'judge3_4@test.kz', '+7 777 103 00 04', '2025-04-05 10:00:00', 'org3_admin', '2025-04-05 10:00:00', 'org3_admin', 0);
 
   # Test data for user roles
   - changeSet:
@@ -30,10 +50,29 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO user_roles (user_id, role) VALUES
-              (1, 'SUPERADMIN'),
-              (2, 'OCCASION_ADMIN'),
-              (2, 'ADMIN'),
-              (3, 'USER');
+              ((SELECT id FROM users WHERE username = 'admin'), 'SUPERADMIN'),
+              ((SELECT id FROM users WHERE username = 'org1_admin'), 'OCCASION_ADMIN'),
+              ((SELECT id FROM users WHERE username = 'org1_admin'), 'ADMIN'),
+              ((SELECT id FROM users WHERE username = 'org1_user'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'org2_admin'), 'OCCASION_ADMIN'),
+              ((SELECT id FROM users WHERE username = 'org2_admin'), 'ADMIN'),
+              ((SELECT id FROM users WHERE username = 'org2_user1'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'org2_user2'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'org3_admin'), 'OCCASION_ADMIN'),
+              ((SELECT id FROM users WHERE username = 'org3_admin'), 'ADMIN'),
+              ((SELECT id FROM users WHERE username = 'org3_user1'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'org3_user2'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'org3_user3'), 'USER'),
+              -- Роли для судей (все имеют роль USER для доступа к системе)
+              ((SELECT id FROM users WHERE username = 'judge1_1'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'judge1_2'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'judge2_1'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'judge2_2'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'judge2_3'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'judge3_1'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'judge3_2'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'judge3_3'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'judge3_4'), 'USER');
 
   # Test data for occasions
   - changeSet:
@@ -42,9 +81,13 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO occasion (id, name, description, status, start_date, end_date, organization_id, created_at, created_by, modified_at, modified_by, version) VALUES
-              (1, 'SBF 2025', 'Весенний фестиваль боевых искусств 2025', 'ACTIVE', '2025-04-13', '2025-04-15', 1, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (2, 'Летний турнир 2025', 'Турнир по смешанным единоборствам', 'READY', '2025-07-20', '2025-07-22', 2, '2025-06-01 10:00:00', 'organizer1', '2025-06-01 10:00:00', 'organizer1', 0);
+              INSERT INTO occasion (name, description, status, start_date, end_date, organization_id, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('Мероприятие 1', 'Единственное мероприятие организации 1', 'ACTIVE', '2025-04-13', '2025-04-15', 1, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ('Мероприятие 2.1', 'Первое мероприятие организации 2', 'ACTIVE', '2025-05-10', '2025-05-12', 2, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ('Мероприятие 2.2', 'Второе мероприятие организации 2', 'READY', '2025-07-20', '2025-07-22', 2, '2025-06-01 10:00:00', 'org2_admin', '2025-06-01 10:00:00', 'org2_admin', 0),
+              ('Мероприятие 3.1', 'Первое мероприятие организации 3', 'ACTIVE', '2025-06-01', '2025-06-03', 3, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('Мероприятие 3.2', 'Второе мероприятие организации 3', 'READY', '2025-08-15', '2025-08-17', 3, '2025-07-01 10:00:00', 'org3_admin', '2025-07-01 10:00:00', 'org3_admin', 0),
+              ('Мероприятие 3.3', 'Третье мероприятие организации 3', 'DRAFT', '2025-10-01', '2025-10-03', 3, '2025-09-01 10:00:00', 'org3_admin', '2025-09-01 10:00:00', 'org3_admin', 0);
 
   # Test data for activities
   - changeSet:
@@ -53,10 +96,22 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO activity (id, name, description, status, start_date_time, end_date_time, country, city, street_name, street_number, comment, occasion_id, created_at, created_by, modified_at, modified_by, version) VALUES
-              (1, 'Открытие турнира', 'Церемония открытия SBF 2025', 'ACTIVE', '2025-04-13 10:00:00', '2025-04-13 12:00:00', 'Казахстан', 'Алматы', 'ул. Абая', '150', 'Главная сцена', 1, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (2, 'Карате - Ката', 'Соревнования по ката в карате', 'ACTIVE', '2025-04-13 14:00:00', '2025-04-13 18:00:00', 'Казахстан', 'Алматы', 'ул. Абая', '150', 'Зал 1', 1, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (3, 'Тхэквондо - Спарринг', 'Соревнования по спаррингу в тхэквондо', 'READY', '2025-04-14 09:00:00', '2025-04-14 17:00:00', 'Казахстан', 'Алматы', 'ул. Абая', '150', 'Зал 2', 1, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0);
+              INSERT INTO activity (name, description, status, start_date_time, end_date_time, country, city, street_name, street_number, comment, occasion_id, created_at, created_by, modified_at, modified_by, version) VALUES
+              -- Организация 1: 1 активность с полным набором данных
+              ('Активность 1', 'Единственная активность организации 1 с полным набором данных', 'ACTIVE', '2025-04-13 10:00:00', '2025-04-13 18:00:00', 'Казахстан', 'Алматы', 'ул. Тестовая', '1', 'Полные данные', 1, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              
+              -- Организация 2: 3 активности с разным количеством данных
+              ('Активность 2.1', 'Первая активность организации 2 с полными данными', 'ACTIVE', '2025-05-10 10:00:00', '2025-05-10 18:00:00', 'Казахстан', 'Астана', 'пр. Средний', '2', 'Полные данные', 2, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ('Активность 2.2', 'Вторая активность организации 2 с частичными данными', 'READY', '2025-05-11 10:00:00', '2025-05-11 15:00:00', 'Казахстан', 'Астана', 'пр. Средний', '2', 'Частичные данные', 2, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ('Активность 2.3', 'Третья активность организации 2 без связанных сущностей', 'DRAFT', '2025-05-12 10:00:00', '2025-05-12 12:00:00', 'Казахстан', 'Астана', 'пр. Средний', '2', 'Без связанных сущностей', 2, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ('Активность 2.4', 'Четвертая активность организации 2 без связанных сущностей', 'DRAFT', '2025-07-20 10:00:00', '2025-07-20 12:00:00', 'Казахстан', 'Астана', 'пр. Средний', '2', 'Без связанных сущностей', 3, '2025-06-01 10:00:00', 'org2_admin', '2025-06-01 10:00:00', 'org2_admin', 0),
+              
+              -- Организация 3: 5 активностей с разным количеством данных
+              ('Активность 3.1', 'Первая активность организации 3 с полными данными', 'ACTIVE', '2025-06-01 10:00:00', '2025-06-01 18:00:00', 'Казахстан', 'Шымкент', 'ул. Максимальная', '3', 'Полные данные', 4, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('Активность 3.2', 'Вторая активность организации 3 с частичными данными', 'READY', '2025-06-02 10:00:00', '2025-06-02 15:00:00', 'Казахстан', 'Шымкент', 'ул. Максимальная', '3', 'Частичные данные', 4, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('Активность 3.3', 'Третья активность организации 3 с минимальными данными', 'READY', '2025-06-03 10:00:00', '2025-06-03 12:00:00', 'Казахстан', 'Шымкент', 'ул. Максимальная', '3', 'Минимальные данные', 4, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('Активность 3.4', 'Четвертая активность организации 3 без связанных сущностей', 'DRAFT', '2025-08-15 10:00:00', '2025-08-15 12:00:00', 'Казахстан', 'Шымкент', 'ул. Максимальная', '3', 'Без связанных сущностей', 5, '2025-07-01 10:00:00', 'org3_admin', '2025-07-01 10:00:00', 'org3_admin', 0),
+              ('Активность 3.5', 'Пятая активность организации 3 без связанных сущностей', 'DRAFT', '2025-10-01 10:00:00', '2025-10-01 12:00:00', 'Казахстан', 'Шымкент', 'ул. Максимальная', '3', 'Без связанных сущностей', 6, '2025-09-01 10:00:00', 'org3_admin', '2025-09-01 10:00:00', 'org3_admin', 0);
 
   # Test data for milestones
   - changeSet:
@@ -65,11 +120,31 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO milestone (id, name, status, activity_id, created_at, created_by, modified_at, modified_by, version) VALUES
-              (1, 'Квалификация', 'ACTIVE', 2, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (2, 'Полуфинал', 'READY', 2, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (3, 'Финал', 'DRAFT', 2, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (4, 'Квалификация', 'READY', 3, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0);
+              INSERT INTO milestone (name, description, status, activity_id, created_at, created_by, modified_at, modified_by, version) VALUES
+              -- Активность 1: 1 этап с полным набором данных
+              ('Этап 1', 'Единственный этап активности 1 с полным набором данных', 'ACTIVE', 1, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              
+              -- Активность 2.1: 3 этапа с разным количеством данных
+              ('Этап 2.1.1', 'Первый этап активности 2.1 с полными данными', 'ACTIVE', 2, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ('Этап 2.1.2', 'Второй этап активности 2.1 с частичными данными', 'READY', 2, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ('Этап 2.1.3', 'Третий этап активности 2.1 без связанных сущностей', 'DRAFT', 2, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              
+              -- Активность 2.2: 2 этапа с частичными данными
+              ('Этап 2.2.1', 'Первый этап активности 2.2', 'READY', 3, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ('Этап 2.2.2', 'Второй этап активности 2.2 без связанных сущностей', 'DRAFT', 3, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              
+              -- Активность 3.1: 4 этапа с разным количеством данных
+              ('Этап 3.1.1', 'Первый этап активности 3.1 с полными данными', 'ACTIVE', 6, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('Этап 3.1.2', 'Второй этап активности 3.1 с частичными данными', 'READY', 6, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('Этап 3.1.3', 'Третий этап активности 3.1 с минимальными данными', 'READY', 6, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('Этап 3.1.4', 'Четвертый этап активности 3.1 без связанных сущностей', 'DRAFT', 6, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              
+              -- Активность 3.2: 2 этапа с частичными данными
+              ('Этап 3.2.1', 'Первый этап активности 3.2', 'READY', 7, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('Этап 3.2.2', 'Второй этап активности 3.2 без связанных сущностей', 'DRAFT', 7, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              
+              -- Активность 3.3: 1 этап с минимальными данными
+              ('Этап 3.3.1', 'Единственный этап активности 3.3 без связанных сущностей', 'DRAFT', 8, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0);
 
   # Test data for rounds
   - changeSet:
@@ -78,11 +153,39 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO round (id, name, description, status, milestone_id, created_at, created_by, modified_at, modified_by, version) VALUES
-              (1, 'Группа A', 'Квалификационный раунд - группа A', 'ACTIVE', 1, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (2, 'Группа B', 'Квалификационный раунд - группа B', 'ACTIVE', 1, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (3, 'Полуфинал 1', 'Первый полуфинальный раунд', 'READY', 2, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (4, 'Финал', 'Финальный раунд', 'DRAFT', 3, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0);
+              INSERT INTO round (name, description, status, milestone_id, created_at, created_by, modified_at, modified_by, version) VALUES
+              -- Этап 1: 1 раунд с полным набором данных
+              ('Раунд 1', 'Единственный раунд этапа 1', 'ACTIVE', 1, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              
+              -- Этап 2.1.1: 3 раунда с разным количеством данных
+              ('Раунд 2.1.1.1', 'Первый раунд этапа 2.1.1 с полными данными', 'ACTIVE', 2, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ('Раунд 2.1.1.2', 'Второй раунд этапа 2.1.1 с частичными данными', 'READY', 2, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ('Раунд 2.1.1.3', 'Третий раунд этапа 2.1.1 без связанных сущностей', 'DRAFT', 2, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              
+              -- Этап 2.1.2: 2 раунда с частичными данными
+              ('Раунд 2.1.2.1', 'Первый раунд этапа 2.1.2', 'READY', 3, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ('Раунд 2.1.2.2', 'Второй раунд этапа 2.1.2 без связанных сущностей', 'DRAFT', 3, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              
+              -- Этап 2.2.1: 1 раунд с минимальными данными
+              ('Раунд 2.2.1.1', 'Единственный раунд этапа 2.2.1 без связанных сущностей', 'DRAFT', 5, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              
+              -- Этап 3.1.1: 4 раунда с разным количеством данных
+              ('Раунд 3.1.1.1', 'Первый раунд этапа 3.1.1 с полными данными', 'ACTIVE', 7, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('Раунд 3.1.1.2', 'Второй раунд этапа 3.1.1 с частичными данными', 'READY', 7, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('Раунд 3.1.1.3', 'Третий раунд этапа 3.1.1 с минимальными данными', 'READY', 7, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('Раунд 3.1.1.4', 'Четвертый раунд этапа 3.1.1 без связанных сущностей', 'DRAFT', 7, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              
+              -- Этап 3.1.2: 3 раунда с частичными данными
+              ('Раунд 3.1.2.1', 'Первый раунд этапа 3.1.2', 'READY', 8, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('Раунд 3.1.2.2', 'Второй раунд этапа 3.1.2', 'READY', 8, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('Раунд 3.1.2.3', 'Третий раунд этапа 3.1.2 без связанных сущностей', 'DRAFT', 8, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              
+              -- Этап 3.1.3: 2 раунда с минимальными данными
+              ('Раунд 3.1.3.1', 'Первый раунд этапа 3.1.3 без связанных сущностей', 'DRAFT', 9, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('Раунд 3.1.3.2', 'Второй раунд этапа 3.1.3 без связанных сущностей', 'DRAFT', 9, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              
+              -- Этап 3.2.1: 1 раунд с минимальными данными
+              ('Раунд 3.2.1.1', 'Единственный раунд этапа 3.2.1 без связанных сущностей', 'DRAFT', 11, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0);
 
   # Test data for criteria
   - changeSet:
@@ -91,14 +194,14 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO criteria (id, name, created_at, created_by, modified_at, modified_by, version) VALUES
-              (1, 'Прохождение', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (2, 'Техника', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (3, 'Ведение', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (4, 'Стилистика', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (5, 'Музыкальность', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (6, 'Следование', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (7, 'Имидж', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0);
+              INSERT INTO criteria (name, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('Прохождение', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
+              ('Техника', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
+              ('Ведение', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
+              ('Стилистика', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
+              ('Музыкальность', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
+              ('Следование', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
+              ('Имидж', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0);
 
   # Test data for participants
   - changeSet:
@@ -107,11 +210,22 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO participant (id, name, surname, second_name, email, phone_number, number, gender, created_at, created_by, modified_at, modified_by, version) VALUES
-              (1, 'Айдар', 'Спортсменов', 'Спортсменович', 'aidar@example.com', '+7 777 100 00 01', 'A-001', 'MALE', '2025-03-15 10:00:00', 'organizer1', '2025-03-15 10:00:00', 'organizer1', 0),
-              (2, 'Жанар', 'Боец', 'Бойцович', 'zhanar@example.com', '+7 777 100 00 02', 'A-002', 'MALE', '2025-03-15 10:00:00', 'organizer1', '2025-03-15 10:00:00', 'organizer1', 0),
-              (3, 'Марат', 'Чемпион', 'Чемпионович', 'marat@example.com', '+7 777 100 00 03', 'A-003', 'MALE', '2025-03-15 10:00:00', 'organizer1', '2025-03-15 10:00:00', 'organizer1', 0),
-              (4, 'Асель', 'Тхэквондист', 'Тхэквондистовна', 'asel@example.com', '+7 777 100 00 04', 'T-001', 'FEMALE', '2025-03-15 10:00:00', 'organizer1', '2025-03-15 10:00:00', 'organizer1', 0);
+              INSERT INTO participant (name, surname, second_name, email, phone_number, number, gender, created_at, created_by, modified_at, modified_by, version) VALUES
+              -- Участники для организации 1 (1 участник)
+              ('Участник', 'Один', 'Участникович', 'participant1@test.kz', '+7 777 101 00 01', 'P-001', 'MALE', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
+              
+              -- Участники для организации 2 (3 участника)
+              ('Участник', 'Два', 'Первый', 'participant2_1@test.kz', '+7 777 102 00 01', 'P-002-1', 'MALE', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
+              ('Участник', 'Два', 'Второй', 'participant2_2@test.kz', '+7 777 102 00 02', 'P-002-2', 'FEMALE', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
+              ('Участник', 'Два', 'Третий', 'participant2_3@test.kz', '+7 777 102 00 03', 'P-002-3', 'MALE', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
+              
+              -- Участники для организации 3 (6 участников)
+              ('Участник', 'Три', 'Первый', 'participant3_1@test.kz', '+7 777 103 00 01', 'P-003-1', 'MALE', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0),
+              ('Участник', 'Три', 'Второй', 'participant3_2@test.kz', '+7 777 103 00 02', 'P-003-2', 'FEMALE', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0),
+              ('Участник', 'Три', 'Третий', 'participant3_3@test.kz', '+7 777 103 00 03', 'P-003-3', 'MALE', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0),
+              ('Участник', 'Три', 'Четвертый', 'participant3_4@test.kz', '+7 777 103 00 04', 'P-003-4', 'FEMALE', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0),
+              ('Участник', 'Три', 'Пятый', 'participant3_5@test.kz', '+7 777 103 00 05', 'P-003-5', 'MALE', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0),
+              ('Участник', 'Три', 'Шестой', 'participant3_6@test.kz', '+7 777 103 00 06', 'P-003-6', 'FEMALE', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0);
 
   # Test data for users_organizations_association
   - changeSet:
@@ -121,10 +235,22 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO users_organizations_association (user_id, organization_id) VALUES
-              (1, 1),
-              (2, 1),
-              (2, 2),
-              (3, 2);
+              ((SELECT id FROM users WHERE username = 'admin'), 1),
+              ((SELECT id FROM users WHERE username = 'admin'), 2),
+              ((SELECT id FROM users WHERE username = 'admin'), 3),
+              ((SELECT id FROM users WHERE username = 'org1_admin'), 1),
+              ((SELECT id FROM users WHERE username = 'org1_user'), 1),
+              ((SELECT id FROM users WHERE username = 'org2_admin'), 2),
+              ((SELECT id FROM users WHERE username = 'org2_user1'), 2),
+              ((SELECT id FROM users WHERE username = 'org2_user2'), 2),
+              ((SELECT id FROM users WHERE username = 'org3_admin'), 3),
+              ((SELECT id FROM users WHERE username = 'org3_user1'), 3),
+              ((SELECT id FROM users WHERE username = 'org3_user2'), 3),
+              ((SELECT id FROM users WHERE username = 'org3_user3'), 3),
+              -- Привязки судей к организациям (выборочно, не все судьи привязаны к организациям)
+              ((SELECT id FROM users WHERE username = 'judge1_1'), 1),
+              ((SELECT id FROM users WHERE username = 'judge2_1'), 2),
+              ((SELECT id FROM users WHERE username = 'judge3_1'), 3);
 
   # Test data for rounds_participants_association
   - changeSet:
@@ -134,12 +260,54 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO rounds_participants_association (participant_id, round_id) VALUES
-              (1, 1),
-              (2, 1),
-              (3, 2),
-              (1, 3),
-              (2, 3),
-              (3, 4);
+              -- Раунд 1: 1 участник (полные данные)
+              ((SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1')),
+              
+              -- Раунды 2.1.1.x: 3 участника (полные данные)
+              ((SELECT id FROM participant WHERE number = 'P-002-1'), (SELECT id FROM round WHERE name = 'Раунд 2.1.1.1')),
+              ((SELECT id FROM participant WHERE number = 'P-002-2'), (SELECT id FROM round WHERE name = 'Раунд 2.1.1.1')),
+              ((SELECT id FROM participant WHERE number = 'P-002-3'), (SELECT id FROM round WHERE name = 'Раунд 2.1.1.1')),
+              ((SELECT id FROM participant WHERE number = 'P-002-1'), (SELECT id FROM round WHERE name = 'Раунд 2.1.1.2')),
+              ((SELECT id FROM participant WHERE number = 'P-002-2'), (SELECT id FROM round WHERE name = 'Раунд 2.1.1.2')),
+              ((SELECT id FROM participant WHERE number = 'P-002-1'), (SELECT id FROM round WHERE name = 'Раунд 2.1.1.3')),
+              
+              -- Раунды 2.1.2.x: 2 участника (частичные данные)
+              ((SELECT id FROM participant WHERE number = 'P-002-1'), (SELECT id FROM round WHERE name = 'Раунд 2.1.2.1')),
+              ((SELECT id FROM participant WHERE number = 'P-002-2'), (SELECT id FROM round WHERE name = 'Раунд 2.1.2.1')),
+              ((SELECT id FROM participant WHERE number = 'P-002-1'), (SELECT id FROM round WHERE name = 'Раунд 2.1.2.2')),
+              
+              -- Раунды 3.1.1.x: 6 участников (полные данные)
+              ((SELECT id FROM participant WHERE number = 'P-003-1'), (SELECT id FROM round WHERE name = 'Раунд 3.1.1.1')),
+              ((SELECT id FROM participant WHERE number = 'P-003-2'), (SELECT id FROM round WHERE name = 'Раунд 3.1.1.1')),
+              ((SELECT id FROM participant WHERE number = 'P-003-3'), (SELECT id FROM round WHERE name = 'Раунд 3.1.1.1')),
+              ((SELECT id FROM participant WHERE number = 'P-003-4'), (SELECT id FROM round WHERE name = 'Раунд 3.1.1.1')),
+              ((SELECT id FROM participant WHERE number = 'P-003-5'), (SELECT id FROM round WHERE name = 'Раунд 3.1.1.1')),
+              ((SELECT id FROM participant WHERE number = 'P-003-6'), (SELECT id FROM round WHERE name = 'Раунд 3.1.1.1')),
+              ((SELECT id FROM participant WHERE number = 'P-003-1'), (SELECT id FROM round WHERE name = 'Раунд 3.1.1.2')),
+              ((SELECT id FROM participant WHERE number = 'P-003-2'), (SELECT id FROM round WHERE name = 'Раунд 3.1.1.2')),
+              ((SELECT id FROM participant WHERE number = 'P-003-3'), (SELECT id FROM round WHERE name = 'Раунд 3.1.1.2')),
+              ((SELECT id FROM participant WHERE number = 'P-003-4'), (SELECT id FROM round WHERE name = 'Раунд 3.1.1.2')),
+              ((SELECT id FROM participant WHERE number = 'P-003-1'), (SELECT id FROM round WHERE name = 'Раунд 3.1.1.3')),
+              ((SELECT id FROM participant WHERE number = 'P-003-2'), (SELECT id FROM round WHERE name = 'Раунд 3.1.1.3')),
+              ((SELECT id FROM participant WHERE number = 'P-003-1'), (SELECT id FROM round WHERE name = 'Раунд 3.1.1.4')),
+              
+              -- Раунды 3.1.2.x: 4 участника (частичные данные)
+              ((SELECT id FROM participant WHERE number = 'P-003-1'), (SELECT id FROM round WHERE name = 'Раунд 3.1.2.1')),
+              ((SELECT id FROM participant WHERE number = 'P-003-2'), (SELECT id FROM round WHERE name = 'Раунд 3.1.2.1')),
+              ((SELECT id FROM participant WHERE number = 'P-003-3'), (SELECT id FROM round WHERE name = 'Раунд 3.1.2.1')),
+              ((SELECT id FROM participant WHERE number = 'P-003-4'), (SELECT id FROM round WHERE name = 'Раунд 3.1.2.1')),
+              ((SELECT id FROM participant WHERE number = 'P-003-1'), (SELECT id FROM round WHERE name = 'Раунд 3.1.2.2')),
+              ((SELECT id FROM participant WHERE number = 'P-003-2'), (SELECT id FROM round WHERE name = 'Раунд 3.1.2.2')),
+              ((SELECT id FROM participant WHERE number = 'P-003-3'), (SELECT id FROM round WHERE name = 'Раунд 3.1.2.2')),
+              ((SELECT id FROM participant WHERE number = 'P-003-1'), (SELECT id FROM round WHERE name = 'Раунд 3.1.2.3')),
+              
+              -- Раунды 3.1.3.x: 2 участника (минимальные данные)
+              ((SELECT id FROM participant WHERE number = 'P-003-1'), (SELECT id FROM round WHERE name = 'Раунд 3.1.3.1')),
+              ((SELECT id FROM participant WHERE number = 'P-003-2'), (SELECT id FROM round WHERE name = 'Раунд 3.1.3.1')),
+              ((SELECT id FROM participant WHERE number = 'P-003-1'), (SELECT id FROM round WHERE name = 'Раунд 3.1.3.2')),
+              
+              -- Раунд 3.2.1.1: 1 участник (минимальные данные)
+              ((SELECT id FROM participant WHERE number = 'P-003-1'), (SELECT id FROM round WHERE name = 'Раунд 3.2.1.1'));
 
   # Test data for milestone_criteria_assignment
   - changeSet:
@@ -148,18 +316,89 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO milestone_criteria_assignment (id, milestone_id, criteria_id, gender, created_at, created_by, modified_at, modified_by, version) VALUES
-              (1, 1, 1, null, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (2, 1, 2, null, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (3, 1, 3, null, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (4, 1, 4, null, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (5, 2, 1, null, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (6, 2, 2, null, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (7, 2, 3, null, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (8, 3, 1, null, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (9, 3, 2, null, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (10, 3, 3, null, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (11, 3, 4, null, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (12, 3, 5, null, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (13, 3, 6, null, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
-              (14, 3, 7, null, '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0);
+              INSERT INTO milestone_criteria_assignment (milestone_id, criteria_id, gender, created_at, created_by, modified_at, modified_by, version) VALUES
+              -- Этап 1: все критерии с разными гендерами (полные данные)
+              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Техника'), 'MALE', '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Техника'), 'FEMALE', '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Ведение'), null, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Стилистика'), 'FEMALE', '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Следование'), 'MALE', '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Имидж'), null, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              
+              -- Этап 2.1.1: все критерии с гендерами (полные данные)
+              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), (SELECT id FROM criteria WHERE name = 'Техника'), 'MALE', '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), (SELECT id FROM criteria WHERE name = 'Ведение'), null, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), (SELECT id FROM criteria WHERE name = 'Стилистика'), 'FEMALE', '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), (SELECT id FROM criteria WHERE name = 'Следование'), 'MALE', '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), (SELECT id FROM criteria WHERE name = 'Имидж'), null, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              
+              -- Этап 2.1.2: частичные критерии (частичные данные)
+              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.2'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.2'), (SELECT id FROM criteria WHERE name = 'Техника'), null, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.2'), (SELECT id FROM criteria WHERE name = 'Ведение'), null, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.2'), (SELECT id FROM criteria WHERE name = 'Стилистика'), null, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              
+              -- Этап 3.1.1: все критерии с гендерами (полные данные)
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Техника'), 'MALE', '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Техника'), 'FEMALE', '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Ведение'), null, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Стилистика'), 'FEMALE', '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Следование'), 'MALE', '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Имидж'), null, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              
+              -- Этап 3.1.2: частичные критерии (частичные данные)
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), (SELECT id FROM criteria WHERE name = 'Техника'), null, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), (SELECT id FROM criteria WHERE name = 'Ведение'), null, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), (SELECT id FROM criteria WHERE name = 'Стилистика'), null, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              
+              -- Этап 3.1.3: минимальные критерии (минимальные данные)
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.3'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.3'), (SELECT id FROM criteria WHERE name = 'Техника'), null, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.3'), (SELECT id FROM criteria WHERE name = 'Ведение'), null, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0);
+
+  # Test data for user_activity_assignment
+  - changeSet:
+      id: 2025-09-15-13
+      author: belkanaphan
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO user_activity_assignment (user_id, activity_id, activity_role, assigned_at, created_at, created_by, modified_at, modified_by, version) VALUES
+              -- Активность 1: 1 главный судья + 1 обычный судья
+              ((SELECT id FROM users WHERE username = 'judge1_1'), (SELECT id FROM activity WHERE name = 'Активность 1'), 'JUDGE_CHIEF', '2025-03-15 10:00:00', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge1_2'), (SELECT id FROM activity WHERE name = 'Активность 1'), 'JUDGE', '2025-03-15 10:00:00', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
+              
+              -- Активность 2.1: 1 главный судья + 2 обычных судьи
+              ((SELECT id FROM users WHERE username = 'judge2_1'), (SELECT id FROM activity WHERE name = 'Активность 2.1'), 'JUDGE_CHIEF', '2025-04-15 10:00:00', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge2_2'), (SELECT id FROM activity WHERE name = 'Активность 2.1'), 'JUDGE', '2025-04-15 10:00:00', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge2_3'), (SELECT id FROM activity WHERE name = 'Активность 2.1'), 'JUDGE', '2025-04-15 10:00:00', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
+              
+              -- Активность 2.2: 0 главных судей + 1 обычный судья
+              ((SELECT id FROM users WHERE username = 'judge2_1'), (SELECT id FROM activity WHERE name = 'Активность 2.2'), 'JUDGE', '2025-04-15 10:00:00', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
+              
+              -- Активность 2.3: 0 главных судей + 0 обычных судей (без судей)
+              
+              -- Активность 2.4: 0 главных судей + 2 обычных судьи
+              ((SELECT id FROM users WHERE username = 'judge2_2'), (SELECT id FROM activity WHERE name = 'Активность 2.4'), 'JUDGE', '2025-06-15 10:00:00', '2025-06-15 10:00:00', 'org2_admin', '2025-06-15 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge2_3'), (SELECT id FROM activity WHERE name = 'Активность 2.4'), 'JUDGE', '2025-06-15 10:00:00', '2025-06-15 10:00:00', 'org2_admin', '2025-06-15 10:00:00', 'org2_admin', 0),
+              
+              -- Активность 3.1: 1 главный судья + 3 обычных судьи
+              ((SELECT id FROM users WHERE username = 'judge3_1'), (SELECT id FROM activity WHERE name = 'Активность 3.1'), 'JUDGE_CHIEF', '2025-05-15 10:00:00', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge3_2'), (SELECT id FROM activity WHERE name = 'Активность 3.1'), 'JUDGE', '2025-05-15 10:00:00', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge3_3'), (SELECT id FROM activity WHERE name = 'Активность 3.1'), 'JUDGE', '2025-05-15 10:00:00', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge3_4'), (SELECT id FROM activity WHERE name = 'Активность 3.1'), 'JUDGE', '2025-05-15 10:00:00', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0),
+              
+              -- Активность 3.2: 0 главных судей + 2 обычных судьи
+              ((SELECT id FROM users WHERE username = 'judge3_1'), (SELECT id FROM activity WHERE name = 'Активность 3.2'), 'JUDGE', '2025-05-15 10:00:00', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge3_2'), (SELECT id FROM activity WHERE name = 'Активность 3.2'), 'JUDGE', '2025-05-15 10:00:00', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0),
+              
+              -- Активность 3.3: 0 главных судей + 1 обычный судья
+              ((SELECT id FROM users WHERE username = 'judge3_3'), (SELECT id FROM activity WHERE name = 'Активность 3.3'), 'JUDGE', '2025-05-15 10:00:00', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0);

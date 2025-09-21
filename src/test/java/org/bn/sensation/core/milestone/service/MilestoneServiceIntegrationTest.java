@@ -170,6 +170,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()
                 .name("Test Milestone")
+                .description("Test Milestone Description")
                 .activityId(testActivity.getId())
                 .status(Status.DRAFT)
                 .build();
@@ -181,6 +182,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result);
         assertNotNull(result.getId());
         assertEquals("Test Milestone", result.getName());
+        assertEquals("Test Milestone Description", result.getDescription());
         assertNotNull(result.getActivity());
         assertEquals(testActivity.getId(), result.getActivity().getId());
         assertEquals(Status.DRAFT, result.getStatus());
@@ -189,6 +191,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         Optional<MilestoneEntity> savedMilestone = milestoneRepository.findById(result.getId());
         assertTrue(savedMilestone.isPresent());
         assertEquals("Test Milestone", savedMilestone.get().getName());
+        assertEquals("Test Milestone Description", savedMilestone.get().getDescription());
         assertEquals(testActivity.getId(), savedMilestone.get().getActivity().getId());
     }
 
@@ -197,6 +200,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()
                 .name("Test Milestone")
+                .description("Test Milestone Description")
                 .activityId(999L) // Несуществующая активность
                 .status(Status.DRAFT)
                 .build();
@@ -255,6 +259,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
 
         UpdateMilestoneRequest request = UpdateMilestoneRequest.builder()
                 .name("Updated Name")
+                .description("Updated Description")
                 .status(Status.READY)
                 .activityId(testActivity.getId())
                 .build();
@@ -265,12 +270,14 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // Then
         assertNotNull(result);
         assertEquals("Updated Name", result.getName());
+        assertEquals("Updated Description", result.getDescription());
         assertEquals(Status.READY, result.getStatus());
 
         // Проверяем, что изменения сохранены в БД
         Optional<MilestoneEntity> savedMilestone = milestoneRepository.findById(milestone.getId());
         assertTrue(savedMilestone.isPresent());
         assertEquals("Updated Name", savedMilestone.get().getName());
+        assertEquals("Updated Description", savedMilestone.get().getDescription());
         assertEquals(Status.READY, savedMilestone.get().getStatus());
     }
 
@@ -281,6 +288,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
 
         UpdateMilestoneRequest request = UpdateMilestoneRequest.builder()
                 .name("Updated Name")
+                .description("Updated Description")
                 .build();
 
         // When
@@ -289,12 +297,14 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // Then
         assertNotNull(result);
         assertEquals("Updated Name", result.getName());
+        assertEquals("Updated Description", result.getDescription());
         assertEquals(Status.DRAFT, result.getStatus()); // Не изменилось
 
         // Проверяем, что изменения сохранены в БД
         Optional<MilestoneEntity> savedMilestone = milestoneRepository.findById(milestone.getId());
         assertTrue(savedMilestone.isPresent());
         assertEquals("Updated Name", savedMilestone.get().getName());
+        assertEquals("Updated Description", savedMilestone.get().getDescription());
         assertEquals(Status.DRAFT, savedMilestone.get().getStatus());
     }
 
@@ -352,6 +362,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()
                 .name("Test Milestone")
+                .description("Test Milestone Description")
                 .activityId(testActivity.getId())
                 .status(Status.ACTIVE)
                 .build();
@@ -389,6 +400,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()
                 .name("Test Milestone")
+                .description("Test Milestone Description")
                 .activityId(testActivity.getId())
                 .status(Status.DRAFT)
                 .build();
@@ -408,6 +420,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()
                 .name("Test Milestone")
+                .description("Test Milestone Description")
                 .activityId(null) // Без активности
                 .status(Status.DRAFT)
                 .build();
@@ -584,6 +597,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         return transactionTemplate.execute(status -> {
             MilestoneEntity milestone = MilestoneEntity.builder()
                     .name(name)
+                    .description("Test Milestone Description for " + name)
                     .status(Status.DRAFT)
                     .activity(testActivity)
                     .build();

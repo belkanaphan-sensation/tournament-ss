@@ -27,6 +27,9 @@ public class MilestoneDto extends BaseDto {
     @Schema(description = "Название вехи", example = "Квалификация")
     private String name;
 
+    @Schema(description = "Описание вехи", example = "Квалификационный этап соревнования")
+    private String description;
+
     @Schema(description = "Активность, частью которой является веха")
     private EntityLinkDto activity;
 

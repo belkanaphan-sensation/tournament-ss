@@ -29,6 +29,10 @@ public class CreateMilestoneRequest extends EmptyDto {
     @Schema(description = "Название вехи", example = "Квалификация")
     private String name;
 
+    @Size(max = 2000)
+    @Schema(description = "Описание вехи", example = "Квалификационный этап соревнования")
+    private String description;
+
     @Schema(description = "ID активности, частью которой является веха")
     private Long activityId;
 

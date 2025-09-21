@@ -172,6 +172,7 @@ databaseChangeLog:
               CREATE TABLE IF NOT EXISTS milestone (
                 id BIGSERIAL PRIMARY KEY,
                 name VARCHAR(255),
+                description TEXT,
                 status VARCHAR(20) NOT NULL,
                 activity_id BIGINT,
                 created_at TIMESTAMP,
