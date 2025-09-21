@@ -33,6 +33,17 @@ spring:
 #       readiness:
 #         timeout: 2m
 
+server:
+  servlet:
+    session:
+      timeout: 24h  # Время жизни сессии (24 часа)
+      cookie:
+        name: JSESSIONID  # Имя cookie сессии
+        max-age: 86400    # Максимальный возраст cookie в секундах (24 часа)
+        http-only: true   # Cookie доступен только через HTTP (безопасность)
+        secure: false     # Cookie передается только по HTTPS (false для разработки)
+        same-site: lax    # Политика SameSite для защиты от CSRF
+
 app:
   swagger-ui:
     api-version: 1.0
