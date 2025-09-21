@@ -1,0 +1,112 @@
+package org.bn.sensation.core.criteria.service;
+
+import org.bn.sensation.core.common.mapper.BaseDtoMapper;
+import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.criteria.entity.CriteriaEntity;
+import org.bn.sensation.core.criteria.repository.CriteriaRepository;
+import org.bn.sensation.core.criteria.service.dto.CreateCriteriaRequest;
+import org.bn.sensation.core.criteria.service.dto.CriteriaDto;
+import org.bn.sensation.core.criteria.service.dto.UpdateCriteriaRequest;
+import org.bn.sensation.core.criteria.service.mapper.CriteriaDtoMapper;
+import org.bn.sensation.core.criteria.service.mapper.CreateCriteriaRequestMapper;
+import org.bn.sensation.core.criteria.service.mapper.UpdateCriteriaRequestMapper;
+import org.bn.sensation.core.milestone.repository.MilestoneCriteriaAssignmentRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import com.google.common.base.Preconditions;
+
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+//todo подумать над тем, какие плавила создания изменения и т.д. должны быть у критерия. Вероятно нужны какие то статусы использования
+public class CriteriaServiceImpl implements CriteriaService {
+
+    private final CriteriaRepository criteriaRepository;
+    private final CriteriaDtoMapper criteriaDtoMapper;
+    private final CreateCriteriaRequestMapper createCriteriaRequestMapper;
+    private final UpdateCriteriaRequestMapper updateCriteriaRequestMapper;
+    private final MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
+
+    @Override
+    public BaseRepository<CriteriaEntity> getRepository() {
+        return criteriaRepository;
+    }
+
+    @Override
+    public BaseDtoMapper<CriteriaEntity, CriteriaDto> getMapper() {
+        return criteriaDtoMapper;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CriteriaDto> findAll(Pageable pageable) {
+        return criteriaRepository.findAll(pageable).map(criteriaDtoMapper::toDto);
+    }
+
+    @Override
+    @Transactional
+    public CriteriaDto create(CreateCriteriaRequest request) {
+        Preconditions.checkArgument(StringUtils.hasText(request.getName()), "Название критерия не может быть пустым");
+        
+        // Проверяем уникальность названия
+        if (criteriaRepository.findByName(request.getName()).isPresent()) {
+            throw new IllegalArgumentException("Критерий с названием '" + request.getName() + "' уже существует");
+        }
+        
+        CriteriaEntity criteria = createCriteriaRequestMapper.toEntity(request);
+        CriteriaEntity saved = criteriaRepository.save(criteria);
+        return criteriaDtoMapper.toDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public CriteriaDto update(Long id, UpdateCriteriaRequest request) {
+        CriteriaEntity criteria = criteriaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Критерий не найден с id: " + id));
+
+        // Валидация названия если оно обновляется
+        if (request.getName() != null) {
+            if (request.getName().trim().isEmpty()) {
+                throw new IllegalArgumentException("Название критерия не может быть пустым");
+            }
+            
+            // Проверяем уникальность названия (исключая текущий критерий)
+            criteriaRepository.findByName(request.getName())
+                    .ifPresent(existingCriteria -> {
+                        if (!existingCriteria.getId().equals(id)) {
+                            throw new IllegalArgumentException("Критерий с названием '" + request.getName() + "' уже существует");
+                        }
+                    });
+        } else {
+            // Если название null, это тоже ошибка
+            throw new IllegalArgumentException("Название критерия не может быть пустым");
+        }
+
+        // Обновляем поля критерия
+        updateCriteriaRequestMapper.updateCriteriaFromRequest(request, criteria);
+
+        CriteriaEntity saved = criteriaRepository.save(criteria);
+        return criteriaDtoMapper.toDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public void deleteById(Long id) {
+        CriteriaEntity criteria = criteriaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Критерий не найден с id: " + id));
+        
+        // Проверяем, используется ли критерий в этапах
+        if (milestoneCriteriaAssignmentRepository.existsByCriteriaId(id)) {
+            throw new IllegalArgumentException("Нельзя удалить критерий, который используется в этапах");
+        }
+        
+        criteriaRepository.deleteById(id);
+    }
+
+}

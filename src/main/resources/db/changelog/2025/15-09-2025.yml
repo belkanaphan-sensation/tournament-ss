@@ -26,3 +26,52 @@ databaseChangeLog:
         - sql:
             sql: |
               DROP TABLE IF EXISTS user_activity_assignment;
+
+  # Create criteria table
+  - changeSet:
+      id: 2025-09-15-2
+      author: belkanaphan
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS criteria (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                modified_by VARCHAR(255),
+                version BIGINT NOT NULL DEFAULT 0
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS criteria;
+
+  # Create milestone_criteria_assignment table
+  - changeSet:
+      id: 2025-09-15-3
+      author: belkanaphan
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS milestone_criteria_assignment (
+                id BIGSERIAL PRIMARY KEY,
+                milestone_id BIGINT NOT NULL,
+                criteria_id BIGINT NOT NULL,
+                gender VARCHAR(20),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                modified_by VARCHAR(255),
+                version BIGINT NOT NULL DEFAULT 0,
+                FOREIGN KEY (milestone_id) REFERENCES milestone(id) ON DELETE CASCADE,
+                FOREIGN KEY (criteria_id) REFERENCES criteria(id) ON DELETE CASCADE,
+                UNIQUE (milestone_id, criteria_id, gender)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS milestone_criteria_assignment;

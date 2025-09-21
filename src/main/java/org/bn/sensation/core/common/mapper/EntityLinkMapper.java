@@ -2,6 +2,7 @@ package org.bn.sensation.core.common.mapper;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
@@ -41,4 +42,8 @@ public interface EntityLinkMapper {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "value", source = "username")
     EntityLinkDto toEntityLinkDto(UserEntity entity);
+
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "value", source = "name")
+    EntityLinkDto toEntityLinkDto(CriteriaEntity entity);
 }

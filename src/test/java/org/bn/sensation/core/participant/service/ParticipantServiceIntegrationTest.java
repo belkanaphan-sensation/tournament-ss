@@ -13,6 +13,7 @@ import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
+import org.bn.sensation.core.common.entity.Gender;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.entity.Status;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
@@ -152,6 +153,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+1234567890")
                         .build())
                 .number("001")
+                .gender(Gender.MALE)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         testParticipant = participantRepository.save(testParticipant);
@@ -167,6 +169,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .email("jane.smith@example.com")
                 .phoneNumber("+0987654321")
                 .number("002")
+                .gender(Gender.FEMALE)
                 .build();
 
         // When
@@ -180,6 +183,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(request.getEmail(), result.getPerson().getEmail());
         assertEquals(request.getPhoneNumber(), result.getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), result.getNumber());
+        assertEquals(request.getGender(), result.getGender());
 
         // Verify participant was saved to database
         Optional<ParticipantEntity> savedParticipant = participantRepository.findById(result.getId());
@@ -190,6 +194,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(request.getEmail(), savedParticipant.get().getPerson().getEmail());
         assertEquals(request.getPhoneNumber(), savedParticipant.get().getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), savedParticipant.get().getNumber());
+        assertEquals(request.getGender(), savedParticipant.get().getGender());
     }
 
     @Test
@@ -202,6 +207,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .email("updated@example.com")
                 .phoneNumber("+1111111111")
                 .number("999")
+                .gender(Gender.FEMALE)
                 .build();
 
         // When
@@ -216,6 +222,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(request.getEmail(), result.getPerson().getEmail());
         assertEquals(request.getPhoneNumber(), result.getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), result.getNumber());
+        assertEquals(request.getGender(), result.getGender());
         assertEquals(1, result.getRounds().size());
 
         // Verify participant was updated in database
@@ -227,6 +234,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(request.getEmail(), updatedParticipant.get().getPerson().getEmail());
         assertEquals(request.getPhoneNumber(), updatedParticipant.get().getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), updatedParticipant.get().getNumber());
+        assertEquals(request.getGender(), updatedParticipant.get().getGender());
         assertEquals(1, updatedParticipant.get().getRounds().size());
         assertTrue(updatedParticipant.get().getRounds().contains(testRound));
     }
@@ -293,6 +301,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(testParticipant.getPerson().getEmail(), result.get().getPerson().getEmail());
         assertEquals(testParticipant.getPerson().getPhoneNumber(), result.get().getPerson().getPhoneNumber());
         assertEquals(testParticipant.getNumber(), result.get().getNumber());
+        assertEquals(testParticipant.getGender(), result.get().getGender());
     }
 
     @Test
@@ -437,5 +446,77 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Verify related entities still exist (no cascade delete)
         assertTrue(roundRepository.existsById(testRound.getId()));
         assertTrue(activityRepository.existsById(testActivity.getId()));
+    }
+
+    @Test
+    void testParticipantGenderMapping() {
+        // Given
+        CreateParticipantRequest request = CreateParticipantRequest.builder()
+                .name("Gender")
+                .surname("Test")
+                .email("gender@test.com")
+                .phoneNumber("+6666666666")
+                .number("G-001")
+                .gender(Gender.FEMALE)
+                .build();
+
+        // When
+        ParticipantDto result = participantService.create(request);
+
+        // Then - Verify gender field is correctly mapped
+        assertNotNull(result);
+        assertEquals(Gender.FEMALE, result.getGender());
+
+        // Verify in database
+        Optional<ParticipantEntity> savedParticipant = participantRepository.findById(result.getId());
+        assertTrue(savedParticipant.isPresent());
+        assertEquals(Gender.FEMALE, savedParticipant.get().getGender());
+    }
+
+    @Test
+    void testParticipantGenderUpdate() {
+        // Given - testParticipant has Gender.MALE from setUp()
+        assertEquals(Gender.MALE, testParticipant.getGender());
+
+        UpdateParticipantRequest request = UpdateParticipantRequest.builder()
+                .gender(Gender.FEMALE)
+                .build();
+
+        // When
+        ParticipantDto result = participantService.update(testParticipant.getId(), request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(Gender.FEMALE, result.getGender());
+
+        // Verify in database
+        Optional<ParticipantEntity> updatedParticipant = participantRepository.findById(testParticipant.getId());
+        assertTrue(updatedParticipant.isPresent());
+        assertEquals(Gender.FEMALE, updatedParticipant.get().getGender());
+    }
+
+    @Test
+    void testParticipantWithNullGender() {
+        // Given
+        CreateParticipantRequest request = CreateParticipantRequest.builder()
+                .name("Null")
+                .surname("Gender")
+                .email("null@test.com")
+                .phoneNumber("+7777777777")
+                .number("N-001")
+                .gender(null) // Null gender
+                .build();
+
+        // When
+        ParticipantDto result = participantService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertNull(result.getGender());
+
+        // Verify in database
+        Optional<ParticipantEntity> savedParticipant = participantRepository.findById(result.getId());
+        assertTrue(savedParticipant.isPresent());
+        assertNull(savedParticipant.get().getGender());
     }
 }

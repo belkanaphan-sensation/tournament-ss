@@ -13,7 +13,11 @@ import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.criteria.entity.CriteriaEntity;
+import org.bn.sensation.core.criteria.repository.CriteriaRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.entity.MilestoneCriteriaAssignmentEntity;
+import org.bn.sensation.core.milestone.repository.MilestoneCriteriaAssignmentRepository;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
@@ -60,11 +64,18 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private CriteriaRepository criteriaRepository;
+
+    @Autowired
+    private MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
+
+    @Autowired
     private TransactionTemplate transactionTemplate;
 
     private ActivityEntity testActivity;
     private OrganizationEntity testOrganization;
     private UserEntity testUser;
+    private CriteriaEntity testCriteria;
 
     @BeforeEach
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -74,7 +85,9 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Очистка данных в отдельной транзакции
         transactionTemplate.execute(status -> {
+            milestoneCriteriaAssignmentRepository.deleteAll();
             milestoneRepository.deleteAll();
+            criteriaRepository.deleteAll();
             activityRepository.deleteAll();
             occasionRepository.deleteAll();
             organizationRepository.deleteAll();
@@ -141,6 +154,12 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                     .occasion(testOccasion)
                     .build();
             testActivity = activityRepository.save(testActivity);
+
+            // Создание тестового критерия
+            testCriteria = CriteriaEntity.builder()
+                    .name("Прохождение")
+                    .build();
+            testCriteria = criteriaRepository.save(testCriteria);
 
             return null;
         });
@@ -405,6 +424,160 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         assertTrue(savedMilestone.isPresent());
         assertNull(savedMilestone.get().getActivity());
     }
+
+    @Test
+    @Transactional
+    void testCreateMilestoneWithDefaultCriteria() {
+        // Given
+        CreateMilestoneRequest request = CreateMilestoneRequest.builder()
+                .name("Test Milestone")
+                .activityId(testActivity.getId())
+                .status(Status.DRAFT)
+                .build();
+
+        // When
+        MilestoneDto result = milestoneService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("Test Milestone", result.getName());
+
+        // Проверяем, что критерий по умолчанию был добавлен через репозиторий назначений
+        long assignmentCount = milestoneCriteriaAssignmentRepository.countByMilestoneId(result.getId());
+        assertEquals(1, assignmentCount);
+        
+        // Проверяем, что назначение создано с правильным критерием
+        Optional<MilestoneCriteriaAssignmentEntity> assignment = milestoneCriteriaAssignmentRepository.findByMilestoneIdAndCriteriaId(result.getId(), testCriteria.getId());
+        assertTrue(assignment.isPresent());
+        assertEquals("Прохождение", assignment.get().getCriteria().getName());
+        assertNull(assignment.get().getGender()); // Критерий по умолчанию не привязан к полу
+    }
+
+    @Test
+    @Transactional
+    void testCreateMilestoneWithExistingCriteriaAssignments() {
+        // Given
+        MilestoneEntity milestone = createTestMilestone("Test Milestone");
+        
+        // Создаем назначение критерия вручную
+        MilestoneCriteriaAssignmentEntity assignment = MilestoneCriteriaAssignmentEntity.builder()
+                .milestone(milestone)
+                .criteria(testCriteria)
+                .gender(null)
+                .build();
+        milestoneCriteriaAssignmentRepository.save(assignment);
+
+        // When - создаем новый этап
+        CreateMilestoneRequest request = CreateMilestoneRequest.builder()
+                .name("Another Milestone")
+                .activityId(testActivity.getId())
+                .status(Status.DRAFT)
+                .build();
+
+        MilestoneDto result = milestoneService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("Another Milestone", result.getName());
+
+        // Проверяем, что критерий по умолчанию был добавлен к новому этапу
+        long assignmentCount = milestoneCriteriaAssignmentRepository.countByMilestoneId(result.getId());
+        assertEquals(1, assignmentCount);
+    }
+
+    @Test
+    void testCreateMilestoneWithNonExistentDefaultCriteria() {
+        // Given - удаляем критерий "Прохождение"
+        criteriaRepository.deleteAll();
+
+        CreateMilestoneRequest request = CreateMilestoneRequest.builder()
+                .name("Test Milestone")
+                .activityId(testActivity.getId())
+                .status(Status.DRAFT)
+                .build();
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            milestoneService.create(request);
+        });
+    }
+
+    @Test
+    @Transactional
+    void testMilestoneCriteriaAssignmentsMapping() {
+        // Given
+        MilestoneEntity milestone = createTestMilestone("Test Milestone");
+        
+        // Создаем назначение критерия
+        MilestoneCriteriaAssignmentEntity assignment = MilestoneCriteriaAssignmentEntity.builder()
+                .milestone(milestone)
+                .criteria(testCriteria)
+                .gender(null)
+                .build();
+        milestoneCriteriaAssignmentRepository.save(assignment);
+
+        // When
+        MilestoneDto result = milestoneService.findById(milestone.getId()).orElse(null);
+
+        // Then
+        assertNotNull(result);
+        assertNotNull(result.getRounds());
+        
+        // Проверяем, что этап имеет связи с критериями в БД через репозиторий
+        long assignmentCount = milestoneCriteriaAssignmentRepository.countByMilestoneId(milestone.getId());
+        assertEquals(1, assignmentCount);
+    }
+
+    @Test
+    @Transactional
+    void testMilestoneWithMultipleCriteriaAssignments() {
+        // Given
+        // Создаем дополнительные критерии
+        CriteriaEntity criteria2 = CriteriaEntity.builder()
+                .name("Техника")
+                .build();
+        criteriaRepository.save(criteria2);
+
+        CriteriaEntity criteria3 = CriteriaEntity.builder()
+                .name("Стилистика")
+                .build();
+        criteriaRepository.save(criteria3);
+
+        MilestoneEntity milestone = createTestMilestone("Test Milestone");
+        
+        // Создаем несколько назначений критериев
+        MilestoneCriteriaAssignmentEntity assignment1 = MilestoneCriteriaAssignmentEntity.builder()
+                .milestone(milestone)
+                .criteria(testCriteria)
+                .gender(null)
+                .build();
+        milestoneCriteriaAssignmentRepository.save(assignment1);
+
+        MilestoneCriteriaAssignmentEntity assignment2 = MilestoneCriteriaAssignmentEntity.builder()
+                .milestone(milestone)
+                .criteria(criteria2)
+                .gender(null)
+                .build();
+        milestoneCriteriaAssignmentRepository.save(assignment2);
+
+        MilestoneCriteriaAssignmentEntity assignment3 = MilestoneCriteriaAssignmentEntity.builder()
+                .milestone(milestone)
+                .criteria(criteria3)
+                .gender(null)
+                .build();
+        milestoneCriteriaAssignmentRepository.save(assignment3);
+
+        // When
+        MilestoneDto result = milestoneService.findById(milestone.getId()).orElse(null);
+
+        // Then
+        assertNotNull(result);
+        
+        // Проверяем, что этап имеет все назначения критериев в БД через репозиторий
+        long assignmentCount = milestoneCriteriaAssignmentRepository.countByMilestoneId(milestone.getId());
+        assertEquals(3, assignmentCount);
+    }
+
 
     // Вспомогательный метод для создания тестовой вехи
     private MilestoneEntity createTestMilestone(String name) {
