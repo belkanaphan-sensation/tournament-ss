@@ -2,9 +2,8 @@ package org.bn.sensation.core.activity.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Set;
 
@@ -116,8 +115,8 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         testOccasion = OccasionEntity.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .startDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")))
-                .endDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")).plusDays(3))
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(3))
                 .status(Status.DRAFT)
                 .organization(testOrganization)
                 .build();
@@ -356,8 +355,8 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
             OccasionEntity occasion = OccasionEntity.builder()
                     .name("Test Occasion")
                     .description("Test Occasion Description")
-                    .startDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")))
-                    .endDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")).plusDays(1))
+                    .startDate(LocalDate.now())
+                    .endDate(LocalDate.now().plusDays(1))
                     .status(Status.DRAFT)
                     .build();
             OccasionEntity savedOccasion = occasionRepository.save(occasion);
@@ -548,8 +547,8 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
             OccasionEntity occasion = OccasionEntity.builder()
                     .name("Second Test Occasion")
                     .description("Second Test Description")
-                    .startDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")).plusDays(1))
-                    .endDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")).plusDays(4))
+                    .startDate(LocalDate.now().plusDays(1))
+                    .endDate(LocalDate.now().plusDays(4))
                     .status(Status.DRAFT)
                     .organization(testOrganization)
                     .build();

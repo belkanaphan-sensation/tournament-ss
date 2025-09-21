@@ -1,6 +1,6 @@
 package org.bn.sensation.core.occasion.service.dto;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
@@ -30,11 +30,11 @@ public class OccasionDto extends BaseDto {
     @Schema(description = "Описание мероприятия", example = "Весенний фестиваль боевых искусств")
     private String description;
 
-    @Schema(description = "Дата начала", example = "2025-09-18T16:56:47+04:00[Europe/Samara]")
-    private ZonedDateTime startDate;
+    @Schema(description = "Дата начала", example = "2025-04-13")
+    private LocalDate startDate;
 
-    @Schema(description = "Дата окончания", example = "2025-09-18T16:56:47+04:00[Europe/Samara]")
-    private ZonedDateTime endDate;
+    @Schema(description = "Дата окончания", example = "2025-04-15")
+    private LocalDate endDate;
 
     @Schema(description = "Организация, проводящая мероприятие")
     private EntityLinkDto organization;

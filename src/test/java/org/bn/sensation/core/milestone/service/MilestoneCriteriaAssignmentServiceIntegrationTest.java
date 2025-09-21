@@ -2,6 +2,7 @@ package org.bn.sensation.core.milestone.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.Set;
 
@@ -128,8 +129,8 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
             OccasionEntity testOccasion = OccasionEntity.builder()
                     .name("Test Occasion")
                     .description("Test Description")
-                    .startDate(java.time.ZonedDateTime.now(java.time.ZoneId.of("Europe/Samara")))
-                    .endDate(java.time.ZonedDateTime.now(java.time.ZoneId.of("Europe/Samara")).plusDays(3))
+                    .startDate(LocalDate.now())
+                    .endDate(LocalDate.now().plusDays(3))
                     .status(Status.DRAFT)
                     .organization(testOrganization)
                     .build();

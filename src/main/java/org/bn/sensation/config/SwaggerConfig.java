@@ -28,6 +28,9 @@ public class SwaggerConfig {
     @Value("#{'${app.swagger-ui.contact-email}'}")
     private String contactEmail;
 
+    @Value("${server.servlet.session.cookie.name:JSESSIONID}")
+    private String sessionCookieName;
+
     @Bean
     public OpenAPI openApi() {
         return new OpenAPI()
@@ -50,7 +53,7 @@ public class SwaggerConfig {
         return new SecurityScheme()
                 .type(SecurityScheme.Type.APIKEY)
                 .in(SecurityScheme.In.COOKIE)
-                .name("JSESSIONID")
+                .name(sessionCookieName)
                 .description("Session cookie");
     }
 }

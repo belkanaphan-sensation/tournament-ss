@@ -2,8 +2,7 @@ package org.bn.sensation.core.occasion.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 
 import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
@@ -53,8 +52,8 @@ class OccasionStatisticsTest extends AbstractIntegrationTest {
                 .name("Test Occasion")
                 .description("Test Description")
                 .status(Status.DRAFT)
-                .startDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")))
-                .endDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")).plusDays(3))
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(3))
                 .organization(testOrganization)
                 .build();
         testOccasion = occasionRepository.save(testOccasion);

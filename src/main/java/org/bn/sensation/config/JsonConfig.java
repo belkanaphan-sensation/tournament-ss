@@ -8,10 +8,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Configuration
 public class JsonConfig {
@@ -27,19 +23,9 @@ public class JsonConfig {
         mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
         // 4. Красивое форматирование JSON
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-        // === Для Java 8 дат ===
+        // === Для LocalDate и других Java 8 дат ===
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-        // === Настройка формата для ZonedDateTime ===
-        SimpleModule zonedDateTimeModule = new SimpleModule();
-        // Используем стандартный ISO 8601 формат для ZonedDateTime
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_ZONED_DATE_TIME;
-        zonedDateTimeModule.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer(formatter));
-        // Десериализатор будет использовать стандартный из JavaTimeModule
-        mapper.registerModule(zonedDateTimeModule);
-
         return mapper;
     }
 }

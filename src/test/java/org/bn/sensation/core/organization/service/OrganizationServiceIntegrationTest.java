@@ -2,8 +2,7 @@ package org.bn.sensation.core.organization.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.ZonedDateTime;
-import java.time.ZoneId;
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -423,8 +422,8 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
             OccasionEntity activeOccasion = OccasionEntity.builder()
                     .name("Active Occasion")
                     .description("Active Description")
-                    .startDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")))
-                    .endDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")).plusDays(3))
+                    .startDate(LocalDate.now())
+                    .endDate(LocalDate.now().plusDays(3))
                     .status(Status.ACTIVE)
                     .organization(orgRef)
                     .build();
@@ -454,8 +453,8 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
             OccasionEntity readyOccasion = OccasionEntity.builder()
                     .name("Ready Occasion")
                     .description("Ready Description")
-                    .startDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")))
-                    .endDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")).plusDays(3))
+                    .startDate(LocalDate.now())
+                    .endDate(LocalDate.now().plusDays(3))
                     .status(Status.READY)
                     .organization(orgRef)
                     .build();
@@ -485,8 +484,8 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
             OccasionEntity draftOccasion = OccasionEntity.builder()
                     .name("Draft Occasion")
                     .description("Draft Description")
-                    .startDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")))
-                    .endDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")).plusDays(3))
+                    .startDate(LocalDate.now())
+                    .endDate(LocalDate.now().plusDays(3))
                     .status(Status.DRAFT)
                     .organization(orgRef)
                     .build();
@@ -512,8 +511,8 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
             OccasionEntity completedOccasion = OccasionEntity.builder()
                     .name("Completed Occasion")
                     .description("Completed Description")
-                    .startDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")).minusDays(10))
-                    .endDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")).minusDays(7))
+                    .startDate(LocalDate.now().minusDays(10))
+                    .endDate(LocalDate.now().minusDays(7))
                     .status(Status.COMPLETED)
                     .organization(orgRef)
                     .build();

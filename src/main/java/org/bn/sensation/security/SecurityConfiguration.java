@@ -1,5 +1,6 @@
 package org.bn.sensation.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,6 +22,9 @@ import lombok.RequiredArgsConstructor;
  * Про настройку для прода читай sensation/docs/security.md
  * */
 public class SecurityConfiguration {
+
+    @Value("${server.servlet.session.cookie.name:JSESSIONID}")
+    private String sessionCookieName;
 
     // todo проверить какие именно эндпоинты здесь действительно нужны
     private static final String[] WHITE_LIST_URL = {
@@ -59,7 +63,7 @@ public class SecurityConfiguration {
                 .logout(logout -> logout
                         .logoutUrl("/api/v1/auth/logout")
                         .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID")
+                        .deleteCookies(sessionCookieName)
                         .invalidateHttpSession(true)
                         .permitAll()
                 )
