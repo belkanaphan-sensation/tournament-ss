@@ -14,11 +14,8 @@ import org.bn.sensation.core.activity.service.dto.ActivityDto;
 import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.common.dto.AddressDto;
-import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Status;
-import org.bn.sensation.core.milestone.entity.MilestoneEntity;
-import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
@@ -34,7 +31,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -50,8 +46,6 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private ActivityRepository activityRepository;
 
-    @Autowired
-    private MilestoneRepository milestoneRepository;
 
     @Autowired
     private OccasionRepository occasionRepository;
@@ -76,7 +70,6 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         cleanDatabase();
 
         // Очистка данных
-        milestoneRepository.deleteAll();
         activityRepository.deleteAll();
         occasionRepository.deleteAll();
         organizationRepository.deleteAll();
@@ -344,59 +337,6 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(Status.ACTIVE, savedActivity.get().getStatus());
     }
 
-    @Test
-    void testActivityWithMilestones() {
-        // Given - создаем activity и milestone в отдельной транзакции
-        TransactionTemplate newTx = new TransactionTemplate(transactionManager);
-        newTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-
-        ActivityEntity activity = newTx.execute(status -> {
-            // Создаем occasion в той же транзакции
-            OccasionEntity occasion = OccasionEntity.builder()
-                    .name("Test Occasion")
-                    .description("Test Occasion Description")
-                    .startDate(LocalDate.now())
-                    .endDate(LocalDate.now().plusDays(1))
-                    .status(Status.DRAFT)
-                    .build();
-            OccasionEntity savedOccasion = occasionRepository.save(occasion);
-
-            // Создаем activity с ссылкой на occasion
-            ActivityEntity activityEntity = ActivityEntity.builder()
-                    .name("Test Activity")
-                    .description("Test Description")
-                    .startDateTime(LocalDateTime.now())
-                    .endDateTime(LocalDateTime.now().plusHours(2))
-                    .status(Status.DRAFT)
-                    .occasion(savedOccasion)
-                    .build();
-            ActivityEntity savedActivity = activityRepository.save(activityEntity);
-
-            // Создаем milestone для этой активности
-            MilestoneEntity milestone = MilestoneEntity.builder()
-                    .name("Test Milestone")
-                    .status(Status.DRAFT)
-                    .activity(savedActivity)
-                    .build();
-            milestoneRepository.save(milestone);
-
-            return savedActivity;
-        });
-
-        // When - загружаем activity через сервис в отдельной транзакции
-        ActivityDto result = newTx.execute(status -> {
-            return activityService.findById(activity.getId()).orElse(null);
-        });
-
-        // Then - проверяем результат
-        assertNotNull(result);
-        assertNotNull(result.getMilestones());
-        assertEquals(1, result.getMilestones().size());
-
-        // Проверяем содержимое milestone
-        EntityLinkDto milestoneLink = result.getMilestones().iterator().next();
-        assertEquals("Test Milestone", milestoneLink.getValue());
-    }
 
     @Test
     void testActivityOccasionMapping() {

@@ -47,5 +47,5 @@ public class ActivityEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "activity", cascade = CascadeType.REMOVE)
     @Builder.Default
-    private Set<MilestoneEntity> milestones =  new HashSet<>();
+    private Set<MilestoneEntity> milestones = new HashSet<>();
 }

@@ -1,7 +1,6 @@
 package org.bn.sensation.core.activity.service.dto;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.dto.BaseDto;
@@ -51,8 +50,6 @@ public class ActivityDto extends BaseDto {
     @Schema(description = "Мероприятие, частью которого является активность")
     private EntityLinkDto occasion;
 
-    @Schema(description = "Список этапов")
-    private Set<EntityLinkDto> milestones;
 
     @Schema(description = "Статус активности", example = "DRAFT")
     private Status status;
