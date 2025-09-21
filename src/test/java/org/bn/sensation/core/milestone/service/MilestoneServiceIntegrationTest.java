@@ -2,9 +2,8 @@ package org.bn.sensation.core.milestone.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Set;
 
@@ -15,8 +14,8 @@ import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Status;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 import org.bn.sensation.core.criteria.repository.CriteriaRepository;
-import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneCriteriaAssignmentEntity;
+import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneCriteriaAssignmentRepository;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
@@ -130,8 +129,8 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
             OccasionEntity testOccasion = OccasionEntity.builder()
                     .name("Test Occasion")
                     .description("Test Description")
-                    .startDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")))
-                    .endDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")).plusDays(3))
+                    .startDate(LocalDate.now())
+                    .endDate(LocalDate.now().plusDays(3))
                     .status(Status.DRAFT)
                     .organization(testOrganization)
                     .build();

@@ -2,8 +2,7 @@ package org.bn.sensation.core.participant.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.ZonedDateTime;
-import java.time.ZoneId;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
@@ -97,8 +96,8 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Occasion")
                 .description("Test Description")
                 .status(Status.DRAFT)
-                .startDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")))
-                .endDate(ZonedDateTime.now(ZoneId.of("Europe/Samara")).plusDays(3))
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(3))
                 .organization(testOrganization)
                 .build();
         testOccasion = occasionRepository.save(testOccasion);
