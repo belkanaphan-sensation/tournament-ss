@@ -12,3 +12,4 @@ public interface MilestoneService extends BaseCrudService<
         CreateMilestoneRequest,
         UpdateMilestoneRequest> {
 }
+

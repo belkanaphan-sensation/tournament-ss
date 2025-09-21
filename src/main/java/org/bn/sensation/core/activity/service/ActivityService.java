@@ -2,6 +2,7 @@ package org.bn.sensation.core.activity.service;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.service.dto.ActivityDto;
+import org.bn.sensation.core.activity.service.dto.ActivityStatisticsDto;
 import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.common.service.BaseCrudService;
@@ -17,4 +18,12 @@ public interface ActivityService extends BaseCrudService<
         UpdateActivityRequest> {
 
     Page<ActivityDto> findByOccasionId(@NotNull Long id, Pageable pageable);
+
+    /**
+     * Получить статистику этапов для активности
+     *
+     * @param activityId ID активности
+     * @return статистика этапов
+     */
+    ActivityStatisticsDto getMilestoneStatistics(Long activityId);
 }

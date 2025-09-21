@@ -3,14 +3,17 @@ package org.bn.sensation.core.activity.service;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.activity.service.dto.ActivityDto;
+import org.bn.sensation.core.activity.service.dto.ActivityStatisticsDto;
 import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.activity.service.mapper.ActivityDtoMapper;
 import org.bn.sensation.core.activity.service.mapper.CreateActivityRequestMapper;
 import org.bn.sensation.core.activity.service.mapper.UpdateActivityRequestMapper;
 import org.bn.sensation.core.common.entity.Address;
+import org.bn.sensation.core.common.entity.Status;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.springframework.data.domain.Page;
@@ -32,6 +35,7 @@ public class ActivityServiceImpl implements ActivityService {
     private final CreateActivityRequestMapper createActivityRequestMapper;
     private final UpdateActivityRequestMapper updateActivityRequestMapper;
     private final OccasionRepository occasionRepository;
+    private final MilestoneRepository milestoneRepository;
 
     @Override
     public BaseRepository<ActivityEntity> getRepository() {
@@ -109,5 +113,26 @@ public class ActivityServiceImpl implements ActivityService {
             throw new IllegalArgumentException("Активность не найдена с id: " + id);
         }
         activityRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ActivityStatisticsDto getMilestoneStatistics(Long activityId) {
+        // Проверяем, что активность существует
+        ActivityEntity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new EntityNotFoundException("Activity not found with id: " + activityId));
+
+        // Подсчитываем количество завершенных этапов
+        long completedCount = milestoneRepository.countByActivityIdAndStatus(activityId, Status.COMPLETED);
+
+        // Общее количество этапов
+        long totalCount = milestoneRepository.countByActivityId(activityId);
+
+        return ActivityStatisticsDto.builder()
+                .activityId(activityId)
+                .activityName(activity.getName())
+                .completedMilestonesCount(completedCount)
+                .totalMilestonesCount(totalCount)
+                .build();
     }
 }
