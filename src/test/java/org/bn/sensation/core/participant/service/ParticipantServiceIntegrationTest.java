@@ -12,7 +12,7 @@ import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
-import org.bn.sensation.core.common.entity.Gender;
+import org.bn.sensation.core.common.entity.CompetitionRole;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.entity.Status;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
@@ -152,7 +152,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+1234567890")
                         .build())
                 .number("001")
-                .gender(Gender.MALE)
+                .competitionRole(CompetitionRole.LEADER)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         testParticipant = participantRepository.save(testParticipant);
@@ -168,7 +168,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .email("jane.smith@example.com")
                 .phoneNumber("+0987654321")
                 .number("002")
-                .gender(Gender.FEMALE)
+                .competitionRole(CompetitionRole.FOLLOWER)
                 .build();
 
         // When
@@ -182,7 +182,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(request.getEmail(), result.getPerson().getEmail());
         assertEquals(request.getPhoneNumber(), result.getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), result.getNumber());
-        assertEquals(request.getGender(), result.getGender());
+        assertEquals(request.getCompetitionRole(), result.getCompetitionRole());
 
         // Verify participant was saved to database
         Optional<ParticipantEntity> savedParticipant = participantRepository.findById(result.getId());
@@ -193,7 +193,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(request.getEmail(), savedParticipant.get().getPerson().getEmail());
         assertEquals(request.getPhoneNumber(), savedParticipant.get().getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), savedParticipant.get().getNumber());
-        assertEquals(request.getGender(), savedParticipant.get().getGender());
+        assertEquals(request.getCompetitionRole(), savedParticipant.get().getCompetitionRole());
     }
 
     @Test
@@ -206,7 +206,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .email("updated@example.com")
                 .phoneNumber("+1111111111")
                 .number("999")
-                .gender(Gender.FEMALE)
+                .competitionRole(CompetitionRole.FOLLOWER)
                 .build();
 
         // When
@@ -221,7 +221,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(request.getEmail(), result.getPerson().getEmail());
         assertEquals(request.getPhoneNumber(), result.getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), result.getNumber());
-        assertEquals(request.getGender(), result.getGender());
+        assertEquals(request.getCompetitionRole(), result.getCompetitionRole());
         assertEquals(1, result.getRounds().size());
 
         // Verify participant was updated in database
@@ -233,7 +233,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(request.getEmail(), updatedParticipant.get().getPerson().getEmail());
         assertEquals(request.getPhoneNumber(), updatedParticipant.get().getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), updatedParticipant.get().getNumber());
-        assertEquals(request.getGender(), updatedParticipant.get().getGender());
+        assertEquals(request.getCompetitionRole(), updatedParticipant.get().getCompetitionRole());
         assertEquals(1, updatedParticipant.get().getRounds().size());
         assertTrue(updatedParticipant.get().getRounds().contains(testRound));
     }
@@ -300,7 +300,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(testParticipant.getPerson().getEmail(), result.get().getPerson().getEmail());
         assertEquals(testParticipant.getPerson().getPhoneNumber(), result.get().getPerson().getPhoneNumber());
         assertEquals(testParticipant.getNumber(), result.get().getNumber());
-        assertEquals(testParticipant.getGender(), result.get().getGender());
+        assertEquals(testParticipant.getCompetitionRole(), result.get().getCompetitionRole());
     }
 
     @Test
@@ -448,37 +448,37 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void testParticipantGenderMapping() {
+    void testParticipantCompetitionRoleMapping() {
         // Given
         CreateParticipantRequest request = CreateParticipantRequest.builder()
-                .name("Gender")
+                .name("Role")
                 .surname("Test")
-                .email("gender@test.com")
+                .email("role@test.com")
                 .phoneNumber("+6666666666")
-                .number("G-001")
-                .gender(Gender.FEMALE)
+                .number("R-001")
+                .competitionRole(CompetitionRole.FOLLOWER)
                 .build();
 
         // When
         ParticipantDto result = participantService.create(request);
 
-        // Then - Verify gender field is correctly mapped
+        // Then - Verify competition role field is correctly mapped
         assertNotNull(result);
-        assertEquals(Gender.FEMALE, result.getGender());
+        assertEquals(CompetitionRole.FOLLOWER, result.getCompetitionRole());
 
         // Verify in database
         Optional<ParticipantEntity> savedParticipant = participantRepository.findById(result.getId());
         assertTrue(savedParticipant.isPresent());
-        assertEquals(Gender.FEMALE, savedParticipant.get().getGender());
+        assertEquals(CompetitionRole.FOLLOWER, savedParticipant.get().getCompetitionRole());
     }
 
     @Test
-    void testParticipantGenderUpdate() {
-        // Given - testParticipant has Gender.MALE from setUp()
-        assertEquals(Gender.MALE, testParticipant.getGender());
+    void testParticipantCompetitionRoleUpdate() {
+        // Given - testParticipant has CompetitionRole.LEADER from setUp()
+        assertEquals(CompetitionRole.LEADER, testParticipant.getCompetitionRole());
 
         UpdateParticipantRequest request = UpdateParticipantRequest.builder()
-                .gender(Gender.FEMALE)
+                .competitionRole(CompetitionRole.FOLLOWER)
                 .build();
 
         // When
@@ -486,24 +486,24 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Then
         assertNotNull(result);
-        assertEquals(Gender.FEMALE, result.getGender());
+        assertEquals(CompetitionRole.FOLLOWER, result.getCompetitionRole());
 
         // Verify in database
         Optional<ParticipantEntity> updatedParticipant = participantRepository.findById(testParticipant.getId());
         assertTrue(updatedParticipant.isPresent());
-        assertEquals(Gender.FEMALE, updatedParticipant.get().getGender());
+        assertEquals(CompetitionRole.FOLLOWER, updatedParticipant.get().getCompetitionRole());
     }
 
     @Test
-    void testParticipantWithNullGender() {
+    void testParticipantWithNullCompetitionRole() {
         // Given
         CreateParticipantRequest request = CreateParticipantRequest.builder()
                 .name("Null")
-                .surname("Gender")
+                .surname("Role")
                 .email("null@test.com")
                 .phoneNumber("+7777777777")
                 .number("N-001")
-                .gender(null) // Null gender
+                .competitionRole(null) // Null competition role
                 .build();
 
         // When
@@ -511,11 +511,11 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Then
         assertNotNull(result);
-        assertNull(result.getGender());
+        assertNull(result.getCompetitionRole());
 
         // Verify in database
         Optional<ParticipantEntity> savedParticipant = participantRepository.findById(result.getId());
         assertTrue(savedParticipant.isPresent());
-        assertNull(savedParticipant.get().getGender());
+        assertNull(savedParticipant.get().getCompetitionRole());
     }
 }

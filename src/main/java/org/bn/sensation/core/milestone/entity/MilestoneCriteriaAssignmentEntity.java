@@ -1,12 +1,14 @@
 package org.bn.sensation.core.milestone.entity;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
-import org.bn.sensation.core.common.entity.Gender;
+import org.bn.sensation.core.common.entity.CompetitionRole;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "milestone_criteria_assignment")
@@ -26,6 +28,10 @@ public class MilestoneCriteriaAssignmentEntity extends BaseEntity {
     private CriteriaEntity criteria;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "gender")
-    private Gender gender;
+    @Column(name = "competition_role")
+    private CompetitionRole competitionRole;
+
+    @Column(name = "weight", nullable = false)
+    @Builder.Default
+    private BigDecimal weight = BigDecimal.ONE;
 }

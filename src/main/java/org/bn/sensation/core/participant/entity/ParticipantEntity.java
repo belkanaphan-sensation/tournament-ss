@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
-import org.bn.sensation.core.common.entity.Gender;
+import org.bn.sensation.core.common.entity.CompetitionRole;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.round.entity.RoundEntity;
 
@@ -28,9 +28,9 @@ public class ParticipantEntity extends BaseEntity {
     @Column(name = "number")
     private String number;
 
-    @Column(name = "gender")
+    @Column(name = "competition_role")
     @Enumerated(EnumType.STRING)
-    private Gender gender;
+    private CompetitionRole competitionRole;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
