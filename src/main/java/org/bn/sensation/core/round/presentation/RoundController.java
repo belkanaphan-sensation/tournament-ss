@@ -34,6 +34,12 @@ public class RoundController {
                 .orElseGet(() -> ResponseEntity.status(404).build());
     }
 
+    @Operation(summary = "Получить раунды по ID этапа")
+    @GetMapping(path = "/milestone/{id}")
+    public ResponseEntity<Page<RoundDto>> getByMilestoneId(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
+        return ResponseEntity.ok(roundService.findByMilestoneId(id, pageable));
+    }
+
     @Operation(summary = "Получить все раунды с пагинацией")
     @GetMapping
     public ResponseEntity<Page<RoundDto>> getAll(Pageable pageable) {

@@ -24,18 +24,18 @@ import lombok.experimental.SuperBuilder;
 @Schema(description = "Веха (логический этап в рамках активности)")
 public class MilestoneDto extends BaseDto {
 
-    @Schema(description = "Название вехи", example = "Квалификация")
+    @Schema(description = "Название этапа'", example = "Квалификация")
     private String name;
 
-    @Schema(description = "Описание вехи", example = "Квалификационный этап соревнования")
+    @Schema(description = "Описание этапа", example = "Квалификационный этап соревнования")
     private String description;
 
-    @Schema(description = "Активность, частью которой является веха")
+    @Schema(description = "Активность, частью которой является этап")
     private EntityLinkDto activity;
 
     @Schema(description = "Список раундов")
     private Set<EntityLinkDto> rounds;
 
-    @Schema(description = "Статус вехи", example = "DRAFT")
+    @Schema(description = "Статус этапа", example = "DRAFT")
     private Status status;
 }

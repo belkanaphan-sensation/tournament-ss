@@ -26,7 +26,7 @@ public class MilestoneController {
 
     private final MilestoneService milestoneService;
 
-    @Operation(summary = "Получить веху по ID")
+    @Operation(summary = "Получить этап по ID")
     @GetMapping(path = "/{id}")
     public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return milestoneService.findById(id)
@@ -34,20 +34,26 @@ public class MilestoneController {
                 .orElseGet(() -> ResponseEntity.status(404).build());
     }
 
-    @Operation(summary = "Получить все вехи с пагинацией")
+    @Operation(summary = "Получить этапы по ID активности")
+    @GetMapping(path = "/activity/{id}")
+    public ResponseEntity<Page<MilestoneDto>> getByOccasionId(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
+        return ResponseEntity.ok(milestoneService.findByActivityId(id, pageable));
+    }
+
+    @Operation(summary = "Получить все этапы с пагинацией")
     @GetMapping
     public ResponseEntity<Page<MilestoneDto>> getAll(Pageable pageable) {
         return ResponseEntity.ok(milestoneService.findAll(pageable));
     }
 
-    @Operation(summary = "Создать новую веху")
+    @Operation(summary = "Создать новую этап")
     @PostMapping
     public ResponseEntity<MilestoneDto> create(@Valid @RequestBody CreateMilestoneRequest request) {
         MilestoneDto created = milestoneService.create(request);
         return ResponseEntity.ok(created);
     }
 
-    @Operation(summary = "Обновить веху по ID")
+    @Operation(summary = "Обновить этап по ID")
     @PutMapping("/{id}")
     public ResponseEntity<MilestoneDto> update(@PathVariable("id") @NotNull Long id,
                                              @Valid @RequestBody UpdateMilestoneRequest request) {
@@ -55,7 +61,7 @@ public class MilestoneController {
         return ResponseEntity.ok(updated);
     }
 
-    @Operation(summary = "Удалить веху по ID")
+    @Operation(summary = "Удалить этап по ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         milestoneService.deleteById(id);

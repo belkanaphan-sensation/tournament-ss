@@ -1,5 +1,9 @@
 package org.bn.sensation.core.occasion.presentation;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.bn.sensation.core.occasion.service.OccasionService;
 import org.bn.sensation.core.occasion.service.dto.CreateOccasionRequest;
 import org.bn.sensation.core.occasion.service.dto.OccasionDto;
@@ -7,6 +11,7 @@ import org.bn.sensation.core.occasion.service.dto.OccasionStatisticsDto;
 import org.bn.sensation.core.occasion.service.dto.UpdateOccasionRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +40,18 @@ public class OccasionController {
                 .orElseGet(() -> ResponseEntity.status(404).build());
     }
 
+    @ApiResponses(
+            value = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successfully retrieved all occasions",
+                            content =
+                            @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = PagedModel.class))),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden")
+            })
     @Operation(summary = "Получить все мероприятия с пагинацией")
     @GetMapping
     public ResponseEntity<Page<OccasionDto>> getAll(Pageable pageable) {

@@ -126,4 +126,10 @@ public class RoundServiceImpl implements RoundService {
         }
         return participants;
     }
+
+    @Override
+    public Page<RoundDto> findByMilestoneId(Long id, Pageable pageable) {
+        Preconditions.checkArgument(id != null, "ID этапа не может быть null");
+        return roundRepository.findByMilestoneId(id, pageable).map(roundDtoMapper::toDto);
+    }
 }

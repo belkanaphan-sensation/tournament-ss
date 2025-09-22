@@ -1,5 +1,6 @@
 package org.bn.sensation.core.milestone.service;
 
+import com.google.common.base.Preconditions;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
@@ -125,5 +126,11 @@ public class MilestoneServiceImpl implements MilestoneService {
 
             milestoneCriteriaAssignmentRepository.save(assignment);
         }
+    }
+
+    @Override
+    public Page<MilestoneDto> findByActivityId(Long id, Pageable pageable) {
+        Preconditions.checkArgument(id != null, "ID активности не может быть null");
+        return milestoneRepository.findByActivityId(id, pageable).map(milestoneDtoMapper::toDto);
     }
 }
