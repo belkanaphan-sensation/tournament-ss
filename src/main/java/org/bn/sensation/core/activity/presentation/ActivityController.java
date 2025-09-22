@@ -2,7 +2,6 @@ package org.bn.sensation.core.activity.presentation;
 
 import org.bn.sensation.core.activity.service.ActivityService;
 import org.bn.sensation.core.activity.service.dto.ActivityDto;
-import org.bn.sensation.core.activity.service.dto.ActivityStatisticsDto;
 import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.springframework.data.domain.Page;
@@ -69,12 +68,5 @@ public class ActivityController {
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         activityService.deleteById(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "Получить статистику этапов активности")
-    @GetMapping("/{id}/statistics")
-    public ResponseEntity<ActivityStatisticsDto> getMilestoneStatistics(@Parameter @PathVariable("id") @NotNull Long id) {
-        ActivityStatisticsDto statistics = activityService.getMilestoneStatistics(id);
-        return ResponseEntity.ok(statistics);
     }
 }

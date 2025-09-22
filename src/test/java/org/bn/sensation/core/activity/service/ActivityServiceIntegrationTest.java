@@ -16,6 +16,8 @@ import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
@@ -46,6 +48,8 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private ActivityRepository activityRepository;
 
+    @Autowired
+    private MilestoneRepository milestoneRepository;
 
     @Autowired
     private OccasionRepository occasionRepository;
@@ -59,6 +63,8 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private PlatformTransactionManager transactionManager;
 
+    private TransactionTemplate transactionTemplate;
+
     private OccasionEntity testOccasion;
     private OrganizationEntity testOrganization;
     private UserEntity testUser;
@@ -66,6 +72,9 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
     @BeforeEach
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void setUp() {
+        // Инициализация TransactionTemplate
+        transactionTemplate = new TransactionTemplate(transactionManager);
+        
         // Очистка базы данных перед каждым тестом
         cleanDatabase();
 
@@ -572,6 +581,91 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                     .occasion(testOccasion)
                     .build();
             return activityRepository.save(activity);
+        });
+    }
+
+    @Test
+    void testActivityWithMilestoneStatistics() {
+        // Given
+        ActivityEntity activity = createTestActivity("Test Activity", "Test Description");
+        
+        // Создаем этапы с разными статусами
+        createTestMilestone(activity, "Completed Milestone", Status.COMPLETED);
+        createTestMilestone(activity, "Active Milestone", Status.ACTIVE);
+        createTestMilestone(activity, "Draft Milestone", Status.DRAFT);
+
+        // When
+        Optional<ActivityDto> result = activityService.findById(activity.getId());
+
+        // Then
+        assertTrue(result.isPresent());
+        ActivityDto activityDto = result.get();
+        assertNotNull(activityDto.getCompletedMilestonesCount());
+        assertNotNull(activityDto.getTotalMilestonesCount());
+        assertEquals(1L, activityDto.getCompletedMilestonesCount());
+        assertEquals(3L, activityDto.getTotalMilestonesCount());
+    }
+
+    @Test
+    void testActivityWithNoMilestones() {
+        // Given
+        ActivityEntity activity = createTestActivity("Test Activity", "Test Description");
+
+        // When
+        Optional<ActivityDto> result = activityService.findById(activity.getId());
+
+        // Then
+        assertTrue(result.isPresent());
+        ActivityDto activityDto = result.get();
+        assertNotNull(activityDto.getCompletedMilestonesCount());
+        assertNotNull(activityDto.getTotalMilestonesCount());
+        assertEquals(0L, activityDto.getCompletedMilestonesCount());
+        assertEquals(0L, activityDto.getTotalMilestonesCount());
+    }
+
+    @Test
+    void testFindAllActivitiesWithStatistics() {
+        // Given
+        ActivityEntity activity1 = createTestActivity("Activity 1", "Description 1");
+        createTestActivity("Activity 2", "Description 2");
+        
+        // Добавляем этапы к первой активности
+        createTestMilestone(activity1, "Milestone 1", Status.COMPLETED);
+        createTestMilestone(activity1, "Milestone 2", Status.ACTIVE);
+
+        // When
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ActivityDto> result = activityService.findAll(pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.getTotalElements());
+        
+        // Проверяем, что у всех активностей есть статистика
+        for (ActivityDto activityDto : result.getContent()) {
+            assertNotNull(activityDto.getCompletedMilestonesCount());
+            assertNotNull(activityDto.getTotalMilestonesCount());
+        }
+        
+        // Находим активность с этапами и проверяем её статистику
+        ActivityDto activityWithMilestones = result.getContent().stream()
+                .filter(a -> a.getName().equals("Activity 1"))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(activityWithMilestones);
+        assertEquals(1L, activityWithMilestones.getCompletedMilestonesCount());
+        assertEquals(2L, activityWithMilestones.getTotalMilestonesCount());
+    }
+
+    private MilestoneEntity createTestMilestone(ActivityEntity activity, String name, Status status) {
+        return transactionTemplate.execute(status1 -> {
+            MilestoneEntity milestone = MilestoneEntity.builder()
+                    .name(name)
+                    .description("Test Description")
+                    .status(status)
+                    .activity(activity)
+                    .build();
+            return milestoneRepository.save(milestone);
         });
     }
 }

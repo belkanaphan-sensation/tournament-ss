@@ -50,7 +50,12 @@ public class ActivityDto extends BaseDto {
     @Schema(description = "Мероприятие, частью которого является активность")
     private EntityLinkDto occasion;
 
-
     @Schema(description = "Статус активности", example = "DRAFT")
     private Status status;
+
+    @Schema(description = "Количество завершенных этапов", example = "3")
+    private Long completedMilestonesCount;
+
+    @Schema(description = "Общее количество этапов в активности", example = "5")
+    private Long totalMilestonesCount;
 }
