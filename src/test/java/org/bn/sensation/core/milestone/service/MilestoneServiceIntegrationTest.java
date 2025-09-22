@@ -18,6 +18,8 @@ import org.bn.sensation.core.milestone.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneCriteriaAssignmentRepository;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.bn.sensation.core.round.entity.RoundEntity;
+import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
 import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
@@ -67,6 +69,9 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
+
+    @Autowired
+    private RoundRepository roundRepository;
 
     @Autowired
     private TransactionTemplate transactionTemplate;
@@ -380,7 +385,28 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void testMilestoneWithRounds() {
+    void testMilestoneWithRoundStatistics() {
+        // Given
+        MilestoneEntity milestone = createTestMilestone("Test Milestone");
+        
+        // Создаем раунды с разными статусами
+        createTestRound(milestone, "Completed Round", Status.COMPLETED);
+        createTestRound(milestone, "Active Round", Status.IN_PROGRESS);
+        createTestRound(milestone, "Draft Round", Status.DRAFT);
+
+        // When
+        MilestoneDto result = milestoneService.findById(milestone.getId()).orElse(null);
+
+        // Then
+        assertNotNull(result);
+        assertNotNull(result.getCompletedRoundsCount());
+        assertNotNull(result.getTotalRoundsCount());
+        assertEquals(1L, result.getCompletedRoundsCount());
+        assertEquals(3L, result.getTotalRoundsCount());
+    }
+
+    @Test
+    void testMilestoneWithNoRounds() {
         // Given
         MilestoneEntity milestone = createTestMilestone("Test Milestone");
 
@@ -389,9 +415,65 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Then
         assertNotNull(result);
-        assertNotNull(result.getRounds());
-        // Начально список раундов пуст
-        assertTrue(result.getRounds().isEmpty());
+        assertNotNull(result.getCompletedRoundsCount());
+        assertNotNull(result.getTotalRoundsCount());
+        assertEquals(0L, result.getCompletedRoundsCount());
+        assertEquals(0L, result.getTotalRoundsCount());
+    }
+
+    @Test
+    void testFindAllMilestonesWithStatistics() {
+        // Given
+        MilestoneEntity milestone1 = createTestMilestone("Milestone 1");
+        createTestMilestone("Milestone 2"); // This milestone is intentionally left without rounds for testing
+
+        // Добавляем раунды к первому этапу
+        createTestRound(milestone1, "Round 1", Status.COMPLETED);
+        createTestRound(milestone1, "Round 2", Status.IN_PROGRESS);
+
+        // When
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<MilestoneDto> result = milestoneService.findAll(pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.getTotalElements());
+
+        // Проверяем, что у всех этапов есть статистика
+        for (MilestoneDto milestoneDto : result.getContent()) {
+            assertNotNull(milestoneDto.getCompletedRoundsCount());
+            assertNotNull(milestoneDto.getTotalRoundsCount());
+        }
+
+        // Находим этап с раундами и проверяем его статистику
+        MilestoneDto milestoneWithRounds = result.getContent().stream()
+                .filter(m -> m.getName().equals("Milestone 1"))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(milestoneWithRounds);
+        assertEquals(1L, milestoneWithRounds.getCompletedRoundsCount());
+        assertEquals(2L, milestoneWithRounds.getTotalRoundsCount());
+
+        // Проверяем этап без раундов
+        MilestoneDto milestoneWithoutRounds = result.getContent().stream()
+                .filter(m -> m.getName().equals("Milestone 2"))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(milestoneWithoutRounds);
+        assertEquals(0L, milestoneWithoutRounds.getCompletedRoundsCount());
+        assertEquals(0L, milestoneWithoutRounds.getTotalRoundsCount());
+    }
+
+    private RoundEntity createTestRound(MilestoneEntity milestone, String name, Status status) {
+        return transactionTemplate.execute(status1 -> {
+            RoundEntity round = RoundEntity.builder()
+                    .name(name)
+                    .description("Test Description")
+                    .status(status)
+                    .milestone(milestone)
+                    .build();
+            return roundRepository.save(round);
+        });
     }
 
     @Test
@@ -476,6 +558,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestone(milestone)
                 .criteria(testCriteria)
                 .competitionRole(null)
+                .scale(1)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment);
 
@@ -525,6 +608,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestone(milestone)
                 .criteria(testCriteria)
                 .competitionRole(null)
+                .scale(1)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment);
 
@@ -533,7 +617,6 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Then
         assertNotNull(result);
-        assertNotNull(result.getRounds());
         
         // Проверяем, что этап имеет связи с критериями в БД через репозиторий
         long assignmentCount = milestoneCriteriaAssignmentRepository.countByMilestoneId(milestone.getId());
@@ -562,6 +645,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestone(milestone)
                 .criteria(testCriteria)
                 .competitionRole(null)
+                .scale(1)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment1);
 
@@ -569,6 +653,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestone(milestone)
                 .criteria(criteria2)
                 .competitionRole(null)
+                .scale(1)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment2);
 
@@ -576,6 +661,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestone(milestone)
                 .criteria(criteria3)
                 .competitionRole(null)
+                .scale(1)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment3);
 

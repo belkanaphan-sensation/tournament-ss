@@ -1,7 +1,10 @@
 package org.bn.sensation.core.milestone.service;
 
+import java.util.Optional;
+
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
+import org.bn.sensation.core.common.entity.Status;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
@@ -16,6 +19,7 @@ import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.mapper.CreateMilestoneRequestMapper;
 import org.bn.sensation.core.milestone.service.mapper.MilestoneDtoMapper;
 import org.bn.sensation.core.milestone.service.mapper.UpdateMilestoneRequestMapper;
+import org.bn.sensation.core.round.repository.RoundRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -40,6 +44,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     private final ActivityRepository activityRepository;
     private final CriteriaRepository criteriaRepository;
     private final MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
+    private final RoundRepository roundRepository;
 
     @Override
     public BaseRepository<MilestoneEntity> getRepository() {
@@ -54,7 +59,14 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     @Transactional(readOnly = true)
     public Page<MilestoneDto> findAll(Pageable pageable) {
-        return milestoneRepository.findAll(pageable).map(milestoneDtoMapper::toDto);
+        return milestoneRepository.findAll(pageable).map(this::enrichMilestoneDtoWithStatistics);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<MilestoneDto> findById(Long id) {
+        return milestoneRepository.findById(id)
+                .map(this::enrichMilestoneDtoWithStatistics);
     }
 
     @Override
@@ -72,7 +84,7 @@ public class MilestoneServiceImpl implements MilestoneService {
         // Добавляем критерий по умолчанию, если критерии не указаны
         addDefaultCriteriaIfNeeded(saved);
 
-        return milestoneDtoMapper.toDto(saved);
+        return enrichMilestoneDtoWithStatistics(saved);
     }
 
     @Override
@@ -91,7 +103,7 @@ public class MilestoneServiceImpl implements MilestoneService {
         }
 
         MilestoneEntity saved = milestoneRepository.save(milestone);
-        return milestoneDtoMapper.toDto(saved);
+        return enrichMilestoneDtoWithStatistics(saved);
     }
 
     @Override
@@ -123,6 +135,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                     .milestone(milestone)
                     .criteria(defaultCriteria)
                     .competitionRole(null) // Критерий по умолчанию не привязан к роли
+                    .scale(1) // Значение по умолчанию для scale
                     .build();
 
             milestoneCriteriaAssignmentRepository.save(assignment);
@@ -132,6 +145,24 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     public Page<MilestoneDto> findByActivityId(Long id, Pageable pageable) {
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
-        return milestoneRepository.findByActivityId(id, pageable).map(milestoneDtoMapper::toDto);
+        return milestoneRepository.findByActivityId(id, pageable).map(this::enrichMilestoneDtoWithStatistics);
+    }
+
+    /**
+     * Обогащает MilestoneDto статистикой по раундам
+     */
+    private MilestoneDto enrichMilestoneDtoWithStatistics(MilestoneEntity milestone) {
+        MilestoneDto dto = milestoneDtoMapper.toDto(milestone);
+        
+        // Подсчитываем количество завершенных раундов
+        long completedCount = roundRepository.countByMilestoneIdAndStatus(milestone.getId(), Status.COMPLETED);
+        
+        // Общее количество раундов
+        long totalCount = roundRepository.countByMilestoneId(milestone.getId());
+        
+        dto.setCompletedRoundsCount(completedCount);
+        dto.setTotalRoundsCount(totalCount);
+        
+        return dto;
     }
 }
