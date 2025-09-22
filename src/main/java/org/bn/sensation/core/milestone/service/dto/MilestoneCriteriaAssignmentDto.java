@@ -35,4 +35,7 @@ public class MilestoneCriteriaAssignmentDto extends BaseDto {
 
     @Schema(description = "Вес критерия в рамках этапа", example = "1.0")
     private BigDecimal weight;
+
+    @Schema(description = "Максимальный балл шкалы для критерия в рамках этапа", example = "10")
+    private Integer scale;
 }

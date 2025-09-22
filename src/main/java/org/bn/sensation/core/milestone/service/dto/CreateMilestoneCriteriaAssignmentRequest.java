@@ -1,19 +1,16 @@
 package org.bn.sensation.core.milestone.service.dto;
 
+import java.math.BigDecimal;
+
 import org.bn.sensation.core.common.dto.EmptyDto;
 import org.bn.sensation.core.common.entity.CompetitionRole;
-
-import java.math.BigDecimal;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.Positive;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Data
@@ -39,4 +36,8 @@ public class CreateMilestoneCriteriaAssignmentRequest extends EmptyDto {
     @Schema(description = "Вес критерия в рамках этапа", example = "1.0")
     @Builder.Default
     private BigDecimal weight = BigDecimal.ONE;
+
+    @Positive
+    @Schema(description = "Максимальный балл шкалы для критерия в рамках этапа", example = "10")
+    private Integer scale;
 }

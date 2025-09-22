@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -34,4 +35,8 @@ public class UpdateMilestoneCriteriaAssignmentRequest extends EmptyDto {
 
     @Schema(description = "Вес критерия в рамках этапа", example = "1.0")
     private BigDecimal weight;
+
+    @Positive
+    @Schema(description = "Максимальный балл шкалы для критерия в рамках этапа", example = "10")
+    private Integer scale;
 }
