@@ -1,7 +1,5 @@
 package org.bn.sensation.core.milestone.service.dto;
 
-import java.util.Set;
-
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.entity.Status;
@@ -33,9 +31,12 @@ public class MilestoneDto extends BaseDto {
     @Schema(description = "Активность, частью которой является этап")
     private EntityLinkDto activity;
 
-    @Schema(description = "Список раундов")
-    private Set<EntityLinkDto> rounds;
-
     @Schema(description = "Статус этапа", example = "DRAFT")
     private Status status;
+
+    @Schema(description = "Количество завершенных раундов", example = "3")
+    private Long completedRoundsCount;
+
+    @Schema(description = "Общее количество раундов в этапе", example = "5")
+    private Long totalRoundsCount;
 }

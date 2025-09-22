@@ -3,7 +3,6 @@ package org.bn.sensation.core.activity.service;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.activity.service.dto.ActivityDto;
-import org.bn.sensation.core.activity.service.dto.ActivityStatisticsDto;
 import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.activity.service.mapper.ActivityDtoMapper;
@@ -20,6 +19,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 
@@ -50,14 +51,21 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional(readOnly = true)
     public Page<ActivityDto> findAll(Pageable pageable) {
-        return activityRepository.findAll(pageable).map(activityDtoMapper::toDto);
+        return activityRepository.findAll(pageable).map(this::enrichActivityDtoWithStatistics);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<ActivityDto> findByOccasionId(Long id, Pageable pageable) {
         Preconditions.checkArgument(id != null, "ID мероприятия не может быть null");
-        return activityRepository.findByOccasionId(id, pageable).map(activityDtoMapper::toDto);
+        return activityRepository.findByOccasionId(id, pageable).map(this::enrichActivityDtoWithStatistics);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ActivityDto> findById(Long id) {
+        return activityRepository.findById(id)
+                .map(this::enrichActivityDtoWithStatistics);
     }
 
     @Override
@@ -72,7 +80,7 @@ public class ActivityServiceImpl implements ActivityService {
         activity.setOccasion(occasion);
 
         ActivityEntity saved = activityRepository.save(activity);
-        return activityDtoMapper.toDto(saved);
+        return enrichActivityDtoWithStatistics(saved);
     }
 
     @Override
@@ -103,7 +111,7 @@ public class ActivityServiceImpl implements ActivityService {
         }
 
         ActivityEntity saved = activityRepository.save(activity);
-        return activityDtoMapper.toDto(saved);
+        return enrichActivityDtoWithStatistics(saved);
     }
 
     @Override
@@ -115,24 +123,21 @@ public class ActivityServiceImpl implements ActivityService {
         activityRepository.deleteById(id);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public ActivityStatisticsDto getMilestoneStatistics(Long activityId) {
-        // Проверяем, что активность существует
-        ActivityEntity activity = activityRepository.findById(activityId)
-                .orElseThrow(() -> new EntityNotFoundException("Activity not found with id: " + activityId));
-
+    /**
+     * Обогащает ActivityDto статистикой по этапам
+     */
+    private ActivityDto enrichActivityDtoWithStatistics(ActivityEntity activity) {
+        ActivityDto dto = activityDtoMapper.toDto(activity);
+        
         // Подсчитываем количество завершенных этапов
-        long completedCount = milestoneRepository.countByActivityIdAndStatus(activityId, Status.COMPLETED);
-
+        long completedCount = milestoneRepository.countByActivityIdAndStatus(activity.getId(), Status.COMPLETED);
+        
         // Общее количество этапов
-        long totalCount = milestoneRepository.countByActivityId(activityId);
-
-        return ActivityStatisticsDto.builder()
-                .activityId(activityId)
-                .activityName(activity.getName())
-                .completedMilestonesCount(completedCount)
-                .totalMilestonesCount(totalCount)
-                .build();
+        long totalCount = milestoneRepository.countByActivityId(activity.getId());
+        
+        dto.setCompletedMilestonesCount(completedCount);
+        dto.setTotalMilestonesCount(totalCount);
+        
+        return dto;
     }
 }
