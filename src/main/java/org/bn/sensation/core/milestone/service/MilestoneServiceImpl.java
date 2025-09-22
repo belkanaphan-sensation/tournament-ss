@@ -1,6 +1,8 @@
 package org.bn.sensation.core.milestone.service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
@@ -72,16 +74,22 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     @Transactional
     public MilestoneDto create(CreateMilestoneRequest request) {
-        // Проверяем, что активность существует
-        ActivityEntity activity = findActivityById(request.getActivityId());
+        Preconditions.checkArgument(request.getActivityId() != null, "ID активности не может быть null");
+        ActivityEntity activity = activityRepository.findById(request.getActivityId())
+                .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + request.getActivityId()));
 
-        // Создаем сущность вехи
         MilestoneEntity milestone = createMilestoneRequestMapper.toEntity(request);
         milestone.setActivity(activity);
 
+        if (milestone.getMilestoneOrder() == null) {
+            milestone.setMilestoneOrder(calculateNextOrder(request.getActivityId()));
+        } else {
+            validateOrderSequence(request.getActivityId(), request.getMilestoneOrder(), true);
+            reorderMilestones(request.getActivityId(), null, request.getMilestoneOrder());
+        }
+
         MilestoneEntity saved = milestoneRepository.save(milestone);
 
-        // Добавляем критерий по умолчанию, если критерии не указаны
         addDefaultCriteriaIfNeeded(saved);
 
         return enrichMilestoneDtoWithStatistics(saved);
@@ -93,14 +101,17 @@ public class MilestoneServiceImpl implements MilestoneService {
         MilestoneEntity milestone = milestoneRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + id));
 
-        // Обновляем поля вехи
-        updateMilestoneRequestMapper.updateMilestoneFromRequest(request, milestone);
+        Integer oldOrder = milestone.getMilestoneOrder();
 
-        // Обновляем активность
-        if (request.getActivityId() != null) {
-            ActivityEntity activity = findActivityById(request.getActivityId());
-            milestone.setActivity(activity);
+        if (request.getMilestoneOrder() != null) {
+            validateOrderSequence(milestone.getActivity().getId(), request.getMilestoneOrder(), false);
+            milestone.setMilestoneOrder(request.getMilestoneOrder());
+
+            if (!request.getMilestoneOrder().equals(oldOrder)) {
+                reorderMilestones(milestone.getActivity().getId(), id, request.getMilestoneOrder());
+            }
         }
+        updateMilestoneRequestMapper.updateMilestoneFromRequest(request, milestone);
 
         MilestoneEntity saved = milestoneRepository.save(milestone);
         return enrichMilestoneDtoWithStatistics(saved);
@@ -115,27 +126,17 @@ public class MilestoneServiceImpl implements MilestoneService {
         milestoneRepository.deleteById(id);
     }
 
-    private ActivityEntity findActivityById(Long activityId) {
-        if (activityId == null) {
-            return null;
-        }
-        return activityRepository.findById(activityId)
-                .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + activityId));
-    }
 
     private void addDefaultCriteriaIfNeeded(MilestoneEntity milestone) {
-        // Проверяем, есть ли уже критерии у этапа
         if (milestone.getCriteriaAssignments().isEmpty()) {
             // Получаем критерий по умолчанию по имени "Прохождение"
             CriteriaEntity defaultCriteria = criteriaRepository.findByName(DEFAULT_CRITERIA)
                     .orElseThrow(() -> new EntityNotFoundException("Критерий по умолчанию 'Прохождение' не найден"));
 
-            // Создаем связь с критерием по умолчанию
             MilestoneCriteriaAssignmentEntity assignment = MilestoneCriteriaAssignmentEntity.builder()
                     .milestone(milestone)
                     .criteria(defaultCriteria)
-                    .competitionRole(null) // Критерий по умолчанию не привязан к роли
-                    .scale(1) // Значение по умолчанию для scale
+                    .scale(1)
                     .build();
 
             milestoneCriteriaAssignmentRepository.save(assignment);
@@ -145,7 +146,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     public Page<MilestoneDto> findByActivityId(Long id, Pageable pageable) {
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
-        return milestoneRepository.findByActivityId(id, pageable).map(this::enrichMilestoneDtoWithStatistics);
+        return milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(id, pageable).map(this::enrichMilestoneDtoWithStatistics);
     }
 
     /**
@@ -153,16 +154,62 @@ public class MilestoneServiceImpl implements MilestoneService {
      */
     private MilestoneDto enrichMilestoneDtoWithStatistics(MilestoneEntity milestone) {
         MilestoneDto dto = milestoneDtoMapper.toDto(milestone);
-        
-        // Подсчитываем количество завершенных раундов
+
         long completedCount = roundRepository.countByMilestoneIdAndStatus(milestone.getId(), Status.COMPLETED);
-        
-        // Общее количество раундов
         long totalCount = roundRepository.countByMilestoneId(milestone.getId());
-        
+
         dto.setCompletedRoundsCount(completedCount);
         dto.setTotalRoundsCount(totalCount);
-        
+
         return dto;
+    }
+
+    /**
+     * Валидирует, что порядок последовательный (нельзя проставить порядок 5 если не существует этапов с порядками меньше)
+     */
+    private void validateOrderSequence(Long activityId, Integer newOrder, boolean create) {
+        Integer maxOrder = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(activityId).stream()
+                .map(MilestoneEntity::getMilestoneOrder)
+                .max(Integer::compareTo)
+                .orElse(-1);
+
+        int maxNewOrder = create ? maxOrder + 1 : maxOrder;
+        if (newOrder > maxNewOrder) {
+            throw new IllegalArgumentException("Нельзя установить порядок " + newOrder +
+                    ". Максимальный существующий порядок: " + maxOrder +
+                    ". Можно установить порядок от 0 до " + maxNewOrder);
+        }
+    }
+
+    /**
+     * Пересчитывает порядок всех этапов активности при изменении порядка одного этапа
+     */
+    private void reorderMilestones(Long activityId, Long currentMilestoneId, Integer newOrder) {
+        List<MilestoneEntity> milestones = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(activityId)
+                .stream()
+                .filter(m -> currentMilestoneId == null || !m.getId().equals(currentMilestoneId)) // Исключаем текущий этап (если указан)
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < milestones.size(); i++) {
+            MilestoneEntity milestone = milestones.get(i);
+            if (i >= newOrder) {
+                milestone.setMilestoneOrder(i + 1);
+            } else {
+                milestone.setMilestoneOrder(i);
+            }
+        }
+        milestoneRepository.saveAll(milestones);
+    }
+
+    /**
+     * Рассчитывает следующий порядковый номер для этапа в рамках активности
+     */
+    private Integer calculateNextOrder(Long activityId) {
+        return milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(activityId)
+                .stream()
+                .map(MilestoneEntity::getMilestoneOrder)
+                .max(Integer::compareTo)
+                .map(max -> max + 1)
+                .orElse(0);
     }
 }

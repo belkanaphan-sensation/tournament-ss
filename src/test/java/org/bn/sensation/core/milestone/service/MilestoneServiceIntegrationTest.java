@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -265,7 +266,6 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Updated Name")
                 .description("Updated Description")
                 .status(Status.READY)
-                .activityId(testActivity.getId())
                 .build();
 
         // When
@@ -322,21 +322,6 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // When & Then
         assertThrows(EntityNotFoundException.class, () -> {
             milestoneService.update(999L, request);
-        });
-    }
-
-    @Test
-    void testUpdateMilestoneWithNonExistentActivity() {
-        // Given
-        MilestoneEntity milestone = createTestMilestone("Test Milestone");
-
-        UpdateMilestoneRequest request = UpdateMilestoneRequest.builder()
-                .activityId(999L) // Несуществующая активность
-                .build();
-
-        // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
-            milestoneService.update(milestone.getId(), request);
         });
     }
 
@@ -506,17 +491,10 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .status(Status.DRAFT)
                 .build();
 
-        // When
-        MilestoneDto result = milestoneService.create(request);
-
-        // Then
-        assertNotNull(result);
-        assertNull(result.getActivity());
-
-        // Проверяем, что в БД активность тоже null
-        Optional<MilestoneEntity> savedMilestone = milestoneRepository.findById(result.getId());
-        assertTrue(savedMilestone.isPresent());
-        assertNull(savedMilestone.get().getActivity());
+        // When and then
+        assertThrows(IllegalArgumentException.class, () -> {
+            milestoneService.create(request);
+        });
     }
 
     @Test
@@ -677,16 +655,325 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
 
+    @Test
+    void testCreateMilestoneWithOrder() {
+        // Given
+        CreateMilestoneRequest request = CreateMilestoneRequest.builder()
+                .name("Test Milestone")
+                .description("Test Milestone Description")
+                .activityId(testActivity.getId())
+                .status(Status.DRAFT)
+                .milestoneOrder(0)
+                .build();
+
+        // When
+        MilestoneDto result = milestoneService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(Integer.valueOf(0), result.getMilestoneOrder());
+
+        // Проверяем, что порядок сохранен в БД
+        Optional<MilestoneEntity> savedMilestone = milestoneRepository.findById(result.getId());
+        assertTrue(savedMilestone.isPresent());
+        assertEquals(Integer.valueOf(0), savedMilestone.get().getMilestoneOrder());
+    }
+
+    @Test
+    void testCreateMilestoneWithoutOrder() {
+        // Given
+        CreateMilestoneRequest request = CreateMilestoneRequest.builder()
+                .name("Test Milestone")
+                .description("Test Milestone Description")
+                .activityId(testActivity.getId())
+                .status(Status.DRAFT)
+                .milestoneOrder(null) // Не указываем порядок
+                .build();
+
+        // When
+        MilestoneDto result = milestoneService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(Integer.valueOf(0), result.getMilestoneOrder()); // Должен быть установлен автоматически
+
+        // Проверяем, что порядок сохранен в БД
+        Optional<MilestoneEntity> savedMilestone = milestoneRepository.findById(result.getId());
+        assertTrue(savedMilestone.isPresent());
+        assertEquals(Integer.valueOf(0), savedMilestone.get().getMilestoneOrder());
+    }
+
+    @Test
+    void testCreateMultipleMilestonesOrder() {
+        // Given
+        CreateMilestoneRequest request1 = CreateMilestoneRequest.builder()
+                .name("First Milestone")
+                .activityId(testActivity.getId())
+                .status(Status.DRAFT)
+                .build();
+
+        CreateMilestoneRequest request2 = CreateMilestoneRequest.builder()
+                .name("Second Milestone")
+                .activityId(testActivity.getId())
+                .status(Status.DRAFT)
+                .build();
+
+        CreateMilestoneRequest request3 = CreateMilestoneRequest.builder()
+                .name("Third Milestone")
+                .activityId(testActivity.getId())
+                .status(Status.DRAFT)
+                .build();
+
+        // When
+        MilestoneDto result1 = milestoneService.create(request1);
+        MilestoneDto result2 = milestoneService.create(request2);
+        MilestoneDto result3 = milestoneService.create(request3);
+
+        // Then
+        assertEquals(Integer.valueOf(0), result1.getMilestoneOrder());
+        assertEquals(Integer.valueOf(1), result2.getMilestoneOrder());
+        assertEquals(Integer.valueOf(2), result3.getMilestoneOrder());
+    }
+
+    @Test
+    void testCreateMultipleMilestonesReOrder() {
+        // Given
+        CreateMilestoneRequest request1 = CreateMilestoneRequest.builder()
+                .name("First Milestone")
+                .activityId(testActivity.getId())
+                .status(Status.DRAFT)
+                .milestoneOrder(0)
+                .build();
+
+        CreateMilestoneRequest request2 = CreateMilestoneRequest.builder()
+                .name("Second Milestone")
+                .activityId(testActivity.getId())
+                .status(Status.DRAFT)
+                .milestoneOrder(1)
+                .build();
+
+        CreateMilestoneRequest request3 = CreateMilestoneRequest.builder()
+                .name("Third Milestone")
+                .activityId(testActivity.getId())
+                .status(Status.DRAFT)
+                .milestoneOrder(1)
+                .build();
+
+        // When
+        MilestoneDto result1 = milestoneService.create(request1);
+        MilestoneDto result2 = milestoneService.create(request2);
+        MilestoneDto result3 = milestoneService.create(request3);
+
+        // Then
+        assertEquals(Integer.valueOf(0), result1.getMilestoneOrder());
+        assertEquals(Integer.valueOf(1), result2.getMilestoneOrder());
+        assertEquals(Integer.valueOf(1), result3.getMilestoneOrder());
+
+        List<MilestoneEntity> milestones = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(testActivity.getId());
+        assertEquals(3, milestones.size());
+        assertEquals(Integer.valueOf(0), milestones.get(0).getMilestoneOrder());
+        assertEquals("First Milestone", milestones.get(0).getName());
+        assertEquals(Integer.valueOf(1), milestones.get(1).getMilestoneOrder());
+        assertEquals("Third Milestone", milestones.get(1).getName());
+        assertEquals(Integer.valueOf(2), milestones.get(2).getMilestoneOrder());
+        assertEquals("Second Milestone", milestones.get(2).getName());
+    }
+
+    @Test
+    void testFindMilestonesByActivityIdOrdered() {
+        // Given
+        createTestMilestoneWithOrder("First", 2);
+        createTestMilestoneWithOrder("Second", 0);
+        createTestMilestoneWithOrder("Third", 1);
+
+        // When
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<MilestoneDto> result = milestoneService.findByActivityId(testActivity.getId(), pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(3, result.getTotalElements());
+        
+        // Проверяем, что этапы отсортированы по порядку
+        assertEquals("Second", result.getContent().get(0).getName());
+        assertEquals("Third", result.getContent().get(1).getName());
+        assertEquals("First", result.getContent().get(2).getName());
+    }
+
+    @Test
+    void testMoveMilestoneToFirst() {
+        // Given
+        createTestMilestoneWithOrder("First", 0);
+        MilestoneEntity second = createTestMilestoneWithOrder("Second", 1);
+        createTestMilestoneWithOrder("Third", 2);
+
+        UpdateMilestoneRequest request = UpdateMilestoneRequest.builder()
+                .milestoneOrder(0) // Перемещаем в начало
+                .build();
+
+        // When
+        MilestoneDto result = milestoneService.update(second.getId(), request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(Integer.valueOf(0), result.getMilestoneOrder()); // Должен быть меньше первого
+
+        // Проверяем, что порядок обновлен в БД
+        Optional<MilestoneEntity> savedMilestone = milestoneRepository.findById(second.getId());
+        assertTrue(savedMilestone.isPresent());
+        assertEquals(Integer.valueOf(0), savedMilestone.get().getMilestoneOrder());
+    }
+
+    @Test
+    void testReorderMilestonesOnCreate() {
+        // Given - создаем этапы с порядком 0, 1, 2
+        createTestMilestoneWithOrder("First", 0);
+        createTestMilestoneWithOrder("Second", 1);
+        createTestMilestoneWithOrder("Third", 2);
+
+        CreateMilestoneRequest request = CreateMilestoneRequest.builder()
+                .name("New Milestone")
+                .activityId(testActivity.getId())
+                .status(Status.DRAFT)
+                .milestoneOrder(1) // Вставляем в позицию 1
+                .build();
+
+        // When
+        MilestoneDto result = milestoneService.create(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(Integer.valueOf(1), result.getMilestoneOrder());
+
+        // Проверяем, что порядки других этапов пересчитались
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<MilestoneDto> milestones = milestoneService.findByActivityId(testActivity.getId(), pageable);
+        
+        assertEquals(4, milestones.getTotalElements());
+        
+        // Проверяем порядок этапов
+        List<MilestoneDto> content = milestones.getContent();
+        assertEquals("First", content.get(0).getName());
+        assertEquals(Integer.valueOf(0), content.get(0).getMilestoneOrder());
+        
+        assertEquals("New Milestone", content.get(1).getName());
+        assertEquals(Integer.valueOf(1), content.get(1).getMilestoneOrder());
+        
+        assertEquals("Second", content.get(2).getName());
+        assertEquals(Integer.valueOf(2), content.get(2).getMilestoneOrder());
+        
+        assertEquals("Third", content.get(3).getName());
+        assertEquals(Integer.valueOf(3), content.get(3).getMilestoneOrder());
+    }
+
+    @Test
+    void testReorderMilestonesOnUpdate() {
+        // Given - создаем этапы с порядком 0, 1, 2, 3
+        MilestoneEntity first = createTestMilestoneWithOrder("First", 0);
+        createTestMilestoneWithOrder("Second", 1);
+        createTestMilestoneWithOrder("Third", 2);
+        createTestMilestoneWithOrder("Fourth", 3);
+
+        UpdateMilestoneRequest request = UpdateMilestoneRequest.builder()
+                .milestoneOrder(2) // Перемещаем первый этап в позицию 2
+                .build();
+
+        // When
+        MilestoneDto result = milestoneService.update(first.getId(), request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(Integer.valueOf(2), result.getMilestoneOrder());
+
+        // Проверяем, что порядки других этапов пересчитались
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<MilestoneDto> milestones = milestoneService.findByActivityId(testActivity.getId(), pageable);
+        
+        assertEquals(4, milestones.getTotalElements());
+        
+        // Проверяем порядок этапов
+        List<MilestoneDto> content = milestones.getContent();
+        assertEquals("Second", content.get(0).getName());
+        assertEquals(Integer.valueOf(0), content.get(0).getMilestoneOrder());
+
+        assertEquals("Third", content.get(1).getName());
+        assertEquals(Integer.valueOf(1), content.get(1).getMilestoneOrder());
+
+        assertEquals("First", content.get(2).getName());
+        assertEquals(Integer.valueOf(2), content.get(2).getMilestoneOrder());
+
+        assertEquals("Fourth", content.get(3).getName());
+        assertEquals(Integer.valueOf(3), content.get(3).getMilestoneOrder());
+    }
+
+    @Test
+    void testReorderMilestonesOnUpdateToLast() {
+        // Given - создаем этапы с порядком 0, 1, 2
+        MilestoneEntity first = createTestMilestoneWithOrder("First", 0);
+        createTestMilestoneWithOrder("Second", 1);
+        createTestMilestoneWithOrder("Third", 2);
+
+        UpdateMilestoneRequest request = UpdateMilestoneRequest.builder()
+                .milestoneOrder(2)
+                .build();
+
+        // When
+        MilestoneDto result = milestoneService.update(first.getId(), request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(Integer.valueOf(2), result.getMilestoneOrder());
+
+        // Проверяем, что порядки других этапов пересчитались
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<MilestoneDto> milestones = milestoneService.findByActivityId(testActivity.getId(), pageable);
+        
+        assertEquals(3, milestones.getTotalElements());
+        
+        // Проверяем порядок этапов
+        List<MilestoneDto> content = milestones.getContent();
+        assertEquals("Second", content.get(0).getName());
+        assertEquals(Integer.valueOf(0), content.get(0).getMilestoneOrder());
+        
+        assertEquals("Third", content.get(1).getName());
+        assertEquals(Integer.valueOf(1), content.get(1).getMilestoneOrder());
+        
+        assertEquals("First", content.get(2).getName());
+        assertEquals(Integer.valueOf(2), content.get(2).getMilestoneOrder());
+    }
+
+
     // Вспомогательный метод для создания тестовой вехи
     private MilestoneEntity createTestMilestone(String name) {
+        return transactionTemplate.execute(status -> {
+            // Получаем максимальный порядок для данной активности
+            List<MilestoneEntity> mstns = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(testActivity.getId());
+            Integer maxOrder = mstns.isEmpty() ? null : mstns.get(mstns.size() - 1).getMilestoneOrder();
+            Integer nextOrder = (maxOrder != null) ? maxOrder + 1 : 0;
+            
+            MilestoneEntity milestone = MilestoneEntity.builder()
+                    .name(name)
+                    .description("Test Milestone Description for " + name)
+                    .status(Status.DRAFT)
+                    .activity(testActivity)
+                    .milestoneOrder(nextOrder)
+                    .build();
+            return milestoneRepository.save(milestone);
+        });
+    }
+
+    // Вспомогательный метод для создания тестовой вехи с порядком
+    private MilestoneEntity createTestMilestoneWithOrder(String name, Integer order) {
         return transactionTemplate.execute(status -> {
             MilestoneEntity milestone = MilestoneEntity.builder()
                     .name(name)
                     .description("Test Milestone Description for " + name)
                     .status(Status.DRAFT)
                     .activity(testActivity)
+                    .milestoneOrder(order)
                     .build();
             return milestoneRepository.save(milestone);
         });
     }
+
 }

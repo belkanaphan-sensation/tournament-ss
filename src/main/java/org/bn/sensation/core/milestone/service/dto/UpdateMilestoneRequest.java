@@ -6,6 +6,7 @@ import org.bn.sensation.core.common.entity.Status;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,16 +24,17 @@ import lombok.experimental.SuperBuilder;
 public class UpdateMilestoneRequest extends EmptyDto {
 
     @Size(max = 255)
-    @Schema(description = "Название вехи", example = "Квалификация")
+    @Schema(description = "Название этапа", example = "Квалификация")
     private String name;
 
     @Size(max = 2000)
-    @Schema(description = "Описание вехи", example = "Квалификационный этап соревнования")
+    @Schema(description = "Описание этапа", example = "Квалификационный этап соревнования")
     private String description;
 
-    @Schema(description = "ID активности, частью которой является веха")
-    private Long activityId;
-
-    @Schema(description = "Статус вехи", example = "DRAFT")
+    @Schema(description = "Статус этапа", example = "DRAFT")
     private Status status;
+
+    @PositiveOrZero
+    @Schema(description = "Порядок этапа в рамках активности", example = "1")
+    private Integer milestoneOrder;
 }

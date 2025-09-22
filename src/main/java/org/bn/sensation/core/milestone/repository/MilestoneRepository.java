@@ -1,5 +1,7 @@
 package org.bn.sensation.core.milestone.repository;
 
+import java.util.List;
+
 import org.bn.sensation.core.common.entity.Status;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
@@ -18,5 +20,14 @@ public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
      */
     long countByActivityId(Long activityId);
 
-    Page<MilestoneEntity> findByActivityId(Long activityId, Pageable pageable);
+    /**
+     * Найти этапы активности, отсортированные по порядку
+     */
+    Page<MilestoneEntity> findByActivityIdOrderByMilestoneOrderAsc(Long activityId, Pageable pageable);
+
+    /**
+     * Найти все этапы активности, отсортированные по порядку
+     */
+    List<MilestoneEntity> findByActivityIdOrderByMilestoneOrderAsc(Long activityId);
+
 }

@@ -31,6 +31,9 @@ public class MilestoneEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    @Column(name = "milestone_order")
+    private Integer milestoneOrder;
+
     @OneToMany(mappedBy = "milestone", cascade = CascadeType.REMOVE)
     @Builder.Default
     private Set<RoundEntity> rounds =  new HashSet<>();

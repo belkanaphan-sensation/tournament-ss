@@ -39,4 +39,7 @@ public class MilestoneDto extends BaseDto {
 
     @Schema(description = "Общее количество раундов в этапе", example = "5")
     private Long totalRoundsCount;
+
+    @Schema(description = "Порядок этапа в рамках активности", example = "1")
+    private Integer milestoneOrder;
 }
