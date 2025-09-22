@@ -6,9 +6,7 @@ import org.bn.sensation.core.common.entity.Status;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,22 +19,27 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Запрос на создание вехи")
+@Schema(description = "Запрос на создание этапа")
 public class CreateMilestoneRequest extends EmptyDto {
 
     @NotBlank
     @Size(max = 255)
-    @Schema(description = "Название вехи", example = "Квалификация")
+    @Schema(description = "Название этапа", example = "Квалификация")
     private String name;
 
     @Size(max = 2000)
-    @Schema(description = "Описание вехи", example = "Квалификационный этап соревнования")
+    @Schema(description = "Описание этапа", example = "Квалификационный этап соревнования")
     private String description;
 
-    @Schema(description = "ID активности, частью которой является веха")
+    @NotNull
+    @Schema(description = "ID активности, частью которой является этап")
     private Long activityId;
 
     @NotNull
-    @Schema(description = "Статус вехи", example = "DRAFT")
+    @Schema(description = "Статус этапа", example = "DRAFT")
     private Status status;
+
+    @PositiveOrZero
+    @Schema(description = "Порядок этапа в рамках активности (если не указан, будет рассчитан автоматически)", example = "1")
+    private Integer milestoneOrder;
 }
