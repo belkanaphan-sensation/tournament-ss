@@ -14,8 +14,6 @@ public interface UserActivityAssignmentDtoMapper extends BaseDtoMapper<UserActiv
     UserActivityAssignmentEntity toEntity(UserActivityAssignmentDto dto);
 
     @Override
-    @Mapping(target = "user", source = "user")
-    @Mapping(target = "activity", source = "activity")
     @Mapping(target = "userName", source = "user.person.name")
     @Mapping(target = "userSurname", source = "user.person.surname")
     @Mapping(target = "userSecondName", source = "user.person.secondName")

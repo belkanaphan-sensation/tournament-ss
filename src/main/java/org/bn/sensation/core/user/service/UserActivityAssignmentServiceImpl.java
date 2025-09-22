@@ -57,7 +57,7 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
     public UserActivityAssignmentDto create(CreateUserActivityAssignmentRequest request) {
         Preconditions.checkArgument(request.getUserId() != null, "User ID не может быть null");
         Preconditions.checkArgument(request.getActivityId() != null, "Activity ID не может быть null");
-        Preconditions.checkArgument(request.getRole() != null, "Role не может быть null");
+        Preconditions.checkArgument(request.getActivityRole() != null, "Role не может быть null");
 
         // Проверяем, что назначение еще не существует
         if (userActivityAssignmentRepository.existsByUserIdAndActivityId(request.getUserId(), request.getActivityId())) {
@@ -73,7 +73,7 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
                 .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + request.getActivityId()));
 
         // Бизнес-правило: только один главный судья на активность
-        if (request.getRole() == UserActivityRole.JUDGE_CHIEF) {
+        if (request.getActivityRole() == UserActivityRole.JUDGE_CHIEF) {
             long chiefCount = userActivityAssignmentRepository.countByActivityIdAndActivityRole(request.getActivityId(), UserActivityRole.JUDGE_CHIEF);
             if (chiefCount > 0) {
                 throw new IllegalArgumentException("В активности уже есть главный судья");
@@ -112,15 +112,15 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
         }
 
         // Обновляем роль если указана
-        if (request.getRole() != null) {
+        if (request.getActivityRole() != null) {
             // Бизнес-правило: только один главный судья на активность
-            if (request.getRole() == UserActivityRole.JUDGE_CHIEF) {
+            if (request.getActivityRole() == UserActivityRole.JUDGE_CHIEF) {
                 long chiefCount = userActivityAssignmentRepository.countByActivityIdAndActivityRole(assignment.getActivity().getId(), UserActivityRole.JUDGE_CHIEF);
                 if (chiefCount > 0 && !assignment.getActivityRole().equals(UserActivityRole.JUDGE_CHIEF)) {
                     throw new IllegalArgumentException("В активности уже есть главный судья");
                 }
             }
-            assignment.setActivityRole(request.getRole());
+            assignment.setActivityRole(request.getActivityRole());
         }
 
         UserActivityAssignmentEntity saved = userActivityAssignmentRepository.save(assignment);

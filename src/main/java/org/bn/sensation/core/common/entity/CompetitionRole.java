@@ -1,13 +1,10 @@
 package org.bn.sensation.core.common.entity;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@Getter
-@RequiredArgsConstructor
 public enum CompetitionRole {
-    LEADER("Лидер"),
-    FOLLOWER("Ведомый");
+    LEADER,
+    FOLLOWER;
 
-    private final String displayName;
+    static CompetitionRole getOppositeRole(CompetitionRole role) {
+        return role == LEADER ? FOLLOWER : LEADER;
+    }
 }

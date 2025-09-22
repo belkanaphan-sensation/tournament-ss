@@ -12,6 +12,7 @@ databaseChangeLog:
                 user_id BIGINT NOT NULL,
                 activity_id BIGINT NOT NULL,
                 activity_role VARCHAR(50) NOT NULL,
+                competition_role VARCHAR(20),
                 assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 created_by VARCHAR(255),
