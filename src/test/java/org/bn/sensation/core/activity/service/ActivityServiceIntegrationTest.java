@@ -330,7 +330,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusHours(2))
                 .occasionId(testOccasion.getId())
-                .status(Status.ACTIVE)
+                .status(Status.IN_PROGRESS)
                 .build();
 
         // When
@@ -338,12 +338,12 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Then
         assertNotNull(result);
-        assertEquals(Status.ACTIVE, result.getStatus());
+        assertEquals(Status.IN_PROGRESS, result.getStatus());
 
         // Проверяем, что статус сохранен в БД
         Optional<ActivityEntity> savedActivity = activityRepository.findById(result.getId());
         assertTrue(savedActivity.isPresent());
-        assertEquals(Status.ACTIVE, savedActivity.get().getStatus());
+        assertEquals(Status.IN_PROGRESS, savedActivity.get().getStatus());
     }
 
 
@@ -591,7 +591,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         
         // Создаем этапы с разными статусами
         createTestMilestone(activity, "Completed Milestone", Status.COMPLETED);
-        createTestMilestone(activity, "Active Milestone", Status.ACTIVE);
+        createTestMilestone(activity, "Active Milestone", Status.IN_PROGRESS);
         createTestMilestone(activity, "Draft Milestone", Status.DRAFT);
 
         // When
@@ -631,7 +631,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         
         // Добавляем этапы к первой активности
         createTestMilestone(activity1, "Milestone 1", Status.COMPLETED);
-        createTestMilestone(activity1, "Milestone 2", Status.ACTIVE);
+        createTestMilestone(activity1, "Milestone 2", Status.IN_PROGRESS);
 
         // When
         Pageable pageable = PageRequest.of(0, 10);

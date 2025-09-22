@@ -113,7 +113,7 @@ public class OccasionServiceImpl implements OccasionService {
         long activeCount = activityRepository.countByOccasionIdAndStatusIn(
                 occasion.getId(),
                 Status.READY,
-                Status.ACTIVE
+                Status.IN_PROGRESS
         );
 
         // Общее количество активностей

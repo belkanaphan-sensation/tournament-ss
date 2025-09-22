@@ -363,7 +363,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .activityId(testActivity.getId())
-                .status(Status.ACTIVE)
+                .status(Status.IN_PROGRESS)
                 .build();
 
         // When
@@ -371,12 +371,12 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Then
         assertNotNull(result);
-        assertEquals(Status.ACTIVE, result.getStatus());
+        assertEquals(Status.IN_PROGRESS, result.getStatus());
 
         // Проверяем, что статус сохранен в БД
         Optional<MilestoneEntity> savedMilestone = milestoneRepository.findById(result.getId());
         assertTrue(savedMilestone.isPresent());
-        assertEquals(Status.ACTIVE, savedMilestone.get().getStatus());
+        assertEquals(Status.IN_PROGRESS, savedMilestone.get().getStatus());
     }
 
     @Test

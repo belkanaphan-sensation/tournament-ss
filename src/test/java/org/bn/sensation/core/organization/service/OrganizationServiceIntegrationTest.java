@@ -424,7 +424,7 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Active Description")
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .status(Status.ACTIVE)
+                    .status(Status.IN_PROGRESS)
                     .organization(orgRef)
                     .build();
             occasionRepository.save(activeOccasion);

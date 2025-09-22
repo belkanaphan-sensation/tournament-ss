@@ -389,7 +389,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         
         // Создаем активности с разными статусами
         createTestActivity(occasion, "Completed Activity", Status.COMPLETED);
-        createTestActivity(occasion, "Active Activity", Status.ACTIVE);
+        createTestActivity(occasion, "Active Activity", Status.IN_PROGRESS);
         createTestActivity(occasion, "Ready Activity", Status.READY);
         createTestActivity(occasion, "Draft Activity", Status.DRAFT);
 
@@ -434,7 +434,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         
         // Добавляем активности к первому мероприятию
         createTestActivity(occasion1, "Activity 1", Status.COMPLETED);
-        createTestActivity(occasion1, "Activity 2", Status.ACTIVE);
+        createTestActivity(occasion1, "Activity 2", Status.IN_PROGRESS);
 
         // When
         Pageable pageable = PageRequest.of(0, 10);
