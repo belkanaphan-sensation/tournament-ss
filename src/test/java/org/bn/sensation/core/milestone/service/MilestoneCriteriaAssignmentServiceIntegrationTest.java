@@ -10,7 +10,7 @@ import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
-import org.bn.sensation.core.common.entity.Gender;
+import org.bn.sensation.core.common.entity.CompetitionRole;
 import org.bn.sensation.core.common.entity.Status;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 import org.bn.sensation.core.criteria.repository.CriteriaRepository;
@@ -178,7 +178,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         CreateMilestoneCriteriaAssignmentRequest request = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(testMilestone.getId())
                 .criteriaId(testCriteria.getId())
-                .gender(Gender.MALE)
+                .competitionRole(CompetitionRole.LEADER)
                 .build();
 
         // When
@@ -189,23 +189,23 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         assertNotNull(result.getId());
         assertEquals(testMilestone.getId(), result.getMilestone().getId());
         assertEquals(testCriteria.getId(), result.getCriteria().getId());
-        assertEquals(Gender.MALE, result.getGender());
+        assertEquals(CompetitionRole.LEADER, result.getCompetitionRole());
 
         // Проверяем, что назначение сохранено в БД
         Optional<MilestoneCriteriaAssignmentEntity> savedAssignment = milestoneCriteriaAssignmentRepository.findById(result.getId());
         assertTrue(savedAssignment.isPresent());
         assertEquals(testMilestone.getId(), savedAssignment.get().getMilestone().getId());
         assertEquals(testCriteria.getId(), savedAssignment.get().getCriteria().getId());
-        assertEquals(Gender.MALE, savedAssignment.get().getGender());
+        assertEquals(CompetitionRole.LEADER, savedAssignment.get().getCompetitionRole());
     }
 
     @Test
-    void testCreateMilestoneCriteriaAssignmentWithNullGender() {
+    void testCreateMilestoneCriteriaAssignmentWithNullCompetitionRole() {
         // Given
         CreateMilestoneCriteriaAssignmentRequest request = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(testMilestone.getId())
                 .criteriaId(testCriteria.getId())
-                .gender(null)
+                .competitionRole(null)
                 .build();
 
         // When
@@ -216,12 +216,12 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         assertNotNull(result.getId());
         assertEquals(testMilestone.getId(), result.getMilestone().getId());
         assertEquals(testCriteria.getId(), result.getCriteria().getId());
-        assertNull(result.getGender());
+        assertNull(result.getCompetitionRole());
 
         // Проверяем, что назначение сохранено в БД
         Optional<MilestoneCriteriaAssignmentEntity> savedAssignment = milestoneCriteriaAssignmentRepository.findById(result.getId());
         assertTrue(savedAssignment.isPresent());
-        assertNull(savedAssignment.get().getGender());
+        assertNull(savedAssignment.get().getCompetitionRole());
     }
 
     @Test
@@ -230,7 +230,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         CreateMilestoneCriteriaAssignmentRequest request = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(999L) // Несуществующий этап
                 .criteriaId(testCriteria.getId())
-                .gender(Gender.MALE)
+                .competitionRole(CompetitionRole.LEADER)
                 .build();
 
         // When & Then
@@ -245,7 +245,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         CreateMilestoneCriteriaAssignmentRequest request = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(testMilestone.getId())
                 .criteriaId(999L) // Несуществующий критерий
-                .gender(Gender.MALE)
+                .competitionRole(CompetitionRole.LEADER)
                 .build();
 
         // When & Then
@@ -261,7 +261,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         CreateMilestoneCriteriaAssignmentRequest request1 = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(testMilestone.getId())
                 .criteriaId(testCriteria.getId())
-                .gender(Gender.MALE)
+                .competitionRole(CompetitionRole.LEADER)
                 .build();
         milestoneCriteriaAssignmentService.create(request1);
 
@@ -269,7 +269,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         CreateMilestoneCriteriaAssignmentRequest request2 = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(testMilestone.getId())
                 .criteriaId(testCriteria.getId())
-                .gender(Gender.FEMALE)
+                .competitionRole(CompetitionRole.FOLLOWER)
                 .build();
 
         // When & Then
@@ -281,7 +281,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testUpdateMilestoneCriteriaAssignment() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, Gender.MALE);
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
         
         // Создаем дополнительный критерий
         CriteriaEntity newCriteria = CriteriaEntity.builder()
@@ -291,7 +291,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
 
         UpdateMilestoneCriteriaAssignmentRequest request = UpdateMilestoneCriteriaAssignmentRequest.builder()
                 .criteriaId(newCriteria.getId())
-                .gender(Gender.FEMALE)
+                .competitionRole(CompetitionRole.FOLLOWER)
                 .build();
 
         // When
@@ -302,22 +302,22 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         assertEquals(assignment.getId(), result.getId());
         assertEquals(testMilestone.getId(), result.getMilestone().getId());
         assertEquals(newCriteria.getId(), result.getCriteria().getId());
-        assertEquals(Gender.FEMALE, result.getGender());
+        assertEquals(CompetitionRole.FOLLOWER, result.getCompetitionRole());
 
         // Проверяем, что назначение обновлено в БД
         Optional<MilestoneCriteriaAssignmentEntity> updatedAssignment = milestoneCriteriaAssignmentRepository.findById(assignment.getId());
         assertTrue(updatedAssignment.isPresent());
         assertEquals(newCriteria.getId(), updatedAssignment.get().getCriteria().getId());
-        assertEquals(Gender.FEMALE, updatedAssignment.get().getGender());
+        assertEquals(CompetitionRole.FOLLOWER, updatedAssignment.get().getCompetitionRole());
     }
 
     @Test
     void testUpdateMilestoneCriteriaAssignmentPartial() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, Gender.MALE);
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
 
         UpdateMilestoneCriteriaAssignmentRequest request = UpdateMilestoneCriteriaAssignmentRequest.builder()
-                .gender(Gender.FEMALE)
+                .competitionRole(CompetitionRole.FOLLOWER)
                 .build();
 
         // When
@@ -328,20 +328,20 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         assertEquals(assignment.getId(), result.getId());
         assertEquals(testMilestone.getId(), result.getMilestone().getId());
         assertEquals(testCriteria.getId(), result.getCriteria().getId()); // Не изменилось
-        assertEquals(Gender.FEMALE, result.getGender());
+        assertEquals(CompetitionRole.FOLLOWER, result.getCompetitionRole());
 
         // Проверяем, что назначение обновлено в БД
         Optional<MilestoneCriteriaAssignmentEntity> updatedAssignment = milestoneCriteriaAssignmentRepository.findById(assignment.getId());
         assertTrue(updatedAssignment.isPresent());
         assertEquals(testCriteria.getId(), updatedAssignment.get().getCriteria().getId());
-        assertEquals(Gender.FEMALE, updatedAssignment.get().getGender());
+        assertEquals(CompetitionRole.FOLLOWER, updatedAssignment.get().getCompetitionRole());
     }
 
     @Test
     void testUpdateMilestoneCriteriaAssignmentNotFound() {
         // Given
         UpdateMilestoneCriteriaAssignmentRequest request = UpdateMilestoneCriteriaAssignmentRequest.builder()
-                .gender(Gender.FEMALE)
+                .competitionRole(CompetitionRole.FOLLOWER)
                 .build();
 
         // When & Then
@@ -353,7 +353,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testUpdateMilestoneCriteriaAssignmentWithNonExistentMilestone() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, Gender.MALE);
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
 
         UpdateMilestoneCriteriaAssignmentRequest request = UpdateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(999L) // Несуществующий этап
@@ -368,7 +368,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testUpdateMilestoneCriteriaAssignmentWithNonExistentCriteria() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, Gender.MALE);
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
 
         UpdateMilestoneCriteriaAssignmentRequest request = UpdateMilestoneCriteriaAssignmentRequest.builder()
                 .criteriaId(999L) // Несуществующий критерий
@@ -383,14 +383,14 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testFindAllMilestoneCriteriaAssignments() {
         // Given
-        createTestAssignment(testMilestone, testCriteria, Gender.MALE);
+        createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
         
         // Создаем дополнительные критерии и назначения
         CriteriaEntity criteria2 = CriteriaEntity.builder()
                 .name("Ведение")
                 .build();
         criteriaRepository.save(criteria2);
-        createTestAssignment(testMilestone, criteria2, Gender.FEMALE);
+        createTestAssignment(testMilestone, criteria2, CompetitionRole.FOLLOWER);
 
         CriteriaEntity criteria3 = CriteriaEntity.builder()
                 .name("Музыкальность")
@@ -412,7 +412,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testFindMilestoneCriteriaAssignmentById() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, Gender.MALE);
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
 
         // When
         Optional<MilestoneCriteriaAssignmentDto> result = milestoneCriteriaAssignmentService.findById(assignment.getId());
@@ -422,7 +422,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         assertEquals(assignment.getId(), result.get().getId());
         assertEquals(testMilestone.getId(), result.get().getMilestone().getId());
         assertEquals(testCriteria.getId(), result.get().getCriteria().getId());
-        assertEquals(Gender.MALE, result.get().getGender());
+        assertEquals(CompetitionRole.LEADER, result.get().getCompetitionRole());
     }
 
     @Test
@@ -437,7 +437,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testFindByMilestoneIdAndCriteriaId() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, Gender.MALE);
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
 
         // When
         MilestoneCriteriaAssignmentDto result = milestoneCriteriaAssignmentService.findByMilestoneIdAndCriteriaId(
@@ -448,7 +448,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         assertEquals(assignment.getId(), result.getId());
         assertEquals(testMilestone.getId(), result.getMilestone().getId());
         assertEquals(testCriteria.getId(), result.getCriteria().getId());
-        assertEquals(Gender.MALE, result.getGender());
+        assertEquals(CompetitionRole.LEADER, result.getCompetitionRole());
     }
 
     @Test
@@ -462,14 +462,14 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testFindByMilestoneId() {
         // Given
-        createTestAssignment(testMilestone, testCriteria, Gender.MALE);
+        createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
         
         // Создаем дополнительные критерии и назначения для того же этапа
         CriteriaEntity criteria2 = CriteriaEntity.builder()
                 .name("Ведение")
                 .build();
         criteriaRepository.save(criteria2);
-        createTestAssignment(testMilestone, criteria2, Gender.FEMALE);
+        createTestAssignment(testMilestone, criteria2, CompetitionRole.FOLLOWER);
 
         // Создаем назначение для другого этапа
         MilestoneEntity anotherMilestone = MilestoneEntity.builder()
@@ -478,7 +478,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                 .activity(testMilestone.getActivity())
                 .build();
         anotherMilestone = milestoneRepository.save(anotherMilestone);
-        createTestAssignment(anotherMilestone, testCriteria, Gender.MALE);
+        createTestAssignment(anotherMilestone, testCriteria, CompetitionRole.LEADER);
 
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -495,7 +495,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testFindByCriteriaId() {
         // Given
-        createTestAssignment(testMilestone, testCriteria, Gender.MALE);
+        createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
         
         // Создаем дополнительные этапы и назначения для того же критерия
         MilestoneEntity milestone2 = MilestoneEntity.builder()
@@ -504,14 +504,14 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                 .activity(testMilestone.getActivity())
                 .build();
         milestone2 = milestoneRepository.save(milestone2);
-        createTestAssignment(milestone2, testCriteria, Gender.FEMALE);
+        createTestAssignment(milestone2, testCriteria, CompetitionRole.FOLLOWER);
 
         // Создаем назначение для другого критерия
         CriteriaEntity anotherCriteria = CriteriaEntity.builder()
                 .name("Стилистика")
                 .build();
         criteriaRepository.save(anotherCriteria);
-        createTestAssignment(testMilestone, anotherCriteria, Gender.MALE);
+        createTestAssignment(testMilestone, anotherCriteria, CompetitionRole.LEADER);
 
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -528,7 +528,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testDeleteMilestoneCriteriaAssignment() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, Gender.MALE);
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
         Long assignmentId = assignment.getId();
 
         // When
@@ -547,12 +547,12 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     }
 
     @Test
-    void testMilestoneCriteriaAssignmentGenderMapping() {
+    void testMilestoneCriteriaAssignmentCompetitionRoleMapping() {
         // Given
         CreateMilestoneCriteriaAssignmentRequest request = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(testMilestone.getId())
                 .criteriaId(testCriteria.getId())
-                .gender(Gender.FEMALE)
+                .competitionRole(CompetitionRole.FOLLOWER)
                 .build();
 
         // When
@@ -560,21 +560,21 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
 
         // Then
         assertNotNull(result);
-        assertEquals(Gender.FEMALE, result.getGender());
+        assertEquals(CompetitionRole.FOLLOWER, result.getCompetitionRole());
 
         // Проверяем в БД
         Optional<MilestoneCriteriaAssignmentEntity> savedAssignment = milestoneCriteriaAssignmentRepository.findById(result.getId());
         assertTrue(savedAssignment.isPresent());
-        assertEquals(Gender.FEMALE, savedAssignment.get().getGender());
+        assertEquals(CompetitionRole.FOLLOWER, savedAssignment.get().getCompetitionRole());
     }
 
     @Test
-    void testMilestoneCriteriaAssignmentWithNullGender() {
+    void testMilestoneCriteriaAssignmentWithNullCompetitionRole() {
         // Given
         CreateMilestoneCriteriaAssignmentRequest request = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(testMilestone.getId())
                 .criteriaId(testCriteria.getId())
-                .gender(null)
+                .competitionRole(null)
                 .build();
 
         // When
@@ -582,18 +582,18 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
 
         // Then
         assertNotNull(result);
-        assertNull(result.getGender());
+        assertNull(result.getCompetitionRole());
 
         // Проверяем в БД
         Optional<MilestoneCriteriaAssignmentEntity> savedAssignment = milestoneCriteriaAssignmentRepository.findById(result.getId());
         assertTrue(savedAssignment.isPresent());
-        assertNull(savedAssignment.get().getGender());
+        assertNull(savedAssignment.get().getCompetitionRole());
     }
 
     @Test
     void testMilestoneCriteriaAssignmentCascadeDelete() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, Gender.MALE);
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
         Long assignmentId = assignment.getId();
 
         // When
@@ -607,12 +607,12 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     }
 
     // Вспомогательный метод для создания тестового назначения
-    private MilestoneCriteriaAssignmentEntity createTestAssignment(MilestoneEntity milestone, CriteriaEntity criteria, Gender gender) {
+    private MilestoneCriteriaAssignmentEntity createTestAssignment(MilestoneEntity milestone, CriteriaEntity criteria, CompetitionRole competitionRole) {
         return transactionTemplate.execute(status -> {
             MilestoneCriteriaAssignmentEntity assignment = MilestoneCriteriaAssignmentEntity.builder()
                     .milestone(milestone)
                     .criteria(criteria)
-                    .gender(gender)
+                    .competitionRole(competitionRole)
                     .build();
             return milestoneCriteriaAssignmentRepository.save(assignment);
         });

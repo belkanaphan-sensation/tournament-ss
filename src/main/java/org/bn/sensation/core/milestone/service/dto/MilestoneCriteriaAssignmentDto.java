@@ -2,7 +2,9 @@ package org.bn.sensation.core.milestone.service.dto;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.bn.sensation.core.common.entity.Gender;
+import org.bn.sensation.core.common.entity.CompetitionRole;
+
+import java.math.BigDecimal;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -28,6 +30,12 @@ public class MilestoneCriteriaAssignmentDto extends BaseDto {
     @Schema(description = "Критерий оценки")
     private EntityLinkDto criteria;
 
-    @Schema(description = "Пол, к которому относится критерий в рамках этапа", example = "MALE")
-    private Gender gender;
+    @Schema(description = "Роль в соревновании, к которой относится критерий в рамках этапа", example = "LEADER")
+    private CompetitionRole competitionRole;
+
+    @Schema(description = "Вес критерия в рамках этапа", example = "1.0")
+    private BigDecimal weight;
+
+    @Schema(description = "Максимальный балл шкалы для критерия в рамках этапа", example = "10")
+    private Integer scale;
 }

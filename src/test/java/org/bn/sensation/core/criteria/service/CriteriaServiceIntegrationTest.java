@@ -21,7 +21,7 @@ import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.organization.repository.OrganizationRepository;
 import org.bn.sensation.core.common.entity.Status;
-import org.bn.sensation.core.common.entity.Gender;
+import org.bn.sensation.core.common.entity.CompetitionRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -299,7 +299,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
         MilestoneCriteriaAssignmentEntity assignment = MilestoneCriteriaAssignmentEntity.builder()
                 .milestone(testMilestone)
                 .criteria(testCriteria)
-                .gender(Gender.MALE)
+                .competitionRole(CompetitionRole.LEADER)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment);
 

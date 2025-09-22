@@ -121,7 +121,7 @@ public class MilestoneServiceImpl implements MilestoneService {
             MilestoneCriteriaAssignmentEntity assignment = MilestoneCriteriaAssignmentEntity.builder()
                     .milestone(milestone)
                     .criteria(defaultCriteria)
-                    .gender(null) // Критерий по умолчанию не привязан к полу
+                    .competitionRole(null) // Критерий по умолчанию не привязан к роли
                     .build();
 
             milestoneCriteriaAssignmentRepository.save(assignment);

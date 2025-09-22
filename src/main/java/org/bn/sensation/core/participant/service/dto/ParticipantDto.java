@@ -5,7 +5,7 @@ import java.util.Set;
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.dto.PersonDto;
-import org.bn.sensation.core.common.entity.Gender;
+import org.bn.sensation.core.common.entity.CompetitionRole;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -31,8 +31,8 @@ public class ParticipantDto extends BaseDto {
     @Schema(description = "Стартовый номер участника", example = "A-102")
     private String number;
 
-    @Schema(description = "Пол участника", example = "MALE")
-    private Gender gender;
+    @Schema(description = "Роль участника в соревновании", example = "LEADER")
+    private CompetitionRole competitionRole;
 
     @Schema(description = "Активность участника")
     private EntityLinkDto activity;

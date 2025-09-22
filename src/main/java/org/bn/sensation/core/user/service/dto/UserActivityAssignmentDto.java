@@ -1,7 +1,10 @@
 package org.bn.sensation.core.user.service.dto;
 
+import java.time.LocalDateTime;
+
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.common.entity.CompetitionRole;
 import org.bn.sensation.core.user.entity.UserActivityRole;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -12,8 +15,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -31,7 +32,10 @@ public class UserActivityAssignmentDto extends BaseDto {
     private EntityLinkDto activity;
 
     @Schema(description = "Роль пользователя в активности", example = "JUDGE_CHIEF")
-    private UserActivityRole role;
+    private UserActivityRole activityRole;
+
+    @Schema(description = "Роль в соревновании", example = "LEADER")
+    private CompetitionRole competitionRole;
 
     @Schema(description = "Дата назначения")
     private LocalDateTime assignedAt;

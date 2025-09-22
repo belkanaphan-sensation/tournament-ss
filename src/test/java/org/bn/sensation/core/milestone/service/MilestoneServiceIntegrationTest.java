@@ -462,7 +462,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         Optional<MilestoneCriteriaAssignmentEntity> assignment = milestoneCriteriaAssignmentRepository.findByMilestoneIdAndCriteriaId(result.getId(), testCriteria.getId());
         assertTrue(assignment.isPresent());
         assertEquals("Прохождение", assignment.get().getCriteria().getName());
-        assertNull(assignment.get().getGender()); // Критерий по умолчанию не привязан к полу
+        assertNull(assignment.get().getCompetitionRole()); // Критерий по умолчанию не привязан к роли
     }
 
     @Test
@@ -475,7 +475,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         MilestoneCriteriaAssignmentEntity assignment = MilestoneCriteriaAssignmentEntity.builder()
                 .milestone(milestone)
                 .criteria(testCriteria)
-                .gender(null)
+                .competitionRole(null)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment);
 
@@ -524,7 +524,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         MilestoneCriteriaAssignmentEntity assignment = MilestoneCriteriaAssignmentEntity.builder()
                 .milestone(milestone)
                 .criteria(testCriteria)
-                .gender(null)
+                .competitionRole(null)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment);
 
@@ -561,21 +561,21 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         MilestoneCriteriaAssignmentEntity assignment1 = MilestoneCriteriaAssignmentEntity.builder()
                 .milestone(milestone)
                 .criteria(testCriteria)
-                .gender(null)
+                .competitionRole(null)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment1);
 
         MilestoneCriteriaAssignmentEntity assignment2 = MilestoneCriteriaAssignmentEntity.builder()
                 .milestone(milestone)
                 .criteria(criteria2)
-                .gender(null)
+                .competitionRole(null)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment2);
 
         MilestoneCriteriaAssignmentEntity assignment3 = MilestoneCriteriaAssignmentEntity.builder()
                 .milestone(milestone)
                 .criteria(criteria3)
-                .gender(null)
+                .competitionRole(null)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment3);
 
