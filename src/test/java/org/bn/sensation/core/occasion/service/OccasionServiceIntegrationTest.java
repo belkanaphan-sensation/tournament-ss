@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.bn.sensation.AbstractIntegrationTest;
+import org.bn.sensation.core.activity.entity.ActivityEntity;
+import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.entity.Status;
@@ -47,6 +49,9 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ActivityRepository activityRepository;
 
     @Autowired
     private TransactionTemplate transactionTemplate;
@@ -374,6 +379,98 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
                     .organization(testOrganization)
                     .build();
             return occasionRepository.save(occasion);
+        });
+    }
+
+    @Test
+    void testOccasionWithActivityStatistics() {
+        // Given
+        OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
+        
+        // Создаем активности с разными статусами
+        createTestActivity(occasion, "Completed Activity", Status.COMPLETED);
+        createTestActivity(occasion, "Active Activity", Status.ACTIVE);
+        createTestActivity(occasion, "Ready Activity", Status.READY);
+        createTestActivity(occasion, "Draft Activity", Status.DRAFT);
+
+        // When
+        Optional<OccasionDto> result = occasionService.findById(occasion.getId());
+
+        // Then
+        assertTrue(result.isPresent());
+        OccasionDto occasionDto = result.get();
+        assertNotNull(occasionDto.getCompletedActivitiesCount());
+        assertNotNull(occasionDto.getActiveActivitiesCount());
+        assertNotNull(occasionDto.getTotalActivitiesCount());
+        assertEquals(1L, occasionDto.getCompletedActivitiesCount());
+        assertEquals(2L, occasionDto.getActiveActivitiesCount()); // ACTIVE + READY
+        assertEquals(4L, occasionDto.getTotalActivitiesCount());
+    }
+
+    @Test
+    void testOccasionWithNoActivities() {
+        // Given
+        OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
+
+        // When
+        Optional<OccasionDto> result = occasionService.findById(occasion.getId());
+
+        // Then
+        assertTrue(result.isPresent());
+        OccasionDto occasionDto = result.get();
+        assertNotNull(occasionDto.getCompletedActivitiesCount());
+        assertNotNull(occasionDto.getActiveActivitiesCount());
+        assertNotNull(occasionDto.getTotalActivitiesCount());
+        assertEquals(0L, occasionDto.getCompletedActivitiesCount());
+        assertEquals(0L, occasionDto.getActiveActivitiesCount());
+        assertEquals(0L, occasionDto.getTotalActivitiesCount());
+    }
+
+    @Test
+    void testFindAllOccasionsWithStatistics() {
+        // Given
+        OccasionEntity occasion1 = createTestOccasion("Occasion 1", "Description 1");
+        createTestOccasion("Occasion 2", "Description 2");
+        
+        // Добавляем активности к первому мероприятию
+        createTestActivity(occasion1, "Activity 1", Status.COMPLETED);
+        createTestActivity(occasion1, "Activity 2", Status.ACTIVE);
+
+        // When
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<OccasionDto> result = occasionService.findAll(pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.getTotalElements());
+        
+        // Проверяем, что у всех мероприятий есть статистика
+        for (OccasionDto occasionDto : result.getContent()) {
+            assertNotNull(occasionDto.getCompletedActivitiesCount());
+            assertNotNull(occasionDto.getActiveActivitiesCount());
+            assertNotNull(occasionDto.getTotalActivitiesCount());
+        }
+        
+        // Находим мероприятие с активностями и проверяем его статистику
+        OccasionDto occasionWithActivities = result.getContent().stream()
+                .filter(o -> o.getName().equals("Occasion 1"))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(occasionWithActivities);
+        assertEquals(1L, occasionWithActivities.getCompletedActivitiesCount());
+        assertEquals(1L, occasionWithActivities.getActiveActivitiesCount());
+        assertEquals(2L, occasionWithActivities.getTotalActivitiesCount());
+    }
+
+    private ActivityEntity createTestActivity(OccasionEntity occasion, String name, Status status) {
+        return transactionTemplate.execute(status1 -> {
+            ActivityEntity activity = ActivityEntity.builder()
+                    .name(name)
+                    .description("Test Description")
+                    .status(status)
+                    .occasion(occasion)
+                    .build();
+            return activityRepository.save(activity);
         });
     }
 }

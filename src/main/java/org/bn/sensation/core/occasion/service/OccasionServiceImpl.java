@@ -8,7 +8,6 @@ import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.occasion.service.dto.CreateOccasionRequest;
 import org.bn.sensation.core.occasion.service.dto.OccasionDto;
-import org.bn.sensation.core.occasion.service.dto.OccasionStatisticsDto;
 import org.bn.sensation.core.occasion.service.dto.UpdateOccasionRequest;
 import org.bn.sensation.core.occasion.service.mapper.OccasionDtoMapper;
 import org.bn.sensation.core.occasion.service.mapper.CreateOccasionRequestMapper;
@@ -19,6 +18,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +48,14 @@ public class OccasionServiceImpl implements OccasionService {
     @Override
     @Transactional(readOnly = true)
     public Page<OccasionDto> findAll(Pageable pageable) {
-        return occasionRepository.findAll(pageable).map(occasionDtoMapper::toDto);
+        return occasionRepository.findAll(pageable).map(this::enrichOccasionDtoWithStatistics);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<OccasionDto> findById(Long id) {
+        return occasionRepository.findById(id)
+                .map(this::enrichOccasionDtoWithStatistics);
     }
 
     @Override
@@ -61,7 +69,7 @@ public class OccasionServiceImpl implements OccasionService {
         occasion.setOrganization(organization);
 
         OccasionEntity saved = occasionRepository.save(occasion);
-        return occasionDtoMapper.toDto(saved);
+        return enrichOccasionDtoWithStatistics(saved);
     }
 
     @Override
@@ -80,7 +88,7 @@ public class OccasionServiceImpl implements OccasionService {
         }
 
         OccasionEntity saved = occasionRepository.save(occasion);
-        return occasionDtoMapper.toDto(saved);
+        return enrichOccasionDtoWithStatistics(saved);
     }
 
     @Override
@@ -92,33 +100,30 @@ public class OccasionServiceImpl implements OccasionService {
         occasionRepository.deleteById(id);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public OccasionStatisticsDto getStatistics(Long occasionId) {
-        // Проверяем, что мероприятие существует
-        OccasionEntity occasion = occasionRepository.findById(occasionId)
-                .orElseThrow(() -> new EntityNotFoundException("Occasion not found with id: " + occasionId));
-
+    /**
+     * Обогащает OccasionDto статистикой по активностям
+     */
+    private OccasionDto enrichOccasionDtoWithStatistics(OccasionEntity occasion) {
+        OccasionDto dto = occasionDtoMapper.toDto(occasion);
+        
         // Подсчитываем количество активностей по статусам
-        long completedCount = activityRepository.countByOccasionIdAndStatus(occasionId, Status.COMPLETED);
+        long completedCount = activityRepository.countByOccasionIdAndStatus(occasion.getId(), Status.COMPLETED);
 
         // Активные активности: не DRAFT, не COMPLETED (то есть READY и ACTIVE)
         long activeCount = activityRepository.countByOccasionIdAndStatusIn(
-                occasionId,
+                occasion.getId(),
                 Status.READY,
                 Status.ACTIVE
         );
 
         // Общее количество активностей
-        long totalCount = activityRepository.countByOccasionId(occasionId);
-
-        return OccasionStatisticsDto.builder()
-                .occasionId(occasionId)
-                .occasionName(occasion.getName())
-                .completedActivitiesCount(completedCount)
-                .activeActivitiesCount(activeCount)
-                .totalActivitiesCount(totalCount)
-                .build();
+        long totalCount = activityRepository.countByOccasionId(occasion.getId());
+        
+        dto.setCompletedActivitiesCount(completedCount);
+        dto.setActiveActivitiesCount(activeCount);
+        dto.setTotalActivitiesCount(totalCount);
+        
+        return dto;
     }
 
     private OrganizationEntity findOrganizationById(Long organizationId) {
