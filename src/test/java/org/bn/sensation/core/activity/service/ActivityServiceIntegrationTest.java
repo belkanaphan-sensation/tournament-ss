@@ -74,7 +74,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
     void setUp() {
         // Инициализация TransactionTemplate
         transactionTemplate = new TransactionTemplate(transactionManager);
-        
+
         // Очистка базы данных перед каждым тестом
         cleanDatabase();
 
@@ -687,7 +687,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
     void testActivityWithMilestoneStatistics() {
         // Given
         ActivityEntity activity = createTestActivity("Test Activity", "Test Description");
-        
+
         // Создаем этапы с разными статусами
         createTestMilestone(activity, "Completed Milestone", State.COMPLETED);
         createTestMilestone(activity, "Active Milestone", State.IN_PROGRESS);
@@ -727,7 +727,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         ActivityEntity activity1 = createTestActivity("Activity 1", "Description 1");
         createTestActivity("Activity 2", "Description 2");
-        
+
         // Добавляем этапы к первой активности
         createTestMilestone(activity1, "Milestone 1", State.COMPLETED);
         createTestMilestone(activity1, "Milestone 2", State.IN_PROGRESS);
@@ -739,13 +739,13 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         // Then
         assertNotNull(result);
         assertEquals(2, result.getTotalElements());
-        
+
         // Проверяем, что у всех активностей есть статистика
         for (ActivityDto activityDto : result.getContent()) {
             assertNotNull(activityDto.getCompletedMilestonesCount());
             assertNotNull(activityDto.getTotalMilestonesCount());
         }
-        
+
         // Находим активность с этапами и проверяем её статистику
         ActivityDto activityWithMilestones = result.getContent().stream()
                 .filter(a -> a.getName().equals("Activity 1"))
@@ -763,6 +763,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Test Description")
                     .state(state)
                     .activity(activity)
+                    .milestoneOrder(1)
                     .build();
             return milestoneRepository.save(milestone);
         });

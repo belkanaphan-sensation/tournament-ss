@@ -386,7 +386,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
     void testOccasionWithActivityStatistics() {
         // Given
         OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
-        
+
         // Создаем активности с разными статусами
         createTestActivity(occasion, "Completed Activity", State.COMPLETED);
         createTestActivity(occasion, "Active Activity", State.IN_PROGRESS);
@@ -431,7 +431,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         OccasionEntity occasion1 = createTestOccasion("Occasion 1", "Description 1");
         createTestOccasion("Occasion 2", "Description 2");
-        
+
         // Добавляем активности к первому мероприятию
         createTestActivity(occasion1, "Activity 1", State.COMPLETED);
         createTestActivity(occasion1, "Activity 2", State.IN_PROGRESS);
@@ -443,14 +443,14 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         // Then
         assertNotNull(result);
         assertEquals(2, result.getTotalElements());
-        
+
         // Проверяем, что у всех мероприятий есть статистика
         for (OccasionDto occasionDto : result.getContent()) {
             assertNotNull(occasionDto.getCompletedActivitiesCount());
             assertNotNull(occasionDto.getActiveActivitiesCount());
             assertNotNull(occasionDto.getTotalActivitiesCount());
         }
-        
+
         // Находим мероприятие с активностями и проверяем его статистику
         OccasionDto occasionWithActivities = result.getContent().stream()
                 .filter(o -> o.getName().equals("Occasion 1"))

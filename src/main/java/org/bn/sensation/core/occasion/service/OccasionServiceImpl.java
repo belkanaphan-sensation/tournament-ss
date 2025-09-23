@@ -105,7 +105,7 @@ public class OccasionServiceImpl implements OccasionService {
      */
     private OccasionDto enrichOccasionDtoWithStatistics(OccasionEntity occasion) {
         OccasionDto dto = occasionDtoMapper.toDto(occasion);
-        
+
         // Подсчитываем количество активностей по статусам
         long completedCount = activityRepository.countByOccasionIdAndState(occasion.getId(), State.COMPLETED);
 
@@ -118,11 +118,11 @@ public class OccasionServiceImpl implements OccasionService {
 
         // Общее количество активностей
         long totalCount = activityRepository.countByOccasionId(occasion.getId());
-        
+
         dto.setCompletedActivitiesCount(completedCount);
         dto.setActiveActivitiesCount(activeCount);
         dto.setTotalActivitiesCount(totalCount);
-        
+
         return dto;
     }
 

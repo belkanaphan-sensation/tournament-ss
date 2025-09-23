@@ -3,7 +3,7 @@ package org.bn.sensation.core.milestone.entity;
 import java.math.BigDecimal;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
-import org.bn.sensation.core.common.entity.CompetitionRole;
+import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 
 import jakarta.persistence.*;
@@ -28,13 +28,13 @@ public class MilestoneCriteriaAssignmentEntity extends BaseEntity {
     private CriteriaEntity criteria;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "competition_role")
-    private CompetitionRole competitionRole;
+    @Column(name = "partner_side")
+    private PartnerSide partnerSide;
 
     @Column(name = "weight", nullable = false)
     @Builder.Default
     private BigDecimal weight = BigDecimal.ONE;
 
-    @Column(name = "scale")
+    @Column(name = "scale", nullable = false)
     private Integer scale;
 }

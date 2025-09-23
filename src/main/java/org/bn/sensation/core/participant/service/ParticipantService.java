@@ -5,6 +5,8 @@ import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.service.dto.CreateParticipantRequest;
 import org.bn.sensation.core.participant.service.dto.ParticipantDto;
 import org.bn.sensation.core.participant.service.dto.UpdateParticipantRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ParticipantService extends BaseCrudService<
         ParticipantEntity,
@@ -13,4 +15,6 @@ public interface ParticipantService extends BaseCrudService<
         UpdateParticipantRequest> {
 
     ParticipantDto assignParticipantToRound(Long participantId, Long roundId);
+
+    Page<ParticipantDto> findByRoundId(Long roundId, Pageable pageable);
 }

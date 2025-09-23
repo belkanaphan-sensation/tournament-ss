@@ -5,7 +5,7 @@ import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
-import org.bn.sensation.core.user.entity.UserActivityRole;
+import org.bn.sensation.core.user.entity.UserActivityPosition;
 import org.bn.sensation.core.user.entity.UserEntity;
 import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
 import org.bn.sensation.core.user.repository.UserRepository;
@@ -13,7 +13,6 @@ import org.bn.sensation.core.user.service.dto.CreateUserActivityAssignmentReques
 import org.bn.sensation.core.user.service.dto.UpdateUserActivityAssignmentRequest;
 import org.bn.sensation.core.user.service.dto.UserActivityAssignmentDto;
 import org.bn.sensation.core.user.service.mapper.CreateUserActivityAssignmentRequestMapper;
-import org.bn.sensation.core.user.service.mapper.UpdateUserActivityAssignmentRequestMapper;
 import org.bn.sensation.core.user.service.mapper.UserActivityAssignmentDtoMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +31,6 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
     private final UserActivityAssignmentRepository userActivityAssignmentRepository;
     private final UserActivityAssignmentDtoMapper userActivityAssignmentDtoMapper;
     private final CreateUserActivityAssignmentRequestMapper createUserActivityAssignmentRequestMapper;
-    private final UpdateUserActivityAssignmentRequestMapper updateUserActivityAssignmentRequestMapper;
     private final UserRepository userRepository;
     private final ActivityRepository activityRepository;
 
@@ -57,7 +55,7 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
     public UserActivityAssignmentDto create(CreateUserActivityAssignmentRequest request) {
         Preconditions.checkArgument(request.getUserId() != null, "User ID не может быть null");
         Preconditions.checkArgument(request.getActivityId() != null, "Activity ID не может быть null");
-        Preconditions.checkArgument(request.getActivityRole() != null, "Role не может быть null");
+        Preconditions.checkArgument(request.getPosition() != null, "Role не может быть null");
 
         // Проверяем, что назначение еще не существует
         if (userActivityAssignmentRepository.existsByUserIdAndActivityId(request.getUserId(), request.getActivityId())) {
@@ -73,8 +71,8 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
                 .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + request.getActivityId()));
 
         // Бизнес-правило: только один главный судья на активность
-        if (request.getActivityRole() == UserActivityRole.JUDGE_CHIEF) {
-            long chiefCount = userActivityAssignmentRepository.countByActivityIdAndActivityRole(request.getActivityId(), UserActivityRole.JUDGE_CHIEF);
+        if (request.getPosition() == UserActivityPosition.JUDGE_CHIEF) {
+            long chiefCount = userActivityAssignmentRepository.countByActivityIdAndPosition(request.getActivityId(), UserActivityPosition.JUDGE_CHIEF);
             if (chiefCount > 0) {
                 throw new IllegalArgumentException("В активности уже есть главный судья");
             }
@@ -112,15 +110,15 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
         }
 
         // Обновляем роль если указана
-        if (request.getActivityRole() != null) {
+        if (request.getPosition() != null) {
             // Бизнес-правило: только один главный судья на активность
-            if (request.getActivityRole() == UserActivityRole.JUDGE_CHIEF) {
-                long chiefCount = userActivityAssignmentRepository.countByActivityIdAndActivityRole(assignment.getActivity().getId(), UserActivityRole.JUDGE_CHIEF);
-                if (chiefCount > 0 && !assignment.getActivityRole().equals(UserActivityRole.JUDGE_CHIEF)) {
+            if (request.getPosition() == UserActivityPosition.JUDGE_CHIEF) {
+                long chiefCount = userActivityAssignmentRepository.countByActivityIdAndPosition(assignment.getActivity().getId(), UserActivityPosition.JUDGE_CHIEF);
+                if (chiefCount > 0 && !assignment.getPosition().equals(UserActivityPosition.JUDGE_CHIEF)) {
                     throw new IllegalArgumentException("В активности уже есть главный судья");
                 }
             }
-            assignment.setActivityRole(request.getActivityRole());
+            assignment.setPosition(request.getPosition());
         }
 
         UserActivityAssignmentEntity saved = userActivityAssignmentRepository.save(assignment);
@@ -166,18 +164,18 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserActivityAssignmentDto> findByActivityRole(UserActivityRole activityRole, Pageable pageable) {
+    public Page<UserActivityAssignmentDto> findByPosition(UserActivityPosition activityRole, Pageable pageable) {
         Preconditions.checkArgument(activityRole != null, "ActivityRole не может быть null");
 
-        return userActivityAssignmentRepository.findByActivityRole(activityRole, pageable).map(userActivityAssignmentDtoMapper::toDto);
+        return userActivityAssignmentRepository.findByPosition(activityRole, pageable).map(userActivityAssignmentDtoMapper::toDto);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserActivityAssignmentDto> findByActivityIdAndActivityRole(Long activityId, UserActivityRole activityRole, Pageable pageable) {
+    public Page<UserActivityAssignmentDto> findByActivityIdAndPosition(Long activityId, UserActivityPosition activityRole, Pageable pageable) {
         Preconditions.checkArgument(activityId != null, "Activity ID не может быть null");
         Preconditions.checkArgument(activityRole != null, "ActivityRole не может быть null");
 
-        return userActivityAssignmentRepository.findByActivityIdAndActivityRole(activityId, activityRole, pageable).map(userActivityAssignmentDtoMapper::toDto);
+        return userActivityAssignmentRepository.findByActivityIdAndPosition(activityId, activityRole, pageable).map(userActivityAssignmentDtoMapper::toDto);
     }
 }

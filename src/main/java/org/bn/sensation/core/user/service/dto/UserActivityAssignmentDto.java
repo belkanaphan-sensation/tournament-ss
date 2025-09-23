@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.bn.sensation.core.common.entity.CompetitionRole;
-import org.bn.sensation.core.user.entity.UserActivityRole;
+import org.bn.sensation.core.common.entity.PartnerSide;
+import org.bn.sensation.core.user.entity.UserActivityPosition;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -31,11 +31,11 @@ public class UserActivityAssignmentDto extends BaseDto {
     @Schema(description = "Активность")
     private EntityLinkDto activity;
 
-    @Schema(description = "Роль пользователя в активности", example = "JUDGE_CHIEF")
-    private UserActivityRole activityRole;
+    @Schema(description = "Должность пользователя в активности", example = "JUDGE_CHIEF")
+    private UserActivityPosition position;
 
-    @Schema(description = "Роль в соревновании", example = "LEADER")
-    private CompetitionRole competitionRole;
+    @Schema(description = "Сторона в соревновании", example = "LEADER")
+    private PartnerSide partnerSide;
 
     @Schema(description = "Дата назначения")
     private LocalDateTime assignedAt;

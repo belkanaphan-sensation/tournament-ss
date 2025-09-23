@@ -251,7 +251,7 @@ databaseChangeLog:
                 email VARCHAR(255),
                 phone_number VARCHAR(50),
                 number VARCHAR(100),
-                competition_role VARCHAR(20),
+                partner_side VARCHAR(20),
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,

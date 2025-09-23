@@ -10,7 +10,7 @@ import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
-import org.bn.sensation.core.common.entity.CompetitionRole;
+import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 import org.bn.sensation.core.criteria.repository.CriteriaRepository;
@@ -159,6 +159,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                     .name("Test Milestone")
                     .state(State.DRAFT)
                     .activity(testActivity)
+                    .milestoneOrder(1)
                     .build();
             testMilestone = milestoneRepository.save(testMilestone);
 
@@ -178,7 +179,8 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         CreateMilestoneCriteriaAssignmentRequest request = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(testMilestone.getId())
                 .criteriaId(testCriteria.getId())
-                .competitionRole(CompetitionRole.LEADER)
+                .partnerSide(PartnerSide.LEADER)
+                .scale(10)
                 .build();
 
         // When
@@ -189,14 +191,14 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         assertNotNull(result.getId());
         assertEquals(testMilestone.getId(), result.getMilestone().getId());
         assertEquals(testCriteria.getId(), result.getCriteria().getId());
-        assertEquals(CompetitionRole.LEADER, result.getCompetitionRole());
+        assertEquals(PartnerSide.LEADER, result.getPartnerSide());
 
         // Проверяем, что назначение сохранено в БД
         Optional<MilestoneCriteriaAssignmentEntity> savedAssignment = milestoneCriteriaAssignmentRepository.findById(result.getId());
         assertTrue(savedAssignment.isPresent());
         assertEquals(testMilestone.getId(), savedAssignment.get().getMilestone().getId());
         assertEquals(testCriteria.getId(), savedAssignment.get().getCriteria().getId());
-        assertEquals(CompetitionRole.LEADER, savedAssignment.get().getCompetitionRole());
+        assertEquals(PartnerSide.LEADER, savedAssignment.get().getPartnerSide());
     }
 
     @Test
@@ -205,7 +207,8 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         CreateMilestoneCriteriaAssignmentRequest request = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(testMilestone.getId())
                 .criteriaId(testCriteria.getId())
-                .competitionRole(null)
+                .partnerSide(null)
+                .scale(10)
                 .build();
 
         // When
@@ -216,12 +219,12 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         assertNotNull(result.getId());
         assertEquals(testMilestone.getId(), result.getMilestone().getId());
         assertEquals(testCriteria.getId(), result.getCriteria().getId());
-        assertNull(result.getCompetitionRole());
+        assertNull(result.getPartnerSide());
 
         // Проверяем, что назначение сохранено в БД
         Optional<MilestoneCriteriaAssignmentEntity> savedAssignment = milestoneCriteriaAssignmentRepository.findById(result.getId());
         assertTrue(savedAssignment.isPresent());
-        assertNull(savedAssignment.get().getCompetitionRole());
+        assertNull(savedAssignment.get().getPartnerSide());
     }
 
     @Test
@@ -230,7 +233,8 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         CreateMilestoneCriteriaAssignmentRequest request = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(999L) // Несуществующий этап
                 .criteriaId(testCriteria.getId())
-                .competitionRole(CompetitionRole.LEADER)
+                .partnerSide(PartnerSide.LEADER)
+                .scale(10)
                 .build();
 
         // When & Then
@@ -245,7 +249,8 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         CreateMilestoneCriteriaAssignmentRequest request = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(testMilestone.getId())
                 .criteriaId(999L) // Несуществующий критерий
-                .competitionRole(CompetitionRole.LEADER)
+                .partnerSide(PartnerSide.LEADER)
+                .scale(10)
                 .build();
 
         // When & Then
@@ -261,7 +266,8 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         CreateMilestoneCriteriaAssignmentRequest request1 = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(testMilestone.getId())
                 .criteriaId(testCriteria.getId())
-                .competitionRole(CompetitionRole.LEADER)
+                .partnerSide(PartnerSide.LEADER)
+                .scale(10)
                 .build();
         milestoneCriteriaAssignmentService.create(request1);
 
@@ -269,7 +275,8 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         CreateMilestoneCriteriaAssignmentRequest request2 = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(testMilestone.getId())
                 .criteriaId(testCriteria.getId())
-                .competitionRole(CompetitionRole.FOLLOWER)
+                .partnerSide(PartnerSide.FOLLOWER)
+                .scale(10)
                 .build();
 
         // When & Then
@@ -281,8 +288,8 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testUpdateMilestoneCriteriaAssignment() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
-        
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
+
         // Создаем дополнительный критерий
         CriteriaEntity newCriteria = CriteriaEntity.builder()
                 .name("Стилистика")
@@ -291,7 +298,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
 
         UpdateMilestoneCriteriaAssignmentRequest request = UpdateMilestoneCriteriaAssignmentRequest.builder()
                 .criteriaId(newCriteria.getId())
-                .competitionRole(CompetitionRole.FOLLOWER)
+                .partnerSide(PartnerSide.FOLLOWER)
                 .build();
 
         // When
@@ -302,22 +309,22 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         assertEquals(assignment.getId(), result.getId());
         assertEquals(testMilestone.getId(), result.getMilestone().getId());
         assertEquals(newCriteria.getId(), result.getCriteria().getId());
-        assertEquals(CompetitionRole.FOLLOWER, result.getCompetitionRole());
+        assertEquals(PartnerSide.FOLLOWER, result.getPartnerSide());
 
         // Проверяем, что назначение обновлено в БД
         Optional<MilestoneCriteriaAssignmentEntity> updatedAssignment = milestoneCriteriaAssignmentRepository.findById(assignment.getId());
         assertTrue(updatedAssignment.isPresent());
         assertEquals(newCriteria.getId(), updatedAssignment.get().getCriteria().getId());
-        assertEquals(CompetitionRole.FOLLOWER, updatedAssignment.get().getCompetitionRole());
+        assertEquals(PartnerSide.FOLLOWER, updatedAssignment.get().getPartnerSide());
     }
 
     @Test
     void testUpdateMilestoneCriteriaAssignmentPartial() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
 
         UpdateMilestoneCriteriaAssignmentRequest request = UpdateMilestoneCriteriaAssignmentRequest.builder()
-                .competitionRole(CompetitionRole.FOLLOWER)
+                .partnerSide(PartnerSide.FOLLOWER)
                 .build();
 
         // When
@@ -328,20 +335,20 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         assertEquals(assignment.getId(), result.getId());
         assertEquals(testMilestone.getId(), result.getMilestone().getId());
         assertEquals(testCriteria.getId(), result.getCriteria().getId()); // Не изменилось
-        assertEquals(CompetitionRole.FOLLOWER, result.getCompetitionRole());
+        assertEquals(PartnerSide.FOLLOWER, result.getPartnerSide());
 
         // Проверяем, что назначение обновлено в БД
         Optional<MilestoneCriteriaAssignmentEntity> updatedAssignment = milestoneCriteriaAssignmentRepository.findById(assignment.getId());
         assertTrue(updatedAssignment.isPresent());
         assertEquals(testCriteria.getId(), updatedAssignment.get().getCriteria().getId());
-        assertEquals(CompetitionRole.FOLLOWER, updatedAssignment.get().getCompetitionRole());
+        assertEquals(PartnerSide.FOLLOWER, updatedAssignment.get().getPartnerSide());
     }
 
     @Test
     void testUpdateMilestoneCriteriaAssignmentNotFound() {
         // Given
         UpdateMilestoneCriteriaAssignmentRequest request = UpdateMilestoneCriteriaAssignmentRequest.builder()
-                .competitionRole(CompetitionRole.FOLLOWER)
+                .partnerSide(PartnerSide.FOLLOWER)
                 .build();
 
         // When & Then
@@ -353,7 +360,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testUpdateMilestoneCriteriaAssignmentWithNonExistentMilestone() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
 
         UpdateMilestoneCriteriaAssignmentRequest request = UpdateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(999L) // Несуществующий этап
@@ -368,7 +375,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testUpdateMilestoneCriteriaAssignmentWithNonExistentCriteria() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
 
         UpdateMilestoneCriteriaAssignmentRequest request = UpdateMilestoneCriteriaAssignmentRequest.builder()
                 .criteriaId(999L) // Несуществующий критерий
@@ -383,14 +390,14 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testFindAllMilestoneCriteriaAssignments() {
         // Given
-        createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
-        
+        createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
+
         // Создаем дополнительные критерии и назначения
         CriteriaEntity criteria2 = CriteriaEntity.builder()
                 .name("Ведение")
                 .build();
         criteriaRepository.save(criteria2);
-        createTestAssignment(testMilestone, criteria2, CompetitionRole.FOLLOWER);
+        createTestAssignment(testMilestone, criteria2, PartnerSide.FOLLOWER);
 
         CriteriaEntity criteria3 = CriteriaEntity.builder()
                 .name("Музыкальность")
@@ -412,7 +419,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testFindMilestoneCriteriaAssignmentById() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
 
         // When
         Optional<MilestoneCriteriaAssignmentDto> result = milestoneCriteriaAssignmentService.findById(assignment.getId());
@@ -422,7 +429,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         assertEquals(assignment.getId(), result.get().getId());
         assertEquals(testMilestone.getId(), result.get().getMilestone().getId());
         assertEquals(testCriteria.getId(), result.get().getCriteria().getId());
-        assertEquals(CompetitionRole.LEADER, result.get().getCompetitionRole());
+        assertEquals(PartnerSide.LEADER, result.get().getPartnerSide());
     }
 
     @Test
@@ -437,7 +444,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testFindByMilestoneIdAndCriteriaId() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
 
         // When
         MilestoneCriteriaAssignmentDto result = milestoneCriteriaAssignmentService.findByMilestoneIdAndCriteriaId(
@@ -448,7 +455,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         assertEquals(assignment.getId(), result.getId());
         assertEquals(testMilestone.getId(), result.getMilestone().getId());
         assertEquals(testCriteria.getId(), result.getCriteria().getId());
-        assertEquals(CompetitionRole.LEADER, result.getCompetitionRole());
+        assertEquals(PartnerSide.LEADER, result.getPartnerSide());
     }
 
     @Test
@@ -462,23 +469,24 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testFindByMilestoneId() {
         // Given
-        createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
-        
+        createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
+
         // Создаем дополнительные критерии и назначения для того же этапа
         CriteriaEntity criteria2 = CriteriaEntity.builder()
                 .name("Ведение")
                 .build();
         criteriaRepository.save(criteria2);
-        createTestAssignment(testMilestone, criteria2, CompetitionRole.FOLLOWER);
+        createTestAssignment(testMilestone, criteria2, PartnerSide.FOLLOWER);
 
         // Создаем назначение для другого этапа
         MilestoneEntity anotherMilestone = MilestoneEntity.builder()
                 .name("Another Milestone")
                 .state(State.DRAFT)
                 .activity(testMilestone.getActivity())
+                .milestoneOrder(2)
                 .build();
         anotherMilestone = milestoneRepository.save(anotherMilestone);
-        createTestAssignment(anotherMilestone, testCriteria, CompetitionRole.LEADER);
+        createTestAssignment(anotherMilestone, testCriteria, PartnerSide.LEADER);
 
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -495,23 +503,24 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testFindByCriteriaId() {
         // Given
-        createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
-        
+        createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
+
         // Создаем дополнительные этапы и назначения для того же критерия
         MilestoneEntity milestone2 = MilestoneEntity.builder()
                 .name("Milestone 2")
                 .state(State.DRAFT)
                 .activity(testMilestone.getActivity())
+                .milestoneOrder(3)
                 .build();
         milestone2 = milestoneRepository.save(milestone2);
-        createTestAssignment(milestone2, testCriteria, CompetitionRole.FOLLOWER);
+        createTestAssignment(milestone2, testCriteria, PartnerSide.FOLLOWER);
 
         // Создаем назначение для другого критерия
         CriteriaEntity anotherCriteria = CriteriaEntity.builder()
                 .name("Стилистика")
                 .build();
         criteriaRepository.save(anotherCriteria);
-        createTestAssignment(testMilestone, anotherCriteria, CompetitionRole.LEADER);
+        createTestAssignment(testMilestone, anotherCriteria, PartnerSide.LEADER);
 
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -528,7 +537,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     @Test
     void testDeleteMilestoneCriteriaAssignment() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
         Long assignmentId = assignment.getId();
 
         // When
@@ -552,7 +561,8 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         CreateMilestoneCriteriaAssignmentRequest request = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(testMilestone.getId())
                 .criteriaId(testCriteria.getId())
-                .competitionRole(CompetitionRole.FOLLOWER)
+                .partnerSide(PartnerSide.FOLLOWER)
+                .scale(10)
                 .build();
 
         // When
@@ -560,12 +570,12 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
 
         // Then
         assertNotNull(result);
-        assertEquals(CompetitionRole.FOLLOWER, result.getCompetitionRole());
+        assertEquals(PartnerSide.FOLLOWER, result.getPartnerSide());
 
         // Проверяем в БД
         Optional<MilestoneCriteriaAssignmentEntity> savedAssignment = milestoneCriteriaAssignmentRepository.findById(result.getId());
         assertTrue(savedAssignment.isPresent());
-        assertEquals(CompetitionRole.FOLLOWER, savedAssignment.get().getCompetitionRole());
+        assertEquals(PartnerSide.FOLLOWER, savedAssignment.get().getPartnerSide());
     }
 
     @Test
@@ -574,7 +584,8 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         CreateMilestoneCriteriaAssignmentRequest request = CreateMilestoneCriteriaAssignmentRequest.builder()
                 .milestoneId(testMilestone.getId())
                 .criteriaId(testCriteria.getId())
-                .competitionRole(null)
+                .partnerSide(null)
+                .scale(10)
                 .build();
 
         // When
@@ -582,18 +593,18 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
 
         // Then
         assertNotNull(result);
-        assertNull(result.getCompetitionRole());
+        assertNull(result.getPartnerSide());
 
         // Проверяем в БД
         Optional<MilestoneCriteriaAssignmentEntity> savedAssignment = milestoneCriteriaAssignmentRepository.findById(result.getId());
         assertTrue(savedAssignment.isPresent());
-        assertNull(savedAssignment.get().getCompetitionRole());
+        assertNull(savedAssignment.get().getPartnerSide());
     }
 
     @Test
     void testMilestoneCriteriaAssignmentCascadeDelete() {
         // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, CompetitionRole.LEADER);
+        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
         Long assignmentId = assignment.getId();
 
         // When
@@ -607,12 +618,13 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     }
 
     // Вспомогательный метод для создания тестового назначения
-    private MilestoneCriteriaAssignmentEntity createTestAssignment(MilestoneEntity milestone, CriteriaEntity criteria, CompetitionRole competitionRole) {
+    private MilestoneCriteriaAssignmentEntity createTestAssignment(MilestoneEntity milestone, CriteriaEntity criteria, PartnerSide partnerSide) {
         return transactionTemplate.execute(status -> {
             MilestoneCriteriaAssignmentEntity assignment = MilestoneCriteriaAssignmentEntity.builder()
                     .milestone(milestone)
                     .criteria(criteria)
-                    .competitionRole(competitionRole)
+                    .partnerSide(partnerSide)
+                    .scale(10)
                     .build();
             return milestoneCriteriaAssignmentRepository.save(assignment);
         });
