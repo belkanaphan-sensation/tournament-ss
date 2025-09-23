@@ -1,7 +1,7 @@
 package org.bn.sensation.core.milestone.service.dto;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -37,7 +37,7 @@ public class CreateMilestoneRequest extends EmptyDto {
 
     @NotNull
     @Schema(description = "Статус этапа", example = "DRAFT")
-    private Status status;
+    private State state;
 
     @PositiveOrZero
     @Schema(description = "Порядок этапа в рамках активности (если не указан, будет рассчитан автоматически)", example = "1")

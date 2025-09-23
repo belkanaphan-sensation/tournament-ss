@@ -1,7 +1,7 @@
 package org.bn.sensation.core.round.service.dto;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -39,5 +39,5 @@ public class CreateRoundRequest extends EmptyDto {
 
     @NotNull
     @Schema(description = "Статус раунда", example = "DRAFT")
-    private Status status;
+    private State state;
 }

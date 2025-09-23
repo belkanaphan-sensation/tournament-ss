@@ -10,7 +10,7 @@ import java.util.UUID;
 import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.entity.Address;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
@@ -424,7 +424,7 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Active Description")
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .status(Status.IN_PROGRESS)
+                    .state(State.IN_PROGRESS)
                     .organization(orgRef)
                     .build();
             occasionRepository.save(activeOccasion);
@@ -455,7 +455,7 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Ready Description")
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .status(Status.READY)
+                    .state(State.PLANNED)
                     .organization(orgRef)
                     .build();
             occasionRepository.save(readyOccasion);
@@ -486,7 +486,7 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Draft Description")
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .status(Status.DRAFT)
+                    .state(State.DRAFT)
                     .organization(orgRef)
                     .build();
             occasionRepository.save(draftOccasion);
@@ -513,7 +513,7 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Completed Description")
                     .startDate(LocalDate.now().minusDays(10))
                     .endDate(LocalDate.now().minusDays(7))
-                    .status(Status.COMPLETED)
+                    .state(State.COMPLETED)
                     .organization(orgRef)
                     .build();
             occasionRepository.save(completedOccasion);

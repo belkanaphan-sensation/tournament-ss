@@ -36,8 +36,14 @@ public class MilestoneController {
 
     @Operation(summary = "Получить этапы по ID активности")
     @GetMapping(path = "/activity/{id}")
-    public ResponseEntity<Page<MilestoneDto>> getByOccasionId(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
+    public ResponseEntity<Page<MilestoneDto>> getByActivityId(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
         return ResponseEntity.ok(milestoneService.findByActivityId(id, pageable));
+    }
+
+    @Operation(summary = "Получить этапы по ID активности в лайфстейтах")
+    @GetMapping(path = "/activity/{id}/life")
+    public ResponseEntity<Page<MilestoneDto>> getByActivityIdInLifeStates(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
+        return ResponseEntity.ok(milestoneService.findByActivityIdInLifeStates(id, pageable));
     }
 
     @Operation(summary = "Получить все этапы с пагинацией")

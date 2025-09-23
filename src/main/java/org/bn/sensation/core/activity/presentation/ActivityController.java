@@ -42,6 +42,12 @@ public class ActivityController {
         return ResponseEntity.ok(activityService.findByOccasionId(id, pageable));
     }
 
+    @Operation(summary = "Получить активности по ID мероприятия в лайфстейтах")
+    @GetMapping(path = "/occasion/{id}/life")
+    public ResponseEntity<Page<ActivityDto>> getByOccasionIdInLifeStates(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
+        return ResponseEntity.ok(activityService.findByOccasionIdInLifeStates(id, pageable));
+    }
+
     @Operation(summary = "Получить все активности с пагинацией")
     @GetMapping
     public ResponseEntity<Page<ActivityDto>> getAll(Pageable pageable) {

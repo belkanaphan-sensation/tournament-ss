@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.dto.EmptyDto;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -52,5 +52,5 @@ public class CreateActivityRequest extends EmptyDto {
 
     @NotNull
     @Schema(description = "Статус активности", example = "DRAFT")
-    private Status status;
+    private State state;
 }

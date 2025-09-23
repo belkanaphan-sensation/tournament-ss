@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 
@@ -31,9 +31,9 @@ public class RoundEntity extends BaseEntity {
     @JoinColumn(name = "milestone_id")
     private MilestoneEntity milestone;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "state", nullable = false)
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private State state;
 
     @ManyToMany(mappedBy = "rounds")
     @Builder.Default

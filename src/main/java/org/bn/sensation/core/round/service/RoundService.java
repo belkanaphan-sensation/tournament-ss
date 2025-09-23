@@ -16,4 +16,6 @@ public interface RoundService extends BaseCrudService<
         UpdateRoundRequest> {
 
     Page<RoundDto> findByMilestoneId(@NotNull Long id, Pageable pageable);
+
+    Page<RoundDto> findByMilestoneIdInLifeStates(@NotNull Long id, Pageable pageable);
 }
