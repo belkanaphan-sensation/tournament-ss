@@ -2,7 +2,7 @@ package org.bn.sensation.core.milestone.repository;
 
 import java.util.List;
 
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.springframework.data.domain.Page;
@@ -13,7 +13,7 @@ public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
     /**
      * Подсчитать количество этапов для активности по статусу
      */
-    long countByActivityIdAndStatus(Long activityId, Status status);
+    long countByActivityIdAndStatus(Long activityId, State state);
 
     /**
      * Подсчитать общее количество этапов для активности

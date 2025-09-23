@@ -9,7 +9,7 @@ import org.bn.sensation.core.activity.service.mapper.ActivityDtoMapper;
 import org.bn.sensation.core.activity.service.mapper.CreateActivityRequestMapper;
 import org.bn.sensation.core.activity.service.mapper.UpdateActivityRequestMapper;
 import org.bn.sensation.core.common.entity.Address;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
@@ -130,7 +130,7 @@ public class ActivityServiceImpl implements ActivityService {
         ActivityDto dto = activityDtoMapper.toDto(activity);
         
         // Подсчитываем количество завершенных этапов
-        long completedCount = milestoneRepository.countByActivityIdAndStatus(activity.getId(), Status.COMPLETED);
+        long completedCount = milestoneRepository.countByActivityIdAndStatus(activity.getId(), State.COMPLETED);
         
         // Общее количество этапов
         long totalCount = milestoneRepository.countByActivityId(activity.getId());

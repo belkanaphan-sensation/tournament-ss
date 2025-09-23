@@ -1,6 +1,6 @@
 package org.bn.sensation.core.round.repository;
 
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.springframework.data.domain.Page;
@@ -13,7 +13,7 @@ public interface RoundRepository extends BaseRepository<RoundEntity> {
     /**
      * Подсчитать количество раундов для этапа по статусу
      */
-    long countByMilestoneIdAndStatus(Long milestoneId, Status status);
+    long countByMilestoneIdAndStatus(Long milestoneId, State state);
 
     /**
      * Подсчитать общее количество раундов для этапа

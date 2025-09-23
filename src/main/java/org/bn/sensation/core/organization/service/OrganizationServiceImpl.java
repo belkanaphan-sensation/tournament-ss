@@ -1,7 +1,7 @@
 package org.bn.sensation.core.organization.service;
 
 import org.bn.sensation.core.common.entity.Address;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
@@ -127,9 +127,9 @@ public class OrganizationServiceImpl implements OrganizationService {
         // Проверяем статус связанных мероприятий
         if (organization.getOccasions() != null) {
             for (OccasionEntity occasion : organization.getOccasions()) {
-                if (occasion.getStatus() != Status.DRAFT && occasion.getStatus() != Status.COMPLETED) {
+                if (occasion.getState() != State.DRAFT && occasion.getState() != State.COMPLETED) {
                     throw new IllegalArgumentException("Нельзя удалить организацию, у которой есть активные мероприятия. " +
-                            "Мероприятие '" + occasion.getName() + "' имеет статус: " + occasion.getStatus());
+                            "Мероприятие '" + occasion.getName() + "' имеет статус: " + occasion.getState());
                 }
             }
         }

@@ -14,7 +14,7 @@ import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.CompetitionRole;
 import org.bn.sensation.core.common.entity.Person;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
@@ -95,7 +95,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         testOccasion = OccasionEntity.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
                 .organization(testOrganization)
@@ -106,7 +106,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         testActivity = ActivityEntity.builder()
                 .name("Test Activity")
                 .description("Test Activity Description")
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusDays(1))
                 .address(Address.builder()
@@ -121,7 +121,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Create test milestone
         testMilestone = MilestoneEntity.builder()
                 .name("Test Milestone")
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .activity(testActivity)
                 .build();
         testMilestone = milestoneRepository.save(testMilestone);
@@ -129,7 +129,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Create test rounds
         testRound = RoundEntity.builder()
                 .name("Test Round")
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .description("Test Round Description")
                 .milestone(testMilestone)
                 .build();
@@ -137,7 +137,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
 
         testRound1 = RoundEntity.builder()
                 .name("Test Round 1")
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .description("Test Round 1 Description")
                 .milestone(testMilestone)
                 .build();
