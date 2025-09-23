@@ -2,26 +2,21 @@ package org.bn.sensation.security;
 
 import lombok.Getter;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
-@Getter
 @Component
 @RequestScope
+@Getter
 public class CurrentUser {
     private final SecurityUser securityUser;
 
-    public CurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public CurrentUser(Authentication authentication) {
         if (authentication == null || authentication.getPrincipal() == null) {
-            throw new IllegalStateException("Authentication object is null or principal is null");
+            throw new IllegalStateException("No authentication");
         }
         if (!(authentication.getPrincipal() instanceof SecurityUser)) {
-            throw new IllegalStateException(
-                    "Principal object is not instance of JwtUser,"
-                            + " probably you are trying to access public resource,"
-                            + " CurrentUser is not accessible for public resources");
+            throw new IllegalStateException("Principal is not SecurityUser");
         }
         this.securityUser = (SecurityUser) authentication.getPrincipal();
     }
