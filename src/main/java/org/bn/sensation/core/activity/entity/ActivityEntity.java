@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.BaseEntity;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 
@@ -37,9 +37,9 @@ public class ActivityEntity extends BaseEntity {
     @Embedded
     private Address address;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "state", nullable = false)
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private State state;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "occasion_id")

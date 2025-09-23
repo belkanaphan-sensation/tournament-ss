@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.entity.BaseEntity;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 
 import jakarta.persistence.*;
@@ -34,9 +34,9 @@ public class OccasionEntity extends BaseEntity {
     @Column(name = "end_date")
     private LocalDate endDate; // 15.04.2025
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "state", nullable = false)
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private State state;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "organization_id")

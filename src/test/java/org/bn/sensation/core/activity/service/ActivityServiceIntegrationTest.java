@@ -15,7 +15,7 @@ import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.entity.Address;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
@@ -119,7 +119,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .description("Test Description")
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .organization(testOrganization)
                 .build();
         testOccasion = occasionRepository.save(testOccasion);
@@ -141,7 +141,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                         .comment("Activity Address")
                         .build())
                 .occasionId(testOccasion.getId())
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .build();
 
         // When
@@ -154,7 +154,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals("Test Description", result.getDescription());
         assertNotNull(result.getOccasion());
         assertEquals(testOccasion.getId(), result.getOccasion().getId());
-        assertEquals(Status.DRAFT, result.getStatus());
+        assertEquals(State.DRAFT, result.getState());
 
         // Проверяем, что активность сохранена в БД
         Optional<ActivityEntity> savedActivity = activityRepository.findById(result.getId());
@@ -172,7 +172,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusHours(2))
                 .occasionId(999L) // Несуществующее мероприятие
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .build();
 
         // When & Then
@@ -209,7 +209,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals("Test Activity", result.get().getName());
         assertEquals("Test Description", result.get().getDescription());
         assertEquals(testOccasion.getId(), result.get().getOccasion().getId());
-        assertEquals(Status.DRAFT, result.get().getStatus());
+        assertEquals(State.DRAFT, result.get().getState());
     }
 
     @Test
@@ -231,7 +231,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .description("Updated Description")
                 .startDateTime(LocalDateTime.now().plusHours(1))
                 .endDateTime(LocalDateTime.now().plusHours(3))
-                .status(Status.READY)
+                .state(State.PLANNED)
                 .occasionId(testOccasion.getId())
                 .build();
 
@@ -242,14 +242,14 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result);
         assertEquals("Updated Name", result.getName());
         assertEquals("Updated Description", result.getDescription());
-        assertEquals(Status.READY, result.getStatus());
+        assertEquals(State.PLANNED, result.getState());
 
         // Проверяем, что изменения сохранены в БД
         Optional<ActivityEntity> savedActivity = activityRepository.findById(activity.getId());
         assertTrue(savedActivity.isPresent());
         assertEquals("Updated Name", savedActivity.get().getName());
         assertEquals("Updated Description", savedActivity.get().getDescription());
-        assertEquals(Status.READY, savedActivity.get().getStatus());
+        assertEquals(State.PLANNED, savedActivity.get().getState());
     }
 
     @Test
@@ -268,14 +268,14 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result);
         assertEquals("Updated Name", result.getName());
         assertEquals("Original Description", result.getDescription()); // Не изменилось
-        assertEquals(Status.DRAFT, result.getStatus()); // Не изменилось
+        assertEquals(State.DRAFT, result.getState()); // Не изменилось
 
         // Проверяем, что изменения сохранены в БД
         Optional<ActivityEntity> savedActivity = activityRepository.findById(activity.getId());
         assertTrue(savedActivity.isPresent());
         assertEquals("Updated Name", savedActivity.get().getName());
         assertEquals("Original Description", savedActivity.get().getDescription());
-        assertEquals(Status.DRAFT, savedActivity.get().getStatus());
+        assertEquals(State.DRAFT, savedActivity.get().getState());
     }
 
     @Test
@@ -330,7 +330,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusHours(2))
                 .occasionId(testOccasion.getId())
-                .status(Status.IN_PROGRESS)
+                .state(State.IN_PROGRESS)
                 .build();
 
         // When
@@ -338,12 +338,12 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Then
         assertNotNull(result);
-        assertEquals(Status.IN_PROGRESS, result.getStatus());
+        assertEquals(State.IN_PROGRESS, result.getState());
 
         // Проверяем, что статус сохранен в БД
         Optional<ActivityEntity> savedActivity = activityRepository.findById(result.getId());
         assertTrue(savedActivity.isPresent());
-        assertEquals(Status.IN_PROGRESS, savedActivity.get().getStatus());
+        assertEquals(State.IN_PROGRESS, savedActivity.get().getState());
     }
 
 
@@ -356,7 +356,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusHours(2))
                 .occasionId(testOccasion.getId())
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .build();
 
         // When
@@ -385,7 +385,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                         .comment("Test Address")
                         .build())
                 .occasionId(testOccasion.getId())
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .build();
 
         // When
@@ -410,7 +410,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusHours(2))
                 .occasionId(testOccasion.getId())
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .build();
 
         // When
@@ -498,7 +498,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Second Test Description")
                     .startDate(LocalDate.now().plusDays(1))
                     .endDate(LocalDate.now().plusDays(4))
-                    .status(Status.DRAFT)
+                    .state(State.DRAFT)
                     .organization(testOrganization)
                     .build();
             return occasionRepository.save(occasion);
@@ -515,7 +515,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Description 3")
                     .startDateTime(LocalDateTime.now())
                     .endDateTime(LocalDateTime.now().plusHours(2))
-                    .status(Status.DRAFT)
+                    .state(State.DRAFT)
                     .occasion(secondOccasion)
                     .build();
             return activityRepository.save(activity);
@@ -569,6 +569,90 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         assertThrows(IllegalArgumentException.class, () -> activityService.findByOccasionId(null, pageable));
     }
 
+    @Test
+    void testFindByOccasionIdInLifeStates() {
+        // Given - создаем активности с разными состояниями
+        createTestActivityWithState("Activity DRAFT", "Description 1", State.DRAFT);
+        createTestActivityWithState("Activity PLANNED", "Description 2", State.PLANNED);
+        createTestActivityWithState("Activity IN_PROGRESS", "Description 3", State.IN_PROGRESS);
+        createTestActivityWithState("Activity COMPLETED", "Description 4", State.COMPLETED);
+
+        // When
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ActivityDto> result = activityService.findByOccasionIdInLifeStates(testOccasion.getId(), pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(3, result.getTotalElements()); // Только PLANNED, IN_PROGRESS, COMPLETED
+        assertEquals(3, result.getContent().size());
+
+        // Проверяем, что все активности принадлежат правильному мероприятию и имеют life states
+        result.getContent().forEach(activity -> {
+            assertNotNull(activity.getOccasion());
+            assertEquals(testOccasion.getId(), activity.getOccasion().getId());
+            assertTrue(State.LIFE_STATES.contains(activity.getState()));
+        });
+
+        // Проверяем, что DRAFT активности нет в результате
+        boolean hasDraftActivity = result.getContent().stream()
+                .anyMatch(activity -> activity.getState() == State.DRAFT);
+        assertFalse(hasDraftActivity);
+    }
+
+    @Test
+    void testFindByOccasionIdInLifeStatesWithPagination() {
+        // Given - создаем 5 активностей с life states
+        for (int i = 1; i <= 5; i++) {
+            createTestActivityWithState("Activity " + i, "Description " + i, State.PLANNED);
+        }
+
+        // When - запрашиваем первую страницу с размером 3
+        Pageable pageable = PageRequest.of(0, 3);
+        Page<ActivityDto> firstPage = activityService.findByOccasionIdInLifeStates(testOccasion.getId(), pageable);
+
+        // Then
+        assertNotNull(firstPage);
+        assertEquals(5, firstPage.getTotalElements());
+        assertEquals(3, firstPage.getContent().size());
+        assertEquals(0, firstPage.getNumber());
+        assertEquals(3, firstPage.getSize());
+        assertTrue(firstPage.hasNext());
+
+        // When - запрашиваем вторую страницу
+        Pageable secondPageable = PageRequest.of(1, 3);
+        Page<ActivityDto> secondPage = activityService.findByOccasionIdInLifeStates(testOccasion.getId(), secondPageable);
+
+        // Then
+        assertNotNull(secondPage);
+        assertEquals(5, secondPage.getTotalElements());
+        assertEquals(2, secondPage.getContent().size());
+        assertEquals(1, secondPage.getNumber());
+        assertEquals(3, secondPage.getSize());
+        assertFalse(secondPage.hasNext());
+    }
+
+    @Test
+    void testFindByOccasionIdInLifeStatesWithNonExistentOccasion() {
+        // Given
+        Long nonExistentOccasionId = 999L;
+
+        // When
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ActivityDto> result = activityService.findByOccasionIdInLifeStates(nonExistentOccasionId, pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(0, result.getTotalElements());
+        assertEquals(0, result.getContent().size());
+    }
+
+    @Test
+    void testFindByOccasionIdInLifeStatesWithNullId() {
+        // When & Then
+        Pageable pageable = PageRequest.of(0, 10);
+        assertThrows(IllegalArgumentException.class, () -> activityService.findByOccasionIdInLifeStates(null, pageable));
+    }
+
     // Вспомогательный метод для создания тестовой активности
     private ActivityEntity createTestActivity(String name, String description) {
         return new TransactionTemplate(transactionManager).execute(status -> {
@@ -577,7 +661,22 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                     .description(description)
                     .startDateTime(LocalDateTime.now())
                     .endDateTime(LocalDateTime.now().plusHours(2))
-                    .status(Status.DRAFT)
+                    .state(State.DRAFT)
+                    .occasion(testOccasion)
+                    .build();
+            return activityRepository.save(activity);
+        });
+    }
+
+    // Вспомогательный метод для создания тестовой активности с определенным состоянием
+    private ActivityEntity createTestActivityWithState(String name, String description, State state) {
+        return new TransactionTemplate(transactionManager).execute(status -> {
+            ActivityEntity activity = ActivityEntity.builder()
+                    .name(name)
+                    .description(description)
+                    .startDateTime(LocalDateTime.now())
+                    .endDateTime(LocalDateTime.now().plusHours(2))
+                    .state(state)
                     .occasion(testOccasion)
                     .build();
             return activityRepository.save(activity);
@@ -590,9 +689,9 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         ActivityEntity activity = createTestActivity("Test Activity", "Test Description");
         
         // Создаем этапы с разными статусами
-        createTestMilestone(activity, "Completed Milestone", Status.COMPLETED);
-        createTestMilestone(activity, "Active Milestone", Status.IN_PROGRESS);
-        createTestMilestone(activity, "Draft Milestone", Status.DRAFT);
+        createTestMilestone(activity, "Completed Milestone", State.COMPLETED);
+        createTestMilestone(activity, "Active Milestone", State.IN_PROGRESS);
+        createTestMilestone(activity, "Draft Milestone", State.DRAFT);
 
         // When
         Optional<ActivityDto> result = activityService.findById(activity.getId());
@@ -630,8 +729,8 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         createTestActivity("Activity 2", "Description 2");
         
         // Добавляем этапы к первой активности
-        createTestMilestone(activity1, "Milestone 1", Status.COMPLETED);
-        createTestMilestone(activity1, "Milestone 2", Status.IN_PROGRESS);
+        createTestMilestone(activity1, "Milestone 1", State.COMPLETED);
+        createTestMilestone(activity1, "Milestone 2", State.IN_PROGRESS);
 
         // When
         Pageable pageable = PageRequest.of(0, 10);
@@ -657,12 +756,12 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(2L, activityWithMilestones.getTotalMilestonesCount());
     }
 
-    private MilestoneEntity createTestMilestone(ActivityEntity activity, String name, Status status) {
+    private MilestoneEntity createTestMilestone(ActivityEntity activity, String name, State state) {
         return transactionTemplate.execute(status1 -> {
             MilestoneEntity milestone = MilestoneEntity.builder()
                     .name(name)
                     .description("Test Description")
-                    .status(status)
+                    .state(state)
                     .activity(activity)
                     .build();
             return milestoneRepository.save(milestone);

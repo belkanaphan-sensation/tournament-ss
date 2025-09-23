@@ -20,7 +20,7 @@ import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.organization.repository.OrganizationRepository;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.common.entity.CompetitionRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,7 +94,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
             OccasionEntity testOccasion = OccasionEntity.builder()
                     .name("Test Occasion")
                     .description("Test Description")
-                    .status(Status.DRAFT)
+                    .state(State.DRAFT)
                     .organization(testOrganization)
                     .build();
             testOccasion = occasionRepository.save(testOccasion);
@@ -103,7 +103,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
             ActivityEntity testActivity = ActivityEntity.builder()
                     .name("Test Activity")
                     .description("Test Activity Description")
-                    .status(Status.DRAFT)
+                    .state(State.DRAFT)
                     .occasion(testOccasion)
                     .build();
             testActivity = activityRepository.save(testActivity);
@@ -111,7 +111,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
             // Создаем тестовый этап
             testMilestone = MilestoneEntity.builder()
                     .name("Test Milestone")
-                    .status(Status.DRAFT)
+                    .state(State.DRAFT)
                     .activity(testActivity)
                     .build();
             testMilestone = milestoneRepository.save(testMilestone);

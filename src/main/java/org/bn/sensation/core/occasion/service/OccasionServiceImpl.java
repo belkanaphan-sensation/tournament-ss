@@ -1,7 +1,7 @@
 package org.bn.sensation.core.occasion.service;
 
 import org.bn.sensation.core.activity.repository.ActivityRepository;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
@@ -107,13 +107,13 @@ public class OccasionServiceImpl implements OccasionService {
         OccasionDto dto = occasionDtoMapper.toDto(occasion);
         
         // Подсчитываем количество активностей по статусам
-        long completedCount = activityRepository.countByOccasionIdAndStatus(occasion.getId(), Status.COMPLETED);
+        long completedCount = activityRepository.countByOccasionIdAndState(occasion.getId(), State.COMPLETED);
 
         // Активные активности: не DRAFT, не COMPLETED (то есть READY и ACTIVE)
-        long activeCount = activityRepository.countByOccasionIdAndStatusIn(
+        long activeCount = activityRepository.countByOccasionIdAndStateIn(
                 occasion.getId(),
-                Status.READY,
-                Status.IN_PROGRESS
+                State.PLANNED,
+                State.IN_PROGRESS
         );
 
         // Общее количество активностей

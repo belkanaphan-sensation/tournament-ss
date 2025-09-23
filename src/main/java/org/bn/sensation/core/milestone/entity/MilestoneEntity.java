@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.entity.BaseEntity;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.round.entity.RoundEntity;
 
 import jakarta.persistence.*;
@@ -27,9 +27,9 @@ public class MilestoneEntity extends BaseEntity {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "state", nullable = false)
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private State state;
 
     @Column(name = "milestone_order")
     private Integer milestoneOrder;

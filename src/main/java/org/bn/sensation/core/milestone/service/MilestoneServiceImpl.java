@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
@@ -149,13 +149,20 @@ public class MilestoneServiceImpl implements MilestoneService {
         return milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(id, pageable).map(this::enrichMilestoneDtoWithStatistics);
     }
 
+    @Override
+    public Page<MilestoneDto> findByActivityIdInLifeStates(Long id, Pageable pageable) {
+        Preconditions.checkArgument(id != null, "ID активности не может быть null");
+        return milestoneRepository.findByActivityIdAndStateInOrderByMilestoneOrderAsc(id, pageable, State.LIFE_STATES)
+                .map(this::enrichMilestoneDtoWithStatistics);
+    }
+
     /**
      * Обогащает MilestoneDto статистикой по раундам
      */
     private MilestoneDto enrichMilestoneDtoWithStatistics(MilestoneEntity milestone) {
         MilestoneDto dto = milestoneDtoMapper.toDto(milestone);
 
-        long completedCount = roundRepository.countByMilestoneIdAndStatus(milestone.getId(), Status.COMPLETED);
+        long completedCount = roundRepository.countByMilestoneIdAndState(milestone.getId(), State.COMPLETED);
         long totalCount = roundRepository.countByMilestoneId(milestone.getId());
 
         dto.setCompletedRoundsCount(completedCount);

@@ -11,7 +11,7 @@ import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.CompetitionRole;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 import org.bn.sensation.core.criteria.repository.CriteriaRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneCriteriaAssignmentEntity;
@@ -131,7 +131,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                     .description("Test Description")
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .status(Status.DRAFT)
+                    .state(State.DRAFT)
                     .organization(testOrganization)
                     .build();
             testOccasion = occasionRepository.save(testOccasion);
@@ -149,7 +149,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                             .streetNumber("2")
                             .comment("Activity Address")
                             .build())
-                    .status(Status.DRAFT)
+                    .state(State.DRAFT)
                     .occasion(testOccasion)
                     .build();
             testActivity = activityRepository.save(testActivity);
@@ -157,7 +157,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
             // Создание тестового этапа
             testMilestone = MilestoneEntity.builder()
                     .name("Test Milestone")
-                    .status(Status.DRAFT)
+                    .state(State.DRAFT)
                     .activity(testActivity)
                     .build();
             testMilestone = milestoneRepository.save(testMilestone);
@@ -474,7 +474,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         // Создаем назначение для другого этапа
         MilestoneEntity anotherMilestone = MilestoneEntity.builder()
                 .name("Another Milestone")
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .activity(testMilestone.getActivity())
                 .build();
         anotherMilestone = milestoneRepository.save(anotherMilestone);
@@ -500,7 +500,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         // Создаем дополнительные этапы и назначения для того же критерия
         MilestoneEntity milestone2 = MilestoneEntity.builder()
                 .name("Milestone 2")
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .activity(testMilestone.getActivity())
                 .build();
         milestone2 = milestoneRepository.save(milestone2);

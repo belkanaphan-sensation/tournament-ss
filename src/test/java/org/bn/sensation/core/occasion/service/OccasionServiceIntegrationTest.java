@@ -11,7 +11,7 @@ import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Person;
-import org.bn.sensation.core.common.entity.Status;
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.occasion.service.dto.CreateOccasionRequest;
@@ -114,7 +114,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         CreateOccasionRequest request = CreateOccasionRequest.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
                 .organizationId(testOrganization.getId())
@@ -303,7 +303,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         CreateOccasionRequest request = CreateOccasionRequest.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
                 .organizationId(testOrganization.getId())
@@ -317,7 +317,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         // Проверяем, что статус установлен по умолчанию (DRAFT)
         Optional<OccasionEntity> savedOccasion = occasionRepository.findById(result.getId());
         assertTrue(savedOccasion.isPresent());
-        assertEquals(Status.DRAFT, savedOccasion.get().getStatus());
+        assertEquals(State.DRAFT, savedOccasion.get().getState());
     }
 
     @Test
@@ -326,7 +326,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         CreateOccasionRequest request = CreateOccasionRequest.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
                 .organizationId(testOrganization.getId())
@@ -348,7 +348,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         CreateOccasionRequest request = CreateOccasionRequest.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .status(Status.DRAFT)
+                .state(State.DRAFT)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
                 .organizationId(null) // Без организации
@@ -375,7 +375,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
                     .description(description)
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .status(Status.DRAFT)
+                    .state(State.DRAFT)
                     .organization(testOrganization)
                     .build();
             return occasionRepository.save(occasion);
@@ -388,10 +388,10 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
         
         // Создаем активности с разными статусами
-        createTestActivity(occasion, "Completed Activity", Status.COMPLETED);
-        createTestActivity(occasion, "Active Activity", Status.IN_PROGRESS);
-        createTestActivity(occasion, "Ready Activity", Status.READY);
-        createTestActivity(occasion, "Draft Activity", Status.DRAFT);
+        createTestActivity(occasion, "Completed Activity", State.COMPLETED);
+        createTestActivity(occasion, "Active Activity", State.IN_PROGRESS);
+        createTestActivity(occasion, "Ready Activity", State.PLANNED);
+        createTestActivity(occasion, "Draft Activity", State.DRAFT);
 
         // When
         Optional<OccasionDto> result = occasionService.findById(occasion.getId());
@@ -433,8 +433,8 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         createTestOccasion("Occasion 2", "Description 2");
         
         // Добавляем активности к первому мероприятию
-        createTestActivity(occasion1, "Activity 1", Status.COMPLETED);
-        createTestActivity(occasion1, "Activity 2", Status.IN_PROGRESS);
+        createTestActivity(occasion1, "Activity 1", State.COMPLETED);
+        createTestActivity(occasion1, "Activity 2", State.IN_PROGRESS);
 
         // When
         Pageable pageable = PageRequest.of(0, 10);
@@ -462,12 +462,12 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(2L, occasionWithActivities.getTotalActivitiesCount());
     }
 
-    private ActivityEntity createTestActivity(OccasionEntity occasion, String name, Status status) {
+    private ActivityEntity createTestActivity(OccasionEntity occasion, String name, State state) {
         return transactionTemplate.execute(status1 -> {
             ActivityEntity activity = ActivityEntity.builder()
                     .name(name)
                     .description("Test Description")
-                    .status(status)
+                    .state(state)
                     .occasion(occasion)
                     .build();
             return activityRepository.save(activity);
