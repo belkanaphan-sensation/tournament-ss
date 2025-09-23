@@ -1,7 +1,7 @@
 package org.bn.sensation.core.participant.service.dto;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
-import org.bn.sensation.core.common.entity.CompetitionRole;
+import org.bn.sensation.core.common.entity.PartnerSide;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -48,6 +48,6 @@ public class UpdateParticipantRequest extends EmptyDto {
     @Schema(description = "Стартовый номер участника", example = "A-102")
     private String number;
 
-    @Schema(description = "Роль участника в соревновании", example = "LEADER")
-    private CompetitionRole competitionRole;
+    @Schema(description = "Сторона участника в соревновании", example = "LEADER")
+    private PartnerSide partnerSide;
 }

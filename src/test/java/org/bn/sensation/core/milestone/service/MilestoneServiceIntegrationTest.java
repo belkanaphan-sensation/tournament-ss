@@ -373,7 +373,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     void testMilestoneWithRoundStatistics() {
         // Given
         MilestoneEntity milestone = createTestMilestone("Test Milestone");
-        
+
         // Создаем раунды с разными статусами
         createTestRound(milestone, "Completed Round", State.COMPLETED);
         createTestRound(milestone, "Active Round", State.IN_PROGRESS);
@@ -517,12 +517,12 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // Проверяем, что критерий по умолчанию был добавлен через репозиторий назначений
         long assignmentCount = milestoneCriteriaAssignmentRepository.countByMilestoneId(result.getId());
         assertEquals(1, assignmentCount);
-        
+
         // Проверяем, что назначение создано с правильным критерием
         Optional<MilestoneCriteriaAssignmentEntity> assignment = milestoneCriteriaAssignmentRepository.findByMilestoneIdAndCriteriaId(result.getId(), testCriteria.getId());
         assertTrue(assignment.isPresent());
         assertEquals("Прохождение", assignment.get().getCriteria().getName());
-        assertNull(assignment.get().getCompetitionRole()); // Критерий по умолчанию не привязан к роли
+        assertNull(assignment.get().getPartnerSide()); // Критерий по умолчанию не привязан к роли
     }
 
     @Test
@@ -530,12 +530,12 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     void testCreateMilestoneWithExistingCriteriaAssignments() {
         // Given
         MilestoneEntity milestone = createTestMilestone("Test Milestone");
-        
+
         // Создаем назначение критерия вручную
         MilestoneCriteriaAssignmentEntity assignment = MilestoneCriteriaAssignmentEntity.builder()
                 .milestone(milestone)
                 .criteria(testCriteria)
-                .competitionRole(null)
+                .partnerSide(null)
                 .scale(1)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment);
@@ -580,12 +580,12 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     void testMilestoneCriteriaAssignmentsMapping() {
         // Given
         MilestoneEntity milestone = createTestMilestone("Test Milestone");
-        
+
         // Создаем назначение критерия
         MilestoneCriteriaAssignmentEntity assignment = MilestoneCriteriaAssignmentEntity.builder()
                 .milestone(milestone)
                 .criteria(testCriteria)
-                .competitionRole(null)
+                .partnerSide(null)
                 .scale(1)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment);
@@ -595,7 +595,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Then
         assertNotNull(result);
-        
+
         // Проверяем, что этап имеет связи с критериями в БД через репозиторий
         long assignmentCount = milestoneCriteriaAssignmentRepository.countByMilestoneId(milestone.getId());
         assertEquals(1, assignmentCount);
@@ -617,12 +617,12 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         criteriaRepository.save(criteria3);
 
         MilestoneEntity milestone = createTestMilestone("Test Milestone");
-        
+
         // Создаем несколько назначений критериев
         MilestoneCriteriaAssignmentEntity assignment1 = MilestoneCriteriaAssignmentEntity.builder()
                 .milestone(milestone)
                 .criteria(testCriteria)
-                .competitionRole(null)
+                .partnerSide(null)
                 .scale(1)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment1);
@@ -630,7 +630,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         MilestoneCriteriaAssignmentEntity assignment2 = MilestoneCriteriaAssignmentEntity.builder()
                 .milestone(milestone)
                 .criteria(criteria2)
-                .competitionRole(null)
+                .partnerSide(null)
                 .scale(1)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment2);
@@ -638,7 +638,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         MilestoneCriteriaAssignmentEntity assignment3 = MilestoneCriteriaAssignmentEntity.builder()
                 .milestone(milestone)
                 .criteria(criteria3)
-                .competitionRole(null)
+                .partnerSide(null)
                 .scale(1)
                 .build();
         milestoneCriteriaAssignmentRepository.save(assignment3);
@@ -648,7 +648,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Then
         assertNotNull(result);
-        
+
         // Проверяем, что этап имеет все назначения критериев в БД через репозиторий
         long assignmentCount = milestoneCriteriaAssignmentRepository.countByMilestoneId(milestone.getId());
         assertEquals(3, assignmentCount);
@@ -793,7 +793,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // Then
         assertNotNull(result);
         assertEquals(3, result.getTotalElements());
-        
+
         // Проверяем, что этапы отсортированы по порядку
         assertEquals("Second", result.getContent().get(0).getName());
         assertEquals("Third", result.getContent().get(1).getName());
@@ -932,20 +932,20 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // Проверяем, что порядки других этапов пересчитались
         Pageable pageable = PageRequest.of(0, 10);
         Page<MilestoneDto> milestones = milestoneService.findByActivityId(testActivity.getId(), pageable);
-        
+
         assertEquals(4, milestones.getTotalElements());
-        
+
         // Проверяем порядок этапов
         List<MilestoneDto> content = milestones.getContent();
         assertEquals("First", content.get(0).getName());
         assertEquals(Integer.valueOf(0), content.get(0).getMilestoneOrder());
-        
+
         assertEquals("New Milestone", content.get(1).getName());
         assertEquals(Integer.valueOf(1), content.get(1).getMilestoneOrder());
-        
+
         assertEquals("Second", content.get(2).getName());
         assertEquals(Integer.valueOf(2), content.get(2).getMilestoneOrder());
-        
+
         assertEquals("Third", content.get(3).getName());
         assertEquals(Integer.valueOf(3), content.get(3).getMilestoneOrder());
     }
@@ -972,9 +972,9 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // Проверяем, что порядки других этапов пересчитались
         Pageable pageable = PageRequest.of(0, 10);
         Page<MilestoneDto> milestones = milestoneService.findByActivityId(testActivity.getId(), pageable);
-        
+
         assertEquals(4, milestones.getTotalElements());
-        
+
         // Проверяем порядок этапов
         List<MilestoneDto> content = milestones.getContent();
         assertEquals("Second", content.get(0).getName());
@@ -1011,17 +1011,17 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // Проверяем, что порядки других этапов пересчитались
         Pageable pageable = PageRequest.of(0, 10);
         Page<MilestoneDto> milestones = milestoneService.findByActivityId(testActivity.getId(), pageable);
-        
+
         assertEquals(3, milestones.getTotalElements());
-        
+
         // Проверяем порядок этапов
         List<MilestoneDto> content = milestones.getContent();
         assertEquals("Second", content.get(0).getName());
         assertEquals(Integer.valueOf(0), content.get(0).getMilestoneOrder());
-        
+
         assertEquals("Third", content.get(1).getName());
         assertEquals(Integer.valueOf(1), content.get(1).getMilestoneOrder());
-        
+
         assertEquals("First", content.get(2).getName());
         assertEquals(Integer.valueOf(2), content.get(2).getMilestoneOrder());
     }
@@ -1034,7 +1034,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
             List<MilestoneEntity> mstns = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(testActivity.getId());
             Integer maxOrder = mstns.isEmpty() ? null : mstns.get(mstns.size() - 1).getMilestoneOrder();
             Integer nextOrder = (maxOrder != null) ? maxOrder + 1 : 0;
-            
+
             MilestoneEntity milestone = MilestoneEntity.builder()
                     .name(name)
                     .description("Test Milestone Description for " + name)
@@ -1067,7 +1067,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
             List<MilestoneEntity> mstns = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(testActivity.getId());
             Integer maxOrder = mstns.isEmpty() ? null : mstns.get(mstns.size() - 1).getMilestoneOrder();
             Integer nextOrder = (maxOrder != null) ? maxOrder + 1 : 0;
-            
+
             MilestoneEntity milestone = MilestoneEntity.builder()
                     .name(name)
                     .description("Test Milestone Description for " + name)

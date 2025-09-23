@@ -53,12 +53,12 @@ public class CriteriaServiceImpl implements CriteriaService {
     @Transactional
     public CriteriaDto create(CreateCriteriaRequest request) {
         Preconditions.checkArgument(StringUtils.hasText(request.getName()), "Название критерия не может быть пустым");
-        
+
         // Проверяем уникальность названия
         if (criteriaRepository.findByName(request.getName()).isPresent()) {
             throw new IllegalArgumentException("Критерий с названием '" + request.getName() + "' уже существует");
         }
-        
+
         CriteriaEntity criteria = createCriteriaRequestMapper.toEntity(request);
         CriteriaEntity saved = criteriaRepository.save(criteria);
         return criteriaDtoMapper.toDto(saved);
@@ -75,7 +75,7 @@ public class CriteriaServiceImpl implements CriteriaService {
             if (request.getName().trim().isEmpty()) {
                 throw new IllegalArgumentException("Название критерия не может быть пустым");
             }
-            
+
             // Проверяем уникальность названия (исключая текущий критерий)
             criteriaRepository.findByName(request.getName())
                     .ifPresent(existingCriteria -> {
@@ -100,12 +100,12 @@ public class CriteriaServiceImpl implements CriteriaService {
     public void deleteById(Long id) {
         CriteriaEntity criteria = criteriaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Критерий не найден с id: " + id));
-        
+
         // Проверяем, используется ли критерий в этапах
         if (milestoneCriteriaAssignmentRepository.existsByCriteriaId(id)) {
             throw new IllegalArgumentException("Нельзя удалить критерий, который используется в этапах");
         }
-        
+
         criteriaRepository.deleteById(id);
     }
 

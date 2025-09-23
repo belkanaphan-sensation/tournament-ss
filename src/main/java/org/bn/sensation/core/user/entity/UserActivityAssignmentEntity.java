@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.entity.BaseEntity;
-import org.bn.sensation.core.common.entity.CompetitionRole;
+import org.bn.sensation.core.common.entity.PartnerSide;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,12 +28,12 @@ public class UserActivityAssignmentEntity extends BaseEntity {
     private ActivityEntity activity;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "activity_role", nullable = false)
-    private UserActivityRole activityRole;
+    @Column(name = "position", nullable = false)
+    private UserActivityPosition position;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "competition_role")
-    private CompetitionRole competitionRole;
+    @Column(name = "partner_side")
+    private PartnerSide partnerSide;
 
     @Column(name = "assigned_at")
     @Builder.Default

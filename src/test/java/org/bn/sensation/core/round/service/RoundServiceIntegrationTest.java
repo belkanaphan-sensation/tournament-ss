@@ -123,6 +123,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .state(State.DRAFT)
                 .activity(testActivity)
+                .milestoneOrder(1)
                 .build();
         testMilestone = milestoneRepository.save(testMilestone);
 
@@ -130,6 +131,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone 1")
                 .state(State.DRAFT)
                 .activity(testActivity)
+                .milestoneOrder(2)
                 .build();
         testMilestone1 = milestoneRepository.save(testMilestone1);
 

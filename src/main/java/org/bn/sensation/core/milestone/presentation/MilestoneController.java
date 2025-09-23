@@ -74,4 +74,3 @@ public class MilestoneController {
         return ResponseEntity.ok().build();
     }
 }
-

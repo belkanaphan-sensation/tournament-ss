@@ -19,4 +19,3 @@ public interface MilestoneService extends BaseCrudService<
 
     Page<MilestoneDto> findByActivityIdInLifeStates(@NotNull Long id, Pageable pageable);
 }
-

@@ -12,7 +12,7 @@ import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
-import org.bn.sensation.core.common.entity.CompetitionRole;
+import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
@@ -153,7 +153,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+1234567890")
                         .build())
                 .number("001")
-                .competitionRole(CompetitionRole.LEADER)
+                .partnerSide(PartnerSide.LEADER)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         testParticipant = participantRepository.save(testParticipant);
@@ -169,7 +169,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .email("jane.smith@example.com")
                 .phoneNumber("+0987654321")
                 .number("002")
-                .competitionRole(CompetitionRole.FOLLOWER)
+                .partnerSide(PartnerSide.FOLLOWER)
                 .build();
 
         // When
@@ -183,7 +183,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(request.getEmail(), result.getPerson().getEmail());
         assertEquals(request.getPhoneNumber(), result.getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), result.getNumber());
-        assertEquals(request.getCompetitionRole(), result.getCompetitionRole());
+        assertEquals(request.getPartnerSide(), result.getPartnerSide());
 
         // Verify participant was saved to database
         Optional<ParticipantEntity> savedParticipant = participantRepository.findById(result.getId());
@@ -194,7 +194,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(request.getEmail(), savedParticipant.get().getPerson().getEmail());
         assertEquals(request.getPhoneNumber(), savedParticipant.get().getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), savedParticipant.get().getNumber());
-        assertEquals(request.getCompetitionRole(), savedParticipant.get().getCompetitionRole());
+        assertEquals(request.getPartnerSide(), savedParticipant.get().getPartnerSide());
     }
 
     @Test
@@ -207,7 +207,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .email("updated@example.com")
                 .phoneNumber("+1111111111")
                 .number("999")
-                .competitionRole(CompetitionRole.FOLLOWER)
+                .partnerSide(PartnerSide.FOLLOWER)
                 .build();
 
         // When
@@ -222,7 +222,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(request.getEmail(), result.getPerson().getEmail());
         assertEquals(request.getPhoneNumber(), result.getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), result.getNumber());
-        assertEquals(request.getCompetitionRole(), result.getCompetitionRole());
+        assertEquals(request.getPartnerSide(), result.getPartnerSide());
         assertEquals(1, result.getRounds().size());
 
         // Verify participant was updated in database
@@ -234,7 +234,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(request.getEmail(), updatedParticipant.get().getPerson().getEmail());
         assertEquals(request.getPhoneNumber(), updatedParticipant.get().getPerson().getPhoneNumber());
         assertEquals(request.getNumber(), updatedParticipant.get().getNumber());
-        assertEquals(request.getCompetitionRole(), updatedParticipant.get().getCompetitionRole());
+        assertEquals(request.getPartnerSide(), updatedParticipant.get().getPartnerSide());
         assertEquals(1, updatedParticipant.get().getRounds().size());
         assertTrue(updatedParticipant.get().getRounds().contains(testRound));
     }
@@ -301,7 +301,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(testParticipant.getPerson().getEmail(), result.get().getPerson().getEmail());
         assertEquals(testParticipant.getPerson().getPhoneNumber(), result.get().getPerson().getPhoneNumber());
         assertEquals(testParticipant.getNumber(), result.get().getNumber());
-        assertEquals(testParticipant.getCompetitionRole(), result.get().getCompetitionRole());
+        assertEquals(testParticipant.getPartnerSide(), result.get().getPartnerSide());
     }
 
     @Test
@@ -457,7 +457,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .email("role@test.com")
                 .phoneNumber("+6666666666")
                 .number("R-001")
-                .competitionRole(CompetitionRole.FOLLOWER)
+                .partnerSide(PartnerSide.FOLLOWER)
                 .build();
 
         // When
@@ -465,21 +465,21 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Then - Verify competition role field is correctly mapped
         assertNotNull(result);
-        assertEquals(CompetitionRole.FOLLOWER, result.getCompetitionRole());
+        assertEquals(PartnerSide.FOLLOWER, result.getPartnerSide());
 
         // Verify in database
         Optional<ParticipantEntity> savedParticipant = participantRepository.findById(result.getId());
         assertTrue(savedParticipant.isPresent());
-        assertEquals(CompetitionRole.FOLLOWER, savedParticipant.get().getCompetitionRole());
+        assertEquals(PartnerSide.FOLLOWER, savedParticipant.get().getPartnerSide());
     }
 
     @Test
     void testParticipantCompetitionRoleUpdate() {
         // Given - testParticipant has CompetitionRole.LEADER from setUp()
-        assertEquals(CompetitionRole.LEADER, testParticipant.getCompetitionRole());
+        assertEquals(PartnerSide.LEADER, testParticipant.getPartnerSide());
 
         UpdateParticipantRequest request = UpdateParticipantRequest.builder()
-                .competitionRole(CompetitionRole.FOLLOWER)
+                .partnerSide(PartnerSide.FOLLOWER)
                 .build();
 
         // When
@@ -487,12 +487,12 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Then
         assertNotNull(result);
-        assertEquals(CompetitionRole.FOLLOWER, result.getCompetitionRole());
+        assertEquals(PartnerSide.FOLLOWER, result.getPartnerSide());
 
         // Verify in database
         Optional<ParticipantEntity> updatedParticipant = participantRepository.findById(testParticipant.getId());
         assertTrue(updatedParticipant.isPresent());
-        assertEquals(CompetitionRole.FOLLOWER, updatedParticipant.get().getCompetitionRole());
+        assertEquals(PartnerSide.FOLLOWER, updatedParticipant.get().getPartnerSide());
     }
 
     @Test
@@ -504,7 +504,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .email("null@test.com")
                 .phoneNumber("+7777777777")
                 .number("N-001")
-                .competitionRole(null) // Null competition role
+                .partnerSide(null) // Null competition role
                 .build();
 
         // When
@@ -512,12 +512,12 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Then
         assertNotNull(result);
-        assertNull(result.getCompetitionRole());
+        assertNull(result.getPartnerSide());
 
         // Verify in database
         Optional<ParticipantEntity> savedParticipant = participantRepository.findById(result.getId());
         assertTrue(savedParticipant.isPresent());
-        assertNull(savedParticipant.get().getCompetitionRole());
+        assertNull(savedParticipant.get().getPartnerSide());
     }
 
     @Test
@@ -532,7 +532,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals(1, result.getContent().size());
-        
+
         ParticipantDto participant = result.getContent().get(0);
         assertEquals(testParticipant.getId(), participant.getId());
         assertEquals(testParticipant.getPerson().getName(), participant.getPerson().getName());
@@ -550,7 +550,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+2222222222")
                         .build())
                 .number("003")
-                .competitionRole(CompetitionRole.FOLLOWER)
+                .partnerSide(PartnerSide.FOLLOWER)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         participantRepository.save(participant2);
@@ -563,7 +563,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+3333333333")
                         .build())
                 .number("004")
-                .competitionRole(CompetitionRole.LEADER)
+                .partnerSide(PartnerSide.LEADER)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         participantRepository.save(participant3);
@@ -577,7 +577,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result);
         assertEquals(3, result.getTotalElements());
         assertEquals(3, result.getContent().size());
-        
+
         // Verify all participants are from the correct round
         result.getContent().forEach(participant -> {
             assertTrue(participant.getRounds().stream()
@@ -597,7 +597,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                             .phoneNumber("+111111111" + i)
                             .build())
                     .number("P-" + String.format("%03d", i))
-                    .competitionRole(CompetitionRole.FOLLOWER)
+                    .partnerSide(PartnerSide.FOLLOWER)
                     .rounds(new HashSet<>(Set.of(testRound)))
                     .build();
             participantRepository.save(participant);
@@ -606,7 +606,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Test first page
         Pageable firstPage = PageRequest.of(0, 3);
         Page<ParticipantDto> firstPageResult = participantService.findByRoundId(testRound.getId(), firstPage);
-        
+
         assertNotNull(firstPageResult);
         assertEquals(6, firstPageResult.getTotalElements()); // 1 from setUp + 5 new
         assertEquals(3, firstPageResult.getContent().size());
@@ -615,7 +615,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Test second page
         Pageable secondPage = PageRequest.of(1, 3);
         Page<ParticipantDto> secondPageResult = participantService.findByRoundId(testRound.getId(), secondPage);
-        
+
         assertNotNull(secondPageResult);
         assertEquals(6, secondPageResult.getTotalElements());
         assertEquals(3, secondPageResult.getContent().size());
@@ -633,7 +633,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+9999999999")
                         .build())
                 .number("OTHER-001")
-                .competitionRole(CompetitionRole.FOLLOWER)
+                .partnerSide(PartnerSide.FOLLOWER)
                 .rounds(new HashSet<>(Set.of(testRound1))) // Only in testRound1, not testRound
                 .build();
         participantRepository.save(participantForOtherRound);
@@ -689,7 +689,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+8888888888")
                         .build())
                 .number("MULTI-001")
-                .competitionRole(CompetitionRole.LEADER)
+                .partnerSide(PartnerSide.LEADER)
                 .rounds(new HashSet<>(Set.of(testRound, testRound1))) // In both rounds
                 .build();
         participantRepository.save(multiRoundParticipant);
@@ -698,7 +698,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
 
         // When - Search for participants in testRound
         Page<ParticipantDto> testRoundResult = participantService.findByRoundId(testRound.getId(), pageable);
-        
+
         // When - Search for participants in testRound1
         Page<ParticipantDto> testRound1Result = participantService.findByRoundId(testRound1.getId(), pageable);
 
@@ -725,7 +725,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                             .phoneNumber("+222222222" + i)
                             .build())
                     .number("PT-" + String.format("%03d", i))
-                    .competitionRole(CompetitionRole.FOLLOWER)
+                    .partnerSide(PartnerSide.FOLLOWER)
                     .rounds(new HashSet<>(Set.of(testRound)))
                     .build();
             participantRepository.save(participant);

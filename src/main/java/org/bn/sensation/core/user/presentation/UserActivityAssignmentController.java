@@ -1,6 +1,6 @@
 package org.bn.sensation.core.user.presentation;
 
-import org.bn.sensation.core.user.entity.UserActivityRole;
+import org.bn.sensation.core.user.entity.UserActivityPosition;
 import org.bn.sensation.core.user.service.UserActivityAssignmentService;
 import org.bn.sensation.core.user.service.dto.UserActivityAssignmentDto;
 import org.bn.sensation.core.user.service.dto.CreateUserActivityAssignmentRequest;
@@ -49,12 +49,12 @@ public class UserActivityAssignmentController {
 
 
     @Operation(summary = "Получить назначения активности по роли")
-    @GetMapping(path = "/activity/{activityId}/role/{role}")
-    public ResponseEntity<Page<UserActivityAssignmentDto>> getByActivityIdAndRole(
+    @GetMapping(path = "/activity/{activityId}/position/{position}")
+    public ResponseEntity<Page<UserActivityAssignmentDto>> getByActivityIdAndPosition(
             @Parameter @PathVariable("activityId") @NotNull Long activityId,
-            @Parameter @PathVariable("role") @NotNull UserActivityRole role,
+            @Parameter @PathVariable("position") @NotNull UserActivityPosition position,
             Pageable pageable) {
-        return ResponseEntity.ok(userActivityAssignmentService.findByActivityIdAndActivityRole(activityId, role, pageable));
+        return ResponseEntity.ok(userActivityAssignmentService.findByActivityIdAndPosition(activityId, position, pageable));
     }
 
     @Operation(summary = "Получить все назначения")
@@ -78,10 +78,10 @@ public class UserActivityAssignmentController {
     }
 
     @Operation(summary = "Получить назначения по роли")
-    @GetMapping(path = "/role/{role}")
-    public ResponseEntity<Page<UserActivityAssignmentDto>> getByRole(
-            @Parameter @PathVariable("role") @NotNull UserActivityRole role, Pageable pageable) {
-        return ResponseEntity.ok(userActivityAssignmentService.findByActivityRole(role, pageable));
+    @GetMapping(path = "/position/{position}")
+    public ResponseEntity<Page<UserActivityAssignmentDto>> getByPosition(
+            @Parameter @PathVariable("position") @NotNull UserActivityPosition position, Pageable pageable) {
+        return ResponseEntity.ok(userActivityAssignmentService.findByPosition(position, pageable));
     }
 
     @Operation(summary = "Создать новое назначение")

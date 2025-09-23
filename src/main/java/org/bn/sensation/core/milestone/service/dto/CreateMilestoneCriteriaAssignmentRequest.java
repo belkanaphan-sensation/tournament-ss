@@ -3,7 +3,7 @@ package org.bn.sensation.core.milestone.service.dto;
 import java.math.BigDecimal;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
-import org.bn.sensation.core.common.entity.CompetitionRole;
+import org.bn.sensation.core.common.entity.PartnerSide;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -30,8 +30,8 @@ public class CreateMilestoneCriteriaAssignmentRequest extends EmptyDto {
     @Schema(description = "ID критерия оценки", example = "1")
     private Long criteriaId;
 
-    @Schema(description = "Роль в соревновании, к которой относится критерий в рамках этапа", example = "LEADER")
-    private CompetitionRole competitionRole;
+    @Schema(description = "Сторона в соревновании, к которой относится критерий в рамках этапа", example = "LEADER")
+    private PartnerSide partnerSide;
 
     @Schema(description = "Вес критерия в рамках этапа", example = "1.0")
     @Builder.Default

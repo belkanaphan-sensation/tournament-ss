@@ -1,13 +1,13 @@
 package org.bn.sensation.core.user.entity;
 
-public enum UserActivityRole {
+public enum UserActivityPosition {
     JUDGE_CHIEF,
     JUDGE,
     PARTICIPANT,
     ORGANIZER,
     OBSERVER;
 
-    public boolean isJudgeRole() {
+    public boolean isJudge() {
         return this == JUDGE_CHIEF || this == JUDGE;
     }
 

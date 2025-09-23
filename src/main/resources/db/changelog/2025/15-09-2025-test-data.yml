@@ -210,7 +210,7 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO participant (name, surname, second_name, email, phone_number, number, competition_role, created_at, created_by, modified_at, modified_by, version) VALUES
+              INSERT INTO participant (name, surname, second_name, email, phone_number, number, partner_side, created_at, created_by, modified_at, modified_by, version) VALUES
               -- Участники для организации 1 (1 участник)
               ('Участник', 'Один', 'Участникович', 'participant1@test.kz', '+7 777 101 00 01', 'P-001', 'LEADER', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
               
@@ -316,7 +316,7 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO milestone_criteria_assignment (milestone_id, criteria_id, competition_role, weight, scale, created_at, created_by, modified_at, modified_by, version) VALUES
+              INSERT INTO milestone_criteria_assignment (milestone_id, criteria_id, partner_side, weight, scale, created_at, created_by, modified_at, modified_by, version) VALUES
               -- Этап 1: все критерии с разными ролями (полные данные)
               ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 1, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
               ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Техника'), 'LEADER', 1.5, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
@@ -371,7 +371,7 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO user_activity_assignment (user_id, activity_id, activity_role, competition_role, assigned_at, created_at, created_by, modified_at, modified_by, version) VALUES
+              INSERT INTO user_activity_assignment (user_id, activity_id, position, partner_side, assigned_at, created_at, created_by, modified_at, modified_by, version) VALUES
               -- Активность 1: 1 главный судья + 1 обычный судья
               ((SELECT id FROM users WHERE username = 'judge1_1'), (SELECT id FROM activity WHERE name = 'Активность 1'), 'JUDGE_CHIEF', 'LEADER', '2025-03-15 10:00:00', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
               ((SELECT id FROM users WHERE username = 'judge1_2'), (SELECT id FROM activity WHERE name = 'Активность 1'), 'JUDGE', 'FOLLOWER', '2025-03-15 10:00:00', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
