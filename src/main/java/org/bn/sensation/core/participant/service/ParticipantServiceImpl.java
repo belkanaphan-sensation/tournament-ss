@@ -47,6 +47,11 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
+    public Page<ParticipantDto> findByRoundId(Long roundId, Pageable pageable) {
+        return participantRepository.findByRoundId(roundId, pageable).map(participantDtoMapper::toDto);
+    }
+
+    @Override
     @Transactional
     public ParticipantDto create(CreateParticipantRequest request) {
         // Создаем сущность участника
