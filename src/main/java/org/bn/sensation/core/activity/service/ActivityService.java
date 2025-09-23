@@ -17,4 +17,6 @@ public interface ActivityService extends BaseCrudService<
         UpdateActivityRequest> {
 
     Page<ActivityDto> findByOccasionId(@NotNull Long id, Pageable pageable);
+
+    Page<ActivityDto> findByOccasionIdInLifeStates(@NotNull Long id, Pageable pageable);
 }

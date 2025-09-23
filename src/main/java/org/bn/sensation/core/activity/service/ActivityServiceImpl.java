@@ -1,5 +1,7 @@
 package org.bn.sensation.core.activity.service;
 
+import java.util.Optional;
+
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.activity.service.dto.ActivityDto;
@@ -19,8 +21,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 
@@ -59,6 +59,13 @@ public class ActivityServiceImpl implements ActivityService {
     public Page<ActivityDto> findByOccasionId(Long id, Pageable pageable) {
         Preconditions.checkArgument(id != null, "ID мероприятия не может быть null");
         return activityRepository.findByOccasionId(id, pageable).map(this::enrichActivityDtoWithStatistics);
+    }
+
+    @Override
+    public Page<ActivityDto> findByOccasionIdInLifeStates(Long id, Pageable pageable) {
+        Preconditions.checkArgument(id != null, "ID мероприятия не может быть null");
+        return activityRepository.findByOccasionIdAndStateIn(id, pageable, State.LIFE_STATES)
+                .map(this::enrichActivityDtoWithStatistics);
     }
 
     @Override
@@ -128,16 +135,16 @@ public class ActivityServiceImpl implements ActivityService {
      */
     private ActivityDto enrichActivityDtoWithStatistics(ActivityEntity activity) {
         ActivityDto dto = activityDtoMapper.toDto(activity);
-        
+
         // Подсчитываем количество завершенных этапов
-        long completedCount = milestoneRepository.countByActivityIdAndStatus(activity.getId(), State.COMPLETED);
-        
+        long completedCount = milestoneRepository.countByActivityIdAndState(activity.getId(), State.COMPLETED);
+
         // Общее количество этапов
         long totalCount = milestoneRepository.countByActivityId(activity.getId());
-        
+
         dto.setCompletedMilestonesCount(completedCount);
         dto.setTotalMilestonesCount(totalCount);
-        
+
         return dto;
     }
 }

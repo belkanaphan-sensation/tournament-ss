@@ -3,6 +3,7 @@ package org.bn.sensation.core.round.service;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
@@ -131,5 +132,12 @@ public class RoundServiceImpl implements RoundService {
     public Page<RoundDto> findByMilestoneId(Long id, Pageable pageable) {
         Preconditions.checkArgument(id != null, "ID этапа не может быть null");
         return roundRepository.findByMilestoneId(id, pageable).map(roundDtoMapper::toDto);
+    }
+
+    @Override
+    public Page<RoundDto> findByMilestoneIdInLifeStates(Long id, Pageable pageable) {
+        Preconditions.checkArgument(id != null, "ID этапа не может быть null");
+        return roundRepository.findByMilestoneIdAndStateIn(id, pageable, State.LIFE_STATES)
+                .map(roundDtoMapper::toDto);
     }
 }

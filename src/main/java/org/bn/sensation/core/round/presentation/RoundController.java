@@ -40,6 +40,12 @@ public class RoundController {
         return ResponseEntity.ok(roundService.findByMilestoneId(id, pageable));
     }
 
+    @Operation(summary = "Получить раунды по ID этапа в лайфстейтах")
+    @GetMapping(path = "/milestone/{id}/life")
+    public ResponseEntity<Page<RoundDto>> getByMilestoneIdInLifeStates(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
+        return ResponseEntity.ok(roundService.findByMilestoneIdInLifeStates(id, pageable));
+    }
+
     @Operation(summary = "Получить все раунды с пагинацией")
     @GetMapping
     public ResponseEntity<Page<RoundDto>> getAll(Pageable pageable) {

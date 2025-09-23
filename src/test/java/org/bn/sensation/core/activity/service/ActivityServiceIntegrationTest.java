@@ -569,6 +569,90 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         assertThrows(IllegalArgumentException.class, () -> activityService.findByOccasionId(null, pageable));
     }
 
+    @Test
+    void testFindByOccasionIdInLifeStates() {
+        // Given - создаем активности с разными состояниями
+        createTestActivityWithState("Activity DRAFT", "Description 1", State.DRAFT);
+        createTestActivityWithState("Activity PLANNED", "Description 2", State.PLANNED);
+        createTestActivityWithState("Activity IN_PROGRESS", "Description 3", State.IN_PROGRESS);
+        createTestActivityWithState("Activity COMPLETED", "Description 4", State.COMPLETED);
+
+        // When
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ActivityDto> result = activityService.findByOccasionIdInLifeStates(testOccasion.getId(), pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(3, result.getTotalElements()); // Только PLANNED, IN_PROGRESS, COMPLETED
+        assertEquals(3, result.getContent().size());
+
+        // Проверяем, что все активности принадлежат правильному мероприятию и имеют life states
+        result.getContent().forEach(activity -> {
+            assertNotNull(activity.getOccasion());
+            assertEquals(testOccasion.getId(), activity.getOccasion().getId());
+            assertTrue(State.LIFE_STATES.contains(activity.getState()));
+        });
+
+        // Проверяем, что DRAFT активности нет в результате
+        boolean hasDraftActivity = result.getContent().stream()
+                .anyMatch(activity -> activity.getState() == State.DRAFT);
+        assertFalse(hasDraftActivity);
+    }
+
+    @Test
+    void testFindByOccasionIdInLifeStatesWithPagination() {
+        // Given - создаем 5 активностей с life states
+        for (int i = 1; i <= 5; i++) {
+            createTestActivityWithState("Activity " + i, "Description " + i, State.PLANNED);
+        }
+
+        // When - запрашиваем первую страницу с размером 3
+        Pageable pageable = PageRequest.of(0, 3);
+        Page<ActivityDto> firstPage = activityService.findByOccasionIdInLifeStates(testOccasion.getId(), pageable);
+
+        // Then
+        assertNotNull(firstPage);
+        assertEquals(5, firstPage.getTotalElements());
+        assertEquals(3, firstPage.getContent().size());
+        assertEquals(0, firstPage.getNumber());
+        assertEquals(3, firstPage.getSize());
+        assertTrue(firstPage.hasNext());
+
+        // When - запрашиваем вторую страницу
+        Pageable secondPageable = PageRequest.of(1, 3);
+        Page<ActivityDto> secondPage = activityService.findByOccasionIdInLifeStates(testOccasion.getId(), secondPageable);
+
+        // Then
+        assertNotNull(secondPage);
+        assertEquals(5, secondPage.getTotalElements());
+        assertEquals(2, secondPage.getContent().size());
+        assertEquals(1, secondPage.getNumber());
+        assertEquals(3, secondPage.getSize());
+        assertFalse(secondPage.hasNext());
+    }
+
+    @Test
+    void testFindByOccasionIdInLifeStatesWithNonExistentOccasion() {
+        // Given
+        Long nonExistentOccasionId = 999L;
+
+        // When
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ActivityDto> result = activityService.findByOccasionIdInLifeStates(nonExistentOccasionId, pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(0, result.getTotalElements());
+        assertEquals(0, result.getContent().size());
+    }
+
+    @Test
+    void testFindByOccasionIdInLifeStatesWithNullId() {
+        // When & Then
+        Pageable pageable = PageRequest.of(0, 10);
+        assertThrows(IllegalArgumentException.class, () -> activityService.findByOccasionIdInLifeStates(null, pageable));
+    }
+
     // Вспомогательный метод для создания тестовой активности
     private ActivityEntity createTestActivity(String name, String description) {
         return new TransactionTemplate(transactionManager).execute(status -> {
@@ -578,6 +662,21 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                     .startDateTime(LocalDateTime.now())
                     .endDateTime(LocalDateTime.now().plusHours(2))
                     .state(State.DRAFT)
+                    .occasion(testOccasion)
+                    .build();
+            return activityRepository.save(activity);
+        });
+    }
+
+    // Вспомогательный метод для создания тестовой активности с определенным состоянием
+    private ActivityEntity createTestActivityWithState(String name, String description, State state) {
+        return new TransactionTemplate(transactionManager).execute(status -> {
+            ActivityEntity activity = ActivityEntity.builder()
+                    .name(name)
+                    .description(description)
+                    .startDateTime(LocalDateTime.now())
+                    .endDateTime(LocalDateTime.now().plusHours(2))
+                    .state(state)
                     .occasion(testOccasion)
                     .build();
             return activityRepository.save(activity);

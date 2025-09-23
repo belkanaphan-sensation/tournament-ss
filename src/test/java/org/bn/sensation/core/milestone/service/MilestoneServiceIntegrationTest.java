@@ -801,6 +801,90 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void testFindByActivityIdInLifeStates() {
+        // Given - создаем этапы с разными состояниями
+        createTestMilestoneWithState("Milestone DRAFT", State.DRAFT);
+        createTestMilestoneWithState("Milestone PLANNED", State.PLANNED);
+        createTestMilestoneWithState("Milestone IN_PROGRESS", State.IN_PROGRESS);
+        createTestMilestoneWithState("Milestone COMPLETED", State.COMPLETED);
+
+        // When
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<MilestoneDto> result = milestoneService.findByActivityIdInLifeStates(testActivity.getId(), pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(3, result.getTotalElements()); // Только PLANNED, IN_PROGRESS, COMPLETED
+        assertEquals(3, result.getContent().size());
+
+        // Проверяем, что все этапы принадлежат правильной активности и имеют life states
+        result.getContent().forEach(milestone -> {
+            assertNotNull(milestone.getActivity());
+            assertEquals(testActivity.getId(), milestone.getActivity().getId());
+            assertTrue(State.LIFE_STATES.contains(milestone.getState()));
+        });
+
+        // Проверяем, что DRAFT этапа нет в результате
+        boolean hasDraftMilestone = result.getContent().stream()
+                .anyMatch(milestone -> milestone.getState() == State.DRAFT);
+        assertFalse(hasDraftMilestone);
+    }
+
+    @Test
+    void testFindByActivityIdInLifeStatesWithPagination() {
+        // Given - создаем 5 этапов с life states
+        for (int i = 1; i <= 5; i++) {
+            createTestMilestoneWithState("Milestone " + i, State.PLANNED);
+        }
+
+        // When - запрашиваем первую страницу с размером 3
+        Pageable pageable = PageRequest.of(0, 3);
+        Page<MilestoneDto> firstPage = milestoneService.findByActivityIdInLifeStates(testActivity.getId(), pageable);
+
+        // Then
+        assertNotNull(firstPage);
+        assertEquals(5, firstPage.getTotalElements());
+        assertEquals(3, firstPage.getContent().size());
+        assertEquals(0, firstPage.getNumber());
+        assertEquals(3, firstPage.getSize());
+        assertTrue(firstPage.hasNext());
+
+        // When - запрашиваем вторую страницу
+        Pageable secondPageable = PageRequest.of(1, 3);
+        Page<MilestoneDto> secondPage = milestoneService.findByActivityIdInLifeStates(testActivity.getId(), secondPageable);
+
+        // Then
+        assertNotNull(secondPage);
+        assertEquals(5, secondPage.getTotalElements());
+        assertEquals(2, secondPage.getContent().size());
+        assertEquals(1, secondPage.getNumber());
+        assertEquals(3, secondPage.getSize());
+        assertFalse(secondPage.hasNext());
+    }
+
+    @Test
+    void testFindByActivityIdInLifeStatesWithNonExistentActivity() {
+        // Given
+        Long nonExistentActivityId = 999L;
+
+        // When
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<MilestoneDto> result = milestoneService.findByActivityIdInLifeStates(nonExistentActivityId, pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(0, result.getTotalElements());
+        assertEquals(0, result.getContent().size());
+    }
+
+    @Test
+    void testFindByActivityIdInLifeStatesWithNullId() {
+        // When & Then
+        Pageable pageable = PageRequest.of(0, 10);
+        assertThrows(IllegalArgumentException.class, () -> milestoneService.findByActivityIdInLifeStates(null, pageable));
+    }
+
+    @Test
     void testMoveMilestoneToFirst() {
         // Given
         createTestMilestoneWithOrder("First", 0);
@@ -971,6 +1055,25 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                     .state(State.DRAFT)
                     .activity(testActivity)
                     .milestoneOrder(order)
+                    .build();
+            return milestoneRepository.save(milestone);
+        });
+    }
+
+    // Вспомогательный метод для создания тестовой вехи с определенным состоянием
+    private MilestoneEntity createTestMilestoneWithState(String name, State state) {
+        return transactionTemplate.execute(status -> {
+            // Получаем максимальный порядок для данной активности
+            List<MilestoneEntity> mstns = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(testActivity.getId());
+            Integer maxOrder = mstns.isEmpty() ? null : mstns.get(mstns.size() - 1).getMilestoneOrder();
+            Integer nextOrder = (maxOrder != null) ? maxOrder + 1 : 0;
+            
+            MilestoneEntity milestone = MilestoneEntity.builder()
+                    .name(name)
+                    .description("Test Milestone Description for " + name)
+                    .state(state)
+                    .activity(testActivity)
+                    .milestoneOrder(nextOrder)
                     .build();
             return milestoneRepository.save(milestone);
         });

@@ -107,10 +107,10 @@ public class OccasionServiceImpl implements OccasionService {
         OccasionDto dto = occasionDtoMapper.toDto(occasion);
         
         // Подсчитываем количество активностей по статусам
-        long completedCount = activityRepository.countByOccasionIdAndStatus(occasion.getId(), State.COMPLETED);
+        long completedCount = activityRepository.countByOccasionIdAndState(occasion.getId(), State.COMPLETED);
 
         // Активные активности: не DRAFT, не COMPLETED (то есть READY и ACTIVE)
-        long activeCount = activityRepository.countByOccasionIdAndStatusIn(
+        long activeCount = activityRepository.countByOccasionIdAndStateIn(
                 occasion.getId(),
                 State.PLANNED,
                 State.IN_PROGRESS

@@ -8,5 +8,5 @@ public enum State {
     IN_PROGRESS,
     COMPLETED;
 
-    static List<State> LIFE_STATES = List.of(PLANNED, IN_PROGRESS, COMPLETED);
+    public static List<State> LIFE_STATES = List.of(PLANNED, IN_PROGRESS, COMPLETED);
 }
