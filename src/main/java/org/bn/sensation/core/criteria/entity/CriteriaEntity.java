@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
-import org.bn.sensation.core.milestone.entity.MilestoneCriteriaAssignmentEntity;
 
 import jakarta.persistence.*;
 import lombok.*;

@@ -1,9 +1,9 @@
-package org.bn.sensation.core.milestone.presentation;
+package org.bn.sensation.core.criteria.presentation;
 
-import org.bn.sensation.core.milestone.service.MilestoneCriteriaAssignmentService;
-import org.bn.sensation.core.milestone.service.dto.MilestoneCriteriaAssignmentDto;
-import org.bn.sensation.core.milestone.service.dto.CreateMilestoneCriteriaAssignmentRequest;
-import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneCriteriaAssignmentRequest;
+import org.bn.sensation.core.criteria.service.MilestoneCriteriaAssignmentService;
+import org.bn.sensation.core.criteria.service.dto.MilestoneCriteriaAssignmentDto;
+import org.bn.sensation.core.criteria.service.dto.CreateMilestoneCriteriaAssignmentRequest;
+import org.bn.sensation.core.criteria.service.dto.UpdateMilestoneCriteriaAssignmentRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;

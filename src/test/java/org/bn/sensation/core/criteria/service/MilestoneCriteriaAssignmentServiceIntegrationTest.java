@@ -1,4 +1,4 @@
-package org.bn.sensation.core.milestone.service;
+package org.bn.sensation.core.criteria.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,13 +14,13 @@ import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 import org.bn.sensation.core.criteria.repository.CriteriaRepository;
-import org.bn.sensation.core.milestone.entity.MilestoneCriteriaAssignmentEntity;
+import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
-import org.bn.sensation.core.milestone.repository.MilestoneCriteriaAssignmentRepository;
+import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
-import org.bn.sensation.core.milestone.service.dto.CreateMilestoneCriteriaAssignmentRequest;
-import org.bn.sensation.core.milestone.service.dto.MilestoneCriteriaAssignmentDto;
-import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneCriteriaAssignmentRequest;
+import org.bn.sensation.core.criteria.service.dto.CreateMilestoneCriteriaAssignmentRequest;
+import org.bn.sensation.core.criteria.service.dto.MilestoneCriteriaAssignmentDto;
+import org.bn.sensation.core.criteria.service.dto.UpdateMilestoneCriteriaAssignmentRequest;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;

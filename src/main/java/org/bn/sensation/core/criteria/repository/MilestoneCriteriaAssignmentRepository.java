@@ -1,9 +1,9 @@
-package org.bn.sensation.core.milestone.repository;
+package org.bn.sensation.core.criteria.repository;
 
 import java.util.Optional;
 
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.milestone.entity.MilestoneCriteriaAssignmentEntity;
+import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
