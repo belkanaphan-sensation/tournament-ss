@@ -1,19 +1,24 @@
-package org.bn.sensation.core.milestone.service;
+package org.bn.sensation.core.criteria.service;
+
+import java.util.List;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
+import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.criteria.repository.CriteriaRepository;
-import org.bn.sensation.core.milestone.entity.MilestoneCriteriaAssignmentEntity;
+import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
+import org.bn.sensation.core.criteria.service.dto.CreateMilestoneCriteriaAssignmentRequest;
+import org.bn.sensation.core.criteria.service.dto.MilestoneCriteriaAssignmentDto;
+import org.bn.sensation.core.criteria.service.dto.UpdateMilestoneCriteriaAssignmentRequest;
+import org.bn.sensation.core.criteria.service.mapper.CreateMilestoneCriteriaAssignmentRequestMapper;
+import org.bn.sensation.core.criteria.service.mapper.MilestoneCriteriaAssignmentDtoMapper;
+import org.bn.sensation.core.criteria.service.mapper.UpdateMilestoneCriteriaAssignmentRequestMapper;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
-import org.bn.sensation.core.milestone.repository.MilestoneCriteriaAssignmentRepository;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
-import org.bn.sensation.core.milestone.service.dto.CreateMilestoneCriteriaAssignmentRequest;
-import org.bn.sensation.core.milestone.service.dto.MilestoneCriteriaAssignmentDto;
-import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneCriteriaAssignmentRequest;
-import org.bn.sensation.core.milestone.service.mapper.CreateMilestoneCriteriaAssignmentRequestMapper;
-import org.bn.sensation.core.milestone.service.mapper.MilestoneCriteriaAssignmentDtoMapper;
-import org.bn.sensation.core.milestone.service.mapper.UpdateMilestoneCriteriaAssignmentRequestMapper;
+import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
+import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
+import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -34,6 +39,8 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
     private final UpdateMilestoneCriteriaAssignmentRequestMapper updateMilestoneCriteriaAssignmentRequestMapper;
     private final MilestoneRepository milestoneRepository;
     private final CriteriaRepository criteriaRepository;
+    private final UserActivityAssignmentRepository userActivityAssignmentRepository;
+    private final CurrentUser currentUser;
 
     @Override
     public BaseRepository<MilestoneCriteriaAssignmentEntity> getRepository() {
@@ -49,6 +56,24 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
     @Transactional(readOnly = true)
     public Page<MilestoneCriteriaAssignmentDto> findAll(Pageable pageable) {
         return milestoneCriteriaAssignmentRepository.findAll(pageable).map(milestoneCriteriaAssignmentDtoMapper::toDto);
+    }
+
+    @Override
+    public List<MilestoneCriteriaAssignmentDto> findByMilestoneIdForCurrentUser(Long milestoneId) {
+        Preconditions.checkArgument(milestoneId != null, "Milestone ID не может быть null");
+        MilestoneEntity milestone = milestoneRepository.findById(milestoneId)
+                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
+        List<MilestoneCriteriaAssignmentEntity> mcae = milestoneCriteriaAssignmentRepository.findByMilestoneId(milestoneId);
+        if (mcae.isEmpty()) {
+            return List.of();
+        }
+        UserActivityAssignmentEntity uaae = userActivityAssignmentRepository.findByUserIdAndActivityId(currentUser.getSecurityUser().getId(), milestone.getActivity().getId())
+                .orElseThrow(() -> new EntityNotFoundException("Данный юзер не подписан на активность, включающую этап с id: " + milestoneId));
+
+        return mcae.stream()
+                .filter(mc -> mc.getPartnerSide() == null || mc.getPartnerSide() == uaae.getPartnerSide())
+                .map(milestoneCriteriaAssignmentDtoMapper::toDto)
+                .toList();
     }
 
     @Override

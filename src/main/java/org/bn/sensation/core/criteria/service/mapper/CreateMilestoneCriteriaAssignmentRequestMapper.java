@@ -1,8 +1,8 @@
-package org.bn.sensation.core.milestone.service.mapper;
+package org.bn.sensation.core.criteria.service.mapper;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
-import org.bn.sensation.core.milestone.entity.MilestoneCriteriaAssignmentEntity;
-import org.bn.sensation.core.milestone.service.dto.CreateMilestoneCriteriaAssignmentRequest;
+import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
+import org.bn.sensation.core.criteria.service.dto.CreateMilestoneCriteriaAssignmentRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

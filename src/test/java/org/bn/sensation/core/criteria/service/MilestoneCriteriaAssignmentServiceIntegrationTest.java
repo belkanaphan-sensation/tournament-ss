@@ -1,8 +1,9 @@
-package org.bn.sensation.core.milestone.service;
+package org.bn.sensation.core.criteria.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -13,21 +14,20 @@ import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
+import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.criteria.repository.CriteriaRepository;
-import org.bn.sensation.core.milestone.entity.MilestoneCriteriaAssignmentEntity;
+import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
+import org.bn.sensation.core.criteria.service.dto.CreateMilestoneCriteriaAssignmentRequest;
+import org.bn.sensation.core.criteria.service.dto.MilestoneCriteriaAssignmentDto;
+import org.bn.sensation.core.criteria.service.dto.UpdateMilestoneCriteriaAssignmentRequest;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
-import org.bn.sensation.core.milestone.repository.MilestoneCriteriaAssignmentRepository;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
-import org.bn.sensation.core.milestone.service.dto.CreateMilestoneCriteriaAssignmentRequest;
-import org.bn.sensation.core.milestone.service.dto.MilestoneCriteriaAssignmentDto;
-import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneCriteriaAssignmentRequest;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.organization.repository.OrganizationRepository;
-import org.bn.sensation.core.user.entity.Role;
-import org.bn.sensation.core.user.entity.UserEntity;
-import org.bn.sensation.core.user.entity.UserStatus;
+import org.bn.sensation.core.user.entity.*;
+import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
 import org.bn.sensation.core.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +38,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.bn.sensation.security.SecurityUser;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -67,6 +71,9 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserActivityAssignmentRepository userActivityAssignmentRepository;
 
     @Autowired
     private TransactionTemplate transactionTemplate;
@@ -617,6 +624,279 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         assertTrue(criteriaRepository.existsById(testCriteria.getId()));
     }
 
+    // ========== Tests for findByMilestoneIdForCurrentUser method ==========
+
+    @Test
+    void testFindByMilestoneIdForCurrentUser_Success() {
+        // Given
+        // Создаем назначение пользователя на активность
+        UserActivityAssignmentEntity userActivityAssignment = UserActivityAssignmentEntity.builder()
+                .user(testUser)
+                .activity(testMilestone.getActivity())
+                .position(UserActivityPosition.PARTICIPANT)
+                .partnerSide(PartnerSide.LEADER)
+                .build();
+        userActivityAssignmentRepository.save(userActivityAssignment);
+
+        // Создаем назначения критериев на этап
+        createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
+        
+        CriteriaEntity criteria2 = CriteriaEntity.builder()
+                .name("Ведение")
+                .build();
+        criteriaRepository.save(criteria2);
+        createTestAssignment(testMilestone, criteria2, PartnerSide.FOLLOWER);
+        
+        CriteriaEntity criteria3 = CriteriaEntity.builder()
+                .name("Музыкальность")
+                .build();
+        criteriaRepository.save(criteria3);
+        createTestAssignment(testMilestone, criteria3, null); // null означает для всех
+
+        // When
+        List<MilestoneCriteriaAssignmentDto> result = milestoneCriteriaAssignmentService.findByMilestoneIdForCurrentUser(testMilestone.getId());
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size()); // Только LEADER и null (для всех)
+        
+        // Проверяем, что возвращены только подходящие назначения
+        assertTrue(result.stream().anyMatch(dto -> dto.getPartnerSide() == PartnerSide.LEADER));
+        assertTrue(result.stream().anyMatch(dto -> dto.getPartnerSide() == null));
+        assertFalse(result.stream().anyMatch(dto -> dto.getPartnerSide() == PartnerSide.FOLLOWER));
+    }
+
+    @Test
+    void testFindByMilestoneIdForCurrentUser_WithFollowerPartnerSide() {
+        // Given
+        // Создаем назначение пользователя на активность как FOLLOWER
+        UserActivityAssignmentEntity userActivityAssignment = UserActivityAssignmentEntity.builder()
+                .user(testUser)
+                .activity(testMilestone.getActivity())
+                .position(UserActivityPosition.PARTICIPANT)
+                .partnerSide(PartnerSide.FOLLOWER)
+                .build();
+        userActivityAssignmentRepository.save(userActivityAssignment);
+
+        // Создаем назначения критериев на этап
+        createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
+        
+        CriteriaEntity criteria2 = CriteriaEntity.builder()
+                .name("Ведение")
+                .build();
+        criteriaRepository.save(criteria2);
+        createTestAssignment(testMilestone, criteria2, PartnerSide.FOLLOWER);
+        
+        CriteriaEntity criteria3 = CriteriaEntity.builder()
+                .name("Музыкальность")
+                .build();
+        criteriaRepository.save(criteria3);
+        createTestAssignment(testMilestone, criteria3, null);
+
+        // When
+        List<MilestoneCriteriaAssignmentDto> result = milestoneCriteriaAssignmentService.findByMilestoneIdForCurrentUser(testMilestone.getId());
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size()); // Только FOLLOWER и null (для всех)
+        
+        // Проверяем, что возвращены только подходящие назначения
+        assertTrue(result.stream().anyMatch(dto -> dto.getPartnerSide() == PartnerSide.FOLLOWER));
+        assertTrue(result.stream().anyMatch(dto -> dto.getPartnerSide() == null));
+        assertFalse(result.stream().anyMatch(dto -> dto.getPartnerSide() == PartnerSide.LEADER));
+    }
+
+    @Test
+    void testFindByMilestoneIdForCurrentUser_WithNullPartnerSide() {
+        // Given
+        // Создаем назначение пользователя на активность без указания стороны
+        UserActivityAssignmentEntity userActivityAssignment = UserActivityAssignmentEntity.builder()
+                .user(testUser)
+                .activity(testMilestone.getActivity())
+                .position(UserActivityPosition.PARTICIPANT)
+                .partnerSide(null)
+                .build();
+        userActivityAssignmentRepository.save(userActivityAssignment);
+
+        // Создаем назначения критериев на этап
+        createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
+        
+        CriteriaEntity criteria2 = CriteriaEntity.builder()
+                .name("Ведение")
+                .build();
+        criteriaRepository.save(criteria2);
+        createTestAssignment(testMilestone, criteria2, PartnerSide.FOLLOWER);
+        
+        CriteriaEntity criteria3 = CriteriaEntity.builder()
+                .name("Музыкальность")
+                .build();
+        criteriaRepository.save(criteria3);
+        createTestAssignment(testMilestone, criteria3, null);
+
+        // When
+        List<MilestoneCriteriaAssignmentDto> result = milestoneCriteriaAssignmentService.findByMilestoneIdForCurrentUser(testMilestone.getId());
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size()); // Только null (для всех)
+        
+        // Проверяем, что возвращено только назначение для всех
+        assertTrue(result.stream().allMatch(dto -> dto.getPartnerSide() == null));
+    }
+
+    @Test
+    void testFindByMilestoneIdForCurrentUser_EmptyAssignments() {
+        // Given
+        // Создаем назначение пользователя на активность
+        UserActivityAssignmentEntity userActivityAssignment = UserActivityAssignmentEntity.builder()
+                .user(testUser)
+                .activity(testMilestone.getActivity())
+                .position(UserActivityPosition.PARTICIPANT)
+                .partnerSide(PartnerSide.LEADER)
+                .build();
+        userActivityAssignmentRepository.save(userActivityAssignment);
+
+        // Не создаем никаких назначений критериев на этап
+
+        // When
+        List<MilestoneCriteriaAssignmentDto> result = milestoneCriteriaAssignmentService.findByMilestoneIdForCurrentUser(testMilestone.getId());
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testFindByMilestoneIdForCurrentUser_NonExistentMilestone() {
+        // Given
+        Long nonExistentMilestoneId = 999L;
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            milestoneCriteriaAssignmentService.findByMilestoneIdForCurrentUser(nonExistentMilestoneId);
+        });
+    }
+
+    @Test
+    void testFindByMilestoneIdForCurrentUser_NullMilestoneId() {
+        // Given
+        // Настраиваем SecurityContext с тестовым пользователем
+        setupSecurityContext(testUser);
+        
+        // When & Then
+        assertThrows(IllegalArgumentException.class, () -> {
+            milestoneCriteriaAssignmentService.findByMilestoneIdForCurrentUser(null);
+        });
+    }
+
+    @Test
+    void testFindByMilestoneIdForCurrentUser_UserNotAssignedToActivity() {
+        // Given
+        // Настраиваем SecurityContext с тестовым пользователем
+        setupSecurityContext(testUser);
+        
+        // Создаем назначения критериев на этап
+        createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
+        
+        // НЕ создаем назначение пользователя на активность
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            milestoneCriteriaAssignmentService.findByMilestoneIdForCurrentUser(testMilestone.getId());
+        });
+    }
+
+    @Test
+    void testFindByMilestoneIdForCurrentUser_UserAssignedToDifferentActivity() {
+        // Given
+        // Настраиваем SecurityContext с тестовым пользователем
+        setupSecurityContext(testUser);
+        
+        // Создаем другую активность
+        ActivityEntity differentActivity = ActivityEntity.builder()
+                .name("Different Activity")
+                .description("Different Description")
+                .startDateTime(java.time.LocalDateTime.now().plusDays(1))
+                .endDateTime(java.time.LocalDateTime.now().plusDays(1).plusHours(2))
+                .address(org.bn.sensation.core.common.entity.Address.builder()
+                        .country("Russia")
+                        .city("Moscow")
+                        .streetName("Different Street")
+                        .streetNumber("3")
+                        .comment("Different Address")
+                        .build())
+                .state(org.bn.sensation.core.common.entity.State.DRAFT)
+                .occasion(testMilestone.getActivity().getOccasion())
+                .build();
+        differentActivity = activityRepository.save(differentActivity);
+
+        // Создаем назначение пользователя на ДРУГУЮ активность
+        UserActivityAssignmentEntity userActivityAssignment = UserActivityAssignmentEntity.builder()
+                .user(testUser)
+                .activity(differentActivity)
+                .position(UserActivityPosition.PARTICIPANT)
+                .partnerSide(PartnerSide.LEADER)
+                .build();
+        userActivityAssignmentRepository.save(userActivityAssignment);
+
+        // Создаем назначения критериев на этап
+        createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            milestoneCriteriaAssignmentService.findByMilestoneIdForCurrentUser(testMilestone.getId());
+        });
+    }
+
+    @Test
+    void testFindByMilestoneIdForCurrentUser_MultipleAssignmentsWithDifferentPartnerSides() {
+        // Given
+        // Настраиваем SecurityContext с тестовым пользователем
+        setupSecurityContext(testUser);
+        
+        // Создаем назначение пользователя на активность как LEADER
+        UserActivityAssignmentEntity userActivityAssignment = UserActivityAssignmentEntity.builder()
+                .user(testUser)
+                .activity(testMilestone.getActivity())
+                .position(UserActivityPosition.PARTICIPANT)
+                .partnerSide(PartnerSide.LEADER)
+                .build();
+        userActivityAssignmentRepository.save(userActivityAssignment);
+
+        // Создаем несколько критериев и назначений
+        CriteriaEntity criteria1 = CriteriaEntity.builder().name("Техника").build();
+        criteriaRepository.save(criteria1);
+        createTestAssignment(testMilestone, criteria1, PartnerSide.LEADER);
+
+        CriteriaEntity criteria2 = CriteriaEntity.builder().name("Ведение").build();
+        criteriaRepository.save(criteria2);
+        createTestAssignment(testMilestone, criteria2, PartnerSide.FOLLOWER);
+
+        CriteriaEntity criteria3 = CriteriaEntity.builder().name("Музыкальность").build();
+        criteriaRepository.save(criteria3);
+        createTestAssignment(testMilestone, criteria3, null);
+
+        CriteriaEntity criteria4 = CriteriaEntity.builder().name("Артистизм").build();
+        criteriaRepository.save(criteria4);
+        createTestAssignment(testMilestone, criteria4, PartnerSide.LEADER);
+
+        // When
+        List<MilestoneCriteriaAssignmentDto> result = milestoneCriteriaAssignmentService.findByMilestoneIdForCurrentUser(testMilestone.getId());
+
+        // Then
+        assertNotNull(result);
+        assertEquals(3, result.size()); // LEADER, LEADER, null
+        
+        // Проверяем, что возвращены только подходящие назначения
+        long leaderCount = result.stream().filter(dto -> dto.getPartnerSide() == PartnerSide.LEADER).count();
+        long nullCount = result.stream().filter(dto -> dto.getPartnerSide() == null).count();
+        long followerCount = result.stream().filter(dto -> dto.getPartnerSide() == PartnerSide.FOLLOWER).count();
+        
+        assertEquals(2, leaderCount);
+        assertEquals(1, nullCount);
+        assertEquals(0, followerCount);
+    }
+
     // Вспомогательный метод для создания тестового назначения
     private MilestoneCriteriaAssignmentEntity createTestAssignment(MilestoneEntity milestone, CriteriaEntity criteria, PartnerSide partnerSide) {
         return transactionTemplate.execute(status -> {
@@ -628,5 +908,13 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                     .build();
             return milestoneCriteriaAssignmentRepository.save(assignment);
         });
+    }
+
+    // Вспомогательный метод для настройки SecurityContext с тестовым пользователем
+    private void setupSecurityContext(UserEntity user) {
+        SecurityUser securityUser = (SecurityUser) SecurityUser.fromUser(user);
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities()));
+        SecurityContextHolder.setContext(context);
     }
 }

@@ -10,7 +10,7 @@ import org.bn.sensation.core.criteria.service.dto.UpdateCriteriaRequest;
 import org.bn.sensation.core.criteria.service.mapper.CriteriaDtoMapper;
 import org.bn.sensation.core.criteria.service.mapper.CreateCriteriaRequestMapper;
 import org.bn.sensation.core.criteria.service.mapper.UpdateCriteriaRequestMapper;
-import org.bn.sensation.core.milestone.repository.MilestoneCriteriaAssignmentRepository;
+import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

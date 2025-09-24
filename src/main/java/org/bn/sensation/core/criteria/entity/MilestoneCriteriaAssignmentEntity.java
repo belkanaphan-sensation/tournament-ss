@@ -1,10 +1,10 @@
-package org.bn.sensation.core.milestone.entity;
+package org.bn.sensation.core.criteria.entity;
 
 import java.math.BigDecimal;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.common.entity.PartnerSide;
-import org.bn.sensation.core.criteria.entity.CriteriaEntity;
+import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 
 import jakarta.persistence.*;
 import lombok.*;

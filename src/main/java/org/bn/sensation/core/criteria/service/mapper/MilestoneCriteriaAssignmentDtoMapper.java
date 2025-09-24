@@ -1,9 +1,9 @@
-package org.bn.sensation.core.milestone.service.mapper;
+package org.bn.sensation.core.criteria.service.mapper;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.mapper.EntityLinkMapper;
-import org.bn.sensation.core.milestone.entity.MilestoneCriteriaAssignmentEntity;
-import org.bn.sensation.core.milestone.service.dto.MilestoneCriteriaAssignmentDto;
+import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
+import org.bn.sensation.core.criteria.service.dto.MilestoneCriteriaAssignmentDto;
 import org.mapstruct.Mapper;
 
 @Mapper(config = BaseDtoMapper.class, uses = {EntityLinkMapper.class})

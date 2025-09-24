@@ -1,7 +1,6 @@
-package org.bn.sensation.core.milestone.service.dto;
+package org.bn.sensation.core.criteria.service.dto;
 
-import org.bn.sensation.core.common.dto.BaseDto;
-import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.common.dto.EmptyDto;
 import org.bn.sensation.core.common.entity.PartnerSide;
 
 import java.math.BigDecimal;
@@ -9,6 +8,7 @@ import java.math.BigDecimal;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,14 +21,14 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Назначение критерия оценки этапу")
-public class MilestoneCriteriaAssignmentDto extends BaseDto {
+@Schema(description = "Запрос на обновление назначения критерия оценки этапу")
+public class UpdateMilestoneCriteriaAssignmentRequest extends EmptyDto {
 
-    @Schema(description = "Этап")
-    private EntityLinkDto milestone;
+    @Schema(description = "ID этапа", example = "1")
+    private Long milestoneId;
 
-    @Schema(description = "Критерий оценки")
-    private EntityLinkDto criteria;
+    @Schema(description = "ID критерия оценки", example = "1")
+    private Long criteriaId;
 
     @Schema(description = "Сторона в соревновании, к которой относится критерий в рамках этапа", example = "LEADER")
     private PartnerSide partnerSide;
@@ -36,6 +36,7 @@ public class MilestoneCriteriaAssignmentDto extends BaseDto {
     @Schema(description = "Вес критерия в рамках этапа", example = "1.0")
     private BigDecimal weight;
 
+    @Positive
     @Schema(description = "Максимальный балл шкалы для критерия в рамках этапа", example = "10")
     private Integer scale;
 }
