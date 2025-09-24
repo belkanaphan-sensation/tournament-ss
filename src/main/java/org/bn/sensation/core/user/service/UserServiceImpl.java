@@ -20,6 +20,7 @@ import org.bn.sensation.core.user.service.mapper.CreateUserRequestMapper;
 import org.bn.sensation.core.user.service.mapper.UpdateUserRequestMapper;
 import org.bn.sensation.core.user.service.mapper.UserDtoMapper;
 import org.bn.sensation.security.AesPasswordEncoder;
+import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
@@ -45,6 +46,7 @@ public class UserServiceImpl implements UserService {
     private final UserDtoMapper userDtoMapper;
     private final CreateUserRequestMapper createUserRequestMapper;
     private final UpdateUserRequestMapper updateUserRequestMapper;
+    private final CurrentUser currentUser;
 
     //    private final PasswordEncoder passwordEncoder;
     private final AesPasswordEncoder passwordEncoder;
@@ -57,6 +59,11 @@ public class UserServiceImpl implements UserService {
                     userDto.setPassword(passwordEncoder.decrypt(userDto.getPassword()));
                     return userDto;
                 });
+    }
+
+    @Override
+    public Optional<UserDto> getCurrentUser() {
+        return Optional.of(userDtoMapper.toDto(currentUser.getSecurityUser()));
     }
 
     @Override

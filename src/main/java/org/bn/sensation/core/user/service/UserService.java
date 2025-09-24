@@ -5,12 +5,7 @@ import java.util.Optional;
 
 import org.bn.sensation.core.common.service.BaseCrudService;
 import org.bn.sensation.core.user.entity.UserEntity;
-import org.bn.sensation.core.user.service.dto.ChangePasswordRequest;
-import org.bn.sensation.core.user.service.dto.CreateUserRequest;
-import org.bn.sensation.core.user.service.dto.ForgotPasswordRequest;
-import org.bn.sensation.core.user.service.dto.RegistrationRequest;
-import org.bn.sensation.core.user.service.dto.UpdateUserRequest;
-import org.bn.sensation.core.user.service.dto.UserDto;
+import org.bn.sensation.core.user.service.dto.*;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public interface UserService extends BaseCrudService<
@@ -32,4 +27,6 @@ public interface UserService extends BaseCrudService<
     }
 
     UserDto assignUserToOrganization(Long userId, Long organizationId);
+
+    Optional<UserDto> getCurrentUser();
 }

@@ -6,6 +6,7 @@ import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.core.common.dto.PersonDto;
+import org.bn.sensation.core.user.entity.UserStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -30,7 +31,7 @@ public class UserDto extends BaseDto {
     private String password;
 
     @Schema(description = "Статус пользователя", example = "ACTIVE")
-    private String status;
+    private UserStatus status;
 
     @Schema(description = "Личная информация")
     private PersonDto person;
