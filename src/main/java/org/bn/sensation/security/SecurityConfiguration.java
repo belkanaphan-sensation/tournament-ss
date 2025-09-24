@@ -4,15 +4,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -39,7 +45,8 @@ public class SecurityConfiguration {
             "/swagger-ui/**",
             "/webjars/**",
             "/swagger-ui.html",
-            "/public/**"
+            "/public/**",
+            "/api/v1/auth/login"
     };
 
     @Bean
@@ -47,7 +54,7 @@ public class SecurityConfiguration {
         http
                 //todo: рассмотреть включение на проде
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.disable())
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
@@ -56,8 +63,29 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll()
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            // Вместо редиректа возвращаем чистый 401
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Unauthorized\"}");
+                        })
+                )
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .formLogin(f -> f
-                        .loginProcessingUrl("/api/v1/auth/login")
+                        .loginProcessingUrl("/api/v1/auth/login") // Spring создаст endpoint
+                        .successHandler((request, response, authentication) -> {
+                            // Успешный логин - возвращаем JSON
+                            response.setStatus(HttpStatus.OK.value());
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"message\": \"Login successful\"}");
+                        })
+                        .failureHandler((request, response, exception) -> {
+                            // Ошибка логина - возвращаем JSON ошибку
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Login failed: " + exception.getMessage() + "\"}");
+                        })
                         .permitAll()
                 )
                 .logout(logout -> logout
@@ -66,6 +94,8 @@ public class SecurityConfiguration {
                         .deleteCookies(sessionCookieName)
                         .invalidateHttpSession(true)
                         .permitAll()
+                        .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler()) // это надо чтобы после logout он не
+                        // пытался перейти на login который не рабочий
                 )
                 .headers(headers -> headers
                         .httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).preload(true))
@@ -82,6 +112,26 @@ public class SecurityConfiguration {
                         .referrerPolicy(rp -> rp.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
                 );
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "http://192.168.0.103:5173" // это адрес компа вместо localhost, можно его глянуть в ipconfig (на винде). Что бы при перезагрузке роутера
+                //он оставался тем же, надо его в роутере задать как статический для MAC адреса компа, на котором запускается сервер
+                //его надо будет вынести в отдельную переменную в application.properties. Нужен конкретный адрес UI сервера, чтобы cors работал
+                //может как то по другому можно, но я пока не знаю
+//                ,"http://25.3.135.219:5173" //это из хамачи
+        ));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean
