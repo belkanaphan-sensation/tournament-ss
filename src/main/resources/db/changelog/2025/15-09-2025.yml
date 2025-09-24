@@ -13,7 +13,6 @@ databaseChangeLog:
                 activity_id BIGINT NOT NULL,
                 position VARCHAR(50) NOT NULL,
                 partner_side VARCHAR(20),
-                assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

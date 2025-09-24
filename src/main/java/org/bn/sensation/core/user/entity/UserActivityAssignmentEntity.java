@@ -1,13 +1,14 @@
 package org.bn.sensation.core.user.entity;
 
-import java.time.LocalDateTime;
-
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.common.entity.PartnerSide;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
@@ -35,7 +36,4 @@ public class UserActivityAssignmentEntity extends BaseEntity {
     @Column(name = "partner_side")
     private PartnerSide partnerSide;
 
-    @Column(name = "assigned_at")
-    @Builder.Default
-    private LocalDateTime assignedAt = LocalDateTime.now();
 }

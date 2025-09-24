@@ -14,6 +14,7 @@ import org.bn.sensation.core.user.service.dto.UpdateUserActivityAssignmentReques
 import org.bn.sensation.core.user.service.dto.UserActivityAssignmentDto;
 import org.bn.sensation.core.user.service.mapper.CreateUserActivityAssignmentRequestMapper;
 import org.bn.sensation.core.user.service.mapper.UserActivityAssignmentDtoMapper;
+import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
     private final CreateUserActivityAssignmentRequestMapper createUserActivityAssignmentRequestMapper;
     private final UserRepository userRepository;
     private final ActivityRepository activityRepository;
+    private final CurrentUser currentUser;
 
     @Override
     public BaseRepository<UserActivityAssignmentEntity> getRepository() {
@@ -137,13 +139,16 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
     @Override
     @Transactional(readOnly = true)
     public UserActivityAssignmentDto findByUserIdAndActivityId(Long userId, Long activityId) {
-        Preconditions.checkArgument(userId != null, "User ID не может быть null");
         Preconditions.checkArgument(activityId != null, "Activity ID не может быть null");
+        Preconditions.checkArgument(userId != null, "User ID не может быть null");
+        return getByUserIdAndActivityId(userId, activityId);
+    }
 
-        UserActivityAssignmentEntity assignment = userActivityAssignmentRepository.findByUserIdAndActivityId(userId, activityId)
-                .orElseThrow(() -> new EntityNotFoundException("Назначение не найдено для пользователя " + userId + " и активности " + activityId));
-
-        return userActivityAssignmentDtoMapper.toDto(assignment);
+    @Override
+    @Transactional(readOnly = true)
+    public UserActivityAssignmentDto findByActivityIdForCurrentUser(Long activityId) {
+        Preconditions.checkArgument(activityId != null, "Activity ID не может быть null");
+        return getByUserIdAndActivityId(currentUser.getSecurityUser().getId(), activityId);
     }
 
     @Override
@@ -178,4 +183,12 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
 
         return userActivityAssignmentRepository.findByActivityIdAndPosition(activityId, activityRole, pageable).map(userActivityAssignmentDtoMapper::toDto);
     }
+
+    private UserActivityAssignmentDto getByUserIdAndActivityId(Long userId, Long activityId) {
+        UserActivityAssignmentEntity assignment = userActivityAssignmentRepository.findByUserIdAndActivityId(userId, activityId)
+                .orElseThrow(() -> new EntityNotFoundException("Назначение не найдено для пользователя " + userId + " и активности " + activityId));
+
+        return userActivityAssignmentDtoMapper.toDto(assignment);
+    }
+
 }
