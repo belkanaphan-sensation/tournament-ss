@@ -4,7 +4,9 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.entity.Person;
+import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.core.user.entity.UserEntity;
 import org.bn.sensation.core.user.entity.UserStatus;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,15 +19,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityUser implements UserDetails {
 
-    @Getter
-    private final Long id;
     private final String username;
     private final String password;
+    private final Set<SimpleGrantedAuthority> authorities;
+
+    @Getter
+    private final Long id;
     @Getter
     private final UserStatus status;
     @Getter
     private final Person person;
-    private final Set<SimpleGrantedAuthority> authorities;
+    @Getter
+    private final Set<Role> roles;
+    @Getter
+    private final Set<EntityLinkDto> organizations;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -64,13 +71,17 @@ public class SecurityUser implements UserDetails {
 
     public static UserDetails fromUser(UserEntity user) {
         return new SecurityUser(
-                user.getId(),
                 user.getUsername(),
                 user.getPassword(),
-                user.getStatus(),
-                user.getPerson().toBuilder().build(),
                 user.getRoles().stream()
                         .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
+                        .collect(Collectors.toSet()),
+                user.getId(),
+                user.getStatus(),
+                user.getPerson().toBuilder().build(),
+                user.getRoles(),
+                user.getOrganizations().stream()
+                        .map(o -> new EntityLinkDto(o.getId(), o.getName()))
                         .collect(Collectors.toSet()));
     }
 }
