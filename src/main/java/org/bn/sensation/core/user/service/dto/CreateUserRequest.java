@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
 import org.bn.sensation.core.user.entity.Role;
+import org.bn.sensation.core.user.entity.UserStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -61,7 +62,7 @@ public class CreateUserRequest extends EmptyDto {
 
     @NotBlank
     @Schema(description = "Статус пользователя", example = "ACTIVE")
-    private String status;
+    private UserStatus status;
 
     @Schema(description = "ID организации")
     private Set<Long> organizationIds;

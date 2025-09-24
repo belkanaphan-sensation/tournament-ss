@@ -2,6 +2,7 @@ package org.bn.sensation.security;
 
 import lombok.Getter;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
@@ -11,7 +12,8 @@ import org.springframework.web.context.annotation.RequestScope;
 public class CurrentUser {
     private final SecurityUser securityUser;
 
-    public CurrentUser(Authentication authentication) {
+    public CurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getPrincipal() == null) {
             throw new IllegalStateException("No authentication");
         }

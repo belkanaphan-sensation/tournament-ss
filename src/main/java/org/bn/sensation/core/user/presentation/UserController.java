@@ -6,6 +6,7 @@ import org.bn.sensation.core.user.service.dto.UpdateUserRequest;
 import org.bn.sensation.core.user.service.dto.UserDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,10 +29,18 @@ public class UserController {
 
     @Operation(summary = "Получить пользователя по ID")
     @GetMapping(path = "/{id}")
-    public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
+    public ResponseEntity<UserDto> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return userService.findById(id)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(404).build());
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    @Operation(summary = "Получить данные о текущем залогиненом пользователе")
+    @GetMapping(path = "/currentUser")
+    public ResponseEntity<UserDto> getCurrentUser() {
+        return userService.getCurrentUser()
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }
 
     @Operation(summary = "Получить всех пользователей с пагинацией")
