@@ -288,26 +288,6 @@ class UserServiceSecurityIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void testUserStatusValidation() {
-        // Given
-        CreateUserRequest request = CreateUserRequest.builder()
-                .username("statususer")
-                .password("password123")
-                .name("Status")
-                .surname("User")
-                .email("status@example.com")
-                .status("INVALID_STATUS") // Invalid status
-                .roles(Set.of(Role.USER))
-                .organizationIds(Set.of(testOrganization.getId()))
-                .build();
-
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            userService.create(request);
-        });
-    }
-
-    @Test
     void testUserOrganizationAssignmentValidation() {
         // Given
         CreateUserRequest request = CreateUserRequest.builder()
@@ -316,7 +296,7 @@ class UserServiceSecurityIntegrationTest extends AbstractIntegrationTest {
                 .name("Org")
                 .surname("User")
                 .email("org@example.com")
-                .status("ACTIVE")
+                .status(UserStatus.ACTIVE)
                 .roles(Set.of(Role.USER))
                 .organizationIds(Set.of(999L)) // Non-existent organization
                 .build();
@@ -353,22 +333,6 @@ class UserServiceSecurityIntegrationTest extends AbstractIntegrationTest {
         // Verify dependencies still exist (no cascade delete)
         // Роли теперь enum, не нужно проверять в БД
         assertTrue(organizationRepository.existsById(testOrganization.getId()));
-    }
-
-    @Test
-    void testUserUpdateWithInvalidData() {
-        // Given
-        UpdateUserRequest request = UpdateUserRequest.builder()
-                .name("") // Empty name
-                .surname("User")
-                .email("invalid-email") // Invalid email
-                .status("INVALID_STATUS") // Invalid status
-                .build();
-
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            userService.update(regularUser.getId(), request);
-        });
     }
 
     @Test

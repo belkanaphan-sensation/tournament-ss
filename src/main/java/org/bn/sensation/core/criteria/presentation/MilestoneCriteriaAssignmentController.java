@@ -1,11 +1,14 @@
 package org.bn.sensation.core.criteria.presentation;
 
+import java.util.List;
+
 import org.bn.sensation.core.criteria.service.MilestoneCriteriaAssignmentService;
-import org.bn.sensation.core.criteria.service.dto.MilestoneCriteriaAssignmentDto;
 import org.bn.sensation.core.criteria.service.dto.CreateMilestoneCriteriaAssignmentRequest;
+import org.bn.sensation.core.criteria.service.dto.MilestoneCriteriaAssignmentDto;
 import org.bn.sensation.core.criteria.service.dto.UpdateMilestoneCriteriaAssignmentRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -30,10 +33,10 @@ public class MilestoneCriteriaAssignmentController {
 
     @Operation(summary = "Получить назначение по ID")
     @GetMapping(path = "/{id}")
-    public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
+    public ResponseEntity<MilestoneCriteriaAssignmentDto> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return milestoneCriteriaAssignmentService.findById(id)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(404).build());
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @Operation(summary = "Получить назначение по ID этапа и критерия")
@@ -45,6 +48,12 @@ public class MilestoneCriteriaAssignmentController {
         return ResponseEntity.ok(assignment);
     }
 
+    @Operation(summary = "Получить критерии для этапа для текущего юзера")
+    @GetMapping(path = "/milestone/{milestoneId}/currentUser")
+    public ResponseEntity<List<MilestoneCriteriaAssignmentDto>> getByMilestoneIdForCurrentUser(
+            @Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+        return ResponseEntity.ok(milestoneCriteriaAssignmentService.findByMilestoneIdForCurrentUser(milestoneId));
+    }
 
     @Operation(summary = "Получить все назначения")
     @GetMapping

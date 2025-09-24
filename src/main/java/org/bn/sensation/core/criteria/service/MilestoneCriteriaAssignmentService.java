@@ -1,5 +1,7 @@
 package org.bn.sensation.core.criteria.service;
 
+import java.util.List;
+
 import org.bn.sensation.core.common.service.BaseCrudService;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.criteria.service.dto.CreateMilestoneCriteriaAssignmentRequest;
@@ -22,4 +24,6 @@ public interface MilestoneCriteriaAssignmentService extends BaseCrudService<
     Page<MilestoneCriteriaAssignmentDto> findByMilestoneId(@NotNull Long milestoneId, Pageable pageable);
 
     Page<MilestoneCriteriaAssignmentDto> findByCriteriaId(@NotNull Long criteriaId, Pageable pageable);
+
+    List<MilestoneCriteriaAssignmentDto> findByMilestoneIdForCurrentUser(@NotNull Long milestoneId);
 }

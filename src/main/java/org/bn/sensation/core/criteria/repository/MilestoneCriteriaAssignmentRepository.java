@@ -1,5 +1,6 @@
 package org.bn.sensation.core.criteria.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.bn.sensation.core.common.repository.BaseRepository;
@@ -16,6 +17,8 @@ public interface MilestoneCriteriaAssignmentRepository extends BaseRepository<Mi
     Page<MilestoneCriteriaAssignmentEntity> findByMilestoneId(Long milestoneId, Pageable pageable);
 
     Page<MilestoneCriteriaAssignmentEntity> findByCriteriaId(Long criteriaId, Pageable pageable);
+
+    List<MilestoneCriteriaAssignmentEntity> findByMilestoneId(Long milestoneId);
 
     boolean existsByMilestoneIdAndCriteriaId(Long milestoneId, Long criteriaId);
 

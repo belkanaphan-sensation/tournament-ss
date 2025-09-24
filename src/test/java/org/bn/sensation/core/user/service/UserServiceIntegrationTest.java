@@ -99,7 +99,7 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
                 .surname("User")
                 .email("newuser@example.com")
                 .phoneNumber("+1234567890")
-                .status("ACTIVE")
+                .status(UserStatus.ACTIVE)
                 .roles(Set.of(Role.SUPERADMIN))
                 .organizationIds(Set.of(testOrganization.getId()))
                 .build();
@@ -117,7 +117,7 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
         assertTrue(savedUser.isPresent());
         assertEquals(request.getUsername(), savedUser.get().getUsername());
         assertEquals(request.getName(), savedUser.get().getPerson().getName());
-        assertEquals(UserStatus.valueOf(request.getStatus()), savedUser.get().getStatus());
+        assertEquals(request.getStatus(), savedUser.get().getStatus());
         assertEquals(request.getRoles(), savedUser.get().getRoles());
         assertEquals(request.getOrganizationIds(), savedUser.get().getOrganizations().stream().map(OrganizationEntity::getId).collect(Collectors.toSet()));
     }
@@ -131,7 +131,7 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test")
                 .surname("User")
                 .email("test@example.com")
-                .status("ACTIVE")
+                .status(UserStatus.ACTIVE)
                 .roles(Set.of(Role.SUPERADMIN))
                 .organizationIds(Set.of(testOrganization.getId()))
                 .build();
@@ -163,7 +163,7 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("New")
                 .surname("User")
                 .email("existing@example.com") // Already exists
-                .status("ACTIVE")
+                .status(UserStatus.ACTIVE)
                 .roles(Set.of(Role.SUPERADMIN))
                 .organizationIds(Set.of(testOrganization.getId()))
                 .build();
@@ -183,7 +183,7 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("New")
                 .surname("User")
                 .email("newuser@example.com")
-                .status("ACTIVE")
+                .status(UserStatus.ACTIVE)
                 .roles(Set.of(Role.SUPERADMIN))
                 .organizationIds(Set.of(999L)) // Non-existent organization
                 .build();
@@ -209,7 +209,7 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
                 .surname("User")
                 .email("newuser@example.com")
                 .phoneNumber("+1234567890")
-                .status("ACTIVE")
+                .status(UserStatus.ACTIVE)
                 .roles(Set.of(Role.SUPERADMIN))
                 .organizationIds(Set.of(testOrganization.getId(), org2.getId()))
                 .build();
@@ -237,7 +237,7 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
                 .surname("User")
                 .email("updated@example.com")
                 .phoneNumber("+9876543210")
-                .status("BLOCKED")
+                .status(UserStatus.BLOCKED)
                 .roles(Set.of(Role.USER))
                 .organizationIds(Set.of(testOrganization1.getId()))
                 .build();

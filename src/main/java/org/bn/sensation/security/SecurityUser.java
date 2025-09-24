@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityUser implements UserDetails {
 
+    @Getter
+    private final Long id;
     private final String username;
     private final String password;
     @Getter
@@ -62,6 +64,7 @@ public class SecurityUser implements UserDetails {
 
     public static UserDetails fromUser(UserEntity user) {
         return new SecurityUser(
+                user.getId(),
                 user.getUsername(),
                 user.getPassword(),
                 user.getStatus(),
