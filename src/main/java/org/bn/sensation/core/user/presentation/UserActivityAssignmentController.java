@@ -32,7 +32,7 @@ public class UserActivityAssignmentController {
 
     @Operation(summary = "Получить назначение по ID")
     @GetMapping(path = "/{id}")
-    public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
+    public ResponseEntity<UserActivityAssignmentDto> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return userActivityAssignmentService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).build());
@@ -44,6 +44,14 @@ public class UserActivityAssignmentController {
             @Parameter @PathVariable("userId") @NotNull Long userId,
             @Parameter @PathVariable("activityId") @NotNull Long activityId) {
         UserActivityAssignmentDto assignment = userActivityAssignmentService.findByUserIdAndActivityId(userId, activityId);
+        return ResponseEntity.ok(assignment);
+    }
+
+    @Operation(summary = "Получить назначение по ID активности для текущего юзера")
+    @GetMapping(path = "/activity/{activityId}/currentUser")
+    public ResponseEntity<UserActivityAssignmentDto> getByUserIdAndActivityId(
+            @Parameter @PathVariable("activityId") @NotNull Long activityId) {
+        UserActivityAssignmentDto assignment = userActivityAssignmentService.findByActivityIdForCurrentUser(activityId);
         return ResponseEntity.ok(assignment);
     }
 

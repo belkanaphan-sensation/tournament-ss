@@ -1,7 +1,5 @@
 package org.bn.sensation.core.user.service.dto;
 
-import java.time.LocalDateTime;
-
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.entity.PartnerSide;
@@ -34,18 +32,6 @@ public class UserActivityAssignmentDto extends BaseDto {
     @Schema(description = "Должность пользователя в активности", example = "JUDGE_CHIEF")
     private UserActivityPosition position;
 
-    @Schema(description = "Сторона в соревновании", example = "LEADER")
+    @Schema(description = "Сторона, которую оценивает или к которой принадлежит юзер в соревновании", example = "LEADER")
     private PartnerSide partnerSide;
-
-    @Schema(description = "Дата назначения")
-    private LocalDateTime assignedAt;
-
-    @Schema(description = "Имя пользователя")
-    private String userName;
-
-    @Schema(description = "Фамилия пользователя")
-    private String userSurname;
-
-    @Schema(description = "Отчество пользователя")
-    private String userSecondName;
 }

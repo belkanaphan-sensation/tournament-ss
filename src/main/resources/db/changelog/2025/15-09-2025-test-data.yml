@@ -371,20 +371,20 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO user_activity_assignment (user_id, activity_id, position, partner_side, assigned_at, created_at, created_by, modified_at, modified_by, version) VALUES
+              INSERT INTO user_activity_assignment (user_id, activity_id, position, partner_side, created_at, created_by, modified_at, modified_by, version) VALUES
               -- Активность 1: 1 главный судья + 1 обычный судья
-              ((SELECT id FROM users WHERE username = 'judge1_1'), (SELECT id FROM activity WHERE name = 'Активность 1'), 'JUDGE_CHIEF', 'LEADER', '2025-03-15 10:00:00', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
-              ((SELECT id FROM users WHERE username = 'judge1_2'), (SELECT id FROM activity WHERE name = 'Активность 1'), 'JUDGE', 'FOLLOWER', '2025-03-15 10:00:00', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge1_1'), (SELECT id FROM activity WHERE name = 'Активность 1'), 'JUDGE_CHIEF', 'LEADER', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge1_2'), (SELECT id FROM activity WHERE name = 'Активность 1'), 'JUDGE', 'FOLLOWER', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
               
               -- Активность 2.1: 1 главный судья + 2 обычных судьи
-              ((SELECT id FROM users WHERE username = 'judge2_1'), (SELECT id FROM activity WHERE name = 'Активность 2.1'), 'JUDGE_CHIEF', 'LEADER', '2025-04-15 10:00:00', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
-              ((SELECT id FROM users WHERE username = 'judge2_2'), (SELECT id FROM activity WHERE name = 'Активность 2.1'), 'JUDGE', 'FOLLOWER', '2025-04-15 10:00:00', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
-              ((SELECT id FROM users WHERE username = 'judge2_3'), (SELECT id FROM activity WHERE name = 'Активность 2.1'), 'JUDGE', 'FOLLOWER', '2025-04-15 10:00:00', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge2_1'), (SELECT id FROM activity WHERE name = 'Активность 2.1'), 'JUDGE_CHIEF', 'LEADER', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge2_2'), (SELECT id FROM activity WHERE name = 'Активность 2.1'), 'JUDGE', 'FOLLOWER', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge2_3'), (SELECT id FROM activity WHERE name = 'Активность 2.1'), 'JUDGE', 'FOLLOWER', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
               
               -- Активность 2.2: 0 главных судей + 1 обычный судья
-              ((SELECT id FROM users WHERE username = 'judge2_1'), (SELECT id FROM activity WHERE name = 'Активность 2.2'), 'JUDGE', 'LEADER', '2025-04-15 10:00:00', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge2_1'), (SELECT id FROM activity WHERE name = 'Активность 2.2'), 'JUDGE', 'LEADER', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
               
               -- Активность 3.1: 1 главный судья + 2 обычных судьи с разными партнерскими сторонами
-              ((SELECT id FROM users WHERE username = 'judge3_1'), (SELECT id FROM activity WHERE name = 'Активность 3.1'), 'JUDGE_CHIEF', 'LEADER', '2025-05-15 10:00:00', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0),
-              ((SELECT id FROM users WHERE username = 'judge3_2'), (SELECT id FROM activity WHERE name = 'Активность 3.1'), 'JUDGE', 'FOLLOWER', '2025-05-15 10:00:00', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0),
-              ((SELECT id FROM users WHERE username = 'judge3_3'), (SELECT id FROM activity WHERE name = 'Активность 3.1'), 'JUDGE', null, '2025-05-15 10:00:00', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0);
+              ((SELECT id FROM users WHERE username = 'judge3_1'), (SELECT id FROM activity WHERE name = 'Активность 3.1'), 'JUDGE_CHIEF', 'LEADER', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge3_2'), (SELECT id FROM activity WHERE name = 'Активность 3.1'), 'JUDGE', 'FOLLOWER', '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM users WHERE username = 'judge3_3'), (SELECT id FROM activity WHERE name = 'Активность 3.1'), 'JUDGE', null, '2025-05-15 10:00:00', 'org3_admin', '2025-05-15 10:00:00', 'org3_admin', 0);

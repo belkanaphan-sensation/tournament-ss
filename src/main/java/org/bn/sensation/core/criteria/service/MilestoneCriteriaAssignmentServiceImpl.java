@@ -59,6 +59,7 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<MilestoneCriteriaAssignmentDto> findByMilestoneIdForCurrentUser(Long milestoneId) {
         Preconditions.checkArgument(milestoneId != null, "Milestone ID не может быть null");
         MilestoneEntity milestone = milestoneRepository.findById(milestoneId)
