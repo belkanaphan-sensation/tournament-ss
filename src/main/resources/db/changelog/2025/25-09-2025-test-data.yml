@@ -1,4 +1,24 @@
 databaseChangeLog:
+  # Fix sequences to avoid ID conflicts
+  - changeSet:
+      id: 2025-09-25-0
+      author: belkanaphan
+      changes:
+        - sql:
+            sql: |
+              -- Обновляем последовательности для таблиц результатов, чтобы избежать конфликтов ID
+              -- PostgreSQL автоматически создает последовательности для SERIAL/BIGSERIAL полей
+              -- Используем GREATEST для гарантии, что значение не меньше 1
+              
+              -- Для activity_result
+              SELECT setval('activity_result_id_seq', GREATEST(COALESCE((SELECT MAX(id) FROM activity_result), 0), 1));
+              
+              -- Для milestone_result
+              SELECT setval('milestone_result_id_seq', GREATEST(COALESCE((SELECT MAX(id) FROM milestone_result), 0), 1));
+              
+              -- Для round_result
+              SELECT setval('round_result_id_seq', GREATEST(COALESCE((SELECT MAX(id) FROM round_result), 0), 1));
+
   # Test data for activity_result
   - changeSet:
       id: 2025-09-25-1
@@ -7,8 +27,13 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO activity_result (score_sum, place, participant_id, created_at, created_by, modified_at, modified_by, version) VALUES
-              -- Результаты для участников организации 1 (1 участник)
+              -- Результаты для участников организации 1 (6 участников)
               (85, 1, (SELECT id FROM participant WHERE number = 'P-001'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+              (82, 2, (SELECT id FROM participant WHERE number = 'P-001-2'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+              (80, 3, (SELECT id FROM participant WHERE number = 'P-001-3'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+              (78, 4, (SELECT id FROM participant WHERE number = 'P-001-4'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+              (76, 5, (SELECT id FROM participant WHERE number = 'P-001-5'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+              (74, 6, (SELECT id FROM participant WHERE number = 'P-001-6'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
               
               -- Результаты для участников организации 2 (3 участника)
               (92, 1, (SELECT id FROM participant WHERE number = 'P-002-1'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
@@ -31,8 +56,13 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO milestone_result (score_sum, participant_id, milestone_id, created_at, created_by, modified_at, modified_by, version) VALUES
-              -- Результаты для участника организации 1 по этапу 1
+              -- Результаты для участников организации 1 по этапу 1
               (85, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+              (82, (SELECT id FROM participant WHERE number = 'P-001-2'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+              (80, (SELECT id FROM participant WHERE number = 'P-001-3'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+              (78, (SELECT id FROM participant WHERE number = 'P-001-4'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+              (76, (SELECT id FROM participant WHERE number = 'P-001-5'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+              (74, (SELECT id FROM participant WHERE number = 'P-001-6'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
               
               -- Результаты для участников организации 2 по этапам 2.1.1 и 2.1.2
               (45, (SELECT id FROM participant WHERE number = 'P-002-1'), (SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
@@ -64,36 +94,58 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO round_result (score, participant_id, round_id, milestone_criteria_id, activity_user_id, created_at, created_by, modified_at, modified_by, version) VALUES
-              -- Результаты для участника организации 1 по раунду 1.1.1 с разными критериями и судьями
-              (10, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1.1'), 
+              -- Результаты для участников организации 1 по раунду 1.1 с разными критериями и судьями
+              (10, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1'), 
                    (SELECT mca.id FROM milestone_criteria_assignment mca JOIN milestone m ON mca.milestone_id = m.id WHERE m.name = 'Этап 1' AND mca.criteria_id = (SELECT id FROM criteria WHERE name = 'Прохождение')), 
                    (SELECT uaa.id FROM user_activity_assignment uaa JOIN users u ON uaa.user_id = u.id WHERE u.username = 'judge1_1'), 
                    '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              (8, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1.1'), 
+              (8, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1'), 
                   (SELECT mca.id FROM milestone_criteria_assignment mca JOIN milestone m ON mca.milestone_id = m.id WHERE m.name = 'Этап 1' AND mca.criteria_id = (SELECT id FROM criteria WHERE name = 'Техника') AND mca.partner_side = 'LEADER'), 
                   (SELECT uaa.id FROM user_activity_assignment uaa JOIN users u ON uaa.user_id = u.id WHERE u.username = 'judge1_1'), 
                   '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              (9, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1.1'), 
+              (9, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1'), 
                   (SELECT mca.id FROM milestone_criteria_assignment mca JOIN milestone m ON mca.milestone_id = m.id WHERE m.name = 'Этап 1' AND mca.criteria_id = (SELECT id FROM criteria WHERE name = 'Техника') AND mca.partner_side = 'FOLLOWER'), 
                   (SELECT uaa.id FROM user_activity_assignment uaa JOIN users u ON uaa.user_id = u.id WHERE u.username = 'judge1_2'), 
                   '2025-09-25 10:00:00', 'judge1_2', '2025-09-25 10:00:00', 'judge1_2', 0),
-              (7, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1.1'), 
+              (7, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1'), 
                   (SELECT mca.id FROM milestone_criteria_assignment mca JOIN milestone m ON mca.milestone_id = m.id WHERE m.name = 'Этап 1' AND mca.criteria_id = (SELECT id FROM criteria WHERE name = 'Ведение')), 
                   (SELECT uaa.id FROM user_activity_assignment uaa JOIN users u ON uaa.user_id = u.id WHERE u.username = 'judge1_1'), 
                   '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              (8, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1.1'), 
+              (8, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1'), 
                   (SELECT mca.id FROM milestone_criteria_assignment mca JOIN milestone m ON mca.milestone_id = m.id WHERE m.name = 'Этап 1' AND mca.criteria_id = (SELECT id FROM criteria WHERE name = 'Стилистика') AND mca.partner_side = 'FOLLOWER'), 
                   (SELECT uaa.id FROM user_activity_assignment uaa JOIN users u ON uaa.user_id = u.id WHERE u.username = 'judge1_2'), 
                   '2025-09-25 10:00:00', 'judge1_2', '2025-09-25 10:00:00', 'judge1_2', 0),
-              (9, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1.1'), 
+              (9, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1'), 
                   (SELECT mca.id FROM milestone_criteria_assignment mca JOIN milestone m ON mca.milestone_id = m.id WHERE m.name = 'Этап 1' AND mca.criteria_id = (SELECT id FROM criteria WHERE name = 'Музыкальность')), 
                   (SELECT uaa.id FROM user_activity_assignment uaa JOIN users u ON uaa.user_id = u.id WHERE u.username = 'judge1_1'), 
                   '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              (8, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1.1'), 
+              (8, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1'), 
                   (SELECT mca.id FROM milestone_criteria_assignment mca JOIN milestone m ON mca.milestone_id = m.id WHERE m.name = 'Этап 1' AND mca.criteria_id = (SELECT id FROM criteria WHERE name = 'Следование') AND mca.partner_side = 'LEADER'), 
                   (SELECT uaa.id FROM user_activity_assignment uaa JOIN users u ON uaa.user_id = u.id WHERE u.username = 'judge1_1'), 
                   '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              (8, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1.1'), 
+              (8, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1'), 
+                  (SELECT mca.id FROM milestone_criteria_assignment mca JOIN milestone m ON mca.milestone_id = m.id WHERE m.name = 'Этап 1' AND mca.criteria_id = (SELECT id FROM criteria WHERE name = 'Имидж')), 
+                  (SELECT uaa.id FROM user_activity_assignment uaa JOIN users u ON uaa.user_id = u.id WHERE u.username = 'judge1_2'), 
+                  '2025-09-25 10:00:00', 'judge1_2', '2025-09-25 10:00:00', 'judge1_2', 0),
+              
+              -- Результаты для участника P-001-2 по раунду 1.1
+              (9, (SELECT id FROM participant WHERE number = 'P-001-2'), (SELECT id FROM round WHERE name = 'Раунд 1.1'), 
+                  (SELECT mca.id FROM milestone_criteria_assignment mca JOIN milestone m ON mca.milestone_id = m.id WHERE m.name = 'Этап 1' AND mca.criteria_id = (SELECT id FROM criteria WHERE name = 'Прохождение')), 
+                  (SELECT uaa.id FROM user_activity_assignment uaa JOIN users u ON uaa.user_id = u.id WHERE u.username = 'judge1_1'), 
+                  '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+              (7, (SELECT id FROM participant WHERE number = 'P-001-2'), (SELECT id FROM round WHERE name = 'Раунд 1.1'), 
+                  (SELECT mca.id FROM milestone_criteria_assignment mca JOIN milestone m ON mca.milestone_id = m.id WHERE m.name = 'Этап 1' AND mca.criteria_id = (SELECT id FROM criteria WHERE name = 'Техника') AND mca.partner_side = 'FOLLOWER'), 
+                  (SELECT uaa.id FROM user_activity_assignment uaa JOIN users u ON uaa.user_id = u.id WHERE u.username = 'judge1_2'), 
+                  '2025-09-25 10:00:00', 'judge1_2', '2025-09-25 10:00:00', 'judge1_2', 0),
+              (8, (SELECT id FROM participant WHERE number = 'P-001-2'), (SELECT id FROM round WHERE name = 'Раунд 1.1'), 
+                  (SELECT mca.id FROM milestone_criteria_assignment mca JOIN milestone m ON mca.milestone_id = m.id WHERE m.name = 'Этап 1' AND mca.criteria_id = (SELECT id FROM criteria WHERE name = 'Стилистика') AND mca.partner_side = 'FOLLOWER'), 
+                  (SELECT uaa.id FROM user_activity_assignment uaa JOIN users u ON uaa.user_id = u.id WHERE u.username = 'judge1_2'), 
+                  '2025-09-25 10:00:00', 'judge1_2', '2025-09-25 10:00:00', 'judge1_2', 0),
+              (8, (SELECT id FROM participant WHERE number = 'P-001-2'), (SELECT id FROM round WHERE name = 'Раунд 1.1'), 
+                  (SELECT mca.id FROM milestone_criteria_assignment mca JOIN milestone m ON mca.milestone_id = m.id WHERE m.name = 'Этап 1' AND mca.criteria_id = (SELECT id FROM criteria WHERE name = 'Музыкальность')), 
+                  (SELECT uaa.id FROM user_activity_assignment uaa JOIN users u ON uaa.user_id = u.id WHERE u.username = 'judge1_1'), 
+                  '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+              (7, (SELECT id FROM participant WHERE number = 'P-001-2'), (SELECT id FROM round WHERE name = 'Раунд 1.1'), 
                   (SELECT mca.id FROM milestone_criteria_assignment mca JOIN milestone m ON mca.milestone_id = m.id WHERE m.name = 'Этап 1' AND mca.criteria_id = (SELECT id FROM criteria WHERE name = 'Имидж')), 
                   (SELECT uaa.id FROM user_activity_assignment uaa JOIN users u ON uaa.user_id = u.id WHERE u.username = 'judge1_2'), 
                   '2025-09-25 10:00:00', 'judge1_2', '2025-09-25 10:00:00', 'judge1_2', 0),

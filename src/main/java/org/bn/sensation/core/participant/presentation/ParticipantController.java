@@ -7,6 +7,7 @@ import org.bn.sensation.core.participant.service.dto.UpdateParticipantRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/participant")
 @RequiredArgsConstructor
+@Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Participant", description = "The Participant API")
 public class ParticipantController {

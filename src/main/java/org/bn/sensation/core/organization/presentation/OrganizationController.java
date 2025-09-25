@@ -7,6 +7,7 @@ import org.bn.sensation.core.organization.service.dto.UpdateOrganizationRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/organization")
 @RequiredArgsConstructor
+@Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Organization", description = "The Organization API")
 public class OrganizationController {
