@@ -1,5 +1,7 @@
 package org.bn.sensation.security;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,13 +14,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
-
-import lombok.RequiredArgsConstructor;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
@@ -54,7 +54,7 @@ public class SecurityConfiguration {
         http
                 //todo: рассмотреть включение на проде
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
@@ -94,8 +94,8 @@ public class SecurityConfiguration {
                         .deleteCookies(sessionCookieName)
                         .invalidateHttpSession(true)
                         .permitAll()
-                        .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler()) // это надо чтобы после logout он не
-                        // пытался перейти на login который не рабочий
+                        // это надо чтобы после logout он не пытался перейти на login который не рабочий
+                        .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
                 )
                 .headers(headers -> headers
                         .httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).preload(true))
@@ -119,13 +119,14 @@ public class SecurityConfiguration {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
-                "http://192.168.0.103:5173" // это адрес компа вместо localhost, можно его глянуть в ipconfig (на винде). Что бы при перезагрузке роутера
+                // это адрес компа вместо localhost, можно его глянуть в ipconfig (на винде). Что бы при перезагрузке роутера
                 //он оставался тем же, надо его в роутере задать как статический для MAC адреса компа, на котором запускается сервер
                 //его надо будет вынести в отдельную переменную в application.properties. Нужен конкретный адрес UI сервера, чтобы cors работал
-                //может как то по другому можно, но я пока не знаю
-//                ,"http://25.3.135.219:5173" //это из хамачи
+                "http://192.168.0.103:5173"
+                //hamachi
+                //, "http://25.3.135.219:5173"
         ));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
