@@ -3,11 +3,13 @@ package org.bn.sensation.core.common.mapper;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
+import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.round.entity.RoundEntity;
+import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
 import org.bn.sensation.core.user.entity.UserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -46,4 +48,12 @@ public interface EntityLinkMapper {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "value", source = "name")
     EntityLinkDto toEntityLinkDto(CriteriaEntity entity);
+
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "value", source = "criteria.name")
+    EntityLinkDto toEntityLinkDto(MilestoneCriteriaAssignmentEntity entity);
+
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "value", source = "user.username")
+    EntityLinkDto toEntityLinkDto(UserActivityAssignmentEntity entity);
 }
