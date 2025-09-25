@@ -47,9 +47,17 @@ public class UserActivityAssignmentController {
         return ResponseEntity.ok(assignment);
     }
 
+    @Operation(summary = "Получить назначение по ID мероприятия для текущего юзера")
+    @GetMapping(path = "/occasion/{occasionId}/currentUser")
+    public ResponseEntity<UserActivityAssignmentDto> getByOccasionIdForCurrentUser(
+            @Parameter @PathVariable("occasionId") @NotNull Long occasionId) {
+        UserActivityAssignmentDto assignment = userActivityAssignmentService.findByOccasionIdForCurrentUser(occasionId);
+        return ResponseEntity.ok(assignment);
+    }
+
     @Operation(summary = "Получить назначение по ID активности для текущего юзера")
     @GetMapping(path = "/activity/{activityId}/currentUser")
-    public ResponseEntity<UserActivityAssignmentDto> getByUserIdAndActivityId(
+    public ResponseEntity<UserActivityAssignmentDto> getByActivityIdForCurrentUser(
             @Parameter @PathVariable("activityId") @NotNull Long activityId) {
         UserActivityAssignmentDto assignment = userActivityAssignmentService.findByActivityIdForCurrentUser(activityId);
         return ResponseEntity.ok(assignment);

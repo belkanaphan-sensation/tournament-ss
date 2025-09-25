@@ -152,6 +152,17 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
     }
 
     @Override
+    public UserActivityAssignmentDto findByOccasionIdForCurrentUser(Long occasionId) {
+        Preconditions.checkArgument(occasionId != null, "Occasion ID не может быть null");
+        Long userId = currentUser.getSecurityUser().getId();
+        UserActivityAssignmentEntity assignment = userActivityAssignmentRepository
+                .findByUserIdAndOccasionId(userId, occasionId)
+                .orElseThrow(() -> new EntityNotFoundException("Назначение не найдено для пользователя " + userId + " и активности " + occasionId));
+
+        return userActivityAssignmentDtoMapper.toDto(assignment);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Page<UserActivityAssignmentDto> findByUserId(Long userId, Pageable pageable) {
         Preconditions.checkArgument(userId != null, "User ID не может быть null");
