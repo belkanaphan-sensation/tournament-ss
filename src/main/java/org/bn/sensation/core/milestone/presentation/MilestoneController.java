@@ -1,8 +1,12 @@
 package org.bn.sensation.core.milestone.presentation;
 
+import java.util.List;
+
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.milestone.service.MilestoneService;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
+import org.bn.sensation.core.milestone.service.dto.MilestoneResultDto;
 import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -72,5 +76,24 @@ public class MilestoneController {
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         milestoneService.deleteById(id);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Получить результаты этапа для участников")
+    @GetMapping(path = "/{id}/result")
+    public ResponseEntity<List<MilestoneResultDto>> getResultById(
+            @Parameter @PathVariable("id") @NotNull Long id) {
+        List<MilestoneResultDto> result = List.of(
+                MilestoneResultDto.builder()
+                        .participant(new EntityLinkDto(1L, "25"))
+                        .milestone(new EntityLinkDto(1L, "milestone 1"))
+                        .scoreSum(71)
+                        .build(),
+                MilestoneResultDto.builder()
+                        .participant(new EntityLinkDto(2L, "35"))
+                        .milestone(new EntityLinkDto(1L, "milestone 1"))
+                        .scoreSum(22)
+                        .build()
+        );
+        return ResponseEntity.ok(result);
     }
 }
