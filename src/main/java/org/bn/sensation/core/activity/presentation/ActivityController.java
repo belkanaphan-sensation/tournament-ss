@@ -1,9 +1,13 @@
 package org.bn.sensation.core.activity.presentation;
 
+import java.util.List;
+
 import org.bn.sensation.core.activity.service.ActivityService;
 import org.bn.sensation.core.activity.service.dto.ActivityDto;
+import org.bn.sensation.core.activity.service.dto.ActivityResultDto;
 import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -74,5 +78,22 @@ public class ActivityController {
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         activityService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Получить результаты активности")
+    @GetMapping(path = "/{id}/result")
+    public ResponseEntity<List<ActivityResultDto>> getResultById(
+            @Parameter @PathVariable("id") @NotNull Long id) {
+        List<ActivityResultDto> result = List.of(
+                ActivityResultDto.builder()
+                        .participant(new EntityLinkDto(1L, "25"))
+                        .scoreSum(71)
+                        .build(),
+                ActivityResultDto.builder()
+                        .participant(new EntityLinkDto(2L, "35"))
+                        .scoreSum(22)
+                        .build()
+        );
+        return ResponseEntity.ok(result);
     }
 }
