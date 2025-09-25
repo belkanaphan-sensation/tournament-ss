@@ -12,16 +12,6 @@ import org.springframework.data.repository.query.Param;
 public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
 
     /**
-     * Подсчитать количество этапов для активности по статусу
-     */
-    long countByActivityIdAndState(Long activityId, State state);
-
-    /**
-     * Подсчитать общее количество этапов для активности
-     */
-    long countByActivityId(Long activityId);
-
-    /**
      * Найти этапы активности, отсортированные по порядку
      */
     Page<MilestoneEntity> findByActivityIdOrderByMilestoneOrderAsc(Long activityId, Pageable pageable);

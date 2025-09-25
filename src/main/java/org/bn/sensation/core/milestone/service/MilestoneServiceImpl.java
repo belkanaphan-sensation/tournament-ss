@@ -21,7 +21,6 @@ import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.mapper.CreateMilestoneRequestMapper;
 import org.bn.sensation.core.milestone.service.mapper.MilestoneDtoMapper;
 import org.bn.sensation.core.milestone.service.mapper.UpdateMilestoneRequestMapper;
-import org.bn.sensation.core.round.repository.RoundRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -46,7 +45,6 @@ public class MilestoneServiceImpl implements MilestoneService {
     private final ActivityRepository activityRepository;
     private final CriteriaRepository criteriaRepository;
     private final MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
-    private final RoundRepository roundRepository;
 
     @Override
     public BaseRepository<MilestoneEntity> getRepository() {
@@ -161,12 +159,10 @@ public class MilestoneServiceImpl implements MilestoneService {
      */
     private MilestoneDto enrichMilestoneDtoWithStatistics(MilestoneEntity milestone) {
         MilestoneDto dto = milestoneDtoMapper.toDto(milestone);
-
-        long completedCount = roundRepository.countByMilestoneIdAndState(milestone.getId(), State.COMPLETED);
-        long totalCount = roundRepository.countByMilestoneId(milestone.getId());
-
-        dto.setCompletedRoundsCount(completedCount);
-        dto.setTotalRoundsCount(totalCount);
+        dto.setCompletedRoundsCount((int) milestone.getRounds().stream()
+                .filter(round -> round.getState() == State.COMPLETED)
+                .count());
+        dto.setTotalRoundsCount(milestone.getRounds().size());
 
         return dto;
     }

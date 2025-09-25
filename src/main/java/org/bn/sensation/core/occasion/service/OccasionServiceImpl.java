@@ -1,6 +1,7 @@
 package org.bn.sensation.core.occasion.service;
 
-import org.bn.sensation.core.activity.repository.ActivityRepository;
+import java.util.Optional;
+
 import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
@@ -9,8 +10,8 @@ import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.occasion.service.dto.CreateOccasionRequest;
 import org.bn.sensation.core.occasion.service.dto.OccasionDto;
 import org.bn.sensation.core.occasion.service.dto.UpdateOccasionRequest;
-import org.bn.sensation.core.occasion.service.mapper.OccasionDtoMapper;
 import org.bn.sensation.core.occasion.service.mapper.CreateOccasionRequestMapper;
+import org.bn.sensation.core.occasion.service.mapper.OccasionDtoMapper;
 import org.bn.sensation.core.occasion.service.mapper.UpdateOccasionRequestMapper;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.organization.repository.OrganizationRepository;
@@ -18,8 +19,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +32,6 @@ public class OccasionServiceImpl implements OccasionService {
     private final CreateOccasionRequestMapper createOccasionRequestMapper;
     private final UpdateOccasionRequestMapper updateOccasionRequestMapper;
     private final OrganizationRepository organizationRepository;
-    private final ActivityRepository activityRepository;
 
     @Override
     public BaseRepository<OccasionEntity> getRepository() {
@@ -105,23 +103,13 @@ public class OccasionServiceImpl implements OccasionService {
      */
     private OccasionDto enrichOccasionDtoWithStatistics(OccasionEntity occasion) {
         OccasionDto dto = occasionDtoMapper.toDto(occasion);
-
-        // Подсчитываем количество активностей по статусам
-        long completedCount = activityRepository.countByOccasionIdAndState(occasion.getId(), State.COMPLETED);
-
-        // Активные активности: не DRAFT, не COMPLETED (то есть READY и ACTIVE)
-        long activeCount = activityRepository.countByOccasionIdAndStateIn(
-                occasion.getId(),
-                State.PLANNED,
-                State.IN_PROGRESS
-        );
-
-        // Общее количество активностей
-        long totalCount = activityRepository.countByOccasionId(occasion.getId());
-
-        dto.setCompletedActivitiesCount(completedCount);
-        dto.setActiveActivitiesCount(activeCount);
-        dto.setTotalActivitiesCount(totalCount);
+        dto.setCompletedActivitiesCount((int) occasion.getActivities().stream()
+                .filter(activity -> activity.getState() == State.COMPLETED)
+                .count());
+        dto.setActiveActivitiesCount((int) occasion.getActivities().stream()
+                .filter(activity -> activity.getState() == State.PLANNED || activity.getState() == State.IN_PROGRESS)
+                .count());
+        dto.setTotalActivitiesCount(occasion.getActivities().size());
 
         return dto;
     }

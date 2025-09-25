@@ -78,7 +78,7 @@ public class RoundController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Получить результат раунда для участника по критериям от судьи")
+    @Operation(summary = "Получить результаты раунда для участника по критериям от судьи по ID раунда")
     @GetMapping(path = "/{id}/result")
     public ResponseEntity<List<RoundResultDto>> getResultById(
             @Parameter @PathVariable("id") @NotNull Long id) {
@@ -96,6 +96,36 @@ public class RoundController {
                         .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
                         .activityUser(new EntityLinkDto(1L, "activity user 1"))
                         .score(9)
+                        .build()
+        );
+        return ResponseEntity.ok(result);
+    }
+
+    @Operation(summary = "Получить результаты раунда для участника по критериям от судьи по ID этапа")
+    @GetMapping(path = "/milestone/{milestoneId}/result")
+    public ResponseEntity<List<RoundResultDto>> getResultByMilestoneId(
+            @Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+        List<RoundResultDto> result = List.of(
+                RoundResultDto.builder()
+                        .participant(new EntityLinkDto(1L, "25"))
+                        .round(new EntityLinkDto(1L, "round 1"))
+                        .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
+                        .activityUser(new EntityLinkDto(1L, "activity user 1"))
+                        .score(7)
+                        .build(),
+                RoundResultDto.builder()
+                        .participant(new EntityLinkDto(2L, "25"))
+                        .round(new EntityLinkDto(1L, "round 1"))
+                        .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
+                        .activityUser(new EntityLinkDto(1L, "activity user 1"))
+                        .score(9)
+                        .build(),
+                RoundResultDto.builder()
+                        .participant(new EntityLinkDto(2L, "25"))
+                        .round(new EntityLinkDto(2L, "round 2"))
+                        .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
+                        .activityUser(new EntityLinkDto(1L, "activity user 1"))
+                        .score(4)
                         .build()
         );
         return ResponseEntity.ok(result);

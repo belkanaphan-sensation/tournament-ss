@@ -14,16 +14,6 @@ public interface RoundRepository extends BaseRepository<RoundEntity> {
     Page<RoundEntity> findByMilestoneId(Long milestoneId, Pageable pageable);
 
     /**
-     * Подсчитать количество раундов для этапа по статусу
-     */
-    long countByMilestoneIdAndState(Long milestoneId, State state);
-
-    /**
-     * Подсчитать общее количество раундов для этапа
-     */
-    long countByMilestoneId(Long milestoneId);
-
-    /**
      * Найти раунды этапа в life states
      */
     Page<RoundEntity> findByMilestoneIdAndStateIn(@Param("milestoneId") Long milestoneId, Pageable pageable, @Param("states") List<State> states);

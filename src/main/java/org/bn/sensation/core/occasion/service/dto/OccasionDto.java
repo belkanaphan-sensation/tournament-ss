@@ -43,11 +43,11 @@ public class OccasionDto extends BaseDto {
     private State state;
 
     @Schema(description = "Количество активностей в состоянии 'Completed'", example = "5")
-    private Long completedActivitiesCount;
+    private Integer completedActivitiesCount;
 
     @Schema(description = "Количество активностей в активном состоянии (не Cancelled, Completed, Draft)", example = "3")
-    private Long activeActivitiesCount;
+    private Integer activeActivitiesCount;
 
     @Schema(description = "Общее количество активностей в мероприятии", example = "8")
-    private Long totalActivitiesCount;
+    private Integer totalActivitiesCount;
 }
