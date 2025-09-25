@@ -22,6 +22,9 @@ public class ActivityResultEntity extends BaseEntity {
     @Column(name = "score_sum")
     private Integer scoreSum;
 
+    @Column(name = "place")
+    private Integer place;
+
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "participant_id")
     private ParticipantEntity participant;
