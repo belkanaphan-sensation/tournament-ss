@@ -54,8 +54,8 @@ public class ActivityDto extends BaseDto {
     private State state;
 
     @Schema(description = "Количество завершенных этапов", example = "3")
-    private Long completedMilestonesCount;
+    private Integer completedMilestonesCount;
 
     @Schema(description = "Общее количество этапов в активности", example = "5")
-    private Long totalMilestonesCount;
+    private Integer totalMilestonesCount;
 }

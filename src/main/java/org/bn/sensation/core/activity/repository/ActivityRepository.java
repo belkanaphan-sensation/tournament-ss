@@ -17,18 +17,4 @@ public interface ActivityRepository extends BaseRepository<ActivityEntity> {
      */
     Page<ActivityEntity> findByOccasionIdAndStateIn(Long occasionId, Pageable pageable, List<State> states);
 
-    /**
-     * Подсчитать количество активностей для мероприятия по статусу
-     */
-    long countByOccasionIdAndState(Long occasionId, State state);
-
-    /**
-     * Подсчитать количество активностей для мероприятия по нескольким статусам
-     */
-    long countByOccasionIdAndStateIn(Long occasionId, State... states);
-
-    /**
-     * Подсчитать общее количество активностей для мероприятия
-     */
-    long countByOccasionId(Long occasionId);
 }

@@ -35,10 +35,10 @@ public class MilestoneDto extends BaseDto {
     private State state;
 
     @Schema(description = "Количество завершенных раундов", example = "3")
-    private Long completedRoundsCount;
+    private Integer completedRoundsCount;
 
     @Schema(description = "Общее количество раундов в этапе", example = "5")
-    private Long totalRoundsCount;
+    private Integer totalRoundsCount;
 
     @Schema(description = "Порядок этапа в рамках активности", example = "1")
     private Integer milestoneOrder;

@@ -14,7 +14,6 @@ import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.springframework.data.domain.Page;
@@ -36,7 +35,6 @@ public class ActivityServiceImpl implements ActivityService {
     private final CreateActivityRequestMapper createActivityRequestMapper;
     private final UpdateActivityRequestMapper updateActivityRequestMapper;
     private final OccasionRepository occasionRepository;
-    private final MilestoneRepository milestoneRepository;
 
     @Override
     public BaseRepository<ActivityEntity> getRepository() {
@@ -135,16 +133,11 @@ public class ActivityServiceImpl implements ActivityService {
      */
     private ActivityDto enrichActivityDtoWithStatistics(ActivityEntity activity) {
         ActivityDto dto = activityDtoMapper.toDto(activity);
-
-        // Подсчитываем количество завершенных этапов
-        long completedCount = milestoneRepository.countByActivityIdAndState(activity.getId(), State.COMPLETED);
-
-        // Общее количество этапов
-        long totalCount = milestoneRepository.countByActivityId(activity.getId());
-
-        dto.setCompletedMilestonesCount(completedCount);
-        dto.setTotalMilestonesCount(totalCount);
-
+        dto.setCompletedMilestonesCount((int) activity.getMilestones()
+                .stream()
+                .filter(ms -> ms.getState() == State.COMPLETED)
+                .count());
+        dto.setTotalMilestonesCount(activity.getMilestones().size());
         return dto;
     }
 }

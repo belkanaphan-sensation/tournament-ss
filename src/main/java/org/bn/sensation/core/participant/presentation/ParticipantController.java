@@ -41,7 +41,7 @@ public class ParticipantController {
     }
 
     @Operation(summary = "Получить всех участников по ID раунда")
-    @GetMapping(path = "/{roundId}")
+    @GetMapping(path = "/round/{roundId}")
     public ResponseEntity<Page<ParticipantDto>> getByRoundId(@PathVariable("roundId") Long roundId, Pageable pageable) {
         return ResponseEntity.ok(participantService.findByRoundId(roundId, pageable));
     }
