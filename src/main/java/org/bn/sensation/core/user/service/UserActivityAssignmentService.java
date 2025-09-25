@@ -29,4 +29,6 @@ public interface UserActivityAssignmentService extends BaseCrudService<
     Page<UserActivityAssignmentDto> findByActivityIdAndPosition(@NotNull Long activityId, @NotNull UserActivityPosition position, Pageable pageable);
 
     UserActivityAssignmentDto findByActivityIdForCurrentUser(@NotNull Long activityId);
+
+    UserActivityAssignmentDto findByOccasionIdForCurrentUser(@NotNull Long occasionId);
 }
