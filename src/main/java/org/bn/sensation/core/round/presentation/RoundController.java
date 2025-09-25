@@ -1,9 +1,13 @@
 package org.bn.sensation.core.round.presentation;
 
+import java.util.List;
+
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.round.service.RoundService;
 import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
 import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
+import org.bn.sensation.core.round.service.dto.RoundResultDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -72,5 +76,28 @@ public class RoundController {
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         roundService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Получить результат раунда для участника по критериям от судьи")
+    @GetMapping(path = "/{id}/result")
+    public ResponseEntity<List<RoundResultDto>> getResultById(
+            @Parameter @PathVariable("id") @NotNull Long id) {
+        List<RoundResultDto> result = List.of(
+                RoundResultDto.builder()
+                        .participant(new EntityLinkDto(1L, "25"))
+                        .round(new EntityLinkDto(1L, "round 1"))
+                        .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
+                        .activityUser(new EntityLinkDto(1L, "activity user 1"))
+                        .score(7)
+                        .build(),
+                RoundResultDto.builder()
+                        .participant(new EntityLinkDto(2L, "25"))
+                        .round(new EntityLinkDto(1L, "round 1"))
+                        .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
+                        .activityUser(new EntityLinkDto(1L, "activity user 1"))
+                        .score(9)
+                        .build()
+        );
+        return ResponseEntity.ok(result);
     }
 }
