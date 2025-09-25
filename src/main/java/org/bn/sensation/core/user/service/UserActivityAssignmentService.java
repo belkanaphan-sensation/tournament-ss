@@ -1,5 +1,7 @@
 package org.bn.sensation.core.user.service;
 
+import java.util.List;
+
 import org.bn.sensation.core.common.service.BaseCrudService;
 import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
 import org.bn.sensation.core.user.entity.UserActivityPosition;
@@ -30,5 +32,5 @@ public interface UserActivityAssignmentService extends BaseCrudService<
 
     UserActivityAssignmentDto findByActivityIdForCurrentUser(@NotNull Long activityId);
 
-    UserActivityAssignmentDto findByOccasionIdForCurrentUser(@NotNull Long occasionId);
+    List<UserActivityAssignmentDto> findByOccasionIdForCurrentUser(@NotNull Long occasionId);
 }

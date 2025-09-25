@@ -1,5 +1,7 @@
 package org.bn.sensation.core.user.service;
 
+import java.util.List;
+
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
@@ -152,14 +154,14 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
     }
 
     @Override
-    public UserActivityAssignmentDto findByOccasionIdForCurrentUser(Long occasionId) {
+    public List<UserActivityAssignmentDto> findByOccasionIdForCurrentUser(Long occasionId) {
         Preconditions.checkArgument(occasionId != null, "Occasion ID не может быть null");
         Long userId = currentUser.getSecurityUser().getId();
-        UserActivityAssignmentEntity assignment = userActivityAssignmentRepository
+        return userActivityAssignmentRepository
                 .findByUserIdAndOccasionId(userId, occasionId)
-                .orElseThrow(() -> new EntityNotFoundException("Назначение не найдено для пользователя " + userId + " и активности " + occasionId));
-
-        return userActivityAssignmentDtoMapper.toDto(assignment);
+                .stream()
+                .map(userActivityAssignmentDtoMapper::toDto)
+                .toList();
     }
 
     @Override

@@ -1,10 +1,12 @@
 package org.bn.sensation.core.user.presentation;
 
+import java.util.List;
+
 import org.bn.sensation.core.user.entity.UserActivityPosition;
 import org.bn.sensation.core.user.service.UserActivityAssignmentService;
-import org.bn.sensation.core.user.service.dto.UserActivityAssignmentDto;
 import org.bn.sensation.core.user.service.dto.CreateUserActivityAssignmentRequest;
 import org.bn.sensation.core.user.service.dto.UpdateUserActivityAssignmentRequest;
+import org.bn.sensation.core.user.service.dto.UserActivityAssignmentDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -49,10 +51,10 @@ public class UserActivityAssignmentController {
 
     @Operation(summary = "Получить назначение по ID мероприятия для текущего юзера")
     @GetMapping(path = "/occasion/{occasionId}/currentUser")
-    public ResponseEntity<UserActivityAssignmentDto> getByOccasionIdForCurrentUser(
+    public ResponseEntity<List<UserActivityAssignmentDto>> getByOccasionIdForCurrentUser(
             @Parameter @PathVariable("occasionId") @NotNull Long occasionId) {
-        UserActivityAssignmentDto assignment = userActivityAssignmentService.findByOccasionIdForCurrentUser(occasionId);
-        return ResponseEntity.ok(assignment);
+        List<UserActivityAssignmentDto> assignments = userActivityAssignmentService.findByOccasionIdForCurrentUser(occasionId);
+        return ResponseEntity.ok(assignments);
     }
 
     @Operation(summary = "Получить назначение по ID активности для текущего юзера")

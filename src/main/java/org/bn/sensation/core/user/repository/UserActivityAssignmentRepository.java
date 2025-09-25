@@ -1,5 +1,6 @@
 package org.bn.sensation.core.user.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.bn.sensation.core.common.repository.BaseRepository;
@@ -28,5 +29,5 @@ public interface UserActivityAssignmentRepository extends BaseRepository<UserAct
     @Query("SELECT uaa FROM UserActivityAssignmentEntity uaa " +
            "JOIN uaa.activity a " +
            "WHERE uaa.user.id = :userId AND a.occasion.id = :occasionId")
-    Optional<UserActivityAssignmentEntity> findByUserIdAndOccasionId(Long userId, Long occasionId);
+    List<UserActivityAssignmentEntity> findByUserIdAndOccasionId(Long userId, Long occasionId);
 }
