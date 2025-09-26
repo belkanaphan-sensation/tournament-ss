@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.round.entity.RoundResultEntity;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -27,8 +28,11 @@ public interface RoundResultRepository extends BaseRepository<RoundResultEntity>
     /**
      * Найти результаты раунда по ID этапа через связь с раундом
      */
-    @Query("SELECT rr FROM RoundResultEntity rr " +
-           "JOIN rr.round r " +
-           "WHERE r.milestone.id = :milestoneId")
+    @EntityGraph(attributePaths = {"participant", "round", "milestoneCriteria", "activityUser"})
+    @Query("""
+            SELECT DISTINCT rr 
+            FROM RoundResultEntity rr
+            WHERE rr.round.milestone.id = :milestoneId
+            """)
     List<RoundResultEntity> findByMilestoneId(@Param("milestoneId") Long milestoneId);
 }

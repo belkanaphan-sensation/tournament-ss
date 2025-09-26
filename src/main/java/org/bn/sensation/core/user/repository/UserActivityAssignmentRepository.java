@@ -8,6 +8,7 @@ import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
 import org.bn.sensation.core.user.entity.UserActivityPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 
 public interface UserActivityAssignmentRepository extends BaseRepository<UserActivityAssignmentEntity> {
@@ -26,8 +27,13 @@ public interface UserActivityAssignmentRepository extends BaseRepository<UserAct
 
     long countByActivityIdAndPosition(Long activityId, UserActivityPosition position);
 
-    @Query("SELECT uaa FROM UserActivityAssignmentEntity uaa " +
-           "JOIN uaa.activity a " +
-           "WHERE uaa.user.id = :userId AND a.occasion.id = :occasionId")
+    @EntityGraph(attributePaths = {"user", "activity"})
+    @Query("""
+            SELECT DISTINCT uaa 
+            FROM UserActivityAssignmentEntity uaa
+            JOIN uaa.activity a
+            WHERE uaa.user.id = :userId 
+              AND a.occasion.id = :occasionId
+            """)
     List<UserActivityAssignmentEntity> findByUserIdAndOccasionId(Long userId, Long occasionId);
 }

@@ -1,5 +1,7 @@
 package org.bn.sensation.core.participant.presentation;
 
+import java.util.List;
+
 import org.bn.sensation.core.participant.service.ParticipantService;
 import org.bn.sensation.core.participant.service.dto.CreateParticipantRequest;
 import org.bn.sensation.core.participant.service.dto.ParticipantDto;
@@ -44,8 +46,8 @@ public class ParticipantController {
 
     @Operation(summary = "Получить всех участников по ID раунда")
     @GetMapping(path = "/round/{roundId}")
-    public ResponseEntity<Page<ParticipantDto>> getByRoundId(@PathVariable("roundId") Long roundId, Pageable pageable) {
-        return ResponseEntity.ok(participantService.findByRoundId(roundId, pageable));
+    public ResponseEntity<List<ParticipantDto>> getByRoundId(@PathVariable("roundId") Long roundId) {
+        return ResponseEntity.ok(participantService.findByRoundId(roundId));
     }
 
     @Operation(summary = "Создать нового участника")

@@ -1,5 +1,7 @@
 package org.bn.sensation.core.participant.service;
 
+import java.util.List;
+
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
@@ -47,14 +49,13 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
-    public Page<ParticipantDto> findByRoundId(Long roundId, Pageable pageable) {
-        return participantRepository.findByRoundId(roundId, pageable).map(participantDtoMapper::toDto);
+    public List<ParticipantDto> findByRoundId(Long roundId) {
+        return participantRepository.findByRoundId(roundId).stream().map(participantDtoMapper::toDto).toList();
     }
 
     @Override
     @Transactional
     public ParticipantDto create(CreateParticipantRequest request) {
-        // Создаем сущность участника
         ParticipantEntity participant = createParticipantRequestMapper.toEntity(request);
 
         ParticipantEntity saved = participantRepository.save(participant);
@@ -66,7 +67,6 @@ public class ParticipantServiceImpl implements ParticipantService {
     public ParticipantDto update(Long id, UpdateParticipantRequest request) {
         ParticipantEntity participant = findParticipantById(id);
 
-        // Обновляем поля участника
         updateParticipantRequestMapper.updateParticipantFromRequest(request, participant);
 
         ParticipantEntity saved = participantRepository.save(participant);

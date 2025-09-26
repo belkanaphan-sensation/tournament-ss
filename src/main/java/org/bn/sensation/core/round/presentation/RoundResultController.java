@@ -39,7 +39,7 @@ public class RoundResultController {
                 .orElseGet(() -> ResponseEntity.status(404).build());
     }
 
-    @Operation(summary = "Получить все результаты раундов с пагинацией")
+    @Operation(summary = "Получить все результаты раундов")
     @GetMapping
     public ResponseEntity<Page<RoundResultDto>> getAll(Pageable pageable) {
         return ResponseEntity.ok(roundResultService.findAll(pageable));
