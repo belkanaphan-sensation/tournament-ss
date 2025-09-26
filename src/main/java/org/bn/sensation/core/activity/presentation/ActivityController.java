@@ -47,9 +47,9 @@ public class ActivityController {
     }
 
     @Operation(summary = "Получить активности по ID мероприятия в лайфстейтах")
-    @GetMapping(path = "/occasion/{id}/life")
+    @GetMapping(path = "/occasion/{id}/life/currentUser")
     public ResponseEntity<List<ActivityDto>> getByOccasionIdInLifeStates(@Parameter @PathVariable("id") @NotNull Long id) {
-        return ResponseEntity.ok(activityService.findByOccasionIdInLifeStates(id));
+        return ResponseEntity.ok(activityService.findByOccasionIdInLifeStatesForCurrentUser(id));
     }
 
     @Operation(summary = "Получить все активности с пагинацией")

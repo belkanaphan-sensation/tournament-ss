@@ -9,6 +9,7 @@ import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
+import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -48,4 +49,8 @@ public class ActivityEntity extends BaseEntity {
     @OneToMany(mappedBy = "activity", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @Builder.Default
     private Set<MilestoneEntity> milestones = new HashSet<>();
+
+    @OneToMany(mappedBy = "activity", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
+    @Builder.Default
+    private Set<UserActivityAssignmentEntity> userAssignments = new HashSet<>();
 }

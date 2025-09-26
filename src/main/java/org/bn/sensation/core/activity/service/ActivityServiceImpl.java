@@ -17,6 +17,8 @@ import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
+import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
+import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,8 @@ public class ActivityServiceImpl implements ActivityService {
     private final CreateActivityRequestMapper createActivityRequestMapper;
     private final UpdateActivityRequestMapper updateActivityRequestMapper;
     private final OccasionRepository occasionRepository;
+    private final UserActivityAssignmentRepository userActivityAssignmentRepository;
+    private final CurrentUser currentUser;
 
     @Override
     public BaseRepository<ActivityEntity> getRepository() {
@@ -64,9 +68,9 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ActivityDto> findByOccasionIdInLifeStates(Long id) {
+    public List<ActivityDto> findByOccasionIdInLifeStatesForCurrentUser(Long id) {
         Preconditions.checkArgument(id != null, "ID мероприятия не может быть null");
-        return activityRepository.findByOccasionIdAndStateIn(id, State.LIFE_STATES).stream()
+        return activityRepository.findByOccasionIdAndUserIdAndStateIn(id, currentUser.getSecurityUser().getId(), State.LIFE_STATES).stream()
                 .map(this::enrichActivityDtoWithStatistics)
                 .toList();
     }
@@ -130,6 +134,10 @@ public class ActivityServiceImpl implements ActivityService {
         if (!activityRepository.existsById(id)) {
             throw new IllegalArgumentException("Активность не найдена с id: " + id);
         }
+        
+        // Сначала удаляем все связанные назначения пользователей
+        userActivityAssignmentRepository.deleteByActivityId(id);
+        // Затем удаляем саму активность
         activityRepository.deleteById(id);
     }
 
