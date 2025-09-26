@@ -154,8 +154,10 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO round (name, description, state, milestone_id, created_at, created_by, modified_at, modified_by, version) VALUES
-              -- Этап 1: 1 раунд с полным набором данных
-              ('Раунд 1', 'Единственный раунд этапа 1', 'IN_PROGRESS', 1, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              -- Этап 1: 3 раунда с полным набором данных
+              ('Раунд 1.1', 'Первый раунд этапа 1', 'IN_PROGRESS', 1, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ('Раунд 1.2', 'Второй раунд этапа 1', 'IN_PROGRESS', 1, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ('Раунд 1.3', 'Третий раунд этапа 1', 'IN_PROGRESS', 1, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
               
               -- Этап 2.1.1: 3 раунда с разным количеством данных
               ('Раунд 2.1.1.1', 'Первый раунд этапа 2.1.1 с полными данными', 'IN_PROGRESS', 2, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
@@ -211,8 +213,13 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO participant (name, surname, second_name, email, phone_number, number, partner_side, created_at, created_by, modified_at, modified_by, version) VALUES
-              -- Участники для организации 1 (1 участник)
+              -- Участники для организации 1 (6 участников)
               ('Участник', 'Один', 'Участникович', 'participant1@test.kz', '+7 777 101 00 01', 'P-001', 'LEADER', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
+              ('Участник', 'Один', 'Второй', 'participant1_2@test.kz', '+7 777 101 00 02', 'P-001-2', 'FOLLOWER', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
+              ('Участник', 'Один', 'Третий', 'participant1_3@test.kz', '+7 777 101 00 03', 'P-001-3', 'LEADER', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
+              ('Участник', 'Один', 'Четвертый', 'participant1_4@test.kz', '+7 777 101 00 04', 'P-001-4', 'FOLLOWER', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
+              ('Участник', 'Один', 'Пятый', 'participant1_5@test.kz', '+7 777 101 00 05', 'P-001-5', 'LEADER', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
+              ('Участник', 'Один', 'Шестой', 'participant1_6@test.kz', '+7 777 101 00 06', 'P-001-6', 'FOLLOWER', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
               
               -- Участники для организации 2 (3 участника)
               ('Участник', 'Два', 'Первый', 'participant2_1@test.kz', '+7 777 102 00 01', 'P-002-1', 'LEADER', '2025-04-15 10:00:00', 'org2_admin', '2025-04-15 10:00:00', 'org2_admin', 0),
@@ -260,8 +267,28 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO rounds_participants_association (participant_id, round_id) VALUES
-              -- Раунд 1: 1 участник (полные данные)
-              ((SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1')),
+              -- Раунды 1.x: 6 участников в каждом раунде (полные данные)
+              -- Раунд 1.1: все 6 участников
+              ((SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1')),
+              ((SELECT id FROM participant WHERE number = 'P-001-2'), (SELECT id FROM round WHERE name = 'Раунд 1.1')),
+              ((SELECT id FROM participant WHERE number = 'P-001-3'), (SELECT id FROM round WHERE name = 'Раунд 1.1')),
+              ((SELECT id FROM participant WHERE number = 'P-001-4'), (SELECT id FROM round WHERE name = 'Раунд 1.1')),
+              ((SELECT id FROM participant WHERE number = 'P-001-5'), (SELECT id FROM round WHERE name = 'Раунд 1.1')),
+              ((SELECT id FROM participant WHERE number = 'P-001-6'), (SELECT id FROM round WHERE name = 'Раунд 1.1')),
+              -- Раунд 1.2: все 6 участников
+              ((SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.2')),
+              ((SELECT id FROM participant WHERE number = 'P-001-2'), (SELECT id FROM round WHERE name = 'Раунд 1.2')),
+              ((SELECT id FROM participant WHERE number = 'P-001-3'), (SELECT id FROM round WHERE name = 'Раунд 1.2')),
+              ((SELECT id FROM participant WHERE number = 'P-001-4'), (SELECT id FROM round WHERE name = 'Раунд 1.2')),
+              ((SELECT id FROM participant WHERE number = 'P-001-5'), (SELECT id FROM round WHERE name = 'Раунд 1.2')),
+              ((SELECT id FROM participant WHERE number = 'P-001-6'), (SELECT id FROM round WHERE name = 'Раунд 1.2')),
+              -- Раунд 1.3: все 6 участников
+              ((SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.3')),
+              ((SELECT id FROM participant WHERE number = 'P-001-2'), (SELECT id FROM round WHERE name = 'Раунд 1.3')),
+              ((SELECT id FROM participant WHERE number = 'P-001-3'), (SELECT id FROM round WHERE name = 'Раунд 1.3')),
+              ((SELECT id FROM participant WHERE number = 'P-001-4'), (SELECT id FROM round WHERE name = 'Раунд 1.3')),
+              ((SELECT id FROM participant WHERE number = 'P-001-5'), (SELECT id FROM round WHERE name = 'Раунд 1.3')),
+              ((SELECT id FROM participant WHERE number = 'P-001-6'), (SELECT id FROM round WHERE name = 'Раунд 1.3')),
               
               -- Раунды 2.1.1.x: 3 участника (полные данные)
               ((SELECT id FROM participant WHERE number = 'P-002-1'), (SELECT id FROM round WHERE name = 'Раунд 2.1.1.1')),
@@ -317,15 +344,18 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO milestone_criteria_assignment (milestone_id, criteria_id, partner_side, weight, scale, created_at, created_by, modified_at, modified_by, version) VALUES
-              -- Этап 1: все критерии с разными ролями (полные данные)
+              -- Этап 1: расширенные критерии с разными ролями (полные данные)
+              -- Общие критерии (для всех участников)
               ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 1, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Техника'), 'LEADER', 1.5, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Техника'), 'FOLLOWER', 1.5, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Ведение'), null, 1.0, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Стилистика'), 'FOLLOWER', 1.0, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
               ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, 1.2, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Следование'), 'LEADER', 1.0, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
               ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Имидж'), null, 0.8, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              -- Критерии для лидеров
+              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Техника'), 'LEADER', 1.5, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Ведение'), 'LEADER', 1.0, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Следование'), 'LEADER', 1.0, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              -- Критерии для фоловеров
+              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Техника'), 'FOLLOWER', 1.5, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Стилистика'), 'FOLLOWER', 1.0, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
               
               -- Этап 2.1.1: все критерии с ролями (полные данные)
               ((SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 1, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
@@ -372,7 +402,7 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO user_activity_assignment (user_id, activity_id, position, partner_side, created_at, created_by, modified_at, modified_by, version) VALUES
-              -- Активность 1: 1 главный судья + 1 обычный судья
+              -- Активность 1: 1 главный судья-лидер + 1 судья-фоловер
               ((SELECT id FROM users WHERE username = 'judge1_1'), (SELECT id FROM activity WHERE name = 'Активность 1'), 'JUDGE_CHIEF', 'LEADER', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
               ((SELECT id FROM users WHERE username = 'judge1_2'), (SELECT id FROM activity WHERE name = 'Активность 1'), 'JUDGE', 'FOLLOWER', '2025-03-15 10:00:00', 'org1_admin', '2025-03-15 10:00:00', 'org1_admin', 0),
               
