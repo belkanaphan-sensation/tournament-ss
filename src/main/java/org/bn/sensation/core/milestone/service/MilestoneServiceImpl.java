@@ -142,16 +142,21 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     @Override
-    public Page<MilestoneDto> findByActivityId(Long id, Pageable pageable) {
+    @Transactional(readOnly = true)
+    public List<MilestoneDto> findByActivityId(Long id) {
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
-        return milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(id, pageable).map(this::enrichMilestoneDtoWithStatistics);
+        return milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(id).stream()
+                .map(this::enrichMilestoneDtoWithStatistics)
+                .toList();
     }
 
     @Override
-    public Page<MilestoneDto> findByActivityIdInLifeStates(Long id, Pageable pageable) {
+    @Transactional(readOnly = true)
+    public List<MilestoneDto> findByActivityIdInLifeStates(Long id) {
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
-        return milestoneRepository.findByActivityIdAndStateInOrderByMilestoneOrderAsc(id, pageable, State.LIFE_STATES)
-                .map(this::enrichMilestoneDtoWithStatistics);
+        return milestoneRepository.findByActivityIdAndStateInOrderByMilestoneOrderAsc(id, State.LIFE_STATES).stream()
+                .map(this::enrichMilestoneDtoWithStatistics)
+                .toList();
     }
 
     /**

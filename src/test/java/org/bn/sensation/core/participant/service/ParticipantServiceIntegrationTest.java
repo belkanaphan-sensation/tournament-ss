@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -523,17 +524,15 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testFindByRoundId() {
         // Given - testParticipant is already assigned to testRound in setUp()
-        Pageable pageable = PageRequest.of(0, 10);
 
         // When
-        Page<ParticipantDto> result = participantService.findByRoundId(testRound.getId(), pageable);
+        List<ParticipantDto> result = participantService.findByRoundId(testRound.getId());
 
         // Then
         assertNotNull(result);
-        assertEquals(1, result.getTotalElements());
-        assertEquals(1, result.getContent().size());
+        assertEquals(1, result.size());
 
-        ParticipantDto participant = result.getContent().get(0);
+        ParticipantDto participant = result.get(0);
         assertEquals(testParticipant.getId(), participant.getId());
         assertEquals(testParticipant.getPerson().getName(), participant.getPerson().getName());
         assertEquals(testParticipant.getPerson().getSurname(), participant.getPerson().getSurname());
@@ -568,25 +567,22 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
         participantRepository.save(participant3);
 
-        Pageable pageable = PageRequest.of(0, 10);
-
         // When
-        Page<ParticipantDto> result = participantService.findByRoundId(testRound.getId(), pageable);
+        List<ParticipantDto> result = participantService.findByRoundId(testRound.getId());
 
         // Then
         assertNotNull(result);
-        assertEquals(3, result.getTotalElements());
-        assertEquals(3, result.getContent().size());
+        assertEquals(3, result.size());
 
         // Verify all participants are from the correct round
-        result.getContent().forEach(participant -> {
+        result.forEach(participant -> {
             assertTrue(participant.getRounds().stream()
                     .anyMatch(round -> round.getId().equals(testRound.getId())));
         });
     }
 
     @Test
-    void testFindByRoundIdWithPagination() {
+    void testFindByRoundIdWithManyParticipants() {
         // Given - Create multiple participants for testRound
         for (int i = 0; i < 5; i++) {
             ParticipantEntity participant = ParticipantEntity.builder()
@@ -603,23 +599,18 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
             participantRepository.save(participant);
         }
 
-        // Test first page
-        Pageable firstPage = PageRequest.of(0, 3);
-        Page<ParticipantDto> firstPageResult = participantService.findByRoundId(testRound.getId(), firstPage);
+        // When
+        List<ParticipantDto> result = participantService.findByRoundId(testRound.getId());
 
-        assertNotNull(firstPageResult);
-        assertEquals(6, firstPageResult.getTotalElements()); // 1 from setUp + 5 new
-        assertEquals(3, firstPageResult.getContent().size());
-        assertTrue(firstPageResult.hasNext());
+        // Then
+        assertNotNull(result);
+        assertEquals(6, result.size()); // 1 from setUp + 5 new
 
-        // Test second page
-        Pageable secondPage = PageRequest.of(1, 3);
-        Page<ParticipantDto> secondPageResult = participantService.findByRoundId(testRound.getId(), secondPage);
-
-        assertNotNull(secondPageResult);
-        assertEquals(6, secondPageResult.getTotalElements());
-        assertEquals(3, secondPageResult.getContent().size());
-        assertFalse(secondPageResult.hasNext());
+        // Verify all participants are from the correct round
+        result.forEach(participant -> {
+            assertTrue(participant.getRounds().stream()
+                    .anyMatch(round -> round.getId().equals(testRound.getId())));
+        });
     }
 
     @Test
@@ -638,44 +629,33 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
         participantRepository.save(participantForOtherRound);
 
-        Pageable pageable = PageRequest.of(0, 10);
-
         // When - Search for participants in testRound (which should only have testParticipant)
-        Page<ParticipantDto> result = participantService.findByRoundId(testRound.getId(), pageable);
+        List<ParticipantDto> result = participantService.findByRoundId(testRound.getId());
 
         // Then
         assertNotNull(result);
-        assertEquals(1, result.getTotalElements()); // Only testParticipant
-        assertEquals(1, result.getContent().size());
-        assertEquals(testParticipant.getId(), result.getContent().get(0).getId());
+        assertEquals(1, result.size()); // Only testParticipant
+        assertEquals(testParticipant.getId(), result.get(0).getId());
     }
 
     @Test
     void testFindByRoundIdWithNonExistentRound() {
-        // Given
-        Pageable pageable = PageRequest.of(0, 10);
-
         // When
-        Page<ParticipantDto> result = participantService.findByRoundId(999L, pageable);
+        List<ParticipantDto> result = participantService.findByRoundId(999L);
 
         // Then
         assertNotNull(result);
-        assertEquals(0, result.getTotalElements());
-        assertEquals(0, result.getContent().size());
+        assertEquals(0, result.size());
     }
 
     @Test
     void testFindByRoundIdWithNullRoundId() {
-        // Given
-        Pageable pageable = PageRequest.of(0, 10);
-
         // When
-        Page<ParticipantDto> result = participantService.findByRoundId(null, pageable);
+        List<ParticipantDto> result = participantService.findByRoundId(null);
 
         // Then - Should return empty result instead of throwing exception
         assertNotNull(result);
-        assertEquals(0, result.getTotalElements());
-        assertEquals(0, result.getContent().size());
+        assertEquals(0, result.size());
     }
 
     @Test
@@ -694,62 +674,86 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
         participantRepository.save(multiRoundParticipant);
 
-        Pageable pageable = PageRequest.of(0, 10);
-
         // When - Search for participants in testRound
-        Page<ParticipantDto> testRoundResult = participantService.findByRoundId(testRound.getId(), pageable);
+        List<ParticipantDto> testRoundResult = participantService.findByRoundId(testRound.getId());
 
         // When - Search for participants in testRound1
-        Page<ParticipantDto> testRound1Result = participantService.findByRoundId(testRound1.getId(), pageable);
+        List<ParticipantDto> testRound1Result = participantService.findByRoundId(testRound1.getId());
 
         // Then
         assertNotNull(testRoundResult);
-        assertEquals(2, testRoundResult.getTotalElements()); // testParticipant + multiRoundParticipant
-        assertTrue(testRoundResult.getContent().stream()
+        assertEquals(2, testRoundResult.size()); // testParticipant + multiRoundParticipant
+        assertTrue(testRoundResult.stream()
                 .anyMatch(p -> p.getId().equals(multiRoundParticipant.getId())));
 
         assertNotNull(testRound1Result);
-        assertEquals(1, testRound1Result.getTotalElements()); // Only multiRoundParticipant
-        assertEquals(multiRoundParticipant.getId(), testRound1Result.getContent().get(0).getId());
+        assertEquals(1, testRound1Result.size()); // Only multiRoundParticipant
+        assertEquals(multiRoundParticipant.getId(), testRound1Result.get(0).getId());
     }
 
     @Test
-    void testFindByRoundIdWithDifferentPageSizes() {
+    void testFindByRoundIdWithVeryManyParticipants() {
         // Given - Create multiple participants
         for (int i = 0; i < 7; i++) {
             ParticipantEntity participant = ParticipantEntity.builder()
                     .person(Person.builder()
-                            .name("PageTest" + i)
+                            .name("ManyTest" + i)
                             .surname("Surname" + i)
-                            .email("pagetest" + i + "@example.com")
+                            .email("manytest" + i + "@example.com")
                             .phoneNumber("+222222222" + i)
                             .build())
-                    .number("PT-" + String.format("%03d", i))
+                    .number("MT-" + String.format("%03d", i))
                     .partnerSide(PartnerSide.FOLLOWER)
                     .rounds(new HashSet<>(Set.of(testRound)))
                     .build();
             participantRepository.save(participant);
         }
 
-        // Test with page size 2
-        Pageable pageSize2 = PageRequest.of(0, 2);
-        Page<ParticipantDto> result2 = participantService.findByRoundId(testRound.getId(), pageSize2);
-        assertEquals(2, result2.getContent().size());
-        assertEquals(8, result2.getTotalElements()); // 1 from setUp + 7 new
-        assertEquals(4, result2.getTotalPages());
+        // When
+        List<ParticipantDto> result = participantService.findByRoundId(testRound.getId());
 
-        // Test with page size 5
-        Pageable pageSize5 = PageRequest.of(0, 5);
-        Page<ParticipantDto> result5 = participantService.findByRoundId(testRound.getId(), pageSize5);
-        assertEquals(5, result5.getContent().size());
-        assertEquals(8, result5.getTotalElements());
-        assertEquals(2, result5.getTotalPages());
+        // Then
+        assertNotNull(result);
+        assertEquals(8, result.size()); // 1 from setUp + 7 new
 
-        // Test with page size 10 (should fit all)
-        Pageable pageSize10 = PageRequest.of(0, 10);
-        Page<ParticipantDto> result10 = participantService.findByRoundId(testRound.getId(), pageSize10);
-        assertEquals(8, result10.getContent().size());
-        assertEquals(8, result10.getTotalElements());
-        assertEquals(1, result10.getTotalPages());
+        // Verify all participants are from the correct round
+        result.forEach(participant -> {
+            assertTrue(participant.getRounds().stream()
+                    .anyMatch(round -> round.getId().equals(testRound.getId())));
+        });
+    }
+
+    @Test
+    void testFindByRoundIdEnrichesDtoWithActivityAndMilestones() {
+        // Given - testParticipant is already assigned to testRound in setUp()
+        // testRound belongs to testMilestone, which belongs to testActivity
+
+        // When
+        List<ParticipantDto> result = participantService.findByRoundId(testRound.getId());
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size());
+
+        ParticipantDto participant = result.get(0);
+
+        // Проверяем, что rounds загружены
+        assertNotNull(participant.getRounds());
+        assertEquals(1, participant.getRounds().size());
+        assertTrue(participant.getRounds().stream()
+                .anyMatch(round -> round.getId().equals(testRound.getId())));
+
+        // Проверяем, что activity загружена
+        assertNotNull(participant.getActivity());
+        assertEquals(testActivity.getId(), participant.getActivity().getId());
+        assertEquals(testActivity.getName(), participant.getActivity().getValue());
+
+        // Проверяем, что milestones загружены
+        assertNotNull(participant.getMilestones());
+        assertEquals(1, participant.getMilestones().size());
+        assertTrue(participant.getMilestones().stream()
+                .anyMatch(milestone -> milestone.getId().equals(testMilestone.getId())));
+        assertTrue(participant.getMilestones().stream()
+                .anyMatch(milestone -> milestone.getValue().equals(testMilestone.getName())));
     }
 }

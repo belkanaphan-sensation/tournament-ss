@@ -8,8 +8,6 @@ import org.bn.sensation.core.user.entity.UserActivityPosition;
 import org.bn.sensation.core.user.service.dto.CreateUserActivityAssignmentRequest;
 import org.bn.sensation.core.user.service.dto.UpdateUserActivityAssignmentRequest;
 import org.bn.sensation.core.user.service.dto.UserActivityAssignmentDto;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -22,13 +20,13 @@ public interface UserActivityAssignmentService extends BaseCrudService<
     // Custom operations
     UserActivityAssignmentDto findByUserIdAndActivityId(@NotNull Long userId, @NotNull Long activityId);
 
-    Page<UserActivityAssignmentDto> findByUserId(@NotNull Long userId, Pageable pageable);
+    List<UserActivityAssignmentDto> findByUserId(@NotNull Long userId);
 
-    Page<UserActivityAssignmentDto> findByActivityId(@NotNull Long activityId, Pageable pageable);
+    List<UserActivityAssignmentDto> findByActivityId(@NotNull Long activityId);
 
-    Page<UserActivityAssignmentDto> findByPosition(@NotNull UserActivityPosition position, Pageable pageable);
+    List<UserActivityAssignmentDto> findByPosition(@NotNull UserActivityPosition position);
 
-    Page<UserActivityAssignmentDto> findByActivityIdAndPosition(@NotNull Long activityId, @NotNull UserActivityPosition position, Pageable pageable);
+    List<UserActivityAssignmentDto> findByActivityIdAndPosition(@NotNull Long activityId, @NotNull UserActivityPosition position);
 
     UserActivityAssignmentDto findByActivityIdForCurrentUser(@NotNull Long activityId);
 

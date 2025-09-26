@@ -5,8 +5,7 @@ import org.bn.sensation.core.activity.service.dto.ActivityDto;
 import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.common.service.BaseCrudService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import java.util.List;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -16,7 +15,7 @@ public interface ActivityService extends BaseCrudService<
         CreateActivityRequest,
         UpdateActivityRequest> {
 
-    Page<ActivityDto> findByOccasionId(@NotNull Long id, Pageable pageable);
+    List<ActivityDto> findByOccasionId(@NotNull Long id);
 
-    Page<ActivityDto> findByOccasionIdInLifeStates(@NotNull Long id, Pageable pageable);
+    List<ActivityDto> findByOccasionIdInLifeStates(@NotNull Long id);
 }

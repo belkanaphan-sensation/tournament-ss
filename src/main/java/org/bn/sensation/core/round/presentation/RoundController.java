@@ -2,15 +2,14 @@ package org.bn.sensation.core.round.presentation;
 
 import java.util.List;
 
-import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.round.service.RoundService;
 import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
 import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
-import org.bn.sensation.core.round.service.dto.RoundResultDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/round")
 @RequiredArgsConstructor
+@Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Round", description = "The Round API")
 public class RoundController {
@@ -40,14 +40,14 @@ public class RoundController {
 
     @Operation(summary = "Получить раунды по ID этапа")
     @GetMapping(path = "/milestone/{id}")
-    public ResponseEntity<Page<RoundDto>> getByMilestoneId(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
-        return ResponseEntity.ok(roundService.findByMilestoneId(id, pageable));
+    public ResponseEntity<List<RoundDto>> getByMilestoneId(@Parameter @PathVariable("id") @NotNull Long id) {
+        return ResponseEntity.ok(roundService.findByMilestoneId(id));
     }
 
     @Operation(summary = "Получить раунды по ID этапа в лайфстейтах")
     @GetMapping(path = "/milestone/{id}/life")
-    public ResponseEntity<Page<RoundDto>> getByMilestoneIdInLifeStates(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
-        return ResponseEntity.ok(roundService.findByMilestoneIdInLifeStates(id, pageable));
+    public ResponseEntity<List<RoundDto>> getByMilestoneIdInLifeStates(@Parameter @PathVariable("id") @NotNull Long id) {
+        return ResponseEntity.ok(roundService.findByMilestoneIdInLifeStates(id));
     }
 
     @Operation(summary = "Получить все раунды с пагинацией")
@@ -78,56 +78,4 @@ public class RoundController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Получить результаты раунда для участника по критериям от судьи по ID раунда")
-    @GetMapping(path = "/{id}/result")
-    public ResponseEntity<List<RoundResultDto>> getResultById(
-            @Parameter @PathVariable("id") @NotNull Long id) {
-        List<RoundResultDto> result = List.of(
-                RoundResultDto.builder()
-                        .participant(new EntityLinkDto(1L, "25"))
-                        .round(new EntityLinkDto(1L, "round 1"))
-                        .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
-                        .activityUser(new EntityLinkDto(1L, "activity user 1"))
-                        .score(7)
-                        .build(),
-                RoundResultDto.builder()
-                        .participant(new EntityLinkDto(2L, "25"))
-                        .round(new EntityLinkDto(1L, "round 1"))
-                        .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
-                        .activityUser(new EntityLinkDto(1L, "activity user 1"))
-                        .score(9)
-                        .build()
-        );
-        return ResponseEntity.ok(result);
-    }
-
-    @Operation(summary = "Получить результаты раунда для участника по критериям от судьи по ID этапа")
-    @GetMapping(path = "/milestone/{milestoneId}/result")
-    public ResponseEntity<List<RoundResultDto>> getResultByMilestoneId(
-            @Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        List<RoundResultDto> result = List.of(
-                RoundResultDto.builder()
-                        .participant(new EntityLinkDto(1L, "25"))
-                        .round(new EntityLinkDto(1L, "round 1"))
-                        .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
-                        .activityUser(new EntityLinkDto(1L, "activity user 1"))
-                        .score(7)
-                        .build(),
-                RoundResultDto.builder()
-                        .participant(new EntityLinkDto(2L, "25"))
-                        .round(new EntityLinkDto(1L, "round 1"))
-                        .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
-                        .activityUser(new EntityLinkDto(1L, "activity user 1"))
-                        .score(9)
-                        .build(),
-                RoundResultDto.builder()
-                        .participant(new EntityLinkDto(2L, "25"))
-                        .round(new EntityLinkDto(2L, "round 2"))
-                        .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
-                        .activityUser(new EntityLinkDto(1L, "activity user 1"))
-                        .score(4)
-                        .build()
-        );
-        return ResponseEntity.ok(result);
-    }
 }

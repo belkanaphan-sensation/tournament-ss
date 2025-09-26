@@ -43,7 +43,7 @@ public class OrganizationEntity extends BaseEntity {
     @Builder.Default
     private Set<UserEntity> users = new HashSet<>();
 
-    @OneToMany(mappedBy = "organization", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "organization", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @Builder.Default
     private Set<OccasionEntity> occasions = new HashSet<>();
 }

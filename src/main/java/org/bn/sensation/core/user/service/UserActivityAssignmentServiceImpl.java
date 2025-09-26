@@ -166,35 +166,43 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserActivityAssignmentDto> findByUserId(Long userId, Pageable pageable) {
+    public List<UserActivityAssignmentDto> findByUserId(Long userId) {
         Preconditions.checkArgument(userId != null, "User ID не может быть null");
 
-        return userActivityAssignmentRepository.findByUserId(userId, pageable).map(userActivityAssignmentDtoMapper::toDto);
+        return userActivityAssignmentRepository.findByUserId(userId).stream()
+                .map(userActivityAssignmentDtoMapper::toDto)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserActivityAssignmentDto> findByActivityId(Long activityId, Pageable pageable) {
+    public List<UserActivityAssignmentDto> findByActivityId(Long activityId) {
         Preconditions.checkArgument(activityId != null, "Activity ID не может быть null");
 
-        return userActivityAssignmentRepository.findByActivityId(activityId, pageable).map(userActivityAssignmentDtoMapper::toDto);
+        return userActivityAssignmentRepository.findByActivityId(activityId).stream()
+                .map(userActivityAssignmentDtoMapper::toDto)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserActivityAssignmentDto> findByPosition(UserActivityPosition activityRole, Pageable pageable) {
+    public List<UserActivityAssignmentDto> findByPosition(UserActivityPosition activityRole) {
         Preconditions.checkArgument(activityRole != null, "ActivityRole не может быть null");
 
-        return userActivityAssignmentRepository.findByPosition(activityRole, pageable).map(userActivityAssignmentDtoMapper::toDto);
+        return userActivityAssignmentRepository.findByPosition(activityRole).stream()
+                .map(userActivityAssignmentDtoMapper::toDto)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserActivityAssignmentDto> findByActivityIdAndPosition(Long activityId, UserActivityPosition activityRole, Pageable pageable) {
+    public List<UserActivityAssignmentDto> findByActivityIdAndPosition(Long activityId, UserActivityPosition activityRole) {
         Preconditions.checkArgument(activityId != null, "Activity ID не может быть null");
         Preconditions.checkArgument(activityRole != null, "ActivityRole не может быть null");
 
-        return userActivityAssignmentRepository.findByActivityIdAndPosition(activityId, activityRole, pageable).map(userActivityAssignmentDtoMapper::toDto);
+        return userActivityAssignmentRepository.findByActivityIdAndPosition(activityId, activityRole).stream()
+                .map(userActivityAssignmentDtoMapper::toDto)
+                .toList();
     }
 
     private UserActivityAssignmentDto getByUserIdAndActivityId(Long userId, Long activityId) {

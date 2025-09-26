@@ -11,6 +11,7 @@ import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/milestone")
 @RequiredArgsConstructor
+@Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Milestone", description = "The Milestone API")
 public class MilestoneController {
@@ -40,14 +42,14 @@ public class MilestoneController {
 
     @Operation(summary = "Получить этапы по ID активности")
     @GetMapping(path = "/activity/{id}")
-    public ResponseEntity<Page<MilestoneDto>> getByActivityId(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
-        return ResponseEntity.ok(milestoneService.findByActivityId(id, pageable));
+    public ResponseEntity<List<MilestoneDto>> getByActivityId(@Parameter @PathVariable("id") @NotNull Long id) {
+        return ResponseEntity.ok(milestoneService.findByActivityId(id));
     }
 
     @Operation(summary = "Получить этапы по ID активности в лайфстейтах")
     @GetMapping(path = "/activity/{id}/life")
-    public ResponseEntity<Page<MilestoneDto>> getByActivityIdInLifeStates(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
-        return ResponseEntity.ok(milestoneService.findByActivityIdInLifeStates(id, pageable));
+    public ResponseEntity<List<MilestoneDto>> getByActivityIdInLifeStates(@Parameter @PathVariable("id") @NotNull Long id) {
+        return ResponseEntity.ok(milestoneService.findByActivityIdInLifeStates(id));
     }
 
     @Operation(summary = "Получить все этапы с пагинацией")

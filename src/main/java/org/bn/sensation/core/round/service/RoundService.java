@@ -1,13 +1,13 @@
 package org.bn.sensation.core.round.service;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotNull;
 import org.bn.sensation.core.common.service.BaseCrudService;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
 import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 public interface RoundService extends BaseCrudService<
         RoundEntity,
@@ -15,7 +15,7 @@ public interface RoundService extends BaseCrudService<
         CreateRoundRequest,
         UpdateRoundRequest> {
 
-    Page<RoundDto> findByMilestoneId(@NotNull Long id, Pageable pageable);
+    List<RoundDto> findByMilestoneId(@NotNull Long id);
 
-    Page<RoundDto> findByMilestoneIdInLifeStates(@NotNull Long id, Pageable pageable);
+    List<RoundDto> findByMilestoneIdInLifeStates(@NotNull Long id);
 }

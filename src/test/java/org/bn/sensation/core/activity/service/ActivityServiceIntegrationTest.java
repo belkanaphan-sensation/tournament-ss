@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -434,59 +435,53 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         createTestActivity("Activity 3", "Description 3");
 
         // When
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<ActivityDto> result = activityService.findByOccasionId(testOccasion.getId(), pageable);
+        List<ActivityDto> result = activityService.findByOccasionId(testOccasion.getId());
 
         // Then
         assertNotNull(result);
-        assertEquals(3, result.getTotalElements());
-        assertEquals(3, result.getContent().size());
+        assertEquals(3, result.size());
 
         // Проверяем, что все активности принадлежат правильному мероприятию
-        result.getContent().forEach(activity -> {
+        result.forEach(activity -> {
             assertNotNull(activity.getOccasion());
             assertEquals(testOccasion.getId(), activity.getOccasion().getId());
         });
 
         // Проверяем, что все активности присутствуют в результате
-        assertTrue(result.getContent().stream()
+        assertTrue(result.stream()
                 .anyMatch(activity -> "Activity 1".equals(activity.getName())));
-        assertTrue(result.getContent().stream()
+        assertTrue(result.stream()
                 .anyMatch(activity -> "Activity 2".equals(activity.getName())));
-        assertTrue(result.getContent().stream()
+        assertTrue(result.stream()
                 .anyMatch(activity -> "Activity 3".equals(activity.getName())));
     }
 
     @Test
-    void testFindByOccasionIdWithPagination() {
+    void testFindByOccasionIdWithManyActivities() {
         // Given - создаем 5 активностей для тестового мероприятия
         for (int i = 1; i <= 5; i++) {
             createTestActivity("Activity " + i, "Description " + i);
         }
 
-        // When - запрашиваем первую страницу с размером 3
-        Pageable pageable = PageRequest.of(0, 3);
-        Page<ActivityDto> firstPage = activityService.findByOccasionId(testOccasion.getId(), pageable);
+        // When
+        List<ActivityDto> result = activityService.findByOccasionId(testOccasion.getId());
 
         // Then
-        assertNotNull(firstPage);
-        assertEquals(5, firstPage.getTotalElements());
-        assertEquals(3, firstPage.getContent().size());
-        assertEquals(0, firstPage.getNumber());
-        assertEquals(3, firstPage.getSize());
-        assertTrue(firstPage.hasNext());
+        assertNotNull(result);
+        assertEquals(5, result.size());
 
-        // When - запрашиваем вторую страницу
-        Pageable secondPageable = PageRequest.of(1, 3);
-        Page<ActivityDto> secondPage = activityService.findByOccasionId(testOccasion.getId(), secondPageable);
+        // Проверяем, что все активности принадлежат правильному мероприятию
+        result.forEach(activity -> {
+            assertNotNull(activity.getOccasion());
+            assertEquals(testOccasion.getId(), activity.getOccasion().getId());
+        });
 
-        // Then
-        assertNotNull(secondPage);
-        assertEquals(5, secondPage.getTotalElements());
-        assertEquals(2, secondPage.getContent().size());
-        assertEquals(1, secondPage.getNumber());
-        assertEquals(3, secondPage.getSize());
-        assertFalse(secondPage.hasNext());
+        // Проверяем, что все активности присутствуют в результате
+        for (int i = 1; i <= 5; i++) {
+            final int index = i;
+            assertTrue(result.stream()
+                    .anyMatch(activity -> ("Activity " + index).equals(activity.getName())));
+        }
     }
 
     @Test
@@ -522,29 +517,26 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         });
 
         // When - ищем активности для первого мероприятия
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<ActivityDto> resultForFirstOccasion = activityService.findByOccasionId(testOccasion.getId(), pageable);
+        List<ActivityDto> resultForFirstOccasion = activityService.findByOccasionId(testOccasion.getId());
 
         // Then
         assertNotNull(resultForFirstOccasion);
-        assertEquals(2, resultForFirstOccasion.getTotalElements());
-        assertEquals(2, resultForFirstOccasion.getContent().size());
+        assertEquals(2, resultForFirstOccasion.size());
 
         // Проверяем, что все активности принадлежат первому мероприятию
-        resultForFirstOccasion.getContent().forEach(activity -> {
+        resultForFirstOccasion.forEach(activity -> {
             assertEquals(testOccasion.getId(), activity.getOccasion().getId());
             assertTrue(activity.getName().contains("Occasion 1"));
         });
 
         // When - ищем активности для второго мероприятия
-        Page<ActivityDto> resultForSecondOccasion = activityService.findByOccasionId(secondOccasion.getId(), pageable);
+        List<ActivityDto> resultForSecondOccasion = activityService.findByOccasionId(secondOccasion.getId());
 
         // Then
         assertNotNull(resultForSecondOccasion);
-        assertEquals(1, resultForSecondOccasion.getTotalElements());
-        assertEquals(1, resultForSecondOccasion.getContent().size());
-        assertEquals(secondOccasion.getId(), resultForSecondOccasion.getContent().getFirst().getOccasion().getId());
-        assertEquals("Activity for Occasion 2", resultForSecondOccasion.getContent().getFirst().getName());
+        assertEquals(1, resultForSecondOccasion.size());
+        assertEquals(secondOccasion.getId(), resultForSecondOccasion.get(0).getOccasion().getId());
+        assertEquals("Activity for Occasion 2", resultForSecondOccasion.get(0).getName());
     }
 
     @Test
@@ -553,20 +545,17 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         Long nonExistentOccasionId = 999L;
 
         // When
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<ActivityDto> result = activityService.findByOccasionId(nonExistentOccasionId, pageable);
+        List<ActivityDto> result = activityService.findByOccasionId(nonExistentOccasionId);
 
         // Then
         assertNotNull(result);
-        assertEquals(0, result.getTotalElements());
-        assertEquals(0, result.getContent().size());
+        assertEquals(0, result.size());
     }
 
     @Test
     void testFindByOccasionIdWithNullId() {
         // When & Then
-        Pageable pageable = PageRequest.of(0, 10);
-        assertThrows(IllegalArgumentException.class, () -> activityService.findByOccasionId(null, pageable));
+        assertThrows(IllegalArgumentException.class, () -> activityService.findByOccasionId(null));
     }
 
     @Test
@@ -578,57 +567,52 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         createTestActivityWithState("Activity COMPLETED", "Description 4", State.COMPLETED);
 
         // When
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<ActivityDto> result = activityService.findByOccasionIdInLifeStates(testOccasion.getId(), pageable);
+        List<ActivityDto> result = activityService.findByOccasionIdInLifeStates(testOccasion.getId());
 
         // Then
         assertNotNull(result);
-        assertEquals(3, result.getTotalElements()); // Только PLANNED, IN_PROGRESS, COMPLETED
-        assertEquals(3, result.getContent().size());
+        assertEquals(3, result.size()); // Только PLANNED, IN_PROGRESS, COMPLETED
 
         // Проверяем, что все активности принадлежат правильному мероприятию и имеют life states
-        result.getContent().forEach(activity -> {
+        result.forEach(activity -> {
             assertNotNull(activity.getOccasion());
             assertEquals(testOccasion.getId(), activity.getOccasion().getId());
             assertTrue(State.LIFE_STATES.contains(activity.getState()));
         });
 
         // Проверяем, что DRAFT активности нет в результате
-        boolean hasDraftActivity = result.getContent().stream()
+        boolean hasDraftActivity = result.stream()
                 .anyMatch(activity -> activity.getState() == State.DRAFT);
         assertFalse(hasDraftActivity);
     }
 
     @Test
-    void testFindByOccasionIdInLifeStatesWithPagination() {
+    void testFindByOccasionIdInLifeStatesWithManyActivities() {
         // Given - создаем 5 активностей с life states
         for (int i = 1; i <= 5; i++) {
             createTestActivityWithState("Activity " + i, "Description " + i, State.PLANNED);
         }
 
-        // When - запрашиваем первую страницу с размером 3
-        Pageable pageable = PageRequest.of(0, 3);
-        Page<ActivityDto> firstPage = activityService.findByOccasionIdInLifeStates(testOccasion.getId(), pageable);
+        // When
+        List<ActivityDto> result = activityService.findByOccasionIdInLifeStates(testOccasion.getId());
 
         // Then
-        assertNotNull(firstPage);
-        assertEquals(5, firstPage.getTotalElements());
-        assertEquals(3, firstPage.getContent().size());
-        assertEquals(0, firstPage.getNumber());
-        assertEquals(3, firstPage.getSize());
-        assertTrue(firstPage.hasNext());
+        assertNotNull(result);
+        assertEquals(5, result.size());
 
-        // When - запрашиваем вторую страницу
-        Pageable secondPageable = PageRequest.of(1, 3);
-        Page<ActivityDto> secondPage = activityService.findByOccasionIdInLifeStates(testOccasion.getId(), secondPageable);
+        // Проверяем, что все активности принадлежат правильному мероприятию и имеют life states
+        result.forEach(activity -> {
+            assertNotNull(activity.getOccasion());
+            assertEquals(testOccasion.getId(), activity.getOccasion().getId());
+            assertTrue(State.LIFE_STATES.contains(activity.getState()));
+        });
 
-        // Then
-        assertNotNull(secondPage);
-        assertEquals(5, secondPage.getTotalElements());
-        assertEquals(2, secondPage.getContent().size());
-        assertEquals(1, secondPage.getNumber());
-        assertEquals(3, secondPage.getSize());
-        assertFalse(secondPage.hasNext());
+        // Проверяем, что все активности присутствуют в результате
+        for (int i = 1; i <= 5; i++) {
+            final int index = i;
+            assertTrue(result.stream()
+                    .anyMatch(activity -> ("Activity " + index).equals(activity.getName())));
+        }
     }
 
     @Test
@@ -637,20 +621,17 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         Long nonExistentOccasionId = 999L;
 
         // When
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<ActivityDto> result = activityService.findByOccasionIdInLifeStates(nonExistentOccasionId, pageable);
+        List<ActivityDto> result = activityService.findByOccasionIdInLifeStates(nonExistentOccasionId);
 
         // Then
         assertNotNull(result);
-        assertEquals(0, result.getTotalElements());
-        assertEquals(0, result.getContent().size());
+        assertEquals(0, result.size());
     }
 
     @Test
     void testFindByOccasionIdInLifeStatesWithNullId() {
         // When & Then
-        Pageable pageable = PageRequest.of(0, 10);
-        assertThrows(IllegalArgumentException.class, () -> activityService.findByOccasionIdInLifeStates(null, pageable));
+        assertThrows(IllegalArgumentException.class, () -> activityService.findByOccasionIdInLifeStates(null));
     }
 
     // Вспомогательный метод для создания тестовой активности
@@ -689,9 +670,12 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         ActivityEntity activity = createTestActivity("Test Activity", "Test Description");
 
         // Создаем этапы с разными статусами
-        createTestMilestone(activity, "Completed Milestone", State.COMPLETED);
-        createTestMilestone(activity, "Active Milestone", State.IN_PROGRESS);
-        createTestMilestone(activity, "Draft Milestone", State.DRAFT);
+        MilestoneEntity completedMilestone = createTestMilestone(activity, "Completed Milestone", State.COMPLETED);
+        MilestoneEntity activeMilestone = createTestMilestone(activity, "Active Milestone", State.IN_PROGRESS);
+        MilestoneEntity draftMilestone = createTestMilestone(activity, "Draft Milestone", State.DRAFT);
+
+        activity.getMilestones().addAll(Set.of(completedMilestone, activeMilestone, draftMilestone));
+        activityRepository.save(activity);
 
         // When
         Optional<ActivityDto> result = activityService.findById(activity.getId());
@@ -701,8 +685,8 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         ActivityDto activityDto = result.get();
         assertNotNull(activityDto.getCompletedMilestonesCount());
         assertNotNull(activityDto.getTotalMilestonesCount());
-        assertEquals(1L, activityDto.getCompletedMilestonesCount());
-        assertEquals(3L, activityDto.getTotalMilestonesCount());
+        assertEquals(1, activityDto.getCompletedMilestonesCount());
+        assertEquals(3, activityDto.getTotalMilestonesCount());
     }
 
     @Test
@@ -718,8 +702,8 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         ActivityDto activityDto = result.get();
         assertNotNull(activityDto.getCompletedMilestonesCount());
         assertNotNull(activityDto.getTotalMilestonesCount());
-        assertEquals(0L, activityDto.getCompletedMilestonesCount());
-        assertEquals(0L, activityDto.getTotalMilestonesCount());
+        assertEquals(0, activityDto.getCompletedMilestonesCount());
+        assertEquals(0, activityDto.getTotalMilestonesCount());
     }
 
     @Test
@@ -729,8 +713,9 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         createTestActivity("Activity 2", "Description 2");
 
         // Добавляем этапы к первой активности
-        createTestMilestone(activity1, "Milestone 1", State.COMPLETED);
-        createTestMilestone(activity1, "Milestone 2", State.IN_PROGRESS);
+        MilestoneEntity testMilestone = createTestMilestone(activity1, "Milestone 1", State.COMPLETED);
+        MilestoneEntity testMilestone1 = createTestMilestone(activity1, "Milestone 2", State.IN_PROGRESS);
+        activity1.getMilestones().addAll(Set.of(testMilestone, testMilestone1));
 
         // When
         Pageable pageable = PageRequest.of(0, 10);
@@ -752,8 +737,8 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .findFirst()
                 .orElse(null);
         assertNotNull(activityWithMilestones);
-        assertEquals(1L, activityWithMilestones.getCompletedMilestonesCount());
-        assertEquals(2L, activityWithMilestones.getTotalMilestonesCount());
+        assertEquals(1, activityWithMilestones.getCompletedMilestonesCount());
+        assertEquals(2, activityWithMilestones.getTotalMilestonesCount());
     }
 
     private MilestoneEntity createTestMilestone(ActivityEntity activity, String name, State state) {

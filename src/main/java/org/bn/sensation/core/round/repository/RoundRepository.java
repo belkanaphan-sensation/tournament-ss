@@ -13,8 +13,7 @@ public interface RoundRepository extends BaseRepository<RoundEntity> {
 
     Page<RoundEntity> findByMilestoneId(Long milestoneId, Pageable pageable);
 
-    /**
-     * Найти раунды этапа в life states
-     */
-    Page<RoundEntity> findByMilestoneIdAndStateIn(@Param("milestoneId") Long milestoneId, Pageable pageable, @Param("states") List<State> states);
+    List<RoundEntity> findByMilestoneId(Long milestoneId);
+
+    List<RoundEntity> findByMilestoneIdAndStateIn(@Param("milestoneId") Long milestoneId, @Param("states") List<State> states);
 }

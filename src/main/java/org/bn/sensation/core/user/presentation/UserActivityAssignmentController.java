@@ -68,11 +68,10 @@ public class UserActivityAssignmentController {
 
     @Operation(summary = "Получить назначения активности по роли")
     @GetMapping(path = "/activity/{activityId}/position/{position}")
-    public ResponseEntity<Page<UserActivityAssignmentDto>> getByActivityIdAndPosition(
+    public ResponseEntity<List<UserActivityAssignmentDto>> getByActivityIdAndPosition(
             @Parameter @PathVariable("activityId") @NotNull Long activityId,
-            @Parameter @PathVariable("position") @NotNull UserActivityPosition position,
-            Pageable pageable) {
-        return ResponseEntity.ok(userActivityAssignmentService.findByActivityIdAndPosition(activityId, position, pageable));
+            @Parameter @PathVariable("position") @NotNull UserActivityPosition position) {
+        return ResponseEntity.ok(userActivityAssignmentService.findByActivityIdAndPosition(activityId, position));
     }
 
     @Operation(summary = "Получить все назначения")
@@ -83,23 +82,23 @@ public class UserActivityAssignmentController {
 
     @Operation(summary = "Получить назначения пользователя")
     @GetMapping(path = "/user/{userId}")
-    public ResponseEntity<Page<UserActivityAssignmentDto>> getByUserId(
-            @Parameter @PathVariable("userId") @NotNull Long userId, Pageable pageable) {
-        return ResponseEntity.ok(userActivityAssignmentService.findByUserId(userId, pageable));
+    public ResponseEntity<List<UserActivityAssignmentDto>> getByUserId(
+            @Parameter @PathVariable("userId") @NotNull Long userId) {
+        return ResponseEntity.ok(userActivityAssignmentService.findByUserId(userId));
     }
 
     @Operation(summary = "Получить назначения активности")
     @GetMapping(path = "/activity/{activityId}")
-    public ResponseEntity<Page<UserActivityAssignmentDto>> getByActivityId(
-            @Parameter @PathVariable("activityId") @NotNull Long activityId, Pageable pageable) {
-        return ResponseEntity.ok(userActivityAssignmentService.findByActivityId(activityId, pageable));
+    public ResponseEntity<List<UserActivityAssignmentDto>> getByActivityId(
+            @Parameter @PathVariable("activityId") @NotNull Long activityId) {
+        return ResponseEntity.ok(userActivityAssignmentService.findByActivityId(activityId));
     }
 
     @Operation(summary = "Получить назначения по роли")
     @GetMapping(path = "/position/{position}")
-    public ResponseEntity<Page<UserActivityAssignmentDto>> getByPosition(
-            @Parameter @PathVariable("position") @NotNull UserActivityPosition position, Pageable pageable) {
-        return ResponseEntity.ok(userActivityAssignmentService.findByPosition(position, pageable));
+    public ResponseEntity<List<UserActivityAssignmentDto>> getByPosition(
+            @Parameter @PathVariable("position") @NotNull UserActivityPosition position) {
+        return ResponseEntity.ok(userActivityAssignmentService.findByPosition(position));
     }
 
     @Operation(summary = "Создать новое назначение")

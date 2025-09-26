@@ -35,7 +35,7 @@ public class MilestoneEntity extends BaseEntity {
     @Column(name = "milestone_order")
     private Integer milestoneOrder;
 
-    @OneToMany(mappedBy = "milestone", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "milestone", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @Builder.Default
     private Set<RoundEntity> rounds =  new HashSet<>();
 
@@ -43,7 +43,7 @@ public class MilestoneEntity extends BaseEntity {
     @JoinColumn(name = "activity_id")
     private ActivityEntity activity;
 
-    @OneToMany(mappedBy = "milestone", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "milestone", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @Builder.Default
     private Set<MilestoneCriteriaAssignmentEntity> criteriaAssignments = new HashSet<>();
 }
