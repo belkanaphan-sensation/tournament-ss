@@ -1,7 +1,5 @@
 package org.bn.sensation.core.round.service.dto;
 
-import java.util.Set;
-
 import org.bn.sensation.core.common.dto.EmptyDto;
 import org.bn.sensation.core.common.entity.State;
 
@@ -31,12 +29,6 @@ public class UpdateRoundRequest extends EmptyDto {
     @Size(max = 2000)
     @Schema(description = "Описание раунда", example = "Квалификационный раунд")
     private String description;
-
-    @Schema(description = "ID вехи, частью которой является раунд")
-    private Long milestoneId;
-
-    @Schema(description = "Список ID участников")
-    private Set<Long> participantIds;
 
     @Schema(description = "Статус раунда", example = "DRAFT")
     private State state;

@@ -293,39 +293,6 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
     }
 
     @Test
-    void testUpdateMilestoneCriteriaAssignment() {
-        // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
-
-        // Создаем дополнительный критерий
-        CriteriaEntity newCriteria = CriteriaEntity.builder()
-                .name("Стилистика")
-                .build();
-        criteriaRepository.save(newCriteria);
-
-        UpdateMilestoneCriteriaAssignmentRequest request = UpdateMilestoneCriteriaAssignmentRequest.builder()
-                .criteriaId(newCriteria.getId())
-                .partnerSide(PartnerSide.FOLLOWER)
-                .build();
-
-        // When
-        MilestoneCriteriaAssignmentDto result = milestoneCriteriaAssignmentService.update(assignment.getId(), request);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(assignment.getId(), result.getId());
-        assertEquals(testMilestone.getId(), result.getMilestone().getId());
-        assertEquals(newCriteria.getId(), result.getCriteria().getId());
-        assertEquals(PartnerSide.FOLLOWER, result.getPartnerSide());
-
-        // Проверяем, что назначение обновлено в БД
-        Optional<MilestoneCriteriaAssignmentEntity> updatedAssignment = milestoneCriteriaAssignmentRepository.findById(assignment.getId());
-        assertTrue(updatedAssignment.isPresent());
-        assertEquals(newCriteria.getId(), updatedAssignment.get().getCriteria().getId());
-        assertEquals(PartnerSide.FOLLOWER, updatedAssignment.get().getPartnerSide());
-    }
-
-    @Test
     void testUpdateMilestoneCriteriaAssignmentPartial() {
         // Given
         MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
@@ -361,36 +328,6 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         // When & Then
         assertThrows(EntityNotFoundException.class, () -> {
             milestoneCriteriaAssignmentService.update(999L, request);
-        });
-    }
-
-    @Test
-    void testUpdateMilestoneCriteriaAssignmentWithNonExistentMilestone() {
-        // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
-
-        UpdateMilestoneCriteriaAssignmentRequest request = UpdateMilestoneCriteriaAssignmentRequest.builder()
-                .milestoneId(999L) // Несуществующий этап
-                .build();
-
-        // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
-            milestoneCriteriaAssignmentService.update(assignment.getId(), request);
-        });
-    }
-
-    @Test
-    void testUpdateMilestoneCriteriaAssignmentWithNonExistentCriteria() {
-        // Given
-        MilestoneCriteriaAssignmentEntity assignment = createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
-
-        UpdateMilestoneCriteriaAssignmentRequest request = UpdateMilestoneCriteriaAssignmentRequest.builder()
-                .criteriaId(999L) // Несуществующий критерий
-                .build();
-
-        // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
-            milestoneCriteriaAssignmentService.update(assignment.getId(), request);
         });
     }
 

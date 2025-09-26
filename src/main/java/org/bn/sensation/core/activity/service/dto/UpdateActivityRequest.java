@@ -42,9 +42,6 @@ public class UpdateActivityRequest extends EmptyDto {
     @Schema(description = "Адрес проведения")
     private AddressDto address;
 
-    @Schema(description = "ID мероприятия, частью которого является активность")
-    private Long occasionId;
-
     @Schema(description = "Статус активности", example = "DRAFT")
     private State state;
 }

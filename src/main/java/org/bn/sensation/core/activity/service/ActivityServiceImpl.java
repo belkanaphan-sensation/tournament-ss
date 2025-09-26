@@ -117,13 +117,6 @@ public class ActivityServiceImpl implements ActivityService {
             updateActivityRequestMapper.updateAddressFromRequest(request.getAddress(), address);
         }
 
-        // Обновляем событие
-        if (request.getOccasionId() != null) {
-            OccasionEntity occasion = occasionRepository.findById(request.getOccasionId())
-                    .orElseThrow(() -> new EntityNotFoundException("Событие не найдено с id: " + request.getOccasionId()));
-            activity.setOccasion(occasion);
-        }
-
         ActivityEntity saved = activityRepository.save(activity);
         return enrichActivityDtoWithStatistics(saved);
     }

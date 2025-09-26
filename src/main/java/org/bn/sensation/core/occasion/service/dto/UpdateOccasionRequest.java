@@ -38,9 +38,6 @@ public class UpdateOccasionRequest extends EmptyDto {
     @Schema(description = "Дата окончания", example = "2025-04-15")
     private LocalDate endDate;
 
-    @Schema(description = "ID организации, проводящей мероприятие")
-    private Long organizationId;
-
     @Schema(description = "Статус мероприятия", example = "DRAFT")
     private State state;
 }

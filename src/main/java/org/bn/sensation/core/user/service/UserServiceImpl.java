@@ -163,7 +163,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto create(CreateUserRequest request) {
-        // Проверяем, существует ли имя пользователя уже
         userRepository.findByUsername(request.getUsername())
                 .ifPresent(u -> {
                     throw new IllegalArgumentException("Имя пользователя уже занято: " + request.getUsername());
@@ -172,15 +171,12 @@ public class UserServiceImpl implements UserService {
         validateEmailUniqueness(request.getEmail(), null);
         validatePhoneNumberUniqueness(request.getPhoneNumber(), null);
 
-        // Получаем роли напрямую из запроса
         Set<Role> roles = request.getRoles() != null ? request.getRoles() : Set.of(Role.USER);
 
-        // Создаем сущность пользователя
         UserEntity user = createUserRequestMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRoles(roles);
 
-        // Назначаем пользователя в организации
         assignUserToOrganizations(user, request.getOrganizationIds());
 
         UserEntity saved = userRepository.save(user);
@@ -198,30 +194,17 @@ public class UserServiceImpl implements UserService {
             Preconditions.checkArgument(!request.getName().trim().isEmpty(), "Имя пользователя не может быть пустым");
         }
 
-        // Проверяем, существует ли email уже (если изменился)
         if (request.getEmail() != null && !request.getEmail().isBlank()
                 && !request.getEmail().equals(user.getPerson().getEmail())) {
             validateEmailUniqueness(request.getEmail(), user.getId());
         }
 
-        // Проверяем, существует ли номер телефона уже (если изменился)
         if (request.getPhoneNumber() != null && !request.getPhoneNumber().isBlank()
                 && !request.getPhoneNumber().equals(user.getPerson().getPhoneNumber())) {
             validatePhoneNumberUniqueness(request.getPhoneNumber(), user.getId());
         }
 
-        // Обновляем поля пользователя
         updateUserRequestMapper.updateUserFromRequest(request, user);
-
-        // Обновляем роли
-        if (request.getRoles() != null) {
-            user.setRoles(new HashSet<>(request.getRoles()));
-        }
-
-        // Обновляем организации
-        if (request.getOrganizationIds() != null) {
-            assignUserToOrganizations(user, request.getOrganizationIds());
-        }
 
         UserEntity saved = userRepository.save(user);
         return userDtoMapper.toDto(saved);
@@ -257,12 +240,6 @@ public class UserServiceImpl implements UserService {
         return sb.toString();
     }
 
-    /**
-     * Проверяет, не используется ли email другим пользователем
-     *
-     * @param email         проверяемый email
-     * @param excludeUserId ID пользователя, который исключается из проверки (для обновления)
-     */
     private void validateEmailUniqueness(String email, Long excludeUserId) {
         if (email == null || email.isBlank()) {
             return;
@@ -276,12 +253,6 @@ public class UserServiceImpl implements UserService {
                 });
     }
 
-    /**
-     * Проверяет, не используется ли номер телефона другим пользователем
-     *
-     * @param phoneNumber   проверяемый номер телефона
-     * @param excludeUserId ID пользователя, который исключается из проверки (для обновления)
-     */
     private void validatePhoneNumberUniqueness(String phoneNumber, Long excludeUserId) {
         if (phoneNumber == null || phoneNumber.isBlank()) {
             return;
@@ -295,13 +266,6 @@ public class UserServiceImpl implements UserService {
                 });
     }
 
-    /**
-     * Находит организацию по ID и проверяет её существование
-     *
-     * @param organizationId ID организации
-     * @return OrganizationEntity
-     * @throws EntityNotFoundException если организация не найдена
-     */
     private OrganizationEntity findOrganizationById(Long organizationId) {
         if (organizationId == null) {
             return null;
@@ -310,12 +274,6 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new EntityNotFoundException("Организация не найдена с id: " + organizationId));
     }
 
-    /**
-     * Привязывает пользователя к организациям
-     *
-     * @param user            пользователь
-     * @param organizationIds ID организаций
-     */
     private void assignUserToOrganizations(UserEntity user, Set<Long> organizationIds) {
         if (organizationIds == null) {
             return;

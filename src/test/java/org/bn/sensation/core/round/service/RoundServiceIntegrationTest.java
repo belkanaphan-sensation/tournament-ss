@@ -218,8 +218,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         UpdateRoundRequest request = UpdateRoundRequest.builder()
                 .name("Updated Round")
                 .description("Updated Round Description")
-                .milestoneId(testMilestone1.getId())
-                .participantIds(Set.of(testParticipant.getId(), testParticipant1.getId()))
                 .build();
 
         // When
@@ -231,67 +229,15 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(request.getName(), result.getName());
         assertEquals(request.getDescription(), result.getDescription());
         assertNotNull(result.getMilestone());
-        assertEquals(testMilestone1.getId(), result.getMilestone().getId());
-        assertEquals(2, result.getParticipants().size());
+        assertEquals(1, result.getParticipants().size());
 
         // Verify round was updated in database
         Optional<RoundEntity> updatedRound = roundRepository.findById(testRound.getId());
         assertTrue(updatedRound.isPresent());
         assertEquals(request.getName(), updatedRound.get().getName());
         assertEquals(request.getDescription(), updatedRound.get().getDescription());
-        assertEquals(testMilestone1.getId(), updatedRound.get().getMilestone().getId());
-        assertEquals(2, updatedRound.get().getParticipants().size());
+        assertEquals(1, updatedRound.get().getParticipants().size());
         assertTrue(updatedRound.get().getParticipants().contains(testParticipant));
-        assertTrue(updatedRound.get().getParticipants().contains(testParticipant1));
-    }
-
-    @Test
-    void testUpdateRoundWithNonExistentMilestone() {
-        // Given
-        UpdateRoundRequest request = UpdateRoundRequest.builder()
-                .name("Updated Round")
-                .milestoneId(999L) // Non-existent milestone
-                .build();
-
-        // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
-            roundService.update(testRound.getId(), request);
-        });
-    }
-
-    @Test
-    void testUpdateRoundWithNonExistentParticipant() {
-        // Given
-        UpdateRoundRequest request = UpdateRoundRequest.builder()
-                .name("Updated Round")
-                .participantIds(Set.of(999L)) // Non-existent participant
-                .build();
-
-        // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
-            roundService.update(testRound.getId(), request);
-        });
-    }
-
-    @Test
-    void testUpdateRoundWithEmptyParticipants() {
-        // Given
-        UpdateRoundRequest request = UpdateRoundRequest.builder()
-                .name("Updated Round")
-                .participantIds(Set.of()) // Empty set
-                .build();
-
-        // When
-        RoundDto result = roundService.update(testRound.getId(), request);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(testRound.getId(), result.getId());
-
-        // Verify round participants were cleared
-        Optional<RoundEntity> updatedRound = roundRepository.findById(testRound.getId());
-        assertTrue(updatedRound.isPresent());
-        assertTrue(updatedRound.get().getParticipants().isEmpty());
     }
 
     @Test
@@ -391,38 +337,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         assertThrows(EntityNotFoundException.class, () -> {
             roundService.deleteById(999L);
         });
-    }
-
-    @Test
-    void testRoundWithMultipleParticipants() {
-        // Given
-        CreateRoundRequest request = CreateRoundRequest.builder()
-                .name("Multi Participant Round")
-                .description("Round with multiple participants")
-                .state(State.DRAFT)
-                .milestoneId(testMilestone.getId())
-                .build();
-
-        // When
-        RoundDto result = roundService.create(request);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(request.getName(), result.getName());
-
-        // Add participants to the round
-        UpdateRoundRequest updateRequest = UpdateRoundRequest.builder()
-                .participantIds(Set.of(testParticipant.getId(), testParticipant1.getId()))
-                .build();
-
-        roundService.update(result.getId(), updateRequest);
-
-        // Verify round has multiple participants
-        Optional<RoundEntity> savedRound = roundRepository.findById(result.getId());
-        assertTrue(savedRound.isPresent());
-        assertEquals(2, savedRound.get().getParticipants().size());
-        assertTrue(savedRound.get().getParticipants().contains(testParticipant));
-        assertTrue(savedRound.get().getParticipants().contains(testParticipant1));
     }
 
     @Test

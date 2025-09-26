@@ -1,9 +1,9 @@
 package org.bn.sensation.core.criteria.service.dto;
 
+import java.math.BigDecimal;
+
 import org.bn.sensation.core.common.dto.EmptyDto;
 import org.bn.sensation.core.common.entity.PartnerSide;
-
-import java.math.BigDecimal;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -23,12 +23,6 @@ import lombok.experimental.SuperBuilder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Запрос на обновление назначения критерия оценки этапу")
 public class UpdateMilestoneCriteriaAssignmentRequest extends EmptyDto {
-
-    @Schema(description = "ID этапа", example = "1")
-    private Long milestoneId;
-
-    @Schema(description = "ID критерия оценки", example = "1")
-    private Long criteriaId;
 
     @Schema(description = "Сторона в соревновании, к которой относится критерий в рамках этапа", example = "LEADER")
     private PartnerSide partnerSide;

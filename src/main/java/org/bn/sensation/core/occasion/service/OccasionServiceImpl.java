@@ -79,12 +79,6 @@ public class OccasionServiceImpl implements OccasionService {
         // Обновляем поля мероприятия
         updateOccasionRequestMapper.updateOccasionFromRequest(request, occasion);
 
-        // Обновляем организацию
-        if (request.getOrganizationId() != null) {
-            OrganizationEntity organization = findOrganizationById(request.getOrganizationId());
-            occasion.setOrganization(organization);
-        }
-
         OccasionEntity saved = occasionRepository.save(occasion);
         return enrichOccasionDtoWithStatistics(saved);
     }

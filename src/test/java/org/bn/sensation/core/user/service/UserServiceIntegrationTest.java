@@ -238,8 +238,6 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
                 .email("updated@example.com")
                 .phoneNumber("+9876543210")
                 .status(UserStatus.BLOCKED)
-                .roles(Set.of(Role.USER))
-                .organizationIds(Set.of(testOrganization1.getId()))
                 .build();
 
         // When
@@ -255,71 +253,6 @@ class UserServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(UserStatus.BLOCKED, updatedUser.get().getStatus());
         assertEquals(request.getName(), updatedUser.get().getPerson().getName());
         assertEquals(1, updatedUser.get().getOrganizations().size());
-        assertTrue(updatedUser.get().getOrganizations().contains(testOrganization1));
-        assertFalse(updatedUser.get().getOrganizations().contains(testOrganization));
-        assertTrue(updatedUser.get().getRoles().contains(Role.USER));
-        assertFalse(updatedUser.get().getRoles().contains(Role.SUPERADMIN));
-    }
-
-    @Test
-    void testUpdateUserWithNonExistentOrganization() {
-        // Given
-        UpdateUserRequest request = UpdateUserRequest.builder()
-                .name("Updated")
-                .surname("User")
-                .organizationIds(Set.of(999L)) // Non-existent organization
-                .build();
-
-        // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
-            userService.update(testUser.getId(), request);
-        });
-    }
-
-    @Test
-    void testUpdateUserWithMultipleOrganizations() {
-        // Given
-        UpdateUserRequest request = UpdateUserRequest.builder()
-                .name("Updated")
-                .surname("User")
-                .organizationIds(Set.of(testOrganization.getId(), testOrganization1.getId()))
-                .build();
-
-        // When
-        UserDto result = userService.update(testUser.getId(), request);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(testUser.getId(), result.getId());
-
-        // Verify user was updated with multiple organizations
-        Optional<UserEntity> updatedUser = userRepository.findById(testUser.getId());
-        assertTrue(updatedUser.isPresent());
-        assertEquals(2, updatedUser.get().getOrganizations().size());
-        assertTrue(updatedUser.get().getOrganizations().contains(testOrganization));
-        assertTrue(updatedUser.get().getOrganizations().contains(testOrganization1));
-    }
-
-    @Test
-    void testUpdateUserWithEmptyOrganizations() {
-        // Given
-        UpdateUserRequest request = UpdateUserRequest.builder()
-                .name("Updated")
-                .surname("User")
-                .organizationIds(Set.of()) // Empty set
-                .build();
-
-        // When
-        UserDto result = userService.update(testUser.getId(), request);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(testUser.getId(), result.getId());
-
-        // Verify user organizations were cleared
-        Optional<UserEntity> updatedUser = userRepository.findById(testUser.getId());
-        assertTrue(updatedUser.isPresent());
-        assertTrue(updatedUser.get().getOrganizations().isEmpty());
     }
 
     @Test
