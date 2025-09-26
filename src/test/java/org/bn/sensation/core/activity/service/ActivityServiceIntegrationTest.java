@@ -1,6 +1,7 @@
 package org.bn.sensation.core.activity.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,16 +24,18 @@ import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.organization.repository.OrganizationRepository;
-import org.bn.sensation.core.user.entity.Role;
-import org.bn.sensation.core.user.entity.UserEntity;
-import org.bn.sensation.core.user.entity.UserStatus;
+import org.bn.sensation.core.user.entity.*;
+import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
 import org.bn.sensation.core.user.repository.UserRepository;
+import org.bn.sensation.security.CurrentUser;
+import org.bn.sensation.security.SecurityUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,7 +65,13 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private UserActivityAssignmentRepository userActivityAssignmentRepository;
+
+    @Autowired
     private PlatformTransactionManager transactionManager;
+
+    @MockitoBean
+    private CurrentUser currentUser;
 
     private TransactionTemplate transactionTemplate;
 
@@ -80,6 +89,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         cleanDatabase();
 
         // Очистка данных
+        userActivityAssignmentRepository.deleteAll();
         activityRepository.deleteAll();
         occasionRepository.deleteAll();
         organizationRepository.deleteAll();
@@ -124,6 +134,11 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .organization(testOrganization)
                 .build();
         testOccasion = occasionRepository.save(testOccasion);
+
+        // Настройка мока CurrentUser
+        SecurityUser mockSecurityUser = org.mockito.Mockito.mock(SecurityUser.class);
+        when(mockSecurityUser.getId()).thenReturn(testUser.getId());
+        when(currentUser.getSecurityUser()).thenReturn(mockSecurityUser);
     }
 
     @Test
@@ -513,7 +528,17 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                     .state(State.DRAFT)
                     .occasion(secondOccasion)
                     .build();
-            return activityRepository.save(activity);
+            activity = activityRepository.save(activity);
+            
+            // Создаем назначение пользователя на активность через связь
+            UserActivityAssignmentEntity assignment = UserActivityAssignmentEntity.builder()
+                    .user(testUser)
+                    .activity(activity)
+                    .position(UserActivityPosition.PARTICIPANT)
+                    .build();
+            assignment = userActivityAssignmentRepository.save(assignment);
+            
+            return activity;
         });
 
         // When - ищем активности для первого мероприятия
@@ -559,7 +584,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void testFindByOccasionIdInLifeStates() {
+    void testFindByOccasionIdInLifeStatesForCurrentUser() {
         // Given - создаем активности с разными состояниями
         createTestActivityWithState("Activity DRAFT", "Description 1", State.DRAFT);
         createTestActivityWithState("Activity PLANNED", "Description 2", State.PLANNED);
@@ -567,7 +592,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         createTestActivityWithState("Activity COMPLETED", "Description 4", State.COMPLETED);
 
         // When
-        List<ActivityDto> result = activityService.findByOccasionIdInLifeStates(testOccasion.getId());
+        List<ActivityDto> result = activityService.findByOccasionIdInLifeStatesForCurrentUser(testOccasion.getId());
 
         // Then
         assertNotNull(result);
@@ -587,14 +612,14 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void testFindByOccasionIdInLifeStatesWithManyActivities() {
+    void testFindByOccasionIdInLifeStatesForCurrentUserWithManyActivities() {
         // Given - создаем 5 активностей с life states
         for (int i = 1; i <= 5; i++) {
             createTestActivityWithState("Activity " + i, "Description " + i, State.PLANNED);
         }
 
         // When
-        List<ActivityDto> result = activityService.findByOccasionIdInLifeStates(testOccasion.getId());
+        List<ActivityDto> result = activityService.findByOccasionIdInLifeStatesForCurrentUser(testOccasion.getId());
 
         // Then
         assertNotNull(result);
@@ -616,12 +641,12 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void testFindByOccasionIdInLifeStatesWithNonExistentOccasion() {
+    void testFindByOccasionIdInLifeStatesWithNonExistentOccasionForCurrentUser() {
         // Given
         Long nonExistentOccasionId = 999L;
 
         // When
-        List<ActivityDto> result = activityService.findByOccasionIdInLifeStates(nonExistentOccasionId);
+        List<ActivityDto> result = activityService.findByOccasionIdInLifeStatesForCurrentUser(nonExistentOccasionId);
 
         // Then
         assertNotNull(result);
@@ -629,9 +654,9 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void testFindByOccasionIdInLifeStatesWithNullId() {
+    void testFindByOccasionIdInLifeStatesWithNullIdForCurrentUser() {
         // When & Then
-        assertThrows(IllegalArgumentException.class, () -> activityService.findByOccasionIdInLifeStates(null));
+        assertThrows(IllegalArgumentException.class, () -> activityService.findByOccasionIdInLifeStatesForCurrentUser(null));
     }
 
     // Вспомогательный метод для создания тестовой активности
@@ -645,7 +670,17 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                     .state(State.DRAFT)
                     .occasion(testOccasion)
                     .build();
-            return activityRepository.save(activity);
+            activity = activityRepository.save(activity);
+            
+            // Создаем назначение пользователя на активность через связь
+            UserActivityAssignmentEntity assignment = UserActivityAssignmentEntity.builder()
+                    .user(testUser)
+                    .activity(activity)
+                    .position(UserActivityPosition.PARTICIPANT)
+                    .build();
+            assignment = userActivityAssignmentRepository.save(assignment);
+            
+            return activity;
         });
     }
 
@@ -660,7 +695,17 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                     .state(state)
                     .occasion(testOccasion)
                     .build();
-            return activityRepository.save(activity);
+            activity = activityRepository.save(activity);
+            
+            // Создаем назначение пользователя на активность через связь
+            UserActivityAssignmentEntity assignment = UserActivityAssignmentEntity.builder()
+                    .user(testUser)
+                    .activity(activity)
+                    .position(UserActivityPosition.PARTICIPANT)
+                    .build();
+            assignment = userActivityAssignmentRepository.save(assignment);
+            
+            return activity;
         });
     }
 

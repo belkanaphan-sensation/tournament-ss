@@ -25,6 +25,8 @@ public interface UserActivityAssignmentRepository extends BaseRepository<UserAct
 
     long countByActivityIdAndPosition(Long activityId, UserActivityPosition position);
 
+    void deleteByActivityId(Long activityId);
+
     @EntityGraph(attributePaths = {"user", "activity"})
     @Query("""
             SELECT DISTINCT uaa
