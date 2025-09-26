@@ -10,24 +10,12 @@ import org.springframework.data.repository.query.Param;
 
 public interface RoundResultRepository extends BaseRepository<RoundResultEntity> {
 
-    /**
-     * Найти результаты раунда по ID раунда
-     */
     List<RoundResultEntity> findByRoundId(Long roundId);
 
-    /**
-     * Найти результаты раунда по ID участника
-     */
     List<RoundResultEntity> findByParticipantId(Long participantId);
 
-    /**
-     * Найти результаты раунда по ID судьи
-     */
     List<RoundResultEntity> findByActivityUserId(Long activityUserId);
 
-    /**
-     * Найти результаты раунда по ID этапа через связь с раундом
-     */
     @EntityGraph(attributePaths = {"participant", "round", "milestoneCriteria", "activityUser"})
     @Query("""
             SELECT DISTINCT rr
@@ -35,4 +23,7 @@ public interface RoundResultRepository extends BaseRepository<RoundResultEntity>
             WHERE rr.round.milestone.id = :milestoneId
             """)
     List<RoundResultEntity> findByMilestoneId(@Param("milestoneId") Long milestoneId);
+
+    boolean existsByRoundIdAndParticipantIdAndActivityUserIdAndMilestoneCriteriaId(
+            Long roundId, Long participantId, Long activityUserId, Long milestoneCriteriaId);
 }
