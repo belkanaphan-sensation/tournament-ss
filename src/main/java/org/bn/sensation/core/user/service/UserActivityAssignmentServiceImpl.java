@@ -99,20 +99,6 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
         UserActivityAssignmentEntity assignment = userActivityAssignmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Назначение не найдено с id: " + id));
 
-        // Обновляем пользователя если указан
-        if (request.getUserId() != null) {
-            UserEntity user = userRepository.findById(request.getUserId())
-                    .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден с id: " + request.getUserId()));
-            assignment.setUser(user);
-        }
-
-        // Обновляем активность если указана
-        if (request.getActivityId() != null) {
-            ActivityEntity activity = activityRepository.findById(request.getActivityId())
-                    .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + request.getActivityId()));
-            assignment.setActivity(activity);
-        }
-
         // Обновляем роль если указана
         if (request.getPosition() != null) {
             // Бизнес-правило: только один главный судья на активность

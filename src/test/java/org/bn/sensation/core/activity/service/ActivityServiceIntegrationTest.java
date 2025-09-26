@@ -248,7 +248,6 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .startDateTime(LocalDateTime.now().plusHours(1))
                 .endDateTime(LocalDateTime.now().plusHours(3))
                 .state(State.PLANNED)
-                .occasionId(testOccasion.getId())
                 .build();
 
         // When
@@ -303,19 +302,6 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
 
         // When & Then
         assertThrows(EntityNotFoundException.class, () -> activityService.update(999L, request));
-    }
-
-    @Test
-    void testUpdateActivityWithNonExistentOccasion() {
-        // Given
-        ActivityEntity activity = createTestActivity("Test Activity", "Test Description");
-
-        UpdateActivityRequest request = UpdateActivityRequest.builder()
-                .occasionId(999L) // Несуществующее мероприятие
-                .build();
-
-        // When & Then
-        assertThrows(EntityNotFoundException.class, () -> activityService.update(activity.getId(), request));
     }
 
     @Test

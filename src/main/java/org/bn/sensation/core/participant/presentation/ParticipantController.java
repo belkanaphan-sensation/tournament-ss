@@ -1,10 +1,13 @@
 package org.bn.sensation.core.participant.presentation;
 
 import java.util.List;
+import java.util.Set;
 
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.participant.service.ParticipantService;
 import org.bn.sensation.core.participant.service.dto.CreateParticipantRequest;
 import org.bn.sensation.core.participant.service.dto.ParticipantDto;
+import org.bn.sensation.core.participant.service.dto.RoundParticipantsDto;
 import org.bn.sensation.core.participant.service.dto.UpdateParticipantRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -50,6 +53,30 @@ public class ParticipantController {
         return ResponseEntity.ok(participantService.findByRoundId(roundId));
     }
 
+    @Operation(summary = "Получить участников, расформированных по раундам по ID раунда")
+    @GetMapping(path = "/by-round/round/{roundId}/currentUser")
+    public ResponseEntity<RoundParticipantsDto> getByRoundByRoundIdForCurrentUser(@PathVariable("roundId") Long roundId) {
+        return ResponseEntity.ok(RoundParticipantsDto.builder()
+                .round(new EntityLinkDto(1L, "round 1"))
+                .participants(Set.of(new EntityLinkDto(1L, "participant 1"), new EntityLinkDto(2L, "participant 2")))
+                .build());
+    }
+
+    @Operation(summary = "Получить всех участников, расформированных по раундам по ID этапа")
+    @GetMapping(path = "/by-round/milestone/{milestoneId}/currentUser")
+    public ResponseEntity<List<RoundParticipantsDto>> getByRoundByMilestoneIdForCurrentUser(@PathVariable("milestoneId") Long milestoneId) {
+        return ResponseEntity.ok(List.of(
+                RoundParticipantsDto.builder()
+                        .round(new EntityLinkDto(1L, "round 1"))
+                        .participants(Set.of(new EntityLinkDto(1L, "participant 1"), new EntityLinkDto(2L, "participant 2")))
+                        .build(),
+                RoundParticipantsDto.builder()
+                        .round(new EntityLinkDto(2L, "round 2"))
+                        .participants(Set.of(new EntityLinkDto(3L, "participant 3"), new EntityLinkDto(4L, "participant 4")))
+                        .build()
+        ));
+    }
+
     @Operation(summary = "Создать нового участника")
     @PostMapping
     public ResponseEntity<ParticipantDto> create(@Valid @RequestBody CreateParticipantRequest request) {
@@ -60,7 +87,7 @@ public class ParticipantController {
     @Operation(summary = "Обновить участника по ID")
     @PutMapping("/{id}")
     public ResponseEntity<ParticipantDto> update(@PathVariable("id") @NotNull Long id,
-                                               @Valid @RequestBody UpdateParticipantRequest request) {
+                                                 @Valid @RequestBody UpdateParticipantRequest request) {
         ParticipantDto updated = participantService.update(id, request);
         return ResponseEntity.ok(updated);
     }
@@ -75,7 +102,7 @@ public class ParticipantController {
     @Operation(summary = "Привязать участника к раунду")
     @PostMapping("/{participantId}/rounds/{roundId}")
     public ResponseEntity<ParticipantDto> addParticipantToRound(@PathVariable Long participantId,
-                                                         @PathVariable Long roundId) {
+                                                                @PathVariable Long roundId) {
         ParticipantDto updated = participantService.assignParticipantToRound(participantId, roundId);
         return ResponseEntity.ok(updated);
     }

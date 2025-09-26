@@ -14,8 +14,6 @@ public interface UpdateUserRequestMapper extends BaseDtoMapper<UserEntity, Updat
     @Mapping(target = "person.secondName", source = "secondName")
     @Mapping(target = "person.email", source = "email")
     @Mapping(target = "person.phoneNumber", source = "phoneNumber")
-    @Mapping(target = "organizations", ignore = true)
-    @Mapping(target = "roles", ignore = true)
     void updateUserFromRequest(UpdateUserRequest request, @MappingTarget UserEntity entity);
 
 }

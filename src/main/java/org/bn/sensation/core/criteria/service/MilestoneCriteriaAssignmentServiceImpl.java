@@ -116,20 +116,6 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
         // Обновляем поля назначения
         updateMilestoneCriteriaAssignmentRequestMapper.updateMilestoneCriteriaAssignmentFromRequest(request, assignment);
 
-        // Обновляем этап если указан
-        if (request.getMilestoneId() != null) {
-            MilestoneEntity milestone = milestoneRepository.findById(request.getMilestoneId())
-                    .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + request.getMilestoneId()));
-            assignment.setMilestone(milestone);
-        }
-
-        // Обновляем критерий если указан
-        if (request.getCriteriaId() != null) {
-            CriteriaEntity criteria = criteriaRepository.findById(request.getCriteriaId())
-                    .orElseThrow(() -> new EntityNotFoundException("Критерий не найден с id: " + request.getCriteriaId()));
-            assignment.setCriteria(criteria);
-        }
-
         MilestoneCriteriaAssignmentEntity saved = milestoneCriteriaAssignmentRepository.save(assignment);
         return milestoneCriteriaAssignmentDtoMapper.toDto(saved);
     }

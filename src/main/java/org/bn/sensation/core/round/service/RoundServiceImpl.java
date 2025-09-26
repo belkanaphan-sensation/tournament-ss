@@ -83,18 +83,6 @@ public class RoundServiceImpl implements RoundService {
         // Обновляем поля раунда
         updateRoundRequestMapper.updateRoundFromRequest(request, round);
 
-        // Обновляем этап
-        if (request.getMilestoneId() != null) {
-            MilestoneEntity milestone = findMilestoneById(request.getMilestoneId());
-            round.setMilestone(milestone);
-        }
-
-        // Обновляем участников
-        if (request.getParticipantIds() != null) {
-            Set<ParticipantEntity> participants = findParticipantsByIds(request.getParticipantIds());
-            round.setParticipants(participants);
-        }
-
         RoundEntity saved = roundRepository.save(round);
         return roundDtoMapper.toDto(saved);
     }

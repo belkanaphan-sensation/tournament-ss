@@ -208,7 +208,6 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
                 .description("Updated Description")
                 .startDate(LocalDate.now().plusDays(1))
                 .endDate(LocalDate.now().plusDays(5))
-                .organizationId(testOrganization.getId())
                 .build();
 
         // When
@@ -258,21 +257,6 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         // When & Then
         assertThrows(EntityNotFoundException.class, () -> {
             occasionService.update(999L, request);
-        });
-    }
-
-    @Test
-    void testUpdateOccasionWithNonExistentOrganization() {
-        // Given
-        OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
-
-        UpdateOccasionRequest request = UpdateOccasionRequest.builder()
-                .organizationId(999L) // Несуществующая организация
-                .build();
-
-        // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
-            occasionService.update(occasion.getId(), request);
         });
     }
 
