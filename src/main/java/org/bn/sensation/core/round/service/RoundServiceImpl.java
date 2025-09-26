@@ -1,6 +1,7 @@
 package org.bn.sensation.core.round.service;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.bn.sensation.core.common.entity.State;
@@ -129,15 +130,20 @@ public class RoundServiceImpl implements RoundService {
     }
 
     @Override
-    public Page<RoundDto> findByMilestoneId(Long id, Pageable pageable) {
+    @Transactional(readOnly = true)
+    public List<RoundDto> findByMilestoneId(Long id) {
         Preconditions.checkArgument(id != null, "ID этапа не может быть null");
-        return roundRepository.findByMilestoneId(id, pageable).map(roundDtoMapper::toDto);
+        return roundRepository.findByMilestoneId(id).stream()
+                .map(roundDtoMapper::toDto)
+                .toList();
     }
 
     @Override
-    public Page<RoundDto> findByMilestoneIdInLifeStates(Long id, Pageable pageable) {
+    @Transactional(readOnly = true)
+    public List<RoundDto> findByMilestoneIdInLifeStates(Long id) {
         Preconditions.checkArgument(id != null, "ID этапа не может быть null");
-        return roundRepository.findByMilestoneIdAndStateIn(id, pageable, State.LIFE_STATES)
-                .map(roundDtoMapper::toDto);
+        return roundRepository.findByMilestoneIdAndStateIn(id, State.LIFE_STATES).stream()
+                .map(roundDtoMapper::toDto)
+                .toList();
     }
 }

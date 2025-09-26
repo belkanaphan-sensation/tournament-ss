@@ -30,7 +30,7 @@ public class OrganizationController {
 
     @Operation(summary = "Получить организацию по ID")
     @GetMapping(path = "/{id}")
-    public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
+    public ResponseEntity<OrganizationDto> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return organizationService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).build());

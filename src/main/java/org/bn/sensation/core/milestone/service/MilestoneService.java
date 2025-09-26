@@ -1,13 +1,13 @@
 package org.bn.sensation.core.milestone.service;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotNull;
 import org.bn.sensation.core.common.service.BaseCrudService;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
 import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 public interface MilestoneService extends BaseCrudService<
         MilestoneEntity,
@@ -15,7 +15,7 @@ public interface MilestoneService extends BaseCrudService<
         CreateMilestoneRequest,
         UpdateMilestoneRequest> {
 
-    Page<MilestoneDto> findByActivityId(@NotNull Long id, Pageable pageable);
+    List<MilestoneDto> findByActivityId(@NotNull Long id);
 
-    Page<MilestoneDto> findByActivityIdInLifeStates(@NotNull Long id, Pageable pageable);
+    List<MilestoneDto> findByActivityIdInLifeStates(@NotNull Long id);
 }

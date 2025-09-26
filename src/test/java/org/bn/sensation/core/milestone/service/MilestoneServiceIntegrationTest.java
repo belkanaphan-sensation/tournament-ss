@@ -375,10 +375,12 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         MilestoneEntity milestone = createTestMilestone("Test Milestone");
 
         // Создаем раунды с разными статусами
-        createTestRound(milestone, "Completed Round", State.COMPLETED);
-        createTestRound(milestone, "Active Round", State.IN_PROGRESS);
-        createTestRound(milestone, "Draft Round", State.DRAFT);
+        RoundEntity completedRound = createTestRound(milestone, "Completed Round", State.COMPLETED);
+        RoundEntity activeRound = createTestRound(milestone, "Active Round", State.IN_PROGRESS);
+        RoundEntity draftRound = createTestRound(milestone, "Draft Round", State.DRAFT);
 
+        milestone.getRounds().addAll(Set.of(completedRound, activeRound, draftRound));
+        milestoneRepository.save(milestone);
         // When
         MilestoneDto result = milestoneService.findById(milestone.getId()).orElse(null);
 
@@ -386,8 +388,8 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result);
         assertNotNull(result.getCompletedRoundsCount());
         assertNotNull(result.getTotalRoundsCount());
-        assertEquals(1L, result.getCompletedRoundsCount());
-        assertEquals(3L, result.getTotalRoundsCount());
+        assertEquals(1, result.getCompletedRoundsCount());
+        assertEquals(3, result.getTotalRoundsCount());
     }
 
     @Test
@@ -402,8 +404,8 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result);
         assertNotNull(result.getCompletedRoundsCount());
         assertNotNull(result.getTotalRoundsCount());
-        assertEquals(0L, result.getCompletedRoundsCount());
-        assertEquals(0L, result.getTotalRoundsCount());
+        assertEquals(0, result.getCompletedRoundsCount());
+        assertEquals(0, result.getTotalRoundsCount());
     }
 
     @Test
@@ -413,8 +415,11 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         createTestMilestone("Milestone 2"); // This milestone is intentionally left without rounds for testing
 
         // Добавляем раунды к первому этапу
-        createTestRound(milestone1, "Round 1", State.COMPLETED);
-        createTestRound(milestone1, "Round 2", State.IN_PROGRESS);
+        RoundEntity testRound = createTestRound(milestone1, "Round 1", State.COMPLETED);
+        RoundEntity testRound1 = createTestRound(milestone1, "Round 2", State.IN_PROGRESS);
+
+        milestone1.getRounds().addAll(Set.of(testRound, testRound1));
+        milestoneRepository.save(milestone1);
 
         // When
         Pageable pageable = PageRequest.of(0, 10);
@@ -436,8 +441,8 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .findFirst()
                 .orElse(null);
         assertNotNull(milestoneWithRounds);
-        assertEquals(1L, milestoneWithRounds.getCompletedRoundsCount());
-        assertEquals(2L, milestoneWithRounds.getTotalRoundsCount());
+        assertEquals(1, milestoneWithRounds.getCompletedRoundsCount());
+        assertEquals(2, milestoneWithRounds.getTotalRoundsCount());
 
         // Проверяем этап без раундов
         MilestoneDto milestoneWithoutRounds = result.getContent().stream()
@@ -445,8 +450,8 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .findFirst()
                 .orElse(null);
         assertNotNull(milestoneWithoutRounds);
-        assertEquals(0L, milestoneWithoutRounds.getCompletedRoundsCount());
-        assertEquals(0L, milestoneWithoutRounds.getTotalRoundsCount());
+        assertEquals(0, milestoneWithoutRounds.getCompletedRoundsCount());
+        assertEquals(0, milestoneWithoutRounds.getTotalRoundsCount());
     }
 
     private RoundEntity createTestRound(MilestoneEntity milestone, String name, State state) {
@@ -787,17 +792,16 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         createTestMilestoneWithOrder("Third", 1);
 
         // When
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<MilestoneDto> result = milestoneService.findByActivityId(testActivity.getId(), pageable);
+        List<MilestoneDto> result = milestoneService.findByActivityId(testActivity.getId());
 
         // Then
         assertNotNull(result);
-        assertEquals(3, result.getTotalElements());
+        assertEquals(3, result.size());
 
         // Проверяем, что этапы отсортированы по порядку
-        assertEquals("Second", result.getContent().get(0).getName());
-        assertEquals("Third", result.getContent().get(1).getName());
-        assertEquals("First", result.getContent().get(2).getName());
+        assertEquals("Second", result.get(0).getName());
+        assertEquals("Third", result.get(1).getName());
+        assertEquals("First", result.get(2).getName());
     }
 
     @Test
@@ -809,57 +813,52 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         createTestMilestoneWithState("Milestone COMPLETED", State.COMPLETED);
 
         // When
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<MilestoneDto> result = milestoneService.findByActivityIdInLifeStates(testActivity.getId(), pageable);
+        List<MilestoneDto> result = milestoneService.findByActivityIdInLifeStates(testActivity.getId());
 
         // Then
         assertNotNull(result);
-        assertEquals(3, result.getTotalElements()); // Только PLANNED, IN_PROGRESS, COMPLETED
-        assertEquals(3, result.getContent().size());
+        assertEquals(3, result.size()); // Только PLANNED, IN_PROGRESS, COMPLETED
 
         // Проверяем, что все этапы принадлежат правильной активности и имеют life states
-        result.getContent().forEach(milestone -> {
+        result.forEach(milestone -> {
             assertNotNull(milestone.getActivity());
             assertEquals(testActivity.getId(), milestone.getActivity().getId());
             assertTrue(State.LIFE_STATES.contains(milestone.getState()));
         });
 
         // Проверяем, что DRAFT этапа нет в результате
-        boolean hasDraftMilestone = result.getContent().stream()
+        boolean hasDraftMilestone = result.stream()
                 .anyMatch(milestone -> milestone.getState() == State.DRAFT);
         assertFalse(hasDraftMilestone);
     }
 
     @Test
-    void testFindByActivityIdInLifeStatesWithPagination() {
+    void testFindByActivityIdInLifeStatesWithManyMilestones() {
         // Given - создаем 5 этапов с life states
         for (int i = 1; i <= 5; i++) {
             createTestMilestoneWithState("Milestone " + i, State.PLANNED);
         }
 
-        // When - запрашиваем первую страницу с размером 3
-        Pageable pageable = PageRequest.of(0, 3);
-        Page<MilestoneDto> firstPage = milestoneService.findByActivityIdInLifeStates(testActivity.getId(), pageable);
+        // When
+        List<MilestoneDto> result = milestoneService.findByActivityIdInLifeStates(testActivity.getId());
 
         // Then
-        assertNotNull(firstPage);
-        assertEquals(5, firstPage.getTotalElements());
-        assertEquals(3, firstPage.getContent().size());
-        assertEquals(0, firstPage.getNumber());
-        assertEquals(3, firstPage.getSize());
-        assertTrue(firstPage.hasNext());
+        assertNotNull(result);
+        assertEquals(5, result.size());
 
-        // When - запрашиваем вторую страницу
-        Pageable secondPageable = PageRequest.of(1, 3);
-        Page<MilestoneDto> secondPage = milestoneService.findByActivityIdInLifeStates(testActivity.getId(), secondPageable);
+        // Проверяем, что все этапы принадлежат правильной активности и имеют life states
+        result.forEach(milestone -> {
+            assertNotNull(milestone.getActivity());
+            assertEquals(testActivity.getId(), milestone.getActivity().getId());
+            assertTrue(State.LIFE_STATES.contains(milestone.getState()));
+        });
 
-        // Then
-        assertNotNull(secondPage);
-        assertEquals(5, secondPage.getTotalElements());
-        assertEquals(2, secondPage.getContent().size());
-        assertEquals(1, secondPage.getNumber());
-        assertEquals(3, secondPage.getSize());
-        assertFalse(secondPage.hasNext());
+        // Проверяем, что все этапы присутствуют в результате
+        for (int i = 1; i <= 5; i++) {
+            final int index = i;
+            assertTrue(result.stream()
+                    .anyMatch(milestone -> ("Milestone " + index).equals(milestone.getName())));
+        }
     }
 
     @Test
@@ -868,20 +867,17 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         Long nonExistentActivityId = 999L;
 
         // When
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<MilestoneDto> result = milestoneService.findByActivityIdInLifeStates(nonExistentActivityId, pageable);
+        List<MilestoneDto> result = milestoneService.findByActivityIdInLifeStates(nonExistentActivityId);
 
         // Then
         assertNotNull(result);
-        assertEquals(0, result.getTotalElements());
-        assertEquals(0, result.getContent().size());
+        assertEquals(0, result.size());
     }
 
     @Test
     void testFindByActivityIdInLifeStatesWithNullId() {
         // When & Then
-        Pageable pageable = PageRequest.of(0, 10);
-        assertThrows(IllegalArgumentException.class, () -> milestoneService.findByActivityIdInLifeStates(null, pageable));
+        assertThrows(IllegalArgumentException.class, () -> milestoneService.findByActivityIdInLifeStates(null));
     }
 
     @Test
@@ -930,24 +926,22 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(Integer.valueOf(1), result.getMilestoneOrder());
 
         // Проверяем, что порядки других этапов пересчитались
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<MilestoneDto> milestones = milestoneService.findByActivityId(testActivity.getId(), pageable);
+        List<MilestoneDto> milestones = milestoneService.findByActivityId(testActivity.getId());
 
-        assertEquals(4, milestones.getTotalElements());
+        assertEquals(4, milestones.size());
 
         // Проверяем порядок этапов
-        List<MilestoneDto> content = milestones.getContent();
-        assertEquals("First", content.get(0).getName());
-        assertEquals(Integer.valueOf(0), content.get(0).getMilestoneOrder());
+        assertEquals("First", milestones.get(0).getName());
+        assertEquals(Integer.valueOf(0), milestones.get(0).getMilestoneOrder());
 
-        assertEquals("New Milestone", content.get(1).getName());
-        assertEquals(Integer.valueOf(1), content.get(1).getMilestoneOrder());
+        assertEquals("New Milestone", milestones.get(1).getName());
+        assertEquals(Integer.valueOf(1), milestones.get(1).getMilestoneOrder());
 
-        assertEquals("Second", content.get(2).getName());
-        assertEquals(Integer.valueOf(2), content.get(2).getMilestoneOrder());
+        assertEquals("Second", milestones.get(2).getName());
+        assertEquals(Integer.valueOf(2), milestones.get(2).getMilestoneOrder());
 
-        assertEquals("Third", content.get(3).getName());
-        assertEquals(Integer.valueOf(3), content.get(3).getMilestoneOrder());
+        assertEquals("Third", milestones.get(3).getName());
+        assertEquals(Integer.valueOf(3), milestones.get(3).getMilestoneOrder());
     }
 
     @Test
@@ -970,24 +964,22 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(Integer.valueOf(2), result.getMilestoneOrder());
 
         // Проверяем, что порядки других этапов пересчитались
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<MilestoneDto> milestones = milestoneService.findByActivityId(testActivity.getId(), pageable);
+        List<MilestoneDto> milestones = milestoneService.findByActivityId(testActivity.getId());
 
-        assertEquals(4, milestones.getTotalElements());
+        assertEquals(4, milestones.size());
 
         // Проверяем порядок этапов
-        List<MilestoneDto> content = milestones.getContent();
-        assertEquals("Second", content.get(0).getName());
-        assertEquals(Integer.valueOf(0), content.get(0).getMilestoneOrder());
+        assertEquals("Second", milestones.get(0).getName());
+        assertEquals(Integer.valueOf(0), milestones.get(0).getMilestoneOrder());
 
-        assertEquals("Third", content.get(1).getName());
-        assertEquals(Integer.valueOf(1), content.get(1).getMilestoneOrder());
+        assertEquals("Third", milestones.get(1).getName());
+        assertEquals(Integer.valueOf(1), milestones.get(1).getMilestoneOrder());
 
-        assertEquals("First", content.get(2).getName());
-        assertEquals(Integer.valueOf(2), content.get(2).getMilestoneOrder());
+        assertEquals("First", milestones.get(2).getName());
+        assertEquals(Integer.valueOf(2), milestones.get(2).getMilestoneOrder());
 
-        assertEquals("Fourth", content.get(3).getName());
-        assertEquals(Integer.valueOf(3), content.get(3).getMilestoneOrder());
+        assertEquals("Fourth", milestones.get(3).getName());
+        assertEquals(Integer.valueOf(3), milestones.get(3).getMilestoneOrder());
     }
 
     @Test
@@ -1009,21 +1001,19 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(Integer.valueOf(2), result.getMilestoneOrder());
 
         // Проверяем, что порядки других этапов пересчитались
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<MilestoneDto> milestones = milestoneService.findByActivityId(testActivity.getId(), pageable);
+        List<MilestoneDto> milestones = milestoneService.findByActivityId(testActivity.getId());
 
-        assertEquals(3, milestones.getTotalElements());
+        assertEquals(3, milestones.size());
 
         // Проверяем порядок этапов
-        List<MilestoneDto> content = milestones.getContent();
-        assertEquals("Second", content.get(0).getName());
-        assertEquals(Integer.valueOf(0), content.get(0).getMilestoneOrder());
+        assertEquals("Second", milestones.get(0).getName());
+        assertEquals(Integer.valueOf(0), milestones.get(0).getMilestoneOrder());
 
-        assertEquals("Third", content.get(1).getName());
-        assertEquals(Integer.valueOf(1), content.get(1).getMilestoneOrder());
+        assertEquals("Third", milestones.get(1).getName());
+        assertEquals(Integer.valueOf(1), milestones.get(1).getMilestoneOrder());
 
-        assertEquals("First", content.get(2).getName());
-        assertEquals(Integer.valueOf(2), content.get(2).getMilestoneOrder());
+        assertEquals("First", milestones.get(2).getName());
+        assertEquals(Integer.valueOf(2), milestones.get(2).getMilestoneOrder());
     }
 
 

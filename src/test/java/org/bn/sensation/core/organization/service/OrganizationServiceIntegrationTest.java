@@ -439,7 +439,7 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
         // Проверяем сообщение об ошибке
         assertTrue(exception.getMessage().contains("Нельзя удалить организацию, у которой есть активные мероприятия"));
         assertTrue(exception.getMessage().contains("Active Occasion"));
-        assertTrue(exception.getMessage().contains("ACTIVE"));
+        assertTrue(exception.getMessage().contains("IN_PROGRESS"));
     }
 
     @Test
@@ -470,7 +470,7 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
         // Проверяем сообщение об ошибке
         assertTrue(exception.getMessage().contains("Нельзя удалить организацию, у которой есть активные мероприятия"));
         assertTrue(exception.getMessage().contains("Ready Occasion"));
-        assertTrue(exception.getMessage().contains("READY"));
+        assertTrue(exception.getMessage().contains("PLANNED"));
     }
 
     @Test

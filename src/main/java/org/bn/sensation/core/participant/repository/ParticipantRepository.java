@@ -10,9 +10,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface ParticipantRepository extends BaseRepository<ParticipantEntity> {
 
-    @EntityGraph(attributePaths = {"rounds", "milestones", "activity"})
+    @EntityGraph(attributePaths = {"rounds", "rounds.milestone", "rounds.milestone.activity"})
     @Query("""
-            SELECT DISTINCT p 
+            SELECT DISTINCT p
             FROM ParticipantEntity p
             JOIN p.rounds r
             WHERE r.id = :roundId

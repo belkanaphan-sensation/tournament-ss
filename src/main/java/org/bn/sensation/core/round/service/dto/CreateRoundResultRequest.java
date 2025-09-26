@@ -34,10 +34,6 @@ public class CreateRoundResultRequest extends EmptyDto {
     @Schema(description = "Критерий, сформированный для данного этапа")
     private Long milestoneCriteriaId;
 
-    @NotNull
-    @Schema(description = "Судья. Должен совпадать с пользователем отправляющем запрос")
-    private Long activityUserId;
-
     @PositiveOrZero
     @NotNull
     @Schema(description = "Значение оценки для данного участника данным судьей по данному критерию", example = "5")

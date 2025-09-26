@@ -388,10 +388,13 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
 
         // Создаем активности с разными статусами
-        createTestActivity(occasion, "Completed Activity", State.COMPLETED);
-        createTestActivity(occasion, "Active Activity", State.IN_PROGRESS);
-        createTestActivity(occasion, "Ready Activity", State.PLANNED);
-        createTestActivity(occasion, "Draft Activity", State.DRAFT);
+        ActivityEntity completedActivity = createTestActivity(occasion, "Completed Activity", State.COMPLETED);
+        ActivityEntity activeActivity = createTestActivity(occasion, "Active Activity", State.IN_PROGRESS);
+        ActivityEntity readyActivity = createTestActivity(occasion, "Ready Activity", State.PLANNED);
+        ActivityEntity draftActivity = createTestActivity(occasion, "Draft Activity", State.DRAFT);
+
+        occasion.getActivities().addAll(Set.of(completedActivity, activeActivity, readyActivity, draftActivity));
+        occasionRepository.save(occasion);
 
         // When
         Optional<OccasionDto> result = occasionService.findById(occasion.getId());
@@ -402,9 +405,9 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(occasionDto.getCompletedActivitiesCount());
         assertNotNull(occasionDto.getActiveActivitiesCount());
         assertNotNull(occasionDto.getTotalActivitiesCount());
-        assertEquals(1L, occasionDto.getCompletedActivitiesCount());
-        assertEquals(2L, occasionDto.getActiveActivitiesCount()); // ACTIVE + READY
-        assertEquals(4L, occasionDto.getTotalActivitiesCount());
+        assertEquals(1, occasionDto.getCompletedActivitiesCount());
+        assertEquals(2, occasionDto.getActiveActivitiesCount()); // ACTIVE + READY
+        assertEquals(4, occasionDto.getTotalActivitiesCount());
     }
 
     @Test
@@ -421,9 +424,9 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(occasionDto.getCompletedActivitiesCount());
         assertNotNull(occasionDto.getActiveActivitiesCount());
         assertNotNull(occasionDto.getTotalActivitiesCount());
-        assertEquals(0L, occasionDto.getCompletedActivitiesCount());
-        assertEquals(0L, occasionDto.getActiveActivitiesCount());
-        assertEquals(0L, occasionDto.getTotalActivitiesCount());
+        assertEquals(0, occasionDto.getCompletedActivitiesCount());
+        assertEquals(0, occasionDto.getActiveActivitiesCount());
+        assertEquals(0, occasionDto.getTotalActivitiesCount());
     }
 
     @Test
@@ -433,8 +436,11 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         createTestOccasion("Occasion 2", "Description 2");
 
         // Добавляем активности к первому мероприятию
-        createTestActivity(occasion1, "Activity 1", State.COMPLETED);
-        createTestActivity(occasion1, "Activity 2", State.IN_PROGRESS);
+        ActivityEntity testActivity = createTestActivity(occasion1, "Activity 1", State.COMPLETED);
+        ActivityEntity testActivity1 = createTestActivity(occasion1, "Activity 2", State.IN_PROGRESS);
+
+        occasion1.getActivities().addAll(Set.of(testActivity, testActivity1));
+        occasionRepository.save(occasion1);
 
         // When
         Pageable pageable = PageRequest.of(0, 10);
@@ -457,9 +463,9 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
                 .findFirst()
                 .orElse(null);
         assertNotNull(occasionWithActivities);
-        assertEquals(1L, occasionWithActivities.getCompletedActivitiesCount());
-        assertEquals(1L, occasionWithActivities.getActiveActivitiesCount());
-        assertEquals(2L, occasionWithActivities.getTotalActivitiesCount());
+        assertEquals(1, occasionWithActivities.getCompletedActivitiesCount());
+        assertEquals(1, occasionWithActivities.getActiveActivitiesCount());
+        assertEquals(2, occasionWithActivities.getTotalActivitiesCount());
     }
 
     private ActivityEntity createTestActivity(OccasionEntity occasion, String name, State state) {

@@ -34,7 +34,7 @@ public class ActivityController {
 
     @Operation(summary = "Получить активность по ID")
     @GetMapping(path = "/{id}")
-    public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
+    public ResponseEntity<ActivityDto> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return activityService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).build());
@@ -42,14 +42,14 @@ public class ActivityController {
 
     @Operation(summary = "Получить активности по ID мероприятия")
     @GetMapping(path = "/occasion/{id}")
-    public ResponseEntity<Page<ActivityDto>> getByOccasionId(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
-        return ResponseEntity.ok(activityService.findByOccasionId(id, pageable));
+    public ResponseEntity<List<ActivityDto>> getByOccasionId(@Parameter @PathVariable("id") @NotNull Long id) {
+        return ResponseEntity.ok(activityService.findByOccasionId(id));
     }
 
     @Operation(summary = "Получить активности по ID мероприятия в лайфстейтах")
     @GetMapping(path = "/occasion/{id}/life")
-    public ResponseEntity<Page<ActivityDto>> getByOccasionIdInLifeStates(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
-        return ResponseEntity.ok(activityService.findByOccasionIdInLifeStates(id, pageable));
+    public ResponseEntity<List<ActivityDto>> getByOccasionIdInLifeStates(@Parameter @PathVariable("id") @NotNull Long id) {
+        return ResponseEntity.ok(activityService.findByOccasionIdInLifeStates(id));
     }
 
     @Operation(summary = "Получить все активности с пагинацией")

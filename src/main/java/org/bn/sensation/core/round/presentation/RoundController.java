@@ -1,5 +1,7 @@
 package org.bn.sensation.core.round.presentation;
 
+import java.util.List;
+
 import org.bn.sensation.core.round.service.RoundService;
 import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
 import org.bn.sensation.core.round.service.dto.RoundDto;
@@ -38,14 +40,14 @@ public class RoundController {
 
     @Operation(summary = "Получить раунды по ID этапа")
     @GetMapping(path = "/milestone/{id}")
-    public ResponseEntity<Page<RoundDto>> getByMilestoneId(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
-        return ResponseEntity.ok(roundService.findByMilestoneId(id, pageable));
+    public ResponseEntity<List<RoundDto>> getByMilestoneId(@Parameter @PathVariable("id") @NotNull Long id) {
+        return ResponseEntity.ok(roundService.findByMilestoneId(id));
     }
 
     @Operation(summary = "Получить раунды по ID этапа в лайфстейтах")
     @GetMapping(path = "/milestone/{id}/life")
-    public ResponseEntity<Page<RoundDto>> getByMilestoneIdInLifeStates(@Parameter @PathVariable("id") @NotNull Long id, Pageable pageable) {
-        return ResponseEntity.ok(roundService.findByMilestoneIdInLifeStates(id, pageable));
+    public ResponseEntity<List<RoundDto>> getByMilestoneIdInLifeStates(@Parameter @PathVariable("id") @NotNull Long id) {
+        return ResponseEntity.ok(roundService.findByMilestoneIdInLifeStates(id));
     }
 
     @Operation(summary = "Получить все раунды с пагинацией")

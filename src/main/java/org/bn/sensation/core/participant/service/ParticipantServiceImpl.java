@@ -1,16 +1,21 @@
 package org.bn.sensation.core.participant.service;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
+import org.bn.sensation.core.common.mapper.EntityLinkMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.participant.service.dto.CreateParticipantRequest;
 import org.bn.sensation.core.participant.service.dto.ParticipantDto;
 import org.bn.sensation.core.participant.service.dto.UpdateParticipantRequest;
-import org.bn.sensation.core.participant.service.mapper.ParticipantDtoMapper;
 import org.bn.sensation.core.participant.service.mapper.CreateParticipantRequestMapper;
+import org.bn.sensation.core.participant.service.mapper.ParticipantDtoMapper;
 import org.bn.sensation.core.participant.service.mapper.UpdateParticipantRequestMapper;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
@@ -18,6 +23,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.base.Preconditions;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +38,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final ParticipantDtoMapper participantDtoMapper;
     private final CreateParticipantRequestMapper createParticipantRequestMapper;
     private final UpdateParticipantRequestMapper updateParticipantRequestMapper;
+    private final EntityLinkMapper entityLinkMapper;
 
     @Override
     public BaseRepository<ParticipantEntity> getRepository() {
@@ -50,7 +58,9 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     public List<ParticipantDto> findByRoundId(Long roundId) {
-        return participantRepository.findByRoundId(roundId).stream().map(participantDtoMapper::toDto).toList();
+        return participantRepository.findByRoundId(roundId).stream()
+                .map(this::enrichParticipantDto)
+                .toList();
     }
 
     @Override
@@ -89,7 +99,8 @@ public class ParticipantServiceImpl implements ParticipantService {
         RoundEntity round = findRoundById(roundId);
 
         participant.getRounds().add(round);
-        return participantDtoMapper.toDto(participantRepository.save(participant));
+        ParticipantEntity saved = participantRepository.save(participant);
+        return enrichParticipantDto(saved);
     }
 
 
@@ -101,5 +112,29 @@ public class ParticipantServiceImpl implements ParticipantService {
     private ParticipantEntity findParticipantById(Long participantId) {
         return participantRepository.findById(participantId)
                 .orElseThrow(() -> new EntityNotFoundException("Участник не найден с id: " + participantId));
+    }
+
+    /**
+     * Обогащает ParticipantDto недостающими данными (activity и milestones)
+     */
+    private ParticipantDto enrichParticipantDto(ParticipantEntity participant) {
+        ParticipantDto dto = participantDtoMapper.toDto(participant);
+
+        Set<EntityLinkDto> activities = participant.getRounds().stream()
+                .map(RoundEntity::getMilestone)
+                .map(MilestoneEntity::getActivity)
+                .map(entityLinkMapper::toEntityLinkDto).collect(Collectors.toSet());
+        Preconditions.checkArgument(activities.size() == 1, "Неконсистентное состояние, " +
+                "участник находится в нескольких активностях: " + activities);
+        // Устанавливаем активность из раундов
+        dto.setActivity(activities.iterator().next());
+
+        // Устанавливаем этапы из раундов
+        dto.setMilestones(participant.getRounds().stream()
+                .map(RoundEntity::getMilestone)
+                .map(entityLinkMapper::toEntityLinkDto)
+                .collect(Collectors.toSet()));
+
+        return dto;
     }
 }

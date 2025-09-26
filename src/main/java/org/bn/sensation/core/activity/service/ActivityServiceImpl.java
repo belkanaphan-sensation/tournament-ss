@@ -1,5 +1,6 @@
 package org.bn.sensation.core.activity.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
@@ -54,16 +55,20 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ActivityDto> findByOccasionId(Long id, Pageable pageable) {
+    public List<ActivityDto> findByOccasionId(Long id) {
         Preconditions.checkArgument(id != null, "ID мероприятия не может быть null");
-        return activityRepository.findByOccasionId(id, pageable).map(this::enrichActivityDtoWithStatistics);
+        return activityRepository.findByOccasionId(id).stream()
+                .map(this::enrichActivityDtoWithStatistics)
+                .toList();
     }
 
     @Override
-    public Page<ActivityDto> findByOccasionIdInLifeStates(Long id, Pageable pageable) {
+    @Transactional(readOnly = true)
+    public List<ActivityDto> findByOccasionIdInLifeStates(Long id) {
         Preconditions.checkArgument(id != null, "ID мероприятия не может быть null");
-        return activityRepository.findByOccasionIdAndStateIn(id, pageable, State.LIFE_STATES)
-                .map(this::enrichActivityDtoWithStatistics);
+        return activityRepository.findByOccasionIdAndStateIn(id, State.LIFE_STATES).stream()
+                .map(this::enrichActivityDtoWithStatistics)
+                .toList();
     }
 
     @Override

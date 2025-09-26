@@ -30,7 +30,7 @@ public interface RoundResultRepository extends BaseRepository<RoundResultEntity>
      */
     @EntityGraph(attributePaths = {"participant", "round", "milestoneCriteria", "activityUser"})
     @Query("""
-            SELECT DISTINCT rr 
+            SELECT DISTINCT rr
             FROM RoundResultEntity rr
             WHERE rr.round.milestone.id = :milestoneId
             """)

@@ -45,7 +45,7 @@ public class ActivityEntity extends BaseEntity {
     @JoinColumn(name = "occasion_id")
     private OccasionEntity occasion;
 
-    @OneToMany(mappedBy = "activity", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "activity", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @Builder.Default
     private Set<MilestoneEntity> milestones = new HashSet<>();
 }

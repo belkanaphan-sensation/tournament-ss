@@ -722,4 +722,38 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                     .anyMatch(round -> round.getId().equals(testRound.getId())));
         });
     }
+
+    @Test
+    void testFindByRoundIdEnrichesDtoWithActivityAndMilestones() {
+        // Given - testParticipant is already assigned to testRound in setUp()
+        // testRound belongs to testMilestone, which belongs to testActivity
+
+        // When
+        List<ParticipantDto> result = participantService.findByRoundId(testRound.getId());
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size());
+
+        ParticipantDto participant = result.get(0);
+
+        // Проверяем, что rounds загружены
+        assertNotNull(participant.getRounds());
+        assertEquals(1, participant.getRounds().size());
+        assertTrue(participant.getRounds().stream()
+                .anyMatch(round -> round.getId().equals(testRound.getId())));
+
+        // Проверяем, что activity загружена
+        assertNotNull(participant.getActivity());
+        assertEquals(testActivity.getId(), participant.getActivity().getId());
+        assertEquals(testActivity.getName(), participant.getActivity().getValue());
+
+        // Проверяем, что milestones загружены
+        assertNotNull(participant.getMilestones());
+        assertEquals(1, participant.getMilestones().size());
+        assertTrue(participant.getMilestones().stream()
+                .anyMatch(milestone -> milestone.getId().equals(testMilestone.getId())));
+        assertTrue(participant.getMilestones().stream()
+                .anyMatch(milestone -> milestone.getValue().equals(testMilestone.getName())));
+    }
 }

@@ -30,7 +30,7 @@ public class CriteriaController {
 
     @Operation(summary = "Получить критерий по ID")
     @GetMapping(path = "/{id}")
-    public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
+    public ResponseEntity<CriteriaDto> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return criteriaService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).build());

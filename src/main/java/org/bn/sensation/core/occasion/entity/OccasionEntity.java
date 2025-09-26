@@ -42,7 +42,7 @@ public class OccasionEntity extends BaseEntity {
     @JoinColumn(name = "organization_id")
     private OrganizationEntity organization;
 
-    @OneToMany(mappedBy = "occasion", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "occasion", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @Builder.Default
     private Set<ActivityEntity> activities = new HashSet<>();
 }

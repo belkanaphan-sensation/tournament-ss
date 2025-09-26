@@ -640,13 +640,13 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
 
         // Создаем назначения критериев на этап
         createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
-        
+
         CriteriaEntity criteria2 = CriteriaEntity.builder()
                 .name("Ведение")
                 .build();
         criteriaRepository.save(criteria2);
         createTestAssignment(testMilestone, criteria2, PartnerSide.FOLLOWER);
-        
+
         CriteriaEntity criteria3 = CriteriaEntity.builder()
                 .name("Музыкальность")
                 .build();
@@ -659,7 +659,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         // Then
         assertNotNull(result);
         assertEquals(2, result.size()); // Только LEADER и null (для всех)
-        
+
         // Проверяем, что возвращены только подходящие назначения
         assertTrue(result.stream().anyMatch(dto -> dto.getPartnerSide() == PartnerSide.LEADER));
         assertTrue(result.stream().anyMatch(dto -> dto.getPartnerSide() == null));
@@ -680,13 +680,13 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
 
         // Создаем назначения критериев на этап
         createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
-        
+
         CriteriaEntity criteria2 = CriteriaEntity.builder()
                 .name("Ведение")
                 .build();
         criteriaRepository.save(criteria2);
         createTestAssignment(testMilestone, criteria2, PartnerSide.FOLLOWER);
-        
+
         CriteriaEntity criteria3 = CriteriaEntity.builder()
                 .name("Музыкальность")
                 .build();
@@ -699,7 +699,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         // Then
         assertNotNull(result);
         assertEquals(2, result.size()); // Только FOLLOWER и null (для всех)
-        
+
         // Проверяем, что возвращены только подходящие назначения
         assertTrue(result.stream().anyMatch(dto -> dto.getPartnerSide() == PartnerSide.FOLLOWER));
         assertTrue(result.stream().anyMatch(dto -> dto.getPartnerSide() == null));
@@ -720,13 +720,13 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
 
         // Создаем назначения критериев на этап
         createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
-        
+
         CriteriaEntity criteria2 = CriteriaEntity.builder()
                 .name("Ведение")
                 .build();
         criteriaRepository.save(criteria2);
         createTestAssignment(testMilestone, criteria2, PartnerSide.FOLLOWER);
-        
+
         CriteriaEntity criteria3 = CriteriaEntity.builder()
                 .name("Музыкальность")
                 .build();
@@ -739,7 +739,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         // Then
         assertNotNull(result);
         assertEquals(1, result.size()); // Только null (для всех)
-        
+
         // Проверяем, что возвращено только назначение для всех
         assertTrue(result.stream().allMatch(dto -> dto.getPartnerSide() == null));
     }
@@ -782,7 +782,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         // Given
         // Настраиваем SecurityContext с тестовым пользователем
         setupSecurityContext(testUser);
-        
+
         // When & Then
         assertThrows(IllegalArgumentException.class, () -> {
             milestoneCriteriaAssignmentService.findByMilestoneIdForCurrentUser(null);
@@ -794,10 +794,10 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         // Given
         // Настраиваем SecurityContext с тестовым пользователем
         setupSecurityContext(testUser);
-        
+
         // Создаем назначения критериев на этап
         createTestAssignment(testMilestone, testCriteria, PartnerSide.LEADER);
-        
+
         // НЕ создаем назначение пользователя на активность
 
         // When & Then
@@ -811,7 +811,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         // Given
         // Настраиваем SecurityContext с тестовым пользователем
         setupSecurityContext(testUser);
-        
+
         // Создаем другую активность
         ActivityEntity differentActivity = ActivityEntity.builder()
                 .name("Different Activity")
@@ -853,7 +853,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         // Given
         // Настраиваем SecurityContext с тестовым пользователем
         setupSecurityContext(testUser);
-        
+
         // Создаем назначение пользователя на активность как LEADER
         UserActivityAssignmentEntity userActivityAssignment = UserActivityAssignmentEntity.builder()
                 .user(testUser)
@@ -886,12 +886,12 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         // Then
         assertNotNull(result);
         assertEquals(3, result.size()); // LEADER, LEADER, null
-        
+
         // Проверяем, что возвращены только подходящие назначения
         long leaderCount = result.stream().filter(dto -> dto.getPartnerSide() == PartnerSide.LEADER).count();
         long nullCount = result.stream().filter(dto -> dto.getPartnerSide() == null).count();
         long followerCount = result.stream().filter(dto -> dto.getPartnerSide() == PartnerSide.FOLLOWER).count();
-        
+
         assertEquals(2, leaderCount);
         assertEquals(1, nullCount);
         assertEquals(0, followerCount);

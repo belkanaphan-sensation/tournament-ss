@@ -160,7 +160,7 @@ class UserServiceSecurityIntegrationTest extends AbstractIntegrationTest {
         // Then
         assertNotNull(result);
         assertEquals(request.username(), result.getUsername());
-        assertEquals(UserStatus.ACTIVE.name(), result.getStatus());
+        assertEquals(UserStatus.ACTIVE, result.getStatus());
 
         // Verify user was created with default role
         Optional<UserEntity> savedUser = userRepository.findByUsername(request.username());
