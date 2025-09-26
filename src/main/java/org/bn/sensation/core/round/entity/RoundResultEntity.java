@@ -24,19 +24,19 @@ public class RoundResultEntity extends BaseEntity {
     @Column(name = "score")
     private Integer score;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne
     @JoinColumn(name = "participant_id")
     private ParticipantEntity participant;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne
     @JoinColumn(name = "round_id")
     private RoundEntity round;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne
     @JoinColumn(name = "milestone_criteria_id")
     private MilestoneCriteriaAssignmentEntity milestoneCriteria;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne
     @JoinColumn(name = "activity_user_id")
     private UserActivityAssignmentEntity activityUser;
 

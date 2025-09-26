@@ -2,7 +2,6 @@ package org.bn.sensation.core.round.presentation;
 
 import java.util.List;
 
-import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.round.service.RoundResultService;
 import org.bn.sensation.core.round.service.dto.CreateRoundResultRequest;
 import org.bn.sensation.core.round.service.dto.RoundResultDto;
@@ -49,55 +48,14 @@ public class RoundResultController {
     @GetMapping(path = "/round/{roundId}")
     public ResponseEntity<List<RoundResultDto>> getByRoundId(
             @Parameter @PathVariable("roundId") @NotNull Long roundId) {
-        List<RoundResultDto> result = List.of(
-                RoundResultDto.builder()
-                        .participant(new EntityLinkDto(1L, "25"))
-                        .round(new EntityLinkDto(1L, "round 1"))
-                        .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
-                        .activityUser(new EntityLinkDto(1L, "activity user 1"))
-                        .score(7)
-                        .build(),
-                RoundResultDto.builder()
-                        .participant(new EntityLinkDto(2L, "25"))
-                        .round(new EntityLinkDto(1L, "round 1"))
-                        .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
-                        .activityUser(new EntityLinkDto(1L, "activity user 1"))
-                        .score(9)
-                        .build()
-        );
-        return ResponseEntity.ok(result);
-//        return ResponseEntity.ok(roundResultService.findByRoundId(roundId));
+        return ResponseEntity.ok(roundResultService.findByRoundId(roundId));
     }
 
     @Operation(summary = "Получить результаты раунда по ID этапа")
     @GetMapping(path = "/milestone/{milestoneId}")
     public ResponseEntity<List<RoundResultDto>> getResultByMilestoneId(
             @Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        List<RoundResultDto> result = List.of(
-                RoundResultDto.builder()
-                        .participant(new EntityLinkDto(1L, "25"))
-                        .round(new EntityLinkDto(1L, "round 1"))
-                        .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
-                        .activityUser(new EntityLinkDto(1L, "activity user 1"))
-                        .score(7)
-                        .build(),
-                RoundResultDto.builder()
-                        .participant(new EntityLinkDto(2L, "25"))
-                        .round(new EntityLinkDto(1L, "round 1"))
-                        .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
-                        .activityUser(new EntityLinkDto(1L, "activity user 1"))
-                        .score(9)
-                        .build(),
-                RoundResultDto.builder()
-                        .participant(new EntityLinkDto(2L, "25"))
-                        .round(new EntityLinkDto(2L, "round 2"))
-                        .milestoneCriteria(new EntityLinkDto(1L, "milestone criteria 1"))
-                        .activityUser(new EntityLinkDto(1L, "activity user 1"))
-                        .score(4)
-                        .build()
-        );
-        return ResponseEntity.ok(result);
-//        return ResponseEntity.ok(roundResultService.findByMilestoneId(milestoneId));
+        return ResponseEntity.ok(roundResultService.findByMilestoneId(milestoneId));
     }
 
     @Operation(summary = "Получить результаты раунда по ID участника")
