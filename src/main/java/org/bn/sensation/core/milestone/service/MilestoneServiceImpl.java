@@ -15,6 +15,7 @@ import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.bn.sensation.core.milestone.service.dto.AssessmentMode;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
 import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
@@ -22,6 +23,7 @@ import org.bn.sensation.core.milestone.service.mapper.CreateMilestoneRequestMapp
 import org.bn.sensation.core.milestone.service.mapper.MilestoneDtoMapper;
 import org.bn.sensation.core.milestone.service.mapper.UpdateMilestoneRequestMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,13 +61,24 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     @Transactional(readOnly = true)
     public Page<MilestoneDto> findAll(Pageable pageable) {
-        return milestoneRepository.findAll(pageable).map(this::enrichMilestoneDtoWithStatistics);
+        // Используем жадную загрузку для избежания N+1 проблемы
+        List<MilestoneEntity> milestones = milestoneRepository.findAllWithCriteriaAssignments();
+        List<MilestoneDto> enrichedDtos = milestones.stream()
+                .map(this::enrichMilestoneDtoWithStatistics)
+                .toList();
+
+        // Создаем Page вручную для пагинации
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), enrichedDtos.size());
+        List<MilestoneDto> pageContent = enrichedDtos.subList(start, end);
+
+        return new PageImpl<>(pageContent, pageable, enrichedDtos.size());
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<MilestoneDto> findById(Long id) {
-        return milestoneRepository.findById(id)
+        return milestoneRepository.findByIdWithCriteriaAssignments(id)
                 .map(this::enrichMilestoneDtoWithStatistics);
     }
 
@@ -138,6 +151,8 @@ public class MilestoneServiceImpl implements MilestoneService {
                     .build();
 
             milestoneCriteriaAssignmentRepository.save(assignment);
+            
+            milestone.getCriteriaAssignments().add(assignment);
         }
     }
 
@@ -145,7 +160,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Transactional(readOnly = true)
     public List<MilestoneDto> findByActivityId(Long id) {
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
-        return milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(id).stream()
+        return milestoneRepository.findByActivityIdWithCriteriaAssignments(id).stream()
                 .map(this::enrichMilestoneDtoWithStatistics)
                 .toList();
     }
@@ -154,22 +169,39 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Transactional(readOnly = true)
     public List<MilestoneDto> findByActivityIdInLifeStates(Long id) {
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
-        return milestoneRepository.findByActivityIdAndStateInOrderByMilestoneOrderAsc(id, State.LIFE_STATES).stream()
+        return milestoneRepository.findByActivityIdAndStateInWithCriteriaAssignments(id, State.LIFE_STATES).stream()
                 .map(this::enrichMilestoneDtoWithStatistics)
                 .toList();
     }
 
     /**
-     * Обогащает MilestoneDto статистикой по раундам
+     * Обогащает MilestoneDto статистикой по раундам и AssessmentMode
      */
     private MilestoneDto enrichMilestoneDtoWithStatistics(MilestoneEntity milestone) {
         MilestoneDto dto = milestoneDtoMapper.toDto(milestone);
+        dto.setAssessmentMode(calculateAssessmentMode(milestone));
         dto.setCompletedRoundsCount((int) milestone.getRounds().stream()
                 .filter(round -> round.getState() == State.COMPLETED)
                 .count());
         dto.setTotalRoundsCount(milestone.getRounds().size());
 
         return dto;
+    }
+
+    /**
+     * Рассчитывает AssessmentMode на основе criteriaAssignments
+     * Если у milestone всего 1 criteriaAssignments и у него scale = 1, то PASS, иначе CRITERIA
+     */
+    private AssessmentMode calculateAssessmentMode(MilestoneEntity milestone) {
+        if (milestone.getCriteriaAssignments() == null || milestone.getCriteriaAssignments().isEmpty()) {
+            return AssessmentMode.CRITERIA; // По умолчанию CRITERIA если еще нет назначений
+        }
+        if (milestone.getCriteriaAssignments().size() == 1
+                && milestone.getCriteriaAssignments().iterator().next().getScale() == 1) {
+            return AssessmentMode.PASS;
+
+        }
+        return AssessmentMode.CRITERIA;
     }
 
     /**
