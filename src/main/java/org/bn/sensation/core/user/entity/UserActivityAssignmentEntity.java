@@ -20,11 +20,11 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class UserActivityAssignmentEntity extends BaseEntity {
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne
     @JoinColumn(name = "activity_id", nullable = false)
     private ActivityEntity activity;
 

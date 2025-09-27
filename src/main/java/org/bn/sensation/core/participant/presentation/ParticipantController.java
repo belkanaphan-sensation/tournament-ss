@@ -1,9 +1,7 @@
 package org.bn.sensation.core.participant.presentation;
 
 import java.util.List;
-import java.util.Set;
 
-import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.participant.service.ParticipantService;
 import org.bn.sensation.core.participant.service.dto.CreateParticipantRequest;
 import org.bn.sensation.core.participant.service.dto.ParticipantDto;
@@ -56,25 +54,13 @@ public class ParticipantController {
     @Operation(summary = "Получить участников, расформированных по раундам по ID раунда")
     @GetMapping(path = "/by-round/round/{roundId}/currentUser")
     public ResponseEntity<RoundParticipantsDto> getByRoundByRoundIdForCurrentUser(@PathVariable("roundId") Long roundId) {
-        return ResponseEntity.ok(RoundParticipantsDto.builder()
-                .round(new EntityLinkDto(1L, "round 1"))
-                .participants(Set.of(new EntityLinkDto(1L, "participant 1"), new EntityLinkDto(2L, "participant 2")))
-                .build());
+        return ResponseEntity.ok(participantService.getByRoundByRoundIdForCurrentUser(roundId));
     }
 
     @Operation(summary = "Получить всех участников, расформированных по раундам по ID этапа")
     @GetMapping(path = "/by-round/milestone/{milestoneId}/currentUser")
     public ResponseEntity<List<RoundParticipantsDto>> getByRoundByMilestoneIdForCurrentUser(@PathVariable("milestoneId") Long milestoneId) {
-        return ResponseEntity.ok(List.of(
-                RoundParticipantsDto.builder()
-                        .round(new EntityLinkDto(1L, "round 1"))
-                        .participants(Set.of(new EntityLinkDto(1L, "participant 1"), new EntityLinkDto(2L, "participant 2")))
-                        .build(),
-                RoundParticipantsDto.builder()
-                        .round(new EntityLinkDto(2L, "round 2"))
-                        .participants(Set.of(new EntityLinkDto(3L, "participant 3"), new EntityLinkDto(4L, "participant 4")))
-                        .build()
-        ));
+        return ResponseEntity.ok(participantService.getByRoundByMilestoneIdForCurrentUser(milestoneId));
     }
 
     @Operation(summary = "Создать нового участника")

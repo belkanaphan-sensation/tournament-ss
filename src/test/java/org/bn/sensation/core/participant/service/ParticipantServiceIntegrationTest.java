@@ -1,6 +1,7 @@
 package org.bn.sensation.core.participant.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,15 +27,25 @@ import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.participant.service.dto.CreateParticipantRequest;
 import org.bn.sensation.core.participant.service.dto.ParticipantDto;
+import org.bn.sensation.core.participant.service.dto.RoundParticipantsDto;
 import org.bn.sensation.core.participant.service.dto.UpdateParticipantRequest;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
+import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
+import org.bn.sensation.core.user.entity.UserActivityPosition;
+import org.bn.sensation.core.user.entity.UserEntity;
+import org.bn.sensation.core.user.entity.UserStatus;
+import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
+import org.bn.sensation.core.user.repository.UserRepository;
+import org.bn.sensation.security.CurrentUser;
+import org.bn.sensation.security.SecurityUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,6 +75,15 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private OrganizationRepository organizationRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private UserActivityAssignmentRepository userActivityAssignmentRepository;
+
+    @MockitoBean
+    private CurrentUser currentUser;
+
     private ActivityEntity testActivity;
     private RoundEntity testRound;
     private RoundEntity testRound1;
@@ -71,6 +91,8 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     private OrganizationEntity testOrganization;
     private MilestoneEntity testMilestone;
     private ParticipantEntity testParticipant;
+    private UserEntity testUser;
+    private UserActivityAssignmentEntity userAssignment;
 
     @BeforeEach
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -79,12 +101,14 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         cleanDatabase();
 
         // Clean up existing data
+        userActivityAssignmentRepository.deleteAll();
         participantRepository.deleteAll();
         roundRepository.deleteAll();
         milestoneRepository.deleteAll();
         activityRepository.deleteAll();
         occasionRepository.deleteAll();
         organizationRepository.deleteAll();
+        userRepository.deleteAll();
 
         // Create test organization
         testOrganization = OrganizationEntity.builder()
@@ -158,6 +182,38 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         testParticipant = participantRepository.save(testParticipant);
+
+        // Create test user
+        testUser = UserEntity.builder()
+                .username("testuser")
+                .password("password")
+                .status(UserStatus.ACTIVE)
+                .person(Person.builder()
+                        .name("Test")
+                        .surname("User")
+                        .email("test@example.com")
+                        .phoneNumber("+1234567890")
+                        .build())
+                .organizations(Set.of(testOrganization))
+                .build();
+        testUser = userRepository.save(testUser);
+
+        // Create user activity assignment
+        userAssignment = UserActivityAssignmentEntity.builder()
+                .user(testUser)
+                .activity(testActivity)
+                .position(UserActivityPosition.JUDGE)
+                .partnerSide(PartnerSide.LEADER)
+                .build();
+        userActivityAssignmentRepository.save(userAssignment);
+
+        // Refresh the activity to ensure the assignment is loaded
+        testActivity = activityRepository.findById(testActivity.getId()).orElseThrow();
+
+        // Mock CurrentUser
+        SecurityUser mockSecurityUser = org.mockito.Mockito.mock(SecurityUser.class);
+        when(mockSecurityUser.getId()).thenReturn(testUser.getId());
+        when(currentUser.getSecurityUser()).thenReturn(mockSecurityUser);
     }
 
     @Test
@@ -755,5 +811,418 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .anyMatch(milestone -> milestone.getId().equals(testMilestone.getId())));
         assertTrue(participant.getMilestones().stream()
                 .anyMatch(milestone -> milestone.getValue().equals(testMilestone.getName())));
+    }
+
+    @Test
+    void testGetByRoundByRoundIdForCurrentUser_Success() {
+        // Given - testParticipant is already assigned to testRound and has PartnerSide.LEADER
+        // testUser is assigned to testActivity with PartnerSide.LEADER
+        testActivity.getUserAssignments().add(userAssignment);
+        activityRepository.save(testActivity);
+        testRound.getParticipants().add(testParticipant);
+        roundRepository.save(testRound);
+        testParticipant.getRounds().add(testRound);
+        participantRepository.save(testParticipant);
+        // When
+        RoundParticipantsDto result = participantService.getByRoundByRoundIdForCurrentUser(testRound.getId());
+
+        // Then
+        assertNotNull(result);
+        assertNotNull(result.getRound());
+        assertEquals(testRound.getId(), result.getRound().getId());
+        assertEquals(testRound.getName(), result.getRound().getValue());
+
+        assertNotNull(result.getParticipants());
+        assertEquals(1, result.getParticipants().size());
+
+        var participant = result.getParticipants().get(0);
+        assertEquals(testParticipant.getId(), participant.getId());
+        assertEquals(testParticipant.getNumber(), participant.getValue());
+    }
+
+    @Test
+    void testGetByRoundByRoundIdForCurrentUser_WithPartnerSideFiltering() {
+        // Given - Create another participant with FOLLOWER partner side
+        testActivity.getUserAssignments().add(userAssignment);
+        activityRepository.save(testActivity);
+        ParticipantEntity followerParticipant = ParticipantEntity.builder()
+                .person(Person.builder()
+                        .name("Follower")
+                        .surname("Participant")
+                        .email("follower@example.com")
+                        .phoneNumber("+9876543210")
+                        .build())
+                .number("002")
+                .partnerSide(PartnerSide.FOLLOWER)
+                .rounds(new HashSet<>(Set.of(testRound)))
+                .build();
+        followerParticipant = participantRepository.save(followerParticipant);
+        testRound.getParticipants().add(followerParticipant);
+        testRound.getParticipants().add(testParticipant);
+        roundRepository.save(testRound);
+
+        // testUser has PartnerSide.LEADER, so only LEADER participants should be returned
+
+        // When
+        RoundParticipantsDto result = participantService.getByRoundByRoundIdForCurrentUser(testRound.getId());
+
+        // Then
+        assertNotNull(result);
+        assertNotNull(result.getParticipants());
+        assertEquals(1, result.getParticipants().size()); // Only LEADER participant
+
+        var participant = result.getParticipants().get(0);
+        assertEquals(testParticipant.getId(), participant.getId());
+        assertEquals(PartnerSide.LEADER, testParticipant.getPartnerSide());
+    }
+
+    @Test
+    void testGetByRoundByRoundIdForCurrentUser_WithoutPartnerSide() {
+        // Given - Update user assignment to have null partnerSide
+        UserActivityAssignmentEntity userAssignment = userActivityAssignmentRepository
+                .findByUserIdAndActivityId(testUser.getId(), testActivity.getId()).orElseThrow();
+        userAssignment.setPartnerSide(null);
+        userActivityAssignmentRepository.save(userAssignment);
+        testActivity.getUserAssignments().add(userAssignment);
+        activityRepository.save(testActivity);
+
+        // Create participants with different partner sides
+        ParticipantEntity followerParticipant = ParticipantEntity.builder()
+                .person(Person.builder()
+                        .name("Follower")
+                        .surname("Participant")
+                        .email("follower@example.com")
+                        .phoneNumber("+9876543210")
+                        .build())
+                .number("002")
+                .partnerSide(PartnerSide.FOLLOWER)
+                .rounds(new HashSet<>(Set.of(testRound)))
+                .build();
+        followerParticipant = participantRepository.save(followerParticipant);
+        testRound.getParticipants().add(testParticipant);
+        testRound.getParticipants().add(followerParticipant);
+        roundRepository.save(testRound);
+
+        // When
+        RoundParticipantsDto result = participantService.getByRoundByRoundIdForCurrentUser(testRound.getId());
+
+        // Then - Should return all participants since user has no partnerSide
+        assertNotNull(result);
+        assertNotNull(result.getParticipants());
+        assertEquals(2, result.getParticipants().size()); // Both LEADER and FOLLOWER
+    }
+
+    @Test
+    void testGetByRoundByRoundIdForCurrentUser_RoundNotFound() {
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            participantService.getByRoundByRoundIdForCurrentUser(999L);
+        });
+    }
+
+    @Test
+    void testGetByRoundByRoundIdForCurrentUser_UserNotAssignedToActivity() {
+        // Given - Create a user without activity assignment
+        UserEntity unassignedUser = UserEntity.builder()
+                .username("unassigned")
+                .password("password")
+                .status(UserStatus.ACTIVE)
+                .person(Person.builder()
+                        .name("Unassigned")
+                        .surname("User")
+                        .email("unassigned@example.com")
+                        .phoneNumber("+1111111111")
+                        .build())
+                .organizations(Set.of(testOrganization))
+                .build();
+        unassignedUser = userRepository.save(unassignedUser);
+
+        // Mock CurrentUser to return unassigned user
+        SecurityUser mockSecurityUser = org.mockito.Mockito.mock(SecurityUser.class);
+        when(mockSecurityUser.getId()).thenReturn(unassignedUser.getId());
+        when(currentUser.getSecurityUser()).thenReturn(mockSecurityUser);
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            participantService.getByRoundByRoundIdForCurrentUser(testRound.getId());
+        });
+    }
+
+    @Test
+    void testGetByRoundByRoundIdForCurrentUser_NullRoundId() {
+        // When & Then
+        assertThrows(IllegalArgumentException.class, () -> {
+            participantService.getByRoundByRoundIdForCurrentUser(null);
+        });
+    }
+
+    @Test
+    void testGetByRoundByRoundIdForCurrentUser_MultipleParticipants() {
+        // Given - Create multiple participants with different partner sides
+        ParticipantEntity followerParticipant1 = ParticipantEntity.builder()
+                .person(Person.builder()
+                        .name("Follower1")
+                        .surname("Participant")
+                        .email("follower1@example.com")
+                        .phoneNumber("+1111111111")
+                        .build())
+                .number("002")
+                .partnerSide(PartnerSide.FOLLOWER)
+                .rounds(new HashSet<>(Set.of(testRound)))
+                .build();
+        followerParticipant1 = participantRepository.save(followerParticipant1);
+
+        ParticipantEntity followerParticipant2 = ParticipantEntity.builder()
+                .person(Person.builder()
+                        .name("Follower2")
+                        .surname("Participant")
+                        .email("follower2@example.com")
+                        .phoneNumber("+2222222222")
+                        .build())
+                .number("003")
+                .partnerSide(PartnerSide.FOLLOWER)
+                .rounds(new HashSet<>(Set.of(testRound)))
+                .build();
+        followerParticipant2 = participantRepository.save(followerParticipant2);
+
+        testRound.getParticipants().add(followerParticipant1);
+        testRound.getParticipants().add(followerParticipant2);
+        roundRepository.save(testRound);
+
+        // Update user assignment to FOLLOWER
+        UserActivityAssignmentEntity userAssignment = userActivityAssignmentRepository
+                .findByUserIdAndActivityId(testUser.getId(), testActivity.getId()).orElseThrow();
+        userAssignment.setPartnerSide(PartnerSide.FOLLOWER);
+        userActivityAssignmentRepository.save(userAssignment);
+
+        testActivity.getUserAssignments().add(userAssignment);
+        activityRepository.save(testActivity);
+
+        // When
+        RoundParticipantsDto result = participantService.getByRoundByRoundIdForCurrentUser(testRound.getId());
+
+        // Then - Should return only FOLLOWER participants
+        assertNotNull(result);
+        assertNotNull(result.getParticipants());
+        assertEquals(2, result.getParticipants().size()); // Only FOLLOWER participants
+
+        result.getParticipants().forEach(participant -> {
+            // Verify all returned participants are FOLLOWER
+            ParticipantEntity entity = participantRepository.findById(participant.getId()).orElseThrow();
+            assertEquals(PartnerSide.FOLLOWER, entity.getPartnerSide());
+        });
+    }
+
+    @Test
+    void testGetByRoundByMilestoneIdForCurrentUser_Success() {
+        // Given - testUser is assigned to testActivity with PartnerSide.LEADER
+        // testMilestone has testRound and testRound1 with participants
+        testActivity.getUserAssignments().add(userAssignment);
+        activityRepository.save(testActivity);
+        
+        // Add participants to rounds
+        testRound.getParticipants().add(testParticipant);
+        testRound1.getParticipants().add(testParticipant);
+        roundRepository.save(testRound);
+        roundRepository.save(testRound1);
+        
+        // Add rounds to milestone
+        testMilestone.getRounds().add(testRound);
+        testMilestone.getRounds().add(testRound1);
+        milestoneRepository.save(testMilestone);
+
+        // When
+        List<RoundParticipantsDto> result = participantService.getByRoundByMilestoneIdForCurrentUser(testMilestone.getId());
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size()); // testRound and testRound1
+        
+        // Verify rounds are sorted by ID
+        assertTrue(result.get(0).getRound().getId() <= result.get(1).getRound().getId());
+        
+        // Verify each round has participants
+        result.forEach(roundDto -> {
+            assertNotNull(roundDto.getRound());
+            assertNotNull(roundDto.getParticipants());
+            assertEquals(1, roundDto.getParticipants().size());
+            assertEquals(testParticipant.getId(), roundDto.getParticipants().get(0).getId());
+        });
+    }
+
+    @Test
+    void testGetByRoundByMilestoneIdForCurrentUser_WithPartnerSideFiltering() {
+        // Given - Create participants with different partner sides
+        testActivity.getUserAssignments().add(userAssignment);
+        activityRepository.save(testActivity);
+        
+        ParticipantEntity followerParticipant = ParticipantEntity.builder()
+                .person(Person.builder()
+                        .name("Jane")
+                        .surname("Doe")
+                        .email("jane.doe@example.com")
+                        .phoneNumber("+1234567891")
+                        .build())
+                .number("002")
+                .partnerSide(PartnerSide.FOLLOWER)
+                .rounds(new HashSet<>(Set.of(testRound)))
+                .build();
+        followerParticipant = participantRepository.save(followerParticipant);
+        
+        // Add participants to rounds
+        testRound.getParticipants().add(testParticipant); // LEADER
+        testRound.getParticipants().add(followerParticipant); // FOLLOWER
+        roundRepository.save(testRound);
+        
+        // Add round to milestone
+        testMilestone.getRounds().add(testRound);
+        milestoneRepository.save(testMilestone);
+
+        // testUser has PartnerSide.LEADER, so only LEADER participants should be returned
+        // When
+        List<RoundParticipantsDto> result = participantService.getByRoundByMilestoneIdForCurrentUser(testMilestone.getId());
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size()); // Only testRound
+        
+        var roundDto = result.get(0);
+        assertNotNull(roundDto.getParticipants());
+        assertEquals(1, roundDto.getParticipants().size()); // Only LEADER participant
+        
+        var participant = roundDto.getParticipants().get(0);
+        assertEquals(testParticipant.getId(), participant.getId());
+    }
+
+    @Test
+    void testGetByRoundByMilestoneIdForCurrentUser_WithoutPartnerSide() {
+        // Given - Remove partnerSide from user assignment
+        userAssignment.setPartnerSide(null);
+        userActivityAssignmentRepository.save(userAssignment);
+        testActivity.getUserAssignments().add(userAssignment);
+        activityRepository.save(testActivity);
+
+        // Create participants with different partner sides
+        ParticipantEntity followerParticipant = ParticipantEntity.builder()
+                .person(Person.builder()
+                        .name("Jane")
+                        .surname("Doe")
+                        .email("jane.doe@example.com")
+                        .phoneNumber("+1234567891")
+                        .build())
+                .number("002")
+                .partnerSide(PartnerSide.FOLLOWER)
+                .rounds(new HashSet<>(Set.of(testRound)))
+                .build();
+        followerParticipant = participantRepository.save(followerParticipant);
+        
+        // Add participants to rounds
+        testRound.getParticipants().add(testParticipant); // LEADER
+        testRound.getParticipants().add(followerParticipant); // FOLLOWER
+        roundRepository.save(testRound);
+        
+        // Add round to milestone
+        testMilestone.getRounds().add(testRound);
+        milestoneRepository.save(testMilestone);
+
+        // When - user has no partnerSide, so all participants should be returned
+        List<RoundParticipantsDto> result = participantService.getByRoundByMilestoneIdForCurrentUser(testMilestone.getId());
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        
+        var roundDto = result.get(0);
+        assertNotNull(roundDto.getParticipants());
+        assertEquals(2, roundDto.getParticipants().size()); // Both LEADER and FOLLOWER participants
+    }
+
+    @Test
+    void testGetByRoundByMilestoneIdForCurrentUser_MultipleRounds() {
+        // Given - Create additional participants for different rounds
+        testActivity.getUserAssignments().add(userAssignment);
+        activityRepository.save(testActivity);
+        
+        ParticipantEntity participant2 = ParticipantEntity.builder()
+                .person(Person.builder()
+                        .name("Alice")
+                        .surname("Smith")
+                        .email("alice.smith@example.com")
+                        .phoneNumber("+1234567892")
+                        .build())
+                .number("003")
+                .partnerSide(PartnerSide.LEADER)
+                .rounds(new HashSet<>(Set.of(testRound1)))
+                .build();
+        participant2 = participantRepository.save(participant2);
+        
+        // Add participants to different rounds
+        testRound.getParticipants().add(testParticipant);
+        testRound1.getParticipants().add(participant2);
+        roundRepository.save(testRound);
+        roundRepository.save(testRound1);
+        
+        // Add rounds to milestone
+        testMilestone.getRounds().add(testRound);
+        testMilestone.getRounds().add(testRound1);
+        milestoneRepository.save(testMilestone);
+
+        // When
+        List<RoundParticipantsDto> result = participantService.getByRoundByMilestoneIdForCurrentUser(testMilestone.getId());
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size()); // Both rounds
+        
+        // Verify each round has its participants
+        result.forEach(roundDto -> {
+            assertNotNull(roundDto.getRound());
+            assertNotNull(roundDto.getParticipants());
+            assertEquals(1, roundDto.getParticipants().size());
+        });
+    }
+
+    @Test
+    void testGetByRoundByMilestoneIdForCurrentUser_MilestoneNotFound() {
+        // Given - Non-existent milestone ID
+        Long nonExistentMilestoneId = 999L;
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> 
+            participantService.getByRoundByMilestoneIdForCurrentUser(nonExistentMilestoneId));
+    }
+
+    @Test
+    void testGetByRoundByMilestoneIdForCurrentUser_UserNotAssignedToActivity() {
+        // Given - Create another user not assigned to the activity
+        UserEntity unassignedUser = UserEntity.builder()
+                .username("unassigneduser")
+                .password("password")
+                .status(UserStatus.ACTIVE)
+                .person(Person.builder()
+                        .name("Unassigned")
+                        .surname("User")
+                        .email("unassigned@example.com")
+                        .phoneNumber("+1234567893")
+                        .build())
+                .organizations(Set.of(testOrganization))
+                .build();
+        unassignedUser = userRepository.save(unassignedUser);
+
+        // Mock CurrentUser to return unassigned user
+        SecurityUser mockSecurityUser = org.mockito.Mockito.mock(SecurityUser.class);
+        when(mockSecurityUser.getId()).thenReturn(unassignedUser.getId());
+        when(currentUser.getSecurityUser()).thenReturn(mockSecurityUser);
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> 
+            participantService.getByRoundByMilestoneIdForCurrentUser(testMilestone.getId()));
+    }
+
+    @Test
+    void testGetByRoundByMilestoneIdForCurrentUser_NullMilestoneId() {
+        // When & Then
+        assertThrows(IllegalArgumentException.class, () -> 
+            participantService.getByRoundByMilestoneIdForCurrentUser(null));
     }
 }

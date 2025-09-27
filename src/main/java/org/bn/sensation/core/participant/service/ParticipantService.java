@@ -6,6 +6,7 @@ import org.bn.sensation.core.common.service.BaseCrudService;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.service.dto.CreateParticipantRequest;
 import org.bn.sensation.core.participant.service.dto.ParticipantDto;
+import org.bn.sensation.core.participant.service.dto.RoundParticipantsDto;
 import org.bn.sensation.core.participant.service.dto.UpdateParticipantRequest;
 
 public interface ParticipantService extends BaseCrudService<
@@ -17,4 +18,8 @@ public interface ParticipantService extends BaseCrudService<
     ParticipantDto assignParticipantToRound(Long participantId, Long roundId);
 
     List<ParticipantDto> findByRoundId(Long roundId);
+
+    RoundParticipantsDto getByRoundByRoundIdForCurrentUser(Long roundId);
+
+    List<RoundParticipantsDto> getByRoundByMilestoneIdForCurrentUser(Long milestoneId);
 }
