@@ -1,6 +1,6 @@
 package org.bn.sensation.core.participant.service.dto;
 
-import java.util.Set;
+import java.util.List;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
@@ -27,6 +27,6 @@ public class RoundParticipantsDto extends EmptyDto {
     private EntityLinkDto round;
 
     @Schema(description = "Список участников раунда")
-    private Set<EntityLinkDto> participants;
+    private List<EntityLinkDto> participants;
 
 }
