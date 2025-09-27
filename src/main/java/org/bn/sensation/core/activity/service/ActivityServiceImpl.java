@@ -127,7 +127,7 @@ public class ActivityServiceImpl implements ActivityService {
         if (!activityRepository.existsById(id)) {
             throw new IllegalArgumentException("Активность не найдена с id: " + id);
         }
-        
+
         // Сначала удаляем все связанные назначения пользователей
         userActivityAssignmentRepository.deleteByActivityId(id);
         // Затем удаляем саму активность

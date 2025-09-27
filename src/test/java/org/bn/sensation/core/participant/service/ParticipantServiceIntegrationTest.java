@@ -1019,13 +1019,13 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // testMilestone has testRound and testRound1 with participants
         testActivity.getUserAssignments().add(userAssignment);
         activityRepository.save(testActivity);
-        
+
         // Add participants to rounds
         testRound.getParticipants().add(testParticipant);
         testRound1.getParticipants().add(testParticipant);
         roundRepository.save(testRound);
         roundRepository.save(testRound1);
-        
+
         // Add rounds to milestone
         testMilestone.getRounds().add(testRound);
         testMilestone.getRounds().add(testRound1);
@@ -1037,10 +1037,10 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Then
         assertNotNull(result);
         assertEquals(2, result.size()); // testRound and testRound1
-        
+
         // Verify rounds are sorted by ID
         assertTrue(result.get(0).getRound().getId() <= result.get(1).getRound().getId());
-        
+
         // Verify each round has participants
         result.forEach(roundDto -> {
             assertNotNull(roundDto.getRound());
@@ -1055,7 +1055,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Given - Create participants with different partner sides
         testActivity.getUserAssignments().add(userAssignment);
         activityRepository.save(testActivity);
-        
+
         ParticipantEntity followerParticipant = ParticipantEntity.builder()
                 .person(Person.builder()
                         .name("Jane")
@@ -1068,12 +1068,12 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         followerParticipant = participantRepository.save(followerParticipant);
-        
+
         // Add participants to rounds
         testRound.getParticipants().add(testParticipant); // LEADER
         testRound.getParticipants().add(followerParticipant); // FOLLOWER
         roundRepository.save(testRound);
-        
+
         // Add round to milestone
         testMilestone.getRounds().add(testRound);
         milestoneRepository.save(testMilestone);
@@ -1085,11 +1085,11 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Then
         assertNotNull(result);
         assertEquals(1, result.size()); // Only testRound
-        
+
         var roundDto = result.get(0);
         assertNotNull(roundDto.getParticipants());
         assertEquals(1, roundDto.getParticipants().size()); // Only LEADER participant
-        
+
         var participant = roundDto.getParticipants().get(0);
         assertEquals(testParticipant.getId(), participant.getId());
     }
@@ -1115,12 +1115,12 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         followerParticipant = participantRepository.save(followerParticipant);
-        
+
         // Add participants to rounds
         testRound.getParticipants().add(testParticipant); // LEADER
         testRound.getParticipants().add(followerParticipant); // FOLLOWER
         roundRepository.save(testRound);
-        
+
         // Add round to milestone
         testMilestone.getRounds().add(testRound);
         milestoneRepository.save(testMilestone);
@@ -1131,7 +1131,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        
+
         var roundDto = result.get(0);
         assertNotNull(roundDto.getParticipants());
         assertEquals(2, roundDto.getParticipants().size()); // Both LEADER and FOLLOWER participants
@@ -1142,7 +1142,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Given - Create additional participants for different rounds
         testActivity.getUserAssignments().add(userAssignment);
         activityRepository.save(testActivity);
-        
+
         ParticipantEntity participant2 = ParticipantEntity.builder()
                 .person(Person.builder()
                         .name("Alice")
@@ -1155,13 +1155,13 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .rounds(new HashSet<>(Set.of(testRound1)))
                 .build();
         participant2 = participantRepository.save(participant2);
-        
+
         // Add participants to different rounds
         testRound.getParticipants().add(testParticipant);
         testRound1.getParticipants().add(participant2);
         roundRepository.save(testRound);
         roundRepository.save(testRound1);
-        
+
         // Add rounds to milestone
         testMilestone.getRounds().add(testRound);
         testMilestone.getRounds().add(testRound1);
@@ -1173,7 +1173,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Then
         assertNotNull(result);
         assertEquals(2, result.size()); // Both rounds
-        
+
         // Verify each round has its participants
         result.forEach(roundDto -> {
             assertNotNull(roundDto.getRound());
@@ -1188,7 +1188,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         Long nonExistentMilestoneId = 999L;
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> 
+        assertThrows(EntityNotFoundException.class, () ->
             participantService.getByRoundByMilestoneIdForCurrentUser(nonExistentMilestoneId));
     }
 
@@ -1215,14 +1215,14 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         when(currentUser.getSecurityUser()).thenReturn(mockSecurityUser);
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> 
+        assertThrows(EntityNotFoundException.class, () ->
             participantService.getByRoundByMilestoneIdForCurrentUser(testMilestone.getId()));
     }
 
     @Test
     void testGetByRoundByMilestoneIdForCurrentUser_NullMilestoneId() {
         // When & Then
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(IllegalArgumentException.class, () ->
             participantService.getByRoundByMilestoneIdForCurrentUser(null));
     }
 }

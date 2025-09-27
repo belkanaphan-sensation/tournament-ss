@@ -515,7 +515,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                     .occasion(secondOccasion)
                     .build();
             activity = activityRepository.save(activity);
-            
+
             // Создаем назначение пользователя на активность через связь
             UserActivityAssignmentEntity assignment = UserActivityAssignmentEntity.builder()
                     .user(testUser)
@@ -523,7 +523,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                     .position(UserActivityPosition.PARTICIPANT)
                     .build();
             assignment = userActivityAssignmentRepository.save(assignment);
-            
+
             return activity;
         });
 
@@ -657,7 +657,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                     .occasion(testOccasion)
                     .build();
             activity = activityRepository.save(activity);
-            
+
             // Создаем назначение пользователя на активность через связь
             UserActivityAssignmentEntity assignment = UserActivityAssignmentEntity.builder()
                     .user(testUser)
@@ -665,7 +665,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                     .position(UserActivityPosition.PARTICIPANT)
                     .build();
             assignment = userActivityAssignmentRepository.save(assignment);
-            
+
             return activity;
         });
     }
@@ -682,7 +682,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                     .occasion(testOccasion)
                     .build();
             activity = activityRepository.save(activity);
-            
+
             // Создаем назначение пользователя на активность через связь
             UserActivityAssignmentEntity assignment = UserActivityAssignmentEntity.builder()
                     .user(testUser)
@@ -690,7 +690,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                     .position(UserActivityPosition.PARTICIPANT)
                     .build();
             assignment = userActivityAssignmentRepository.save(assignment);
-            
+
             return activity;
         });
     }
