@@ -1,10 +1,15 @@
 package org.bn.sensation.core.milestone.entity;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.bn.sensation.core.common.entity.BaseEntity;
+import org.bn.sensation.core.common.entity.ResultState;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,15 +24,25 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class MilestoneResultEntity extends BaseEntity {
 
-    @Column(name = "score_sum")
-    private Integer scoreSum;
-
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "participant_id")
-    private ParticipantEntity participant;
+    @Column(name = "result_state", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ResultState resultState;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "milestone_id")
     private MilestoneEntity milestone;
 
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "participant_id")
+    private ParticipantEntity participant;
+
+    @Column(name = "passed")
+    private Boolean passed;
+
+    @Column(name = "total_score")
+    private Integer totalScore;
+
+    @OneToMany(mappedBy = "milestoneResult", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
+    @Builder.Default
+    private Set<MilestoneCriteriaScoreEntity> criteriaScores = new HashSet<>();
 }

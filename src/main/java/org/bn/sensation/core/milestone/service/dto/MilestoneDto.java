@@ -19,7 +19,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Веха (логический этап в рамках активности)")
+@Schema(description = "Этап в рамках активности")
 public class MilestoneDto extends BaseDto {
 
     @Schema(description = "Название этапа'", example = "Квалификация")
