@@ -37,4 +37,8 @@ public class MilestoneCriteriaAssignmentEntity extends BaseEntity {
 
     @Column(name = "scale", nullable = false)
     private Integer scale;
+
+    @Column(name = "priority", nullable = false)
+    @Builder.Default
+    private Integer priority = 0;
 }

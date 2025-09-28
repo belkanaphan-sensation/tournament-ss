@@ -33,4 +33,7 @@ public class UpdateMilestoneCriteriaAssignmentRequest extends EmptyDto {
     @Positive
     @Schema(description = "Максимальный балл шкалы для критерия в рамках этапа", example = "10")
     private Integer scale;
+
+    @Schema(description = "Приоритет критерия перед другими", example = "10")
+    private Integer priority;
 }
