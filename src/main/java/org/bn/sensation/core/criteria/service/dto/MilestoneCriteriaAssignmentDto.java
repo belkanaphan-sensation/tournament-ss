@@ -1,10 +1,10 @@
 package org.bn.sensation.core.criteria.service.dto;
 
+import java.math.BigDecimal;
+
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.entity.PartnerSide;
-
-import java.math.BigDecimal;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -38,4 +38,7 @@ public class MilestoneCriteriaAssignmentDto extends BaseDto {
 
     @Schema(description = "Максимальный балл шкалы для критерия в рамках этапа", example = "10")
     private Integer scale;
+
+    @Schema(description = "Приоритет критерия перед другими", example = "10")
+    private Integer priority;
 }

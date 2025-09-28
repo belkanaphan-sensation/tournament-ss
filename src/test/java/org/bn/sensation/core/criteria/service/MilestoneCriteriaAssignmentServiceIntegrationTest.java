@@ -188,6 +188,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                 .criteriaId(testCriteria.getId())
                 .partnerSide(PartnerSide.LEADER)
                 .scale(10)
+                .priority(0)
                 .build();
 
         // When
@@ -216,6 +217,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                 .criteriaId(testCriteria.getId())
                 .partnerSide(null)
                 .scale(10)
+                .priority(0)
                 .build();
 
         // When
@@ -242,6 +244,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                 .criteriaId(testCriteria.getId())
                 .partnerSide(PartnerSide.LEADER)
                 .scale(10)
+                .priority(0)
                 .build();
 
         // When & Then
@@ -258,6 +261,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                 .criteriaId(999L) // Несуществующий критерий
                 .partnerSide(PartnerSide.LEADER)
                 .scale(10)
+                .priority(0)
                 .build();
 
         // When & Then
@@ -275,6 +279,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                 .criteriaId(testCriteria.getId())
                 .partnerSide(PartnerSide.LEADER)
                 .scale(10)
+                .priority(0)
                 .build();
         milestoneCriteriaAssignmentService.create(request1);
 
@@ -284,6 +289,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                 .criteriaId(testCriteria.getId())
                 .partnerSide(PartnerSide.FOLLOWER)
                 .scale(10)
+                .priority(0)
                 .build();
 
         // When & Then
@@ -507,6 +513,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                 .criteriaId(testCriteria.getId())
                 .partnerSide(PartnerSide.FOLLOWER)
                 .scale(10)
+                .priority(0)
                 .build();
 
         // When
@@ -530,6 +537,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                 .criteriaId(testCriteria.getId())
                 .partnerSide(null)
                 .scale(10)
+                .priority(0)
                 .build();
 
         // When
@@ -842,6 +850,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                     .criteria(criteria)
                     .partnerSide(partnerSide)
                     .scale(10)
+                    .priority(0)
                     .build();
             return milestoneCriteriaAssignmentRepository.save(assignment);
         });
