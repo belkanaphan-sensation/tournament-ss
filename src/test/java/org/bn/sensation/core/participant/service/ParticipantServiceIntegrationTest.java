@@ -16,7 +16,10 @@ import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.Person;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.state.ActivityState;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
+import org.bn.sensation.core.common.statemachine.state.OccasionState;
+import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
@@ -120,7 +123,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         testOccasion = OccasionEntity.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .state(State.DRAFT)
+                .state(OccasionState.DRAFT)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
                 .organization(testOrganization)
@@ -131,7 +134,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         testActivity = ActivityEntity.builder()
                 .name("Test Activity")
                 .description("Test Activity Description")
-                .state(State.DRAFT)
+                .state(ActivityState.DRAFT)
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusDays(1))
                 .address(Address.builder()
@@ -146,7 +149,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Create test milestone
         testMilestone = MilestoneEntity.builder()
                 .name("Test Milestone")
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .activity(testActivity)
                 .milestoneOrder(1)
                 .build();
@@ -155,7 +158,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Create test rounds
         testRound = RoundEntity.builder()
                 .name("Test Round")
-                .state(State.DRAFT)
+                .state(RoundState.DRAFT)
                 .description("Test Round Description")
                 .milestone(testMilestone)
                 .build();
@@ -163,7 +166,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
 
         testRound1 = RoundEntity.builder()
                 .name("Test Round 1")
-                .state(State.DRAFT)
+                .state(RoundState.DRAFT)
                 .description("Test Round 1 Description")
                 .milestone(testMilestone)
                 .build();

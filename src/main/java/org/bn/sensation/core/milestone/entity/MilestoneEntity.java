@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.entity.BaseEntity;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.round.entity.ExtraRoundEntity;
 import org.bn.sensation.core.round.entity.RoundEntity;
@@ -31,7 +31,7 @@ public class MilestoneEntity extends BaseEntity {
 
     @Column(name = "state", nullable = false)
     @Enumerated(EnumType.STRING)
-    private State state;
+    private MilestoneState state;
 
     @Column(name = "milestone_order")
     private Integer milestoneOrder;

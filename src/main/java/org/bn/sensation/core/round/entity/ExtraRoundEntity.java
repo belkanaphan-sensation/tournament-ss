@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 
@@ -30,7 +30,7 @@ public class ExtraRoundEntity extends BaseEntity {
 
     @Column(name = "state", nullable = false)
     @Enumerated(EnumType.STRING)
-    private State state;
+    private RoundState state;
 
     @ManyToMany(mappedBy = "extraRounds")
     @Builder.Default

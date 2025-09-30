@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
-import org.bn.sensation.core.common.entity.ResultState;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 
 import jakarta.persistence.*;
@@ -23,10 +22,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MilestoneResultEntity extends BaseEntity {
-
-    @Column(name = "result_state", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private ResultState resultState;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "milestone_id")

@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.state.ActivityState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -51,7 +51,7 @@ public class ActivityDto extends BaseDto {
     private EntityLinkDto occasion;
 
     @Schema(description = "Статус активности", example = "DRAFT")
-    private State state;
+    private ActivityState state;
 
     @Schema(description = "Количество завершенных этапов", example = "3")
     private Integer completedMilestonesCount;

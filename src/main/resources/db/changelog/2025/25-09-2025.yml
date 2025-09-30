@@ -1,28 +1,28 @@
 databaseChangeLog:
-#  # Create activity_result table
-#  - changeSet:
-#      id: 2025-09-25-1
-#      author: belkanaphan
-#      onFail: MARK_RAN
-#      changes:
-#        - sql:
-#            sql: |
-#              CREATE TABLE IF NOT EXISTS activity_result (
-#                id BIGSERIAL PRIMARY KEY,
-#                total_score INTEGER NOT NULL,
-#                place INTEGER,
-#                participant_id BIGINT NOT NULL,
-#                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-#                created_by VARCHAR(255),
-#                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-#                modified_by VARCHAR(255),
-#                version BIGINT NOT NULL DEFAULT 0,
-#                FOREIGN KEY (participant_id) REFERENCES participant(id) ON DELETE CASCADE
-#              );
-#      rollback:
-#        - sql:
-#            sql: |
-#              DROP TABLE IF EXISTS activity_result;
+  # Create activity_result table
+  - changeSet:
+      id: 2025-09-25-1
+      author: belkanaphan
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS activity_result (
+                id BIGSERIAL PRIMARY KEY,
+                total_score INTEGER NOT NULL,
+                place INTEGER,
+                participant_id BIGINT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                modified_by VARCHAR(255),
+                version BIGINT NOT NULL DEFAULT 0,
+                FOREIGN KEY (participant_id) REFERENCES participant(id) ON DELETE CASCADE
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS activity_result;
 
   # Create milestone_result table
   - changeSet:

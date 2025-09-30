@@ -10,27 +10,29 @@ import java.util.UUID;
 import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.entity.Address;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.entity.Person;
+import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.organization.repository.OrganizationRepository;
-import org.bn.sensation.core.organization.service.dto.*;
+import org.bn.sensation.core.organization.service.dto.CreateOrganizationRequest;
+import org.bn.sensation.core.organization.service.dto.OrganizationDto;
+import org.bn.sensation.core.organization.service.dto.UpdateOrganizationRequest;
+import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.core.user.entity.UserEntity;
 import org.bn.sensation.core.user.entity.UserStatus;
 import org.bn.sensation.core.user.repository.UserRepository;
-import org.bn.sensation.core.user.entity.Role;
-import org.bn.sensation.core.common.entity.Person;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -424,7 +426,7 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Active Description")
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .state(State.IN_PROGRESS)
+                    .state(OccasionState.IN_PROGRESS)
                     .organization(orgRef)
                     .build();
             occasionRepository.save(activeOccasion);
@@ -455,7 +457,7 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Ready Description")
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .state(State.PLANNED)
+                    .state(OccasionState.PLANNED)
                     .organization(orgRef)
                     .build();
             occasionRepository.save(readyOccasion);
@@ -486,7 +488,7 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Draft Description")
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .state(State.DRAFT)
+                    .state(OccasionState.DRAFT)
                     .organization(orgRef)
                     .build();
             occasionRepository.save(draftOccasion);
@@ -513,7 +515,7 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Completed Description")
                     .startDate(LocalDate.now().minusDays(10))
                     .endDate(LocalDate.now().minusDays(7))
-                    .state(State.COMPLETED)
+                    .state(OccasionState.COMPLETED)
                     .organization(orgRef)
                     .build();
             occasionRepository.save(completedOccasion);

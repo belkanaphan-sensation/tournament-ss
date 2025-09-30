@@ -4,7 +4,7 @@ import java.util.Set;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.state.RoundState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -40,5 +40,5 @@ public class RoundDto extends BaseDto {
     private Set<EntityLinkDto> participants;
 
     @Schema(description = "Статус раунда", example = "DRAFT")
-    private State state;
+    private RoundState state;
 }

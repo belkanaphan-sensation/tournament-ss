@@ -15,7 +15,7 @@ public interface CreateExtraRoundRequestMapper extends BaseDtoMapper<ExtraRoundE
 
     @Override
     @Mapping(target = "milestoneId", source = "milestone.id")
-    @Mapping(target = "participantId", source = "participant.id")
+//    @Mapping(target = "participantId", source = "participants.id")
     CreateExtraRoundRequest toDto(ExtraRoundEntity entity);
 
 }

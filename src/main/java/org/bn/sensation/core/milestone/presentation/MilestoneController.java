@@ -88,12 +88,12 @@ public class MilestoneController {
                 MilestoneResultDto.builder()
                         .participant(new EntityLinkDto(1L, "25"))
                         .milestone(new EntityLinkDto(1L, "milestone 1"))
-                        .scoreSum(71)
+                        .totalScore(71)
                         .build(),
                 MilestoneResultDto.builder()
                         .participant(new EntityLinkDto(2L, "35"))
                         .milestone(new EntityLinkDto(1L, "milestone 1"))
-                        .scoreSum(22)
+                        .totalScore(22)
                         .build()
         );
         return ResponseEntity.ok(result);

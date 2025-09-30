@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.state.OccasionState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -40,7 +40,7 @@ public class OccasionDto extends BaseDto {
     private EntityLinkDto organization;
 
     @Schema(description = "Статус мероприятия", example = "DRAFT")
-    private State state;
+    private OccasionState state;
 
     @Schema(description = "Количество активностей в состоянии 'Completed'", example = "5")
     private Integer completedActivitiesCount;

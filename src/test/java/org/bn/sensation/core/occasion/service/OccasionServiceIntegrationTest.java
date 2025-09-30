@@ -11,7 +11,8 @@ import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Person;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.state.ActivityState;
+import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.occasion.service.dto.CreateOccasionRequest;
@@ -114,7 +115,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         CreateOccasionRequest request = CreateOccasionRequest.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .state(State.DRAFT)
+                .state(OccasionState.DRAFT)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
                 .organizationId(testOrganization.getId())
@@ -287,7 +288,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         CreateOccasionRequest request = CreateOccasionRequest.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .state(State.DRAFT)
+                .state(OccasionState.DRAFT)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
                 .organizationId(testOrganization.getId())
@@ -301,7 +302,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         // Проверяем, что статус установлен по умолчанию (DRAFT)
         Optional<OccasionEntity> savedOccasion = occasionRepository.findById(result.getId());
         assertTrue(savedOccasion.isPresent());
-        assertEquals(State.DRAFT, savedOccasion.get().getState());
+        assertEquals(OccasionState.DRAFT, savedOccasion.get().getState());
     }
 
     @Test
@@ -310,7 +311,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         CreateOccasionRequest request = CreateOccasionRequest.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .state(State.DRAFT)
+                .state(OccasionState.DRAFT)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
                 .organizationId(testOrganization.getId())
@@ -332,7 +333,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         CreateOccasionRequest request = CreateOccasionRequest.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .state(State.DRAFT)
+                .state(OccasionState.DRAFT)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
                 .organizationId(null) // Без организации
@@ -359,7 +360,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
                     .description(description)
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .state(State.DRAFT)
+                    .state(OccasionState.DRAFT)
                     .organization(testOrganization)
                     .build();
             return occasionRepository.save(occasion);
@@ -372,10 +373,10 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         OccasionEntity occasion = createTestOccasion("Test Occasion", "Test Description");
 
         // Создаем активности с разными статусами
-        ActivityEntity completedActivity = createTestActivity(occasion, "Completed Activity", State.COMPLETED);
-        ActivityEntity activeActivity = createTestActivity(occasion, "Active Activity", State.IN_PROGRESS);
-        ActivityEntity readyActivity = createTestActivity(occasion, "Ready Activity", State.PLANNED);
-        ActivityEntity draftActivity = createTestActivity(occasion, "Draft Activity", State.DRAFT);
+        ActivityEntity completedActivity = createTestActivity(occasion, "Completed Activity", ActivityState.COMPLETED);
+        ActivityEntity activeActivity = createTestActivity(occasion, "Active Activity", ActivityState.IN_PROGRESS);
+        ActivityEntity readyActivity = createTestActivity(occasion, "Ready Activity", ActivityState.PLANNED);
+        ActivityEntity draftActivity = createTestActivity(occasion, "Draft Activity", ActivityState.DRAFT);
 
         occasion.getActivities().addAll(Set.of(completedActivity, activeActivity, readyActivity, draftActivity));
         occasionRepository.save(occasion);
@@ -420,8 +421,8 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         createTestOccasion("Occasion 2", "Description 2");
 
         // Добавляем активности к первому мероприятию
-        ActivityEntity testActivity = createTestActivity(occasion1, "Activity 1", State.COMPLETED);
-        ActivityEntity testActivity1 = createTestActivity(occasion1, "Activity 2", State.IN_PROGRESS);
+        ActivityEntity testActivity = createTestActivity(occasion1, "Activity 1", ActivityState.COMPLETED);
+        ActivityEntity testActivity1 = createTestActivity(occasion1, "Activity 2", ActivityState.IN_PROGRESS);
 
         occasion1.getActivities().addAll(Set.of(testActivity, testActivity1));
         occasionRepository.save(occasion1);
@@ -452,7 +453,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(2, occasionWithActivities.getTotalActivitiesCount());
     }
 
-    private ActivityEntity createTestActivity(OccasionEntity occasion, String name, State state) {
+    private ActivityEntity createTestActivity(OccasionEntity occasion, String name, ActivityState state) {
         return transactionTemplate.execute(status1 -> {
             ActivityEntity activity = ActivityEntity.builder()
                     .name(name)

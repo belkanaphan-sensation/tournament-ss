@@ -2,9 +2,11 @@ package org.bn.sensation.core.occasion.service;
 
 import java.util.Optional;
 
-import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.common.statemachine.event.OccasionEvent;
+import org.bn.sensation.core.common.statemachine.state.ActivityState;
+import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.occasion.service.dto.CreateOccasionRequest;
@@ -98,10 +100,10 @@ public class OccasionServiceImpl implements OccasionService {
     private OccasionDto enrichOccasionDtoWithStatistics(OccasionEntity occasion) {
         OccasionDto dto = occasionDtoMapper.toDto(occasion);
         dto.setCompletedActivitiesCount((int) occasion.getActivities().stream()
-                .filter(activity -> activity.getState() == State.COMPLETED)
+                .filter(activity -> activity.getState() == ActivityState.COMPLETED)
                 .count());
         dto.setActiveActivitiesCount((int) occasion.getActivities().stream()
-                .filter(activity -> activity.getState() == State.PLANNED || activity.getState() == State.IN_PROGRESS)
+                .filter(activity -> activity.getState() == ActivityState.PLANNED || activity.getState() == ActivityState.IN_PROGRESS)
                 .count());
         dto.setTotalActivitiesCount(occasion.getActivities().size());
 
@@ -114,5 +116,32 @@ public class OccasionServiceImpl implements OccasionService {
         }
         return organizationRepository.findById(organizationId)
                 .orElseThrow(() -> new EntityNotFoundException("Организация не найдена с id: " + organizationId));
+    }
+
+    @Override
+    public void saveTransition(OccasionEntity occasion, OccasionState state) {
+        occasion.setState(state);
+        occasionRepository.save(occasion);
+    }
+
+    @Override
+    public boolean canTransition(OccasionEntity occasion, OccasionEvent event) {
+        // TODO: Implement business logic for occasion transitions
+        return true;
+    }
+
+    @Override
+    public OccasionState getNextState(OccasionState currentState, OccasionEvent event) {
+        return switch (currentState) {
+            case DRAFT -> event == OccasionEvent.PLAN ? OccasionState.PLANNED : currentState;
+            case PLANNED -> event == OccasionEvent.START ? OccasionState.IN_PROGRESS : currentState;
+            case IN_PROGRESS -> event == OccasionEvent.COMPLETE ? OccasionState.COMPLETED : currentState;
+            case COMPLETED -> currentState;
+        };
+    }
+
+    @Override
+    public boolean isValidTransition(OccasionState currentState, OccasionEvent event) {
+        return getNextState(currentState, event) != currentState;
     }
 }

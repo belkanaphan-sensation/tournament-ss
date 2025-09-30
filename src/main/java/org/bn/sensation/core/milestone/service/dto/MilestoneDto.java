@@ -2,7 +2,7 @@ package org.bn.sensation.core.milestone.service.dto;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -32,7 +32,7 @@ public class MilestoneDto extends BaseDto {
     private EntityLinkDto activity;
 
     @Schema(description = "Статус этапа", example = "DRAFT")
-    private State state;
+    private MilestoneState state;
 
     @Schema(description = "Количество завершенных раундов", example = "3")
     private Integer completedRoundsCount;

@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.state.RoundState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -31,7 +31,7 @@ public class ExtraRoundDto extends BaseDto {
     private EntityLinkDto milestone;
 
     @Schema(description = "Состояние раунда", example = "DRAFT")
-    private State state;
+    private RoundState state;
 
     @Schema(description = "Участники дополнительного раунда")
     private List<EntityLinkDto> participants;

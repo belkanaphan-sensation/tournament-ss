@@ -6,7 +6,9 @@ import java.util.stream.Collectors;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
+import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
@@ -151,7 +153,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                     .build();
 
             milestoneCriteriaAssignmentRepository.save(assignment);
-            
+
             milestone.getCriteriaAssignments().add(assignment);
         }
     }
@@ -169,7 +171,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Transactional(readOnly = true)
     public List<MilestoneDto> findByActivityIdInLifeStates(Long id) {
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
-        return milestoneRepository.findByActivityIdAndStateInWithCriteriaAssignments(id, State.LIFE_STATES).stream()
+        return milestoneRepository.findByActivityIdAndStateInWithCriteriaAssignments(id, MilestoneState.LIFE_MILESTONE_STATES).stream()
                 .map(this::enrichMilestoneDtoWithStatistics)
                 .toList();
     }
@@ -181,7 +183,7 @@ public class MilestoneServiceImpl implements MilestoneService {
         MilestoneDto dto = milestoneDtoMapper.toDto(milestone);
         dto.setAssessmentMode(calculateAssessmentMode(milestone));
         dto.setCompletedRoundsCount((int) milestone.getRounds().stream()
-                .filter(round -> round.getState() == State.COMPLETED)
+                .filter(round -> round.getState() == RoundState.COMPLETED)
                 .count());
         dto.setTotalRoundsCount(milestone.getRounds().size());
 
@@ -251,5 +253,32 @@ public class MilestoneServiceImpl implements MilestoneService {
                 .max(Integer::compareTo)
                 .map(max -> max + 1)
                 .orElse(0);
+    }
+
+    @Override
+    public void saveTransition(MilestoneEntity milestone, MilestoneState state) {
+        milestone.setState(state);
+        milestoneRepository.save(milestone);
+    }
+
+    @Override
+    public boolean canTransition(MilestoneEntity milestone, MilestoneEvent event) {
+        // TODO: Implement business logic for milestone transitions
+        return true;
+    }
+
+    @Override
+    public MilestoneState getNextState(MilestoneState currentState, MilestoneEvent event) {
+        return switch (currentState) {
+            case DRAFT -> event == MilestoneEvent.PLAN ? MilestoneState.PLANNED : currentState;
+            case PLANNED -> event == MilestoneEvent.START ? MilestoneState.IN_PROGRESS : currentState;
+            case IN_PROGRESS -> event == MilestoneEvent.COMPLETE ? MilestoneState.COMPLETED : currentState;
+            case COMPLETED -> currentState;
+        };
+    }
+
+    @Override
+    public boolean isValidTransition(MilestoneState currentState, MilestoneEvent event) {
+        return getNextState(currentState, event) != currentState;
     }
 }

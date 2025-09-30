@@ -12,7 +12,10 @@ import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.state.ActivityState;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
+import org.bn.sensation.core.common.statemachine.state.OccasionState;
+import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 import org.bn.sensation.core.criteria.repository.CriteriaRepository;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
@@ -138,7 +141,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Test Description")
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .state(State.DRAFT)
+                    .state(OccasionState.DRAFT)
                     .organization(testOrganization)
                     .build();
             testOccasion = occasionRepository.save(testOccasion);
@@ -156,7 +159,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                             .streetNumber("2")
                             .comment("Activity Address")
                             .build())
-                    .state(State.DRAFT)
+                    .state(ActivityState.DRAFT)
                     .occasion(testOccasion)
                     .build();
             testActivity = activityRepository.save(testActivity);
@@ -178,7 +181,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .activityId(testActivity.getId())
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .build();
 
         // When
@@ -191,7 +194,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals("Test Milestone Description", result.getDescription());
         assertNotNull(result.getActivity());
         assertEquals(testActivity.getId(), result.getActivity().getId());
-        assertEquals(State.DRAFT, result.getState());
+        assertEquals(MilestoneState.DRAFT, result.getState());
 
         // Проверяем, что веха сохранена в БД
         Optional<MilestoneEntity> savedMilestone = milestoneRepository.findById(result.getId());
@@ -208,7 +211,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .activityId(999L) // Несуществующая активность
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .build();
 
         // When & Then
@@ -246,7 +249,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         assertTrue(result.isPresent());
         assertEquals("Test Milestone", result.get().getName());
         assertEquals(testActivity.getId(), result.get().getActivity().getId());
-        assertEquals(State.DRAFT, result.get().getState());
+        assertEquals(MilestoneState.DRAFT, result.get().getState());
     }
 
     @Test
@@ -266,7 +269,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         UpdateMilestoneRequest request = UpdateMilestoneRequest.builder()
                 .name("Updated Name")
                 .description("Updated Description")
-                .state(State.PLANNED)
+                .state(MilestoneState.PLANNED)
                 .build();
 
         // When
@@ -276,14 +279,14 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result);
         assertEquals("Updated Name", result.getName());
         assertEquals("Updated Description", result.getDescription());
-        assertEquals(State.PLANNED, result.getState());
+        assertEquals(MilestoneState.PLANNED, result.getState());
 
         // Проверяем, что изменения сохранены в БД
         Optional<MilestoneEntity> savedMilestone = milestoneRepository.findById(milestone.getId());
         assertTrue(savedMilestone.isPresent());
         assertEquals("Updated Name", savedMilestone.get().getName());
         assertEquals("Updated Description", savedMilestone.get().getDescription());
-        assertEquals(State.PLANNED, savedMilestone.get().getState());
+        assertEquals(MilestoneState.PLANNED, savedMilestone.get().getState());
     }
 
     @Test
@@ -303,14 +306,14 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result);
         assertEquals("Updated Name", result.getName());
         assertEquals("Updated Description", result.getDescription());
-        assertEquals(State.DRAFT, result.getState()); // Не изменилось
+        assertEquals(MilestoneState.DRAFT, result.getState()); // Не изменилось
 
         // Проверяем, что изменения сохранены в БД
         Optional<MilestoneEntity> savedMilestone = milestoneRepository.findById(milestone.getId());
         assertTrue(savedMilestone.isPresent());
         assertEquals("Updated Name", savedMilestone.get().getName());
         assertEquals("Updated Description", savedMilestone.get().getDescription());
-        assertEquals(State.DRAFT, savedMilestone.get().getState());
+        assertEquals(MilestoneState.DRAFT, savedMilestone.get().getState());
     }
 
     @Test
@@ -354,7 +357,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .activityId(testActivity.getId())
-                .state(State.IN_PROGRESS)
+                .state(MilestoneState.IN_PROGRESS)
                 .build();
 
         // When
@@ -362,12 +365,12 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Then
         assertNotNull(result);
-        assertEquals(State.IN_PROGRESS, result.getState());
+        assertEquals(MilestoneState.IN_PROGRESS, result.getState());
 
         // Проверяем, что статус сохранен в БД
         Optional<MilestoneEntity> savedMilestone = milestoneRepository.findById(result.getId());
         assertTrue(savedMilestone.isPresent());
-        assertEquals(State.IN_PROGRESS, savedMilestone.get().getState());
+        assertEquals(MilestoneState.IN_PROGRESS, savedMilestone.get().getState());
     }
 
     @Test
@@ -376,9 +379,9 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         MilestoneEntity milestone = createTestMilestone("Test Milestone");
 
         // Создаем раунды с разными статусами
-        RoundEntity completedRound = createTestRound(milestone, "Completed Round", State.COMPLETED);
-        RoundEntity activeRound = createTestRound(milestone, "Active Round", State.IN_PROGRESS);
-        RoundEntity draftRound = createTestRound(milestone, "Draft Round", State.DRAFT);
+        RoundEntity completedRound = createTestRound(milestone, "Completed Round", RoundState.COMPLETED);
+        RoundEntity activeRound = createTestRound(milestone, "Active Round", RoundState.IN_PROGRESS);
+        RoundEntity draftRound = createTestRound(milestone, "Draft Round", RoundState.DRAFT);
 
         milestone.getRounds().addAll(Set.of(completedRound, activeRound, draftRound));
         milestoneRepository.save(milestone);
@@ -416,8 +419,8 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         createTestMilestone("Milestone 2"); // This milestone is intentionally left without rounds for testing
 
         // Добавляем раунды к первому этапу
-        RoundEntity testRound = createTestRound(milestone1, "Round 1", State.COMPLETED);
-        RoundEntity testRound1 = createTestRound(milestone1, "Round 2", State.IN_PROGRESS);
+        RoundEntity testRound = createTestRound(milestone1, "Round 1", RoundState.COMPLETED);
+        RoundEntity testRound1 = createTestRound(milestone1, "Round 2", RoundState.IN_PROGRESS);
 
         milestone1.getRounds().addAll(Set.of(testRound, testRound1));
         milestoneRepository.save(milestone1);
@@ -455,7 +458,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(0, milestoneWithoutRounds.getTotalRoundsCount());
     }
 
-    private RoundEntity createTestRound(MilestoneEntity milestone, String name, State state) {
+    private RoundEntity createTestRound(MilestoneEntity milestone, String name, RoundState state) {
         return transactionTemplate.execute(status1 -> {
             RoundEntity round = RoundEntity.builder()
                     .name(name)
@@ -474,7 +477,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .activityId(testActivity.getId())
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .build();
 
         // When
@@ -494,7 +497,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .activityId(null) // Без активности
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .build();
 
         // When and then
@@ -510,7 +513,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()
                 .name("Test Milestone")
                 .activityId(testActivity.getId())
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .build();
 
         // When
@@ -550,7 +553,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()
                 .name("Another Milestone")
                 .activityId(testActivity.getId())
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .build();
 
         MilestoneDto result = milestoneService.create(request);
@@ -572,7 +575,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()
                 .name("Test Milestone")
                 .activityId(testActivity.getId())
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .build();
 
         // When & Then
@@ -668,7 +671,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .activityId(testActivity.getId())
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .milestoneOrder(0)
                 .build();
 
@@ -692,7 +695,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .activityId(testActivity.getId())
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .milestoneOrder(null) // Не указываем порядок
                 .build();
 
@@ -715,19 +718,19 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         CreateMilestoneRequest request1 = CreateMilestoneRequest.builder()
                 .name("First Milestone")
                 .activityId(testActivity.getId())
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .build();
 
         CreateMilestoneRequest request2 = CreateMilestoneRequest.builder()
                 .name("Second Milestone")
                 .activityId(testActivity.getId())
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .build();
 
         CreateMilestoneRequest request3 = CreateMilestoneRequest.builder()
                 .name("Third Milestone")
                 .activityId(testActivity.getId())
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .build();
 
         // When
@@ -747,21 +750,21 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         CreateMilestoneRequest request1 = CreateMilestoneRequest.builder()
                 .name("First Milestone")
                 .activityId(testActivity.getId())
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .milestoneOrder(0)
                 .build();
 
         CreateMilestoneRequest request2 = CreateMilestoneRequest.builder()
                 .name("Second Milestone")
                 .activityId(testActivity.getId())
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .milestoneOrder(1)
                 .build();
 
         CreateMilestoneRequest request3 = CreateMilestoneRequest.builder()
                 .name("Third Milestone")
                 .activityId(testActivity.getId())
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .milestoneOrder(1)
                 .build();
 
@@ -808,10 +811,10 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testFindByActivityIdInLifeStates() {
         // Given - создаем этапы с разными состояниями
-        createTestMilestoneWithState("Milestone DRAFT", State.DRAFT);
-        createTestMilestoneWithState("Milestone PLANNED", State.PLANNED);
-        createTestMilestoneWithState("Milestone IN_PROGRESS", State.IN_PROGRESS);
-        createTestMilestoneWithState("Milestone COMPLETED", State.COMPLETED);
+        createTestMilestoneWithState("Milestone DRAFT", MilestoneState.DRAFT);
+        createTestMilestoneWithState("Milestone PLANNED", MilestoneState.PLANNED);
+        createTestMilestoneWithState("Milestone IN_PROGRESS", MilestoneState.IN_PROGRESS);
+        createTestMilestoneWithState("Milestone COMPLETED", MilestoneState.COMPLETED);
 
         // When
         List<MilestoneDto> result = milestoneService.findByActivityIdInLifeStates(testActivity.getId());
@@ -824,12 +827,12 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         result.forEach(milestone -> {
             assertNotNull(milestone.getActivity());
             assertEquals(testActivity.getId(), milestone.getActivity().getId());
-            assertTrue(State.LIFE_STATES.contains(milestone.getState()));
+            assertTrue(MilestoneState.LIFE_MILESTONE_STATES.contains(milestone.getState()));
         });
 
         // Проверяем, что DRAFT этапа нет в результате
         boolean hasDraftMilestone = result.stream()
-                .anyMatch(milestone -> milestone.getState() == State.DRAFT);
+                .anyMatch(milestone -> milestone.getState() == MilestoneState.DRAFT);
         assertFalse(hasDraftMilestone);
     }
 
@@ -837,7 +840,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     void testFindByActivityIdInLifeStatesWithManyMilestones() {
         // Given - создаем 5 этапов с life states
         for (int i = 1; i <= 5; i++) {
-            createTestMilestoneWithState("Milestone " + i, State.PLANNED);
+            createTestMilestoneWithState("Milestone " + i, MilestoneState.PLANNED);
         }
 
         // When
@@ -851,7 +854,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         result.forEach(milestone -> {
             assertNotNull(milestone.getActivity());
             assertEquals(testActivity.getId(), milestone.getActivity().getId());
-            assertTrue(State.LIFE_STATES.contains(milestone.getState()));
+            assertTrue(MilestoneState.LIFE_MILESTONE_STATES.contains(milestone.getState()));
         });
 
         // Проверяем, что все этапы присутствуют в результате
@@ -915,7 +918,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()
                 .name("New Milestone")
                 .activityId(testActivity.getId())
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .milestoneOrder(1) // Вставляем в позицию 1
                 .build();
 
@@ -1029,7 +1032,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
             MilestoneEntity milestone = MilestoneEntity.builder()
                     .name(name)
                     .description("Test Milestone Description for " + name)
-                    .state(State.DRAFT)
+                    .state(MilestoneState.DRAFT)
                     .activity(testActivity)
                     .milestoneOrder(nextOrder)
                     .build();
@@ -1043,7 +1046,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
             MilestoneEntity milestone = MilestoneEntity.builder()
                     .name(name)
                     .description("Test Milestone Description for " + name)
-                    .state(State.DRAFT)
+                    .state(MilestoneState.DRAFT)
                     .activity(testActivity)
                     .milestoneOrder(order)
                     .build();
@@ -1052,7 +1055,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     // Вспомогательный метод для создания тестовой вехи с определенным состоянием
-    private MilestoneEntity createTestMilestoneWithState(String name, State state) {
+    private MilestoneEntity createTestMilestoneWithState(String name, MilestoneState state) {
         return transactionTemplate.execute(status -> {
             // Получаем максимальный порядок для данной активности
             List<MilestoneEntity> mstns = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(testActivity.getId());
@@ -1194,7 +1197,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()
                 .name("Test Milestone")
                 .activityId(testActivity.getId())
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .build();
 
         // When
@@ -1203,7 +1206,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // Then
         assertNotNull(result);
         assertEquals(AssessmentMode.PASS, result.getAssessmentMode()); // Критерий "Прохождение" имеет scale = 1
-        
+
         // Проверяем, что назначение критерия создано
         long assignmentCount = milestoneCriteriaAssignmentRepository.countByMilestoneId(result.getId());
         assertEquals(1, assignmentCount);
@@ -1320,8 +1323,8 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     @Transactional
     void testAssessmentModeInFindByActivityIdInLifeStates() {
         // Given
-        MilestoneEntity milestone1 = createTestMilestoneWithState("Milestone 1", State.PLANNED);
-        MilestoneEntity milestone2 = createTestMilestoneWithState("Milestone 2", State.IN_PROGRESS);
+        MilestoneEntity milestone1 = createTestMilestoneWithState("Milestone 1", MilestoneState.PLANNED);
+        MilestoneEntity milestone2 = createTestMilestoneWithState("Milestone 2", MilestoneState.IN_PROGRESS);
 
         // Создаем назначения критериев
         MilestoneCriteriaAssignmentEntity assignment1 = MilestoneCriteriaAssignmentEntity.builder()
