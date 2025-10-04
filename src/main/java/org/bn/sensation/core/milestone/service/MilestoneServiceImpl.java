@@ -6,16 +6,16 @@ import java.util.stream.Collectors;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
+import org.bn.sensation.core.common.mapper.BaseDtoMapper;
+import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
-import org.bn.sensation.core.common.mapper.BaseDtoMapper;
-import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
-import org.bn.sensation.core.criteria.repository.CriteriaRepository;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
-import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.criteria.repository.CriteriaRepository;
 import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
+import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.service.dto.AssessmentMode;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
@@ -24,6 +24,8 @@ import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.mapper.CreateMilestoneRequestMapper;
 import org.bn.sensation.core.milestone.service.mapper.MilestoneDtoMapper;
 import org.bn.sensation.core.milestone.service.mapper.UpdateMilestoneRequestMapper;
+import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
+import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -49,6 +51,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     private final ActivityRepository activityRepository;
     private final CriteriaRepository criteriaRepository;
     private final MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
+    private final CurrentUser currentUser;
 
     @Override
     public BaseRepository<MilestoneEntity> getRepository() {
@@ -263,8 +266,33 @@ public class MilestoneServiceImpl implements MilestoneService {
 
     @Override
     public boolean canTransition(MilestoneEntity milestone, MilestoneEvent event) {
-        // TODO: Implement business logic for milestone transitions
-        return true;
+        Preconditions.checkState(currentUser.getSecurityUser().getRoles()
+                        .stream()
+                        .anyMatch(role -> role.isAdmin()),
+                "Только админ может управлять состояниями этапа");
+        switch (event) {
+            case PLAN -> {
+                return true;
+            }
+            case START, COMPLETE -> {
+                Preconditions.checkState(milestone.getActivity().getUserAssignments()
+                                .stream()
+                                .filter(ua ->
+                                        ua.getUser()
+                                                .getId()
+                                                .equals(currentUser.getSecurityUser().getId())
+                                                && ua.getPosition().isJudge())
+                                .map(UserActivityAssignmentEntity::getUser)
+                                .findFirst().isPresent()
+                                || currentUser.getSecurityUser().getRoles().stream().anyMatch(role -> role.isAdmin()),
+                        "Юзер с ID %s не может менять состояние этапа с ID %s",
+                        currentUser.getSecurityUser().getId(), milestone.getId());
+                return true;
+            }
+            default -> {
+                return false;
+            }
+        }
     }
 
     @Override

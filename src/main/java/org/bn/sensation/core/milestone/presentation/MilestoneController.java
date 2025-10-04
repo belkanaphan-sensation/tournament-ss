@@ -3,7 +3,9 @@ package org.bn.sensation.core.milestone.presentation;
 import java.util.List;
 
 import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
 import org.bn.sensation.core.milestone.service.MilestoneService;
+import org.bn.sensation.core.milestone.service.MilestoneStateMachineService;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
 import org.bn.sensation.core.milestone.service.dto.MilestoneResultDto;
@@ -31,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 public class MilestoneController {
 
     private final MilestoneService milestoneService;
+    private final MilestoneStateMachineService milestoneStateMachineService;
 
     @Operation(summary = "Получить этап по ID")
     @GetMapping(path = "/{id}")
@@ -97,5 +100,29 @@ public class MilestoneController {
                         .build()
         );
         return ResponseEntity.ok(result);
+    }
+
+    @Operation(summary = "Запланировать этап по ID",
+            description = "Запланировать этап может администратор")
+    @GetMapping(path = "/plan/{id}")
+    public ResponseEntity<Void> planMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
+        milestoneStateMachineService.sendEvent(id, MilestoneEvent.PLAN);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Начать этап по ID",
+            description = "Начать этап может или администратор или судья данной активности")
+    @GetMapping(path = "/start/{id}")
+    public ResponseEntity<Void> startMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
+        milestoneStateMachineService.sendEvent(id, MilestoneEvent.START);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Завершить этап по ID",
+            description = "Завершить этап может или администратор или судья данной активности")
+    @GetMapping(path = "/stop/{id}")
+    public ResponseEntity<Void> completeMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
+        milestoneStateMachineService.sendEvent(id, MilestoneEvent.COMPLETE);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,6 +1,8 @@
 package org.bn.sensation.core.occasion.presentation;
 
+import org.bn.sensation.core.common.statemachine.event.OccasionEvent;
 import org.bn.sensation.core.occasion.service.OccasionService;
+import org.bn.sensation.core.occasion.service.OccasionStateMachineService;
 import org.bn.sensation.core.occasion.service.dto.CreateOccasionRequest;
 import org.bn.sensation.core.occasion.service.dto.OccasionDto;
 import org.bn.sensation.core.occasion.service.dto.UpdateOccasionRequest;
@@ -33,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 public class OccasionController {
 
     private final OccasionService occasionService;
+    private final OccasionStateMachineService occasionStateMachineService;
 
     @Operation(summary = "Получить мероприятие по ID")
     @GetMapping(path = "/{id}")
@@ -79,6 +82,30 @@ public class OccasionController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         occasionService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Запланировать мероприятие по ID",
+            description = "Запланировать мероприятие может администратор")
+    @GetMapping(path = "/plan/{id}")
+    public ResponseEntity<Void> planOccasion(@Parameter @PathVariable("id") @NotNull Long id) {
+        occasionStateMachineService.sendEvent(id, OccasionEvent.PLAN);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Начать мероприятие по ID",
+            description = "Начать мероприятие может или администратор или судья данного мероприятия")
+    @GetMapping(path = "/start/{id}")
+    public ResponseEntity<Void> startOccasion(@Parameter @PathVariable("id") @NotNull Long id) {
+        occasionStateMachineService.sendEvent(id, OccasionEvent.START);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Завершить мероприятие по ID",
+            description = "Завершить мероприятие может или администратор или судья данного мероприятия")
+    @GetMapping(path = "/stop/{id}")
+    public ResponseEntity<Void> completeOccasion(@Parameter @PathVariable("id") @NotNull Long id) {
+        occasionStateMachineService.sendEvent(id, OccasionEvent.COMPLETE);
         return ResponseEntity.noContent().build();
     }
 }
