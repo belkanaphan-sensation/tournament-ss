@@ -133,13 +133,14 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional
     public void deleteById(Long id) {
+        // Проверяем существование активности без загрузки связанных объектов
         if (!activityRepository.existsById(id)) {
-            throw new IllegalArgumentException("Активность не найдена с id: " + id);
+            throw new EntityNotFoundException("Активность не найдена с id: " + id);
         }
-        
+
         // Сначала удаляем все связанные назначения пользователей
-//        userActivityAssignmentRepository.deleteByActivityId(id);
-        
+        userActivityAssignmentRepository.deleteByActivityId(id);
+
         // Затем удаляем саму активность
         activityRepository.deleteById(id);
     }

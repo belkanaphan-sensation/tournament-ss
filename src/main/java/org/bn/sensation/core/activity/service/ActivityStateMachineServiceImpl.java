@@ -33,7 +33,7 @@ public class ActivityStateMachineServiceImpl implements ActivityStateMachineServ
         }
         if (activityService.canTransition(activity, event)) {
             StateMachine<ActivityState, ActivityEvent> sm = activityStateMachine.getStateMachine(activity.getId().toString());
-            
+
             // Создаем сообщение
             Message<ActivityEvent> message = MessageBuilder
                     .withPayload(event)

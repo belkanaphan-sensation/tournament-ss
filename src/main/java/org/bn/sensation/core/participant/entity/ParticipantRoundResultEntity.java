@@ -1,28 +1,28 @@
-package org.bn.sensation.core.round.entity;
+package org.bn.sensation.core.participant.entity;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
-import org.bn.sensation.core.participant.entity.ParticipantEntity;
+import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "round_result")
+@Table(name = "participant_round_result")
 @Getter
 @Setter
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoundResultEntity extends BaseEntity {
+public class ParticipantRoundResultEntity extends BaseEntity {
 
     @Column(name = "score")
     private Integer score;
+
+    @Column(name = "favorite")
+    private Boolean isFavorite;
 
     @ManyToOne
     @JoinColumn(name = "participant_id")

@@ -33,7 +33,7 @@ public class MilestoneStateMachineServiceImpl implements MilestoneStateMachineSe
         }
         if (milestoneService.canTransition(milestone, event)) {
             StateMachine<MilestoneState, MilestoneEvent> sm = milestoneStateMachine.getStateMachine(milestone.getId().toString());
-            
+
             // Создаем сообщение
             Message<MilestoneEvent> message = MessageBuilder
                     .withPayload(event)

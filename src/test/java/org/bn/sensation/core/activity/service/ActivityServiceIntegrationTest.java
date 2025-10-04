@@ -322,7 +322,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testDeleteActivityNotFound() {
         // When & Then
-        assertThrows(IllegalArgumentException.class, () -> activityService.deleteById(999L));
+        assertThrows(EntityNotFoundException.class, () -> activityService.deleteById(999L));
     }
 
     @Test
