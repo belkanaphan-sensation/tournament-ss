@@ -16,7 +16,10 @@ import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.entity.PartnerSide;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.state.ActivityState;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
+import org.bn.sensation.core.common.statemachine.state.OccasionState;
+import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.criteria.repository.CriteriaRepository;
@@ -124,7 +127,7 @@ class RoundResultServiceIntegrationTest extends AbstractIntegrationTest {
                 .description("Test Description")
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(1))
-                .state(State.IN_PROGRESS)
+                .state(OccasionState.IN_PROGRESS)
                 .build();
         testOccasion = occasionRepository.save(testOccasion);
 
@@ -149,7 +152,7 @@ class RoundResultServiceIntegrationTest extends AbstractIntegrationTest {
                         .city("Test City")
                         .streetNumber("1")
                         .build())
-                .state(State.IN_PROGRESS)
+                .state(ActivityState.IN_PROGRESS)
                 .occasion(testOccasion)
                 .build();
         testActivity = activityRepository.save(testActivity);
@@ -158,7 +161,7 @@ class RoundResultServiceIntegrationTest extends AbstractIntegrationTest {
         testMilestone = MilestoneEntity.builder()
                 .name("Test Milestone")
                 .description("Test Milestone Description")
-                .state(State.IN_PROGRESS)
+                .state(MilestoneState.IN_PROGRESS)
                 .milestoneOrder(1)
                 .activity(testActivity)
                 .build();
@@ -168,7 +171,7 @@ class RoundResultServiceIntegrationTest extends AbstractIntegrationTest {
         testRound = RoundEntity.builder()
                 .name("Test Round")
                 .description("Test Round Description")
-                .state(State.IN_PROGRESS)
+                .state(RoundState.IN_PROGRESS)
                 .milestone(testMilestone)
                 .build();
         testRound = roundRepository.save(testRound);

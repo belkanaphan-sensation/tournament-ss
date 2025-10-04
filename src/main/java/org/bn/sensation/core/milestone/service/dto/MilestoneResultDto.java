@@ -1,5 +1,7 @@
 package org.bn.sensation.core.milestone.service.dto;
 
+import java.util.List;
+
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
 
@@ -27,7 +29,13 @@ public class MilestoneResultDto extends BaseDto {
     @Schema(description = "Этап")
     private EntityLinkDto milestone;
 
+    @Schema(description = "Прошел участник в следующий этап или нет")
+    private Boolean passed;
+
     @Schema(description = "Суммарный балл этапа для участника", example = "5")
-    private Integer scoreSum;
+    private Integer totalScore;
+
+    @Schema(description = "Результаты по критериям")
+    private List<MilestoneCriteriaScoreDto> criteriaScores;
 
 }

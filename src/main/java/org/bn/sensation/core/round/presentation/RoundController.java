@@ -2,7 +2,9 @@ package org.bn.sensation.core.round.presentation;
 
 import java.util.List;
 
+import org.bn.sensation.core.common.statemachine.event.RoundEvent;
 import org.bn.sensation.core.round.service.RoundService;
+import org.bn.sensation.core.round.service.RoundStateMachineService;
 import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
 import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
@@ -29,10 +31,35 @@ import lombok.RequiredArgsConstructor;
 public class RoundController {
 
     private final RoundService roundService;
+    private final RoundStateMachineService roundStateMachineService;
+
+    @Operation(summary = "Запланировать раунд по ID",
+            description = "Запланировать раунд может администратор")
+    @GetMapping(path = "/plan/{id}")
+    public ResponseEntity<Void> planRound(@Parameter @PathVariable("id") @NotNull Long id) {
+        roundStateMachineService.sendEvent(id, RoundEvent.PLAN);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Начать раунд по ID",
+            description = "Начать раунд может или администратор или судья данной активности")
+    @GetMapping(path = "/start/{id}")
+    public ResponseEntity<Void> startRound(@Parameter @PathVariable("id") @NotNull Long id) {
+        roundStateMachineService.sendEvent(id, RoundEvent.START);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Завершить раунд по ID",
+            description = "Завершить раунд может или администратор или судья данной активности")
+    @GetMapping(path = "/stop/{id}")
+    public ResponseEntity<Void> completeRound(@Parameter @PathVariable("id") @NotNull Long id) {
+        roundStateMachineService.sendEvent(id, RoundEvent.COMPLETE);
+        return ResponseEntity.noContent().build();
+    }
 
     @Operation(summary = "Получить раунд по ID")
     @GetMapping(path = "/{id}")
-    public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
+    public ResponseEntity<RoundDto> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return roundService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).build());
@@ -66,7 +93,7 @@ public class RoundController {
     @Operation(summary = "Обновить раунд по ID")
     @PutMapping("/{id}")
     public ResponseEntity<RoundDto> update(@PathVariable("id") @NotNull Long id,
-                                         @Valid @RequestBody UpdateRoundRequest request) {
+                                           @Valid @RequestBody UpdateRoundRequest request) {
         RoundDto updated = roundService.update(id, request);
         return ResponseEntity.ok(updated);
     }

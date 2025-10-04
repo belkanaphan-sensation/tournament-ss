@@ -1,17 +1,17 @@
 package org.bn.sensation.core.organization.service;
 
 import org.bn.sensation.core.common.entity.Address;
-import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.organization.repository.OrganizationRepository;
 import org.bn.sensation.core.organization.service.dto.CreateOrganizationRequest;
 import org.bn.sensation.core.organization.service.dto.OrganizationDto;
 import org.bn.sensation.core.organization.service.dto.UpdateOrganizationRequest;
-import org.bn.sensation.core.organization.service.mapper.OrganizationDtoMapper;
 import org.bn.sensation.core.organization.service.mapper.CreateOrganizationRequestMapper;
+import org.bn.sensation.core.organization.service.mapper.OrganizationDtoMapper;
 import org.bn.sensation.core.organization.service.mapper.UpdateOrganizationRequestMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -127,7 +127,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         // Проверяем статус связанных мероприятий
         if (organization.getOccasions() != null) {
             for (OccasionEntity occasion : organization.getOccasions()) {
-                if (occasion.getState() != State.DRAFT && occasion.getState() != State.COMPLETED) {
+                if (occasion.getState() != OccasionState.DRAFT && occasion.getState() != OccasionState.COMPLETED) {
                     throw new IllegalArgumentException("Нельзя удалить организацию, у которой есть активные мероприятия. " +
                             "Мероприятие '" + occasion.getName() + "' имеет статус: " + occasion.getState());
                 }

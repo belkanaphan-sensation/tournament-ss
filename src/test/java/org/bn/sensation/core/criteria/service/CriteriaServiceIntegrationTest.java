@@ -5,23 +5,25 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.Optional;
 
 import org.bn.sensation.AbstractIntegrationTest;
+import org.bn.sensation.core.activity.entity.ActivityEntity;
+import org.bn.sensation.core.activity.repository.ActivityRepository;
+import org.bn.sensation.core.common.entity.PartnerSide;
+import org.bn.sensation.core.common.statemachine.state.ActivityState;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
+import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
+import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.criteria.repository.CriteriaRepository;
+import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
 import org.bn.sensation.core.criteria.service.dto.CreateCriteriaRequest;
 import org.bn.sensation.core.criteria.service.dto.CriteriaDto;
 import org.bn.sensation.core.criteria.service.dto.UpdateCriteriaRequest;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
-import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
-import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
-import org.bn.sensation.core.activity.entity.ActivityEntity;
-import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.organization.repository.OrganizationRepository;
-import org.bn.sensation.core.common.entity.State;
-import org.bn.sensation.core.common.entity.PartnerSide;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +96,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
             OccasionEntity testOccasion = OccasionEntity.builder()
                     .name("Test Occasion")
                     .description("Test Description")
-                    .state(State.DRAFT)
+                    .state(OccasionState.DRAFT)
                     .organization(testOrganization)
                     .build();
             testOccasion = occasionRepository.save(testOccasion);
@@ -103,7 +105,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
             ActivityEntity testActivity = ActivityEntity.builder()
                     .name("Test Activity")
                     .description("Test Activity Description")
-                    .state(State.DRAFT)
+                    .state(ActivityState.DRAFT)
                     .occasion(testOccasion)
                     .build();
             testActivity = activityRepository.save(testActivity);
@@ -111,7 +113,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
             // Создаем тестовый этап
             testMilestone = MilestoneEntity.builder()
                     .name("Test Milestone")
-                    .state(State.DRAFT)
+                    .state(MilestoneState.DRAFT)
                     .activity(testActivity)
                     .milestoneOrder(1)
                     .build();

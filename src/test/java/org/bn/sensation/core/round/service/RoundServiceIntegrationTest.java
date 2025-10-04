@@ -13,7 +13,10 @@ import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Person;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.state.ActivityState;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
+import org.bn.sensation.core.common.statemachine.state.OccasionState;
+import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
@@ -96,7 +99,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Occasion")
                 .description("Test Description")
                 .startDate(LocalDate.now())
-                .state(State.DRAFT)
+                .state(OccasionState.DRAFT)
                 .endDate(LocalDate.now().plusDays(3))
                 .organization(testOrganization)
                 .build();
@@ -106,7 +109,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         testActivity = ActivityEntity.builder()
                 .name("Test Activity")
                 .description("Test Activity Description")
-                .state(State.DRAFT)
+                .state(ActivityState.DRAFT)
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusDays(1))
                 .address(Address.builder()
@@ -121,7 +124,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Create test milestones
         testMilestone = MilestoneEntity.builder()
                 .name("Test Milestone")
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .activity(testActivity)
                 .milestoneOrder(1)
                 .build();
@@ -129,7 +132,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         testMilestone1 = MilestoneEntity.builder()
                 .name("Test Milestone 1")
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .activity(testActivity)
                 .milestoneOrder(2)
                 .build();
@@ -161,7 +164,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Create test round
         testRound = RoundEntity.builder()
                 .name("Test Round")
-                .state(State.DRAFT)
+                .state(RoundState.DRAFT)
                 .description("Test Round Description")
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
@@ -174,7 +177,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         CreateRoundRequest request = CreateRoundRequest.builder()
                 .name("New Round")
-                .state(State.DRAFT)
+                .state(RoundState.DRAFT)
                 .description("New Round Description")
                 .milestoneId(testMilestone.getId())
                 .build();
@@ -272,7 +275,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         RoundEntity round2 = RoundEntity.builder()
                 .name("Round 2")
                 .description("Round 2 Description")
-                .state(State.DRAFT)
+                .state(RoundState.DRAFT)
                 .milestone(testMilestone)
                 .build();
         roundRepository.save(round2);
@@ -280,7 +283,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         RoundEntity round3 = RoundEntity.builder()
                 .name("Round 3")
                 .description("Round 3 Description")
-                .state(State.DRAFT)
+                .state(RoundState.DRAFT)
                 .milestone(testMilestone1)
                 .build();
         roundRepository.save(round3);

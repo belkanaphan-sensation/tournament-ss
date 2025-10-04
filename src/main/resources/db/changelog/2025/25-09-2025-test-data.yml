@@ -1,70 +1,70 @@
 databaseChangeLog:
-  # Test data for activity_result
-  - changeSet:
-      id: 2025-09-25-1
-      author: belkanaphan
-      changes:
-        - sql:
-            sql: |
-              INSERT INTO activity_result (score_sum, place, participant_id, created_at, created_by, modified_at, modified_by, version) VALUES
-              -- Результаты для участников организации 1 (6 участников)
-              (85, 1, (SELECT id FROM participant WHERE number = 'P-001'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              (82, 2, (SELECT id FROM participant WHERE number = 'P-001-2'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              (80, 3, (SELECT id FROM participant WHERE number = 'P-001-3'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              (78, 4, (SELECT id FROM participant WHERE number = 'P-001-4'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              (76, 5, (SELECT id FROM participant WHERE number = 'P-001-5'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              (74, 6, (SELECT id FROM participant WHERE number = 'P-001-6'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              
-              -- Результаты для участников организации 2 (3 участника)
-              (92, 1, (SELECT id FROM participant WHERE number = 'P-002-1'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
-              (78, 3, (SELECT id FROM participant WHERE number = 'P-002-2'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
-              (88, 2, (SELECT id FROM participant WHERE number = 'P-002-3'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
-              
-              -- Результаты для участников организации 3 (6 участников)
-              (95, 1, (SELECT id FROM participant WHERE number = 'P-003-1'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (82, 5, (SELECT id FROM participant WHERE number = 'P-003-2'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (90, 2, (SELECT id FROM participant WHERE number = 'P-003-3'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (76, 6, (SELECT id FROM participant WHERE number = 'P-003-4'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (87, 3, (SELECT id FROM participant WHERE number = 'P-003-5'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (81, 4, (SELECT id FROM participant WHERE number = 'P-003-6'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0);
+#  # Test data for activity_result
+#  - changeSet:
+#      id: 2025-09-25-1
+#      author: belkanaphan
+#      changes:
+#        - sql:
+#            sql: |
+#              INSERT INTO activity_result (total_score, place, participant_id, created_at, created_by, modified_at, modified_by, version) VALUES
+#              -- Результаты для участников организации 1 (6 участников)
+#              (85, 1, (SELECT id FROM participant WHERE number = 'P-001'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+#              (82, 2, (SELECT id FROM participant WHERE number = 'P-001-2'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+#              (80, 3, (SELECT id FROM participant WHERE number = 'P-001-3'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+#              (78, 4, (SELECT id FROM participant WHERE number = 'P-001-4'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+#              (76, 5, (SELECT id FROM participant WHERE number = 'P-001-5'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+#              (74, 6, (SELECT id FROM participant WHERE number = 'P-001-6'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+#
+#              -- Результаты для участников организации 2 (3 участника)
+#              (92, 1, (SELECT id FROM participant WHERE number = 'P-002-1'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
+#              (78, 3, (SELECT id FROM participant WHERE number = 'P-002-2'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
+#              (88, 2, (SELECT id FROM participant WHERE number = 'P-002-3'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
+#
+#              -- Результаты для участников организации 3 (6 участников)
+#              (95, 1, (SELECT id FROM participant WHERE number = 'P-003-1'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (82, 5, (SELECT id FROM participant WHERE number = 'P-003-2'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (90, 2, (SELECT id FROM participant WHERE number = 'P-003-3'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (76, 6, (SELECT id FROM participant WHERE number = 'P-003-4'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (87, 3, (SELECT id FROM participant WHERE number = 'P-003-5'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (81, 4, (SELECT id FROM participant WHERE number = 'P-003-6'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0);
 
-  # Test data for milestone_result
-  - changeSet:
-      id: 2025-09-25-2
-      author: belkanaphan
-      changes:
-        - sql:
-            sql: |
-              INSERT INTO milestone_result (score_sum, participant_id, milestone_id, created_at, created_by, modified_at, modified_by, version) VALUES
-              -- Результаты для участников организации 1 по этапу 1
-              (85, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              (82, (SELECT id FROM participant WHERE number = 'P-001-2'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              (80, (SELECT id FROM participant WHERE number = 'P-001-3'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              (78, (SELECT id FROM participant WHERE number = 'P-001-4'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              (76, (SELECT id FROM participant WHERE number = 'P-001-5'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              (74, (SELECT id FROM participant WHERE number = 'P-001-6'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
-              
-              -- Результаты для участников организации 2 по этапам 2.1.1 и 2.1.2
-              (45, (SELECT id FROM participant WHERE number = 'P-002-1'), (SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
-              (47, (SELECT id FROM participant WHERE number = 'P-002-1'), (SELECT id FROM milestone WHERE name = 'Этап 2.1.2'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
-              (38, (SELECT id FROM participant WHERE number = 'P-002-2'), (SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
-              (40, (SELECT id FROM participant WHERE number = 'P-002-2'), (SELECT id FROM milestone WHERE name = 'Этап 2.1.2'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
-              (44, (SELECT id FROM participant WHERE number = 'P-002-3'), (SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
-              (44, (SELECT id FROM participant WHERE number = 'P-002-3'), (SELECT id FROM milestone WHERE name = 'Этап 2.1.2'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
-              
-              -- Результаты для участников организации 3 по этапам 3.1.1, 3.1.2, 3.1.3
-              (48, (SELECT id FROM participant WHERE number = 'P-003-1'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (47, (SELECT id FROM participant WHERE number = 'P-003-1'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (41, (SELECT id FROM participant WHERE number = 'P-003-2'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (41, (SELECT id FROM participant WHERE number = 'P-003-2'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (45, (SELECT id FROM participant WHERE number = 'P-003-3'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (45, (SELECT id FROM participant WHERE number = 'P-003-3'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (38, (SELECT id FROM participant WHERE number = 'P-003-4'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (38, (SELECT id FROM participant WHERE number = 'P-003-4'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (43, (SELECT id FROM participant WHERE number = 'P-003-5'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (44, (SELECT id FROM participant WHERE number = 'P-003-5'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (40, (SELECT id FROM participant WHERE number = 'P-003-6'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
-              (41, (SELECT id FROM participant WHERE number = 'P-003-6'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0);
+#  # Test data for milestone_result
+#  - changeSet:
+#      id: 2025-09-25-2
+#      author: belkanaphan
+#      changes:
+#        - sql:
+#            sql: |
+#              INSERT INTO milestone_result (total_score, participant_id, milestone_id, created_at, created_by, modified_at, modified_by, version) VALUES
+#              -- Результаты для участников организации 1 по этапу 1
+#              (85, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+#              (82, (SELECT id FROM participant WHERE number = 'P-001-2'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+#              (80, (SELECT id FROM participant WHERE number = 'P-001-3'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+#              (78, (SELECT id FROM participant WHERE number = 'P-001-4'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+#              (76, (SELECT id FROM participant WHERE number = 'P-001-5'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+#              (74, (SELECT id FROM participant WHERE number = 'P-001-6'), (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-09-25 10:00:00', 'judge1_1', '2025-09-25 10:00:00', 'judge1_1', 0),
+#
+#              -- Результаты для участников организации 2 по этапам 2.1.1 и 2.1.2
+#              (45, (SELECT id FROM participant WHERE number = 'P-002-1'), (SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
+#              (47, (SELECT id FROM participant WHERE number = 'P-002-1'), (SELECT id FROM milestone WHERE name = 'Этап 2.1.2'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
+#              (38, (SELECT id FROM participant WHERE number = 'P-002-2'), (SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
+#              (40, (SELECT id FROM participant WHERE number = 'P-002-2'), (SELECT id FROM milestone WHERE name = 'Этап 2.1.2'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
+#              (44, (SELECT id FROM participant WHERE number = 'P-002-3'), (SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
+#              (44, (SELECT id FROM participant WHERE number = 'P-002-3'), (SELECT id FROM milestone WHERE name = 'Этап 2.1.2'), '2025-09-25 10:00:00', 'judge2_1', '2025-09-25 10:00:00', 'judge2_1', 0),
+#
+#              -- Результаты для участников организации 3 по этапам 3.1.1, 3.1.2, 3.1.3
+#              (48, (SELECT id FROM participant WHERE number = 'P-003-1'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (47, (SELECT id FROM participant WHERE number = 'P-003-1'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (41, (SELECT id FROM participant WHERE number = 'P-003-2'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (41, (SELECT id FROM participant WHERE number = 'P-003-2'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (45, (SELECT id FROM participant WHERE number = 'P-003-3'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (45, (SELECT id FROM participant WHERE number = 'P-003-3'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (38, (SELECT id FROM participant WHERE number = 'P-003-4'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (38, (SELECT id FROM participant WHERE number = 'P-003-4'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (43, (SELECT id FROM participant WHERE number = 'P-003-5'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (44, (SELECT id FROM participant WHERE number = 'P-003-5'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (40, (SELECT id FROM participant WHERE number = 'P-003-6'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
+#              (41, (SELECT id FROM participant WHERE number = 'P-003-6'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0);
 
   # Test data for round_result
   - changeSet:

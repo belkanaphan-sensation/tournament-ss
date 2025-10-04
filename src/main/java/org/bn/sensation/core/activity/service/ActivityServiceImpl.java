@@ -12,9 +12,11 @@ import org.bn.sensation.core.activity.service.mapper.ActivityDtoMapper;
 import org.bn.sensation.core.activity.service.mapper.CreateActivityRequestMapper;
 import org.bn.sensation.core.activity.service.mapper.UpdateActivityRequestMapper;
 import org.bn.sensation.core.common.entity.Address;
-import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.common.statemachine.event.ActivityEvent;
+import org.bn.sensation.core.common.statemachine.state.ActivityState;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
@@ -70,7 +72,7 @@ public class ActivityServiceImpl implements ActivityService {
     @Transactional(readOnly = true)
     public List<ActivityDto> findByOccasionIdInLifeStatesForCurrentUser(Long id) {
         Preconditions.checkArgument(id != null, "ID мероприятия не может быть null");
-        return activityRepository.findByOccasionIdAndUserIdAndStateIn(id, currentUser.getSecurityUser().getId(), State.LIFE_STATES).stream()
+        return activityRepository.findByOccasionIdAndUserIdAndStateIn(id, currentUser.getSecurityUser().getId(), ActivityState.LIFE_ACTIVITY_STATES).stream()
                 .map(this::enrichActivityDtoWithStatistics)
                 .toList();
     }
@@ -117,6 +119,13 @@ public class ActivityServiceImpl implements ActivityService {
             updateActivityRequestMapper.updateAddressFromRequest(request.getAddress(), address);
         }
 
+        // Обновляем событие (если метод getOccasionId() существует в UpdateActivityRequest)
+        // if (request.getOccasionId() != null) {
+        //     OccasionEntity occasion = occasionRepository.findById(request.getOccasionId())
+        //             .orElseThrow(() -> new EntityNotFoundException("Событие не найдено с id: " + request.getOccasionId()));
+        //     activity.setOccasion(occasion);
+        // }
+
         ActivityEntity saved = activityRepository.save(activity);
         return enrichActivityDtoWithStatistics(saved);
     }
@@ -127,9 +136,10 @@ public class ActivityServiceImpl implements ActivityService {
         if (!activityRepository.existsById(id)) {
             throw new IllegalArgumentException("Активность не найдена с id: " + id);
         }
-
+        
         // Сначала удаляем все связанные назначения пользователей
-        userActivityAssignmentRepository.deleteByActivityId(id);
+//        userActivityAssignmentRepository.deleteByActivityId(id);
+        
         // Затем удаляем саму активность
         activityRepository.deleteById(id);
     }
@@ -141,9 +151,36 @@ public class ActivityServiceImpl implements ActivityService {
         ActivityDto dto = activityDtoMapper.toDto(activity);
         dto.setCompletedMilestonesCount((int) activity.getMilestones()
                 .stream()
-                .filter(ms -> ms.getState() == State.COMPLETED)
+                .filter(ms -> ms.getState() == MilestoneState.COMPLETED)
                 .count());
         dto.setTotalMilestonesCount(activity.getMilestones().size());
         return dto;
+    }
+
+    @Override
+    public void saveTransition(ActivityEntity activity, ActivityState state) {
+        activity.setState(state);
+        activityRepository.save(activity);
+    }
+
+    @Override
+    public boolean canTransition(ActivityEntity activity, ActivityEvent event) {
+        // TODO: Implement business logic for activity transitions
+        return true;
+    }
+
+    @Override
+    public ActivityState getNextState(ActivityState currentState, ActivityEvent event) {
+        return switch (currentState) {
+            case DRAFT -> event == ActivityEvent.PLAN ? ActivityState.PLANNED : currentState;
+            case PLANNED -> event == ActivityEvent.START ? ActivityState.IN_PROGRESS : currentState;
+            case IN_PROGRESS -> event == ActivityEvent.COMPLETE ? ActivityState.COMPLETED : currentState;
+            case COMPLETED -> currentState;
+        };
+    }
+
+    @Override
+    public boolean isValidTransition(ActivityState currentState, ActivityEvent event) {
+        return getNextState(currentState, event) != currentState;
     }
 }

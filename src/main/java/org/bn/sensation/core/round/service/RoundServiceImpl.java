@@ -1,16 +1,13 @@
 package org.bn.sensation.core.round.service;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import org.bn.sensation.core.common.entity.State;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.common.statemachine.event.RoundEvent;
+import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
-import org.bn.sensation.core.participant.entity.ParticipantEntity;
-import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
@@ -19,6 +16,8 @@ import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
 import org.bn.sensation.core.round.service.mapper.CreateRoundRequestMapper;
 import org.bn.sensation.core.round.service.mapper.RoundDtoMapper;
 import org.bn.sensation.core.round.service.mapper.UpdateRoundRequestMapper;
+import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
+import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -38,7 +37,7 @@ public class RoundServiceImpl implements RoundService {
     private final CreateRoundRequestMapper createRoundRequestMapper;
     private final UpdateRoundRequestMapper updateRoundRequestMapper;
     private final MilestoneRepository milestoneRepository;
-    private final ParticipantRepository participantRepository;
+    private final CurrentUser currentUser;
 
     @Override
     public BaseRepository<RoundEntity> getRepository() {
@@ -76,7 +75,7 @@ public class RoundServiceImpl implements RoundService {
         RoundEntity round = roundRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + id));
 
-        if(request.getName()!=null) {
+        if (request.getName() != null) {
             Preconditions.checkArgument(!request.getName().trim().isEmpty(), "Название раунда не может быть пустым");
         }
 
@@ -104,19 +103,6 @@ public class RoundServiceImpl implements RoundService {
                 .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
     }
 
-    private Set<ParticipantEntity> findParticipantsByIds(Set<Long> participantIds) {
-        if (participantIds == null || participantIds.isEmpty()) {
-            return new HashSet<>();
-        }
-        Set<ParticipantEntity> participants = new HashSet<>();
-        for (Long participantId : participantIds) {
-            ParticipantEntity participant = participantRepository.findById(participantId)
-                    .orElseThrow(() -> new EntityNotFoundException("Участник не найден с id: " + participantId));
-            participants.add(participant);
-        }
-        return participants;
-    }
-
     @Override
     @Transactional(readOnly = true)
     public List<RoundDto> findByMilestoneId(Long id) {
@@ -130,8 +116,61 @@ public class RoundServiceImpl implements RoundService {
     @Transactional(readOnly = true)
     public List<RoundDto> findByMilestoneIdInLifeStates(Long id) {
         Preconditions.checkArgument(id != null, "ID этапа не может быть null");
-        return roundRepository.findByMilestoneIdAndStateIn(id, State.LIFE_STATES).stream()
+        return roundRepository.findByMilestoneIdAndStateIn(id, RoundState.LIFE_ROUND_STATES).stream()
                 .map(roundDtoMapper::toDto)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void saveTransition(RoundEntity round, RoundState state) {
+        round.setState(state);
+        roundRepository.save(round);
+    }
+
+    @Override
+    public boolean canTransition(RoundEntity round, RoundEvent event) {
+        switch (event) {
+            case PLAN -> {
+                Preconditions.checkState(currentUser.getSecurityUser().getRoles()
+                                .stream()
+                                .anyMatch(role -> role.isAdmin()),
+                        "Только админ может планировать раунд");
+                return true;
+            }
+            case START, COMPLETE -> {
+                Preconditions.checkState(round.getMilestone().getActivity().getUserAssignments()
+                                .stream()
+                                .filter(ua ->
+                                        ua.getUser()
+                                                .getId()
+                                                .equals(currentUser.getSecurityUser().getId())
+                                                && ua.getPosition().isJudge())
+                                .map(UserActivityAssignmentEntity::getUser)
+                                .findFirst().isPresent()
+                                || currentUser.getSecurityUser().getRoles().stream().anyMatch(role -> role.isAdmin()),
+                        "Юзер с ID %s не может менять состояние раунда с ID %s",
+                        currentUser.getSecurityUser().getId(), round.getId());
+                return true;
+            }
+            default -> {
+                return false;
+            }
+        }
+    }
+    
+    @Override
+    public RoundState getNextState(RoundState currentState, RoundEvent event) {
+        return switch (currentState) {
+            case DRAFT -> event == RoundEvent.PLAN ? RoundState.PLANNED : currentState;
+            case PLANNED -> event == RoundEvent.START ? RoundState.IN_PROGRESS : currentState;
+            case IN_PROGRESS -> event == RoundEvent.COMPLETE ? RoundState.COMPLETED : currentState;
+            case COMPLETED -> currentState;
+        };
+    }
+    
+    @Override
+    public boolean isValidTransition(RoundState currentState, RoundEvent event) {
+        return getNextState(currentState, event) != currentState;
     }
 }

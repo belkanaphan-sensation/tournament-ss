@@ -2,7 +2,7 @@ package org.bn.sensation.core.milestone.service.dto;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -19,7 +19,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Веха (логический этап в рамках активности)")
+@Schema(description = "Этап в рамках активности")
 public class MilestoneDto extends BaseDto {
 
     @Schema(description = "Название этапа'", example = "Квалификация")
@@ -32,7 +32,7 @@ public class MilestoneDto extends BaseDto {
     private EntityLinkDto activity;
 
     @Schema(description = "Статус этапа", example = "DRAFT")
-    private State state;
+    private MilestoneState state;
 
     @Schema(description = "Количество завершенных раундов", example = "3")
     private Integer completedRoundsCount;

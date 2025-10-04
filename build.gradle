@@ -12,6 +12,7 @@ description = 'sensation tournament module'
 
 ext {
     set('springBootVersion', '3.5.5')
+    set('springStateMachineStarterVersion', '4.0.0')
     set('lombokVersion', '1.18.36')
     set('validationVersion', '3.1.0')
     set('liquibaseVersion', '4.33.0')
@@ -48,6 +49,7 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion"
     implementation "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
     implementation "org.springframework.boot:spring-boot-starter-security:$springBootVersion"
+    implementation "org.springframework.statemachine:spring-statemachine-starter:$springStateMachineStarterVersion"
     implementation "jakarta.validation:jakarta.validation-api:$validationVersion"
 
     compileOnly "org.projectlombok:lombok:$lombokVersion"

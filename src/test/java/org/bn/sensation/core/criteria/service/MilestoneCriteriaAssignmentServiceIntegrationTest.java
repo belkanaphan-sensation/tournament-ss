@@ -12,7 +12,9 @@ import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.PartnerSide;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.state.ActivityState;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
+import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.criteria.repository.CriteriaRepository;
@@ -29,19 +31,19 @@ import org.bn.sensation.core.organization.repository.OrganizationRepository;
 import org.bn.sensation.core.user.entity.*;
 import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
 import org.bn.sensation.core.user.repository.UserRepository;
+import org.bn.sensation.security.SecurityUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.bn.sensation.security.SecurityUser;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -138,7 +140,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                     .description("Test Description")
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .state(State.DRAFT)
+                    .state(OccasionState.DRAFT)
                     .organization(testOrganization)
                     .build();
             testOccasion = occasionRepository.save(testOccasion);
@@ -156,7 +158,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                             .streetNumber("2")
                             .comment("Activity Address")
                             .build())
-                    .state(State.DRAFT)
+                    .state(ActivityState.DRAFT)
                     .occasion(testOccasion)
                     .build();
             testActivity = activityRepository.save(testActivity);
@@ -164,7 +166,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
             // Создание тестового этапа
             testMilestone = MilestoneEntity.builder()
                     .name("Test Milestone")
-                    .state(State.DRAFT)
+                    .state(MilestoneState.DRAFT)
                     .activity(testActivity)
                     .milestoneOrder(1)
                     .build();
@@ -431,7 +433,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         // Создаем назначение для другого этапа
         MilestoneEntity anotherMilestone = MilestoneEntity.builder()
                 .name("Another Milestone")
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .activity(testMilestone.getActivity())
                 .milestoneOrder(2)
                 .build();
@@ -458,7 +460,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         // Создаем дополнительные этапы и назначения для того же критерия
         MilestoneEntity milestone2 = MilestoneEntity.builder()
                 .name("Milestone 2")
-                .state(State.DRAFT)
+                .state(MilestoneState.DRAFT)
                 .activity(testMilestone.getActivity())
                 .milestoneOrder(3)
                 .build();
@@ -770,7 +772,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
                         .streetNumber("3")
                         .comment("Different Address")
                         .build())
-                .state(org.bn.sensation.core.common.entity.State.DRAFT)
+                .state(ActivityState.DRAFT)
                 .occasion(testMilestone.getActivity().getOccasion())
                 .build();
         differentActivity = activityRepository.save(differentActivity);

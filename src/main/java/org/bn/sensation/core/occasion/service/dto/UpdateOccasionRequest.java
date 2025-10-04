@@ -3,7 +3,7 @@ package org.bn.sensation.core.occasion.service.dto;
 import java.time.LocalDate;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
-import org.bn.sensation.core.common.entity.State;
+import org.bn.sensation.core.common.statemachine.state.OccasionState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -39,5 +39,5 @@ public class UpdateOccasionRequest extends EmptyDto {
     private LocalDate endDate;
 
     @Schema(description = "Статус мероприятия", example = "DRAFT")
-    private State state;
+    private OccasionState state;
 }

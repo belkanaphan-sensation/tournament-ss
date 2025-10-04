@@ -8,9 +8,12 @@ import org.bn.sensation.core.activity.service.dto.ActivityResultDto;
 import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.common.statemachine.event.ActivityEvent;
+import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class ActivityController {
 
     private final ActivityService activityService;
+    private final StateMachineFactory<ActivityState, ActivityEvent> activityStateMachine;
 
     @Operation(summary = "Получить активность по ID")
     @GetMapping(path = "/{id}")

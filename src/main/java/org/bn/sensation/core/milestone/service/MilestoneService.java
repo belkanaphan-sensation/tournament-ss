@@ -4,6 +4,9 @@ import java.util.List;
 
 import jakarta.validation.constraints.NotNull;
 import org.bn.sensation.core.common.service.BaseCrudService;
+import org.bn.sensation.core.common.service.BaseStateService;
+import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
@@ -13,7 +16,7 @@ public interface MilestoneService extends BaseCrudService<
         MilestoneEntity,
         MilestoneDto,
         CreateMilestoneRequest,
-        UpdateMilestoneRequest> {
+        UpdateMilestoneRequest>, BaseStateService<MilestoneEntity, MilestoneState, MilestoneEvent> {
 
     List<MilestoneDto> findByActivityId(@NotNull Long id);
 
