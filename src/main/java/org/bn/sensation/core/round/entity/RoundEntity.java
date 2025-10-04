@@ -35,6 +35,9 @@ public class RoundEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private RoundState state;
 
+    @Column(name = "extra_round")
+    private Boolean isExtraRound;
+
     @ManyToMany(mappedBy = "rounds")
     @Builder.Default
     private Set<ParticipantEntity> participants = new HashSet<>();

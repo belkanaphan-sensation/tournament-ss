@@ -6,16 +6,17 @@ import java.util.stream.Collectors;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
-import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
-import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
+import org.bn.sensation.core.common.statemachine.state.ActivityState;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
+import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
-import org.bn.sensation.core.criteria.repository.CriteriaRepository;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
-import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.criteria.repository.CriteriaRepository;
 import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
+import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.service.dto.AssessmentMode;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
@@ -24,6 +25,7 @@ import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.mapper.CreateMilestoneRequestMapper;
 import org.bn.sensation.core.milestone.service.mapper.MilestoneDtoMapper;
 import org.bn.sensation.core.milestone.service.mapper.UpdateMilestoneRequestMapper;
+import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -49,6 +51,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     private final ActivityRepository activityRepository;
     private final CriteriaRepository criteriaRepository;
     private final MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
+    private final CurrentUser currentUser;
 
     @Override
     public BaseRepository<MilestoneEntity> getRepository() {
@@ -134,7 +137,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Transactional
     public void deleteById(Long id) {
         if (!milestoneRepository.existsById(id)) {
-            throw new IllegalArgumentException("Этап не найден с id: " + id);
+            throw new EntityNotFoundException("Этап не найден с id: " + id);
         }
         milestoneRepository.deleteById(id);
     }
@@ -176,9 +179,6 @@ public class MilestoneServiceImpl implements MilestoneService {
                 .toList();
     }
 
-    /**
-     * Обогащает MilestoneDto статистикой по раундам и AssessmentMode
-     */
     private MilestoneDto enrichMilestoneDtoWithStatistics(MilestoneEntity milestone) {
         MilestoneDto dto = milestoneDtoMapper.toDto(milestone);
         dto.setAssessmentMode(calculateAssessmentMode(milestone));
@@ -263,7 +263,29 @@ public class MilestoneServiceImpl implements MilestoneService {
 
     @Override
     public boolean canTransition(MilestoneEntity milestone, MilestoneEvent event) {
-        // TODO: Implement business logic for milestone transitions
+        switch (event) {
+            case PLAN -> {
+            }
+            case START -> {
+                Preconditions.checkState(milestone.getActivity().getState() == ActivityState.IN_PROGRESS,
+                        "Нельзя стартовать этап, т.к. активность находится в статусе %s", milestone.getActivity().getState());
+            }
+            case COMPLETE -> {
+                boolean allRoundsCompleted = milestone.getRounds()
+                        .stream()
+                        .allMatch(round -> round.getState() == RoundState.COMPLETED);
+                Preconditions.checkState(allRoundsCompleted, "Не все раунды завершены");
+                AssessmentMode assessmentMode = calculateAssessmentMode(milestone);
+                //должны быть посчитаны результаты этапа - проверка
+                //это должно уйтив проверку подсчетов результата этапа
+                if (assessmentMode == AssessmentMode.PASS) {
+                    //Нужно проверить что каждый судья выбрал ровное необходимое количество участников
+                    //где-то нужно хранить количество пользователей следующего этапа
+                    //т.е. для каждого судьи должно быть необходимое количество ParticipantRoundResultEntity
+                    //учесть пол участников и судей
+                }
+            }
+        }
         return true;
     }
 
@@ -271,9 +293,8 @@ public class MilestoneServiceImpl implements MilestoneService {
     public MilestoneState getNextState(MilestoneState currentState, MilestoneEvent event) {
         return switch (currentState) {
             case DRAFT -> event == MilestoneEvent.PLAN ? MilestoneState.PLANNED : currentState;
-            case PLANNED -> event == MilestoneEvent.START ? MilestoneState.IN_PROGRESS : currentState;
+            case PLANNED, COMPLETED -> event == MilestoneEvent.START ? MilestoneState.IN_PROGRESS : currentState;
             case IN_PROGRESS -> event == MilestoneEvent.COMPLETE ? MilestoneState.COMPLETED : currentState;
-            case COMPLETED -> currentState;
         };
     }
 

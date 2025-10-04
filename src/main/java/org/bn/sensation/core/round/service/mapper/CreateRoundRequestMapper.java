@@ -11,6 +11,7 @@ import org.mapstruct.Mapping;
 public interface CreateRoundRequestMapper extends BaseDtoMapper<RoundEntity, CreateRoundRequest> {
     @Override
     @Mapping(target = "milestone", source = "milestoneId")
+    @Mapping(target = "participants", ignore = true)
     RoundEntity toEntity(CreateRoundRequest dto);
 
     @Override

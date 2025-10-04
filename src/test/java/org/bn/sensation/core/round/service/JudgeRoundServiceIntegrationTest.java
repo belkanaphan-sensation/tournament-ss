@@ -153,7 +153,7 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .position(UserActivityPosition.JUDGE)
                 .build();
         judgeAssignment = userActivityAssignmentRepository.save(judgeAssignment);
-        
+
         // Add assignment to activity's userAssignments collection
         testActivity.getUserAssignments().add(judgeAssignment);
         activityRepository.save(testActivity);
@@ -239,10 +239,10 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
     void testChangeRoundStatus_UpdateExistingStatus_Success() {
         // Given
         mockCurrentUser(testJudge);
-        
+
         // First accept the round
         roundService.changeRoundStatus(testRound.getId(), JudgeRoundStatus.ACCEPTED);
-        
+
         // Verify initial status
         JudgeRoundEntity initialEntity = judgeRoundRepository.findByRoundIdAndJudgeId(
                 testRound.getId(), judgeAssignment.getId()).orElseThrow();
@@ -330,7 +330,7 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .position(UserActivityPosition.JUDGE)
                 .build();
         secondJudgeAssignment = userActivityAssignmentRepository.save(secondJudgeAssignment);
-        
+
         // Add second assignment to activity's userAssignments collection
         testActivity.getUserAssignments().add(secondJudgeAssignment);
         activityRepository.save(testActivity);
@@ -368,7 +368,7 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         // When - create first status
         JudgeRoundDto firstResult = roundService.changeRoundStatus(testRound.getId(), JudgeRoundStatus.ACCEPTED);
-        
+
         // When - update same judge's status (should update, not create new)
         JudgeRoundDto secondResult = roundService.changeRoundStatus(testRound.getId(), JudgeRoundStatus.REJECTED);
 
@@ -378,9 +378,32 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Verify only one record exists for this judge-round combination
         long count = judgeRoundRepository.findAll().stream()
-                .filter(jr -> jr.getRound().getId().equals(testRound.getId()) 
+                .filter(jr -> jr.getRound().getId().equals(testRound.getId())
                            && jr.getJudge().getId().equals(judgeAssignment.getId()))
                 .count();
         assertEquals(1, count);
     }
+
+    @Test
+    void testChangeRoundStatus_RoundInDraftState_ThrowsException() {
+        // Given
+        mockCurrentUser(testJudge);
+
+        // Create round in DRAFT state
+        final RoundEntity draftRound = RoundEntity.builder()
+                .name("Draft Round")
+                .description("Draft Round Description")
+                .state(RoundState.DRAFT)
+                .milestone(testMilestone)
+                .build();
+        roundRepository.save(draftRound);
+
+        // When & Then
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+            roundService.changeRoundStatus(draftRound.getId(), JudgeRoundStatus.ACCEPTED);
+        });
+
+        assertTrue(exception.getMessage().contains("Статус раунда DRAFT. Не может быть принят или отменен судьей"));
+    }
+
 }

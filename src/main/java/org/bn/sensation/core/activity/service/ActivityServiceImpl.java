@@ -174,9 +174,8 @@ public class ActivityServiceImpl implements ActivityService {
     public ActivityState getNextState(ActivityState currentState, ActivityEvent event) {
         return switch (currentState) {
             case DRAFT -> event == ActivityEvent.PLAN ? ActivityState.PLANNED : currentState;
-            case PLANNED -> event == ActivityEvent.START ? ActivityState.IN_PROGRESS : currentState;
+            case PLANNED, COMPLETED -> event == ActivityEvent.START ? ActivityState.IN_PROGRESS : currentState;
             case IN_PROGRESS -> event == ActivityEvent.COMPLETE ? ActivityState.COMPLETED : currentState;
-            case COMPLETED -> currentState;
         };
     }
 

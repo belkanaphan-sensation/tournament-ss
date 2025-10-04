@@ -9,6 +9,8 @@ import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.mapper.EntityLinkMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.activity.entity.ActivityEntity;
+import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
@@ -41,6 +43,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     private final ParticipantRepository participantRepository;
     private final RoundRepository roundRepository;
+    private final ActivityRepository activityRepository;
     private final ParticipantDtoMapper participantDtoMapper;
     private final CreateParticipantRequestMapper createParticipantRequestMapper;
     private final UpdateParticipantRequestMapper updateParticipantRequestMapper;
@@ -76,7 +79,11 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     @Transactional
     public ParticipantDto create(CreateParticipantRequest request) {
+        ActivityEntity activity = activityRepository.findById(request.getActivityId())
+                .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + request.getActivityId()));
+
         ParticipantEntity participant = createParticipantRequestMapper.toEntity(request);
+        participant.setActivity(activity);
 
         ParticipantEntity saved = participantRepository.save(participant);
         return participantDtoMapper.toDto(saved);

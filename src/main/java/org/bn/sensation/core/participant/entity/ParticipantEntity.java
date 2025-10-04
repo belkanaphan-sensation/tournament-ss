@@ -3,10 +3,10 @@ package org.bn.sensation.core.participant.entity;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.Person;
-import org.bn.sensation.core.round.entity.ExtraRoundEntity;
 import org.bn.sensation.core.round.entity.RoundEntity;
 
 import jakarta.persistence.*;
@@ -33,6 +33,10 @@ public class ParticipantEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private PartnerSide partnerSide;
 
+    @ManyToOne
+    @JoinColumn(name = "activity_id")
+    private ActivityEntity activity;
+
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "rounds_participants_association",
@@ -41,11 +45,4 @@ public class ParticipantEntity extends BaseEntity {
     @Builder.Default
     private Set<RoundEntity> rounds = new HashSet<>();
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-            name = "extra_rounds_participants_association",
-            joinColumns = @JoinColumn(name = "participant_id"),
-            inverseJoinColumns = @JoinColumn(name = "extra_round_id"))
-    @Builder.Default
-    private Set<ExtraRoundEntity> extraRounds = new HashSet<>();
 }

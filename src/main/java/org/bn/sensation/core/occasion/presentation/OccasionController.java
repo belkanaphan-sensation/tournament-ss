@@ -1,6 +1,8 @@
 package org.bn.sensation.core.occasion.presentation;
 
+import org.bn.sensation.core.common.statemachine.event.OccasionEvent;
 import org.bn.sensation.core.occasion.service.OccasionService;
+import org.bn.sensation.core.occasion.service.OccasionStateMachineService;
 import org.bn.sensation.core.occasion.service.dto.CreateOccasionRequest;
 import org.bn.sensation.core.occasion.service.dto.OccasionDto;
 import org.bn.sensation.core.occasion.service.dto.UpdateOccasionRequest;
@@ -9,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,9 +33,11 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Occasion", description = "The Occasion API")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
 public class OccasionController {
 
     private final OccasionService occasionService;
+    private final OccasionStateMachineService occasionStateMachineService;
 
     @Operation(summary = "Получить мероприятие по ID")
     @GetMapping(path = "/{id}")
@@ -79,6 +84,33 @@ public class OccasionController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         occasionService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Запланировать мероприятие по ID",
+            description = "Запланировать мероприятие может администратор")
+    @GetMapping(path = "/plan/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> planOccasion(@Parameter @PathVariable("id") @NotNull Long id) {
+        occasionStateMachineService.sendEvent(id, OccasionEvent.PLAN);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Начать мероприятие по ID",
+            description = "Начать мероприятие может администратор")
+    @GetMapping(path = "/start/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> startOccasion(@Parameter @PathVariable("id") @NotNull Long id) {
+        occasionStateMachineService.sendEvent(id, OccasionEvent.START);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Завершить мероприятие по ID",
+            description = "Завершить мероприятие может администратор")
+    @GetMapping(path = "/stop/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> completeOccasion(@Parameter @PathVariable("id") @NotNull Long id) {
+        occasionStateMachineService.sendEvent(id, OccasionEvent.COMPLETE);
         return ResponseEntity.noContent().build();
     }
 }

@@ -23,4 +23,8 @@ public interface RoundRepository extends BaseRepository<RoundEntity> {
     @EntityGraph(attributePaths = {"milestone.activity.userAssignments.user"})
     @Query("SELECT r FROM RoundEntity r WHERE r.id = :id")
     Optional<RoundEntity> findByIdWithUserAssignments(@Param("id") Long id);
+
+    @EntityGraph(attributePaths = {"milestone.activity"})
+    @Query("SELECT r FROM RoundEntity r WHERE r.id = :id")
+    Optional<RoundEntity> findByIdWithActivity(@Param("id") Long id);
 }

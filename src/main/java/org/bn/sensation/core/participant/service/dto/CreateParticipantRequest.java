@@ -55,4 +55,8 @@ public class CreateParticipantRequest extends EmptyDto {
     @NotNull
     @Schema(description = "Сторона участника в соревновании", example = "LEADER")
     private PartnerSide partnerSide;
+
+    @NotNull
+    @Schema(description = "ID активности", example = "1", required = true)
+    private Long activityId;
 }

@@ -18,4 +18,8 @@ public interface ParticipantRepository extends BaseRepository<ParticipantEntity>
             WHERE r.id = :roundId
             """)
     List<ParticipantEntity> findByRoundId(@Param("roundId") Long roundId);
+
+    @EntityGraph(attributePaths = {"activity"})
+    @Query("SELECT p FROM ParticipantEntity p WHERE p.id IN :ids")
+    List<ParticipantEntity> findAllByIdWithActivity(@Param("ids") List<Long> ids);
 }

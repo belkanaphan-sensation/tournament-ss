@@ -41,4 +41,7 @@ public class RoundDto extends BaseDto {
 
     @Schema(description = "Статус раунда", example = "DRAFT")
     private RoundState state;
+
+    @Schema(description = "Дополнительный раунд", example = "true")
+    private Boolean isExtraRound;
 }

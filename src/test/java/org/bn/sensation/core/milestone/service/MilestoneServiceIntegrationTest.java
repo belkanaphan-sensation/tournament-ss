@@ -345,7 +345,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testDeleteMilestoneNotFound() {
         // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(EntityNotFoundException.class, () -> {
             milestoneService.deleteById(999L);
         });
     }
