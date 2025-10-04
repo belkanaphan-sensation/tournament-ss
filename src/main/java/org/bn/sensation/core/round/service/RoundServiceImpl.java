@@ -158,7 +158,7 @@ public class RoundServiceImpl implements RoundService {
             }
         }
     }
-    
+
     @Override
     public RoundState getNextState(RoundState currentState, RoundEvent event) {
         return switch (currentState) {
@@ -168,7 +168,7 @@ public class RoundServiceImpl implements RoundService {
             case COMPLETED -> currentState;
         };
     }
-    
+
     @Override
     public boolean isValidTransition(RoundState currentState, RoundEvent event) {
         return getNextState(currentState, event) != currentState;

@@ -1,4 +1,4 @@
-package org.bn.sensation.core.round.service.dto;
+package org.bn.sensation.core.participant.service.dto;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
 
@@ -14,10 +14,13 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
-public class UpdateRoundResultRequest extends EmptyDto {
+public class UpdateParticipantRoundResultRequest extends EmptyDto {
 
     @PositiveOrZero
     @NotNull
     @Schema(description = "Значение оценки для данного участника данным судьей по данному критерию", example = "5")
     private Integer score;
+
+    @Schema(description = "Добавление участника в избранные (возможные кандидаты)", example = "true", defaultValue = "false")
+    private Boolean isFavorite;
 }

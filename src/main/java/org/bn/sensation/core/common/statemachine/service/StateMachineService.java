@@ -7,5 +7,5 @@ import jakarta.validation.constraints.NotNull;
 public interface StateMachineService<E extends BaseEvent> {
 
     void sendEvent(@NotNull Long entityId, E event);
-    
+
 }

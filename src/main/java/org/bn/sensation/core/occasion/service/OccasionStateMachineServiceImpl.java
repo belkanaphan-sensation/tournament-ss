@@ -33,7 +33,7 @@ public class OccasionStateMachineServiceImpl implements OccasionStateMachineServ
         }
         if (occasionService.canTransition(occasion, event)) {
             StateMachine<OccasionState, OccasionEvent> sm = occasionStateMachine.getStateMachine(occasion.getId().toString());
-            
+
             // Создаем сообщение
             Message<OccasionEvent> message = MessageBuilder
                     .withPayload(event)

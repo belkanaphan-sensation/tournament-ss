@@ -1,4 +1,4 @@
-package org.bn.sensation.core.round.service;
+package org.bn.sensation.core.participant.service;
 
 import java.util.List;
 import java.util.Objects;
@@ -9,16 +9,16 @@ import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
+import org.bn.sensation.core.participant.entity.ParticipantRoundResultEntity;
 import org.bn.sensation.core.round.entity.RoundEntity;
-import org.bn.sensation.core.round.entity.RoundResultEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.round.repository.RoundResultRepository;
-import org.bn.sensation.core.round.service.dto.CreateRoundResultRequest;
-import org.bn.sensation.core.round.service.dto.RoundResultDto;
-import org.bn.sensation.core.round.service.dto.UpdateRoundResultRequest;
-import org.bn.sensation.core.round.service.mapper.CreateRoundResultRequestMapper;
-import org.bn.sensation.core.round.service.mapper.RoundResultDtoMapper;
-import org.bn.sensation.core.round.service.mapper.UpdateRoundResultRequestMapper;
+import org.bn.sensation.core.participant.repository.ParticipantRoundResultRepository;
+import org.bn.sensation.core.participant.service.dto.CreateParticipantRoundResultRequest;
+import org.bn.sensation.core.participant.service.dto.ParticipantRoundResultDto;
+import org.bn.sensation.core.participant.service.dto.UpdateParticipantRoundResultRequest;
+import org.bn.sensation.core.participant.service.mapper.CreateParticipantRoundResultRequestMapper;
+import org.bn.sensation.core.participant.service.mapper.ParticipantRoundResultDtoMapper;
+import org.bn.sensation.core.participant.service.mapper.UpdateParticipantRoundResultRequestMapper;
 import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
 import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
@@ -35,12 +35,12 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class RoundResultServiceImpl implements RoundResultService {
+public class ParticipantRoundResultServiceImpl implements ParticipantRoundResultService {
 
-    private final RoundResultRepository roundResultRepository;
-    private final RoundResultDtoMapper roundResultDtoMapper;
-    private final CreateRoundResultRequestMapper createRoundResultRequestMapper;
-    private final UpdateRoundResultRequestMapper updateRoundResultRequestMapper;
+    private final ParticipantRoundResultRepository participantRoundResultRepository;
+    private final ParticipantRoundResultDtoMapper participantRoundResultDtoMapper;
+    private final CreateParticipantRoundResultRequestMapper createParticipantRoundResultRequestMapper;
+    private final UpdateParticipantRoundResultRequestMapper updateParticipantRoundResultRequestMapper;
     private final MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
     private final UserActivityAssignmentRepository userActivityAssignmentRepository;
     private final RoundRepository roundRepository;
@@ -48,19 +48,19 @@ public class RoundResultServiceImpl implements RoundResultService {
     private final CurrentUser currentUser;
 
     @Override
-    public BaseRepository<RoundResultEntity> getRepository() {
-        return roundResultRepository;
+    public BaseRepository<ParticipantRoundResultEntity> getRepository() {
+        return participantRoundResultRepository;
     }
 
     @Override
-    public BaseDtoMapper<RoundResultEntity, RoundResultDto> getMapper() {
-        return roundResultDtoMapper;
+    public BaseDtoMapper<ParticipantRoundResultEntity, ParticipantRoundResultDto> getMapper() {
+        return participantRoundResultDtoMapper;
     }
 
     @Override
     @Transactional
     //todo тут должно быть применено правило, если судьи меняются сторонами, пока оно не учитывается
-    public RoundResultDto create(CreateRoundResultRequest request) {
+    public ParticipantRoundResultDto create(CreateParticipantRoundResultRequest request) {
         ParticipantEntity participant = participantRepository.findById(request.getParticipantId())
                 .orElseThrow(EntityNotFoundException::new);
         MilestoneCriteriaAssignmentEntity milestoneCriteria = milestoneCriteriaAssignmentRepository
@@ -84,23 +84,23 @@ public class RoundResultServiceImpl implements RoundResultService {
                         .anyMatch(p -> p.getId().equals(request.getParticipantId())),
                 "Участник не участвует в данном раунде");
 
-        boolean exists = roundResultRepository.existsByRoundIdAndParticipantIdAndActivityUserIdAndMilestoneCriteriaId(
+        boolean exists = participantRoundResultRepository.existsByRoundIdAndParticipantIdAndActivityUserIdAndMilestoneCriteriaId(
                 request.getRoundId(), request.getParticipantId(), activityUser.getId(), request.getMilestoneCriteriaId());
         Preconditions.checkArgument(!exists, "Результат уже существует для данного раунда, участника, судьи и критерия");
 
-        RoundResultEntity entity = createRoundResultRequestMapper.toEntity(request);
+        ParticipantRoundResultEntity entity = createParticipantRoundResultRequestMapper.toEntity(request);
         entity.setParticipant(participant);
         entity.setRound(roundEntity);
         entity.setActivityUser(activityUser);
         entity.setMilestoneCriteria(milestoneCriteria);
-        RoundResultEntity saved = roundResultRepository.save(entity);
-        return roundResultDtoMapper.toDto(saved);
+        ParticipantRoundResultEntity saved = participantRoundResultRepository.save(entity);
+        return participantRoundResultDtoMapper.toDto(saved);
     }
 
     @Override
     @Transactional
-    public RoundResultDto update(Long id, UpdateRoundResultRequest request) {
-        RoundResultEntity entity = roundResultRepository.findById(id)
+    public ParticipantRoundResultDto update(Long id, UpdateParticipantRoundResultRequest request) {
+        ParticipantRoundResultEntity entity = participantRoundResultRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Результат раунда не найден с id: " + id));
 
         Preconditions.checkArgument(currentUser.getSecurityUser()
@@ -109,61 +109,61 @@ public class RoundResultServiceImpl implements RoundResultService {
                         .anyMatch(role -> role == Role.ADMIN || role == Role.SUPERADMIN || role == Role.OCCASION_ADMIN)
                         || entity.getActivityUser().getUser().getId().equals(currentUser.getSecurityUser().getId()),
                 "Нельзя изменить результат");
-        updateRoundResultRequestMapper.updateRoundFromRequest(request, entity);
-        RoundResultEntity saved = roundResultRepository.save(entity);
-        return roundResultDtoMapper.toDto(saved);
+        updateParticipantRoundResultRequestMapper.updateRoundFromRequest(request, entity);
+        ParticipantRoundResultEntity saved = participantRoundResultRepository.save(entity);
+        return participantRoundResultDtoMapper.toDto(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<RoundResultDto> findByRoundId(Long roundId) {
-        List<RoundResultEntity> entities = roundResultRepository.findByRoundId(roundId);
+    public List<ParticipantRoundResultDto> findByRoundId(Long roundId) {
+        List<ParticipantRoundResultEntity> entities = participantRoundResultRepository.findByRoundId(roundId);
         return entities.stream()
-                .map(roundResultDtoMapper::toDto)
+                .map(participantRoundResultDtoMapper::toDto)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<RoundResultDto> findByMilestoneId(Long milestoneId) {
-        List<RoundResultEntity> entities = roundResultRepository.findByMilestoneId(milestoneId);
+    public List<ParticipantRoundResultDto> findByMilestoneId(Long milestoneId) {
+        List<ParticipantRoundResultEntity> entities = participantRoundResultRepository.findByMilestoneId(milestoneId);
         return entities.stream()
-                .map(roundResultDtoMapper::toDto)
+                .map(participantRoundResultDtoMapper::toDto)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<RoundResultDto> findByParticipantId(Long participantId) {
-        List<RoundResultEntity> entities = roundResultRepository.findByParticipantId(participantId);
+    public List<ParticipantRoundResultDto> findByParticipantId(Long participantId) {
+        List<ParticipantRoundResultEntity> entities = participantRoundResultRepository.findByParticipantId(participantId);
         return entities.stream()
-                .map(roundResultDtoMapper::toDto)
+                .map(participantRoundResultDtoMapper::toDto)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<RoundResultDto> findByActivityUserId(Long activityUserId) {
-        List<RoundResultEntity> entities = roundResultRepository.findByActivityUserId(activityUserId);
+    public List<ParticipantRoundResultDto> findByActivityUserId(Long activityUserId) {
+        List<ParticipantRoundResultEntity> entities = participantRoundResultRepository.findByActivityUserId(activityUserId);
         return entities.stream()
-                .map(roundResultDtoMapper::toDto)
+                .map(participantRoundResultDtoMapper::toDto)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<RoundResultDto> findAll(Pageable pageable) {
-        return roundResultRepository.findAll(pageable).map(roundResultDtoMapper::toDto);
+    public Page<ParticipantRoundResultDto> findAll(Pageable pageable) {
+        return participantRoundResultRepository.findAll(pageable).map(participantRoundResultDtoMapper::toDto);
     }
 
     @Override
     @Transactional
     public void deleteById(Long id) {
-        if (!roundResultRepository.existsById(id)) {
+        if (!participantRoundResultRepository.existsById(id)) {
             throw new EntityNotFoundException("Результат раунда не найден с id: " + id);
         }
 
-        roundResultRepository.deleteById(id);
+        participantRoundResultRepository.deleteById(id);
     }
 
 }
