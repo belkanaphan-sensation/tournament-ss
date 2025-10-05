@@ -8,12 +8,17 @@ import org.bn.sensation.core.common.statemachine.event.RoundEvent;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.bn.sensation.core.round.entity.JudgeRoundEntity;
+import org.bn.sensation.core.round.entity.JudgeRoundStatus;
 import org.bn.sensation.core.round.entity.RoundEntity;
+import org.bn.sensation.core.round.repository.JudgeRoundRepository;
 import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
+import org.bn.sensation.core.round.service.dto.JudgeRoundDto;
 import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
 import org.bn.sensation.core.round.service.mapper.CreateRoundRequestMapper;
+import org.bn.sensation.core.round.service.mapper.JudgeRoundMapper;
 import org.bn.sensation.core.round.service.mapper.RoundDtoMapper;
 import org.bn.sensation.core.round.service.mapper.UpdateRoundRequestMapper;
 import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
@@ -37,6 +42,8 @@ public class RoundServiceImpl implements RoundService {
     private final CreateRoundRequestMapper createRoundRequestMapper;
     private final UpdateRoundRequestMapper updateRoundRequestMapper;
     private final MilestoneRepository milestoneRepository;
+    private final JudgeRoundRepository judgeRoundRepository;
+    private final JudgeRoundMapper judgeRoundMapper;
     private final CurrentUser currentUser;
 
     @Override
@@ -119,6 +126,30 @@ public class RoundServiceImpl implements RoundService {
         return roundRepository.findByMilestoneIdAndStateIn(id, RoundState.LIFE_ROUND_STATES).stream()
                 .map(roundDtoMapper::toDto)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public JudgeRoundDto changeRoundStatus(Long roundId, JudgeRoundStatus judgeRoundStatus) {
+        Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
+        Preconditions.checkArgument(judgeRoundStatus != null, "Статус не может быть null");
+        
+        RoundEntity round = roundRepository.findByIdWithUserAssignments(roundId)
+                .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + roundId));
+        UserActivityAssignmentEntity activityAssignment = round.getMilestone().getActivity().getUserAssignments()
+                .stream()
+                .filter(ua ->
+                        ua.getUser()
+                                .getId()
+                                .equals(currentUser.getSecurityUser().getId())
+                                && ua.getPosition().isJudge())
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("Юзер с id %s не привязан к раунду с id: %s".formatted(currentUser.getSecurityUser().getId(), roundId)));
+
+        JudgeRoundEntity judgeRoundEntity = judgeRoundRepository.findByRoundIdAndJudgeId(roundId, activityAssignment.getId())
+                .orElse(JudgeRoundEntity.builder().round(round).judge(activityAssignment).build());
+        judgeRoundEntity.setStatus(judgeRoundStatus);
+        return judgeRoundMapper.toDto(judgeRoundRepository.save(judgeRoundEntity));
     }
 
     @Override

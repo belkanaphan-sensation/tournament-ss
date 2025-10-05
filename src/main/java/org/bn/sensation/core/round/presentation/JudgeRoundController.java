@@ -1,5 +1,8 @@
 package org.bn.sensation.core.round.presentation;
 
+import org.bn.sensation.core.round.entity.JudgeRoundStatus;
+import org.bn.sensation.core.round.service.RoundService;
+import org.bn.sensation.core.round.service.dto.JudgeRoundDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,17 +25,19 @@ import lombok.RequiredArgsConstructor;
 @Tag(name = "Judge Round Status", description = "The Judge Round Status API")
 public class JudgeRoundController {
 
+    private final RoundService roundService;
+
     @Operation(summary = "Принять результаты раунда",
             description = "Результаты раунда принимаются для текущего пользователя который должен являться судьей раунда")
     @GetMapping(path = "/accept/{roundId}")
-    public ResponseEntity<Void> acceptRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<JudgeRoundDto> acceptRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
+        return ResponseEntity.ok(roundService.changeRoundStatus(roundId, JudgeRoundStatus.ACCEPTED));
     }
 
     @Operation(summary = "Отменить результаты раунда",
             description = "Результаты раунда отменяются для текущего пользователя который должен являться судьей раунда")
     @GetMapping(path = "/reject/{roundId}")
-    public ResponseEntity<Void> rejectRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<JudgeRoundDto> rejectRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
+        return ResponseEntity.ok(roundService.changeRoundStatus(roundId, JudgeRoundStatus.REJECTED));
     }
 }
