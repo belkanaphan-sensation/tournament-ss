@@ -39,3 +39,8 @@ databaseChangeLog:
       author: belkanaphan
       relativeToChangelogFile: true
       file: 2025/04-10-2025.yml
+  - include:
+      id: 06-10-2025-bn-0
+      author: belkanaphan
+      relativeToChangelogFile: true
+      file: 2025/06-10-2025-test-data.yml
