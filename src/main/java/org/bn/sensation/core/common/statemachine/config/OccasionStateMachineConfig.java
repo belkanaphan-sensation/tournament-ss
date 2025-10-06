@@ -1,12 +1,16 @@
 package org.bn.sensation.core.common.statemachine.config;
 
+import java.util.EnumSet;
+
 import org.bn.sensation.core.common.statemachine.action.OccasionAction;
 import org.bn.sensation.core.common.statemachine.event.OccasionEvent;
 import org.bn.sensation.core.common.statemachine.guard.OccasionGuard;
+import org.bn.sensation.core.common.statemachine.listener.OccasionStateMachineListener;
 import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
 import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
+import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 
@@ -19,13 +23,22 @@ public class OccasionStateMachineConfig extends StateMachineConfigurerAdapter<Oc
 
     private final OccasionGuard occasionGuard;
     private final OccasionAction occasionAction;
+    private final OccasionStateMachineListener occasionStateMachineListener;
+
+    @Override
+    public void configure(StateMachineConfigurationConfigurer<OccasionState, OccasionEvent> config) throws Exception {
+        config
+            .withConfiguration()
+            .autoStartup(false)
+            .listener(occasionStateMachineListener);
+    }
 
     @Override
     public void configure(StateMachineStateConfigurer<OccasionState, OccasionEvent> states) throws Exception {
         states
             .withStates()
             .initial(OccasionState.DRAFT)
-            .states(java.util.EnumSet.allOf(OccasionState.class));
+            .states(EnumSet.allOf(OccasionState.class));
     }
 
     @Override

@@ -1,12 +1,16 @@
 package org.bn.sensation.core.common.statemachine.config;
 
+import java.util.EnumSet;
+
 import org.bn.sensation.core.common.statemachine.action.MilestoneAction;
 import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
 import org.bn.sensation.core.common.statemachine.guard.MilestoneGuard;
+import org.bn.sensation.core.common.statemachine.listener.MilestoneStateMachineListener;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
 import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
+import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 
@@ -19,13 +23,22 @@ public class MilestoneStateMachineConfig extends StateMachineConfigurerAdapter<M
 
     private final MilestoneGuard milestoneGuard;
     private final MilestoneAction milestoneAction;
+    private final MilestoneStateMachineListener milestoneStateMachineListener;
+
+    @Override
+    public void configure(StateMachineConfigurationConfigurer<MilestoneState, MilestoneEvent> config) throws Exception {
+        config
+            .withConfiguration()
+            .autoStartup(false)
+            .listener(milestoneStateMachineListener);
+    }
 
     @Override
     public void configure(StateMachineStateConfigurer<MilestoneState, MilestoneEvent> states) throws Exception {
         states
             .withStates()
             .initial(MilestoneState.DRAFT)
-            .states(java.util.EnumSet.allOf(MilestoneState.class));
+            .states(EnumSet.allOf(MilestoneState.class));
     }
 
     @Override

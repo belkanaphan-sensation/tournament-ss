@@ -3,7 +3,9 @@ package org.bn.sensation.core.milestone.presentation;
 import java.util.List;
 
 import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
 import org.bn.sensation.core.milestone.service.MilestoneService;
+import org.bn.sensation.core.milestone.service.MilestoneStateMachineService;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
 import org.bn.sensation.core.milestone.service.dto.MilestoneResultDto;
@@ -11,6 +13,7 @@ import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,9 +31,11 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Milestone", description = "The Milestone API")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
 public class MilestoneController {
 
     private final MilestoneService milestoneService;
+    private final MilestoneStateMachineService milestoneStateMachineService;
 
     @Operation(summary = "Получить этап по ID")
     @GetMapping(path = "/{id}")
@@ -38,6 +43,33 @@ public class MilestoneController {
         return milestoneService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).build());
+    }
+
+    @Operation(summary = "Запланировать этап по ID",
+            description = "Запланировать этап может администратор")
+    @GetMapping(path = "/plan/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> planMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
+        milestoneStateMachineService.sendEvent(id, MilestoneEvent.PLAN);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Начать этап по ID",
+            description = "Начать этап может администратор")
+    @GetMapping(path = "/start/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> startMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
+        milestoneStateMachineService.sendEvent(id, MilestoneEvent.START);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Завершить этап по ID",
+            description = "Завершить этап может администратор")
+    @GetMapping(path = "/stop/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> completeMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
+        milestoneStateMachineService.sendEvent(id, MilestoneEvent.COMPLETE);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Получить этапы по ID активности")

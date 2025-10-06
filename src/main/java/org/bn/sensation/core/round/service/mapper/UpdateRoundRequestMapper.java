@@ -5,6 +5,7 @@ import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
@@ -12,6 +13,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface UpdateRoundRequestMapper extends BaseDtoMapper<RoundEntity, UpdateRoundRequest> {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "participants", ignore = true)
     void updateRoundFromRequest(UpdateRoundRequest request, @MappingTarget RoundEntity entity);
 
 }

@@ -1,12 +1,16 @@
 package org.bn.sensation.core.common.statemachine.config;
 
+import java.util.EnumSet;
+
 import org.bn.sensation.core.common.statemachine.action.ActivityAction;
 import org.bn.sensation.core.common.statemachine.event.ActivityEvent;
 import org.bn.sensation.core.common.statemachine.guard.ActivityGuard;
+import org.bn.sensation.core.common.statemachine.listener.ActivityStateMachineListener;
 import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
 import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
+import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 
@@ -19,13 +23,22 @@ public class ActivityStateMachineConfig extends StateMachineConfigurerAdapter<Ac
 
     private final ActivityGuard activityGuard;
     private final ActivityAction activityAction;
+    private final ActivityStateMachineListener activityStateMachineListener;
+
+    @Override
+    public void configure(StateMachineConfigurationConfigurer<ActivityState, ActivityEvent> config) throws Exception {
+        config
+            .withConfiguration()
+            .autoStartup(false)
+            .listener(activityStateMachineListener);
+    }
 
     @Override
     public void configure(StateMachineStateConfigurer<ActivityState, ActivityEvent> states) throws Exception {
         states
             .withStates()
             .initial(ActivityState.DRAFT)
-            .states(java.util.EnumSet.allOf(ActivityState.class));
+            .states(EnumSet.allOf(ActivityState.class));
     }
 
     @Override

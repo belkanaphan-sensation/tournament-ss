@@ -223,6 +223,7 @@ databaseChangeLog:
                 description TEXT,
                 state VARCHAR(20) NOT NULL,
                 milestone_id BIGINT,
+                extra_round BOOLEAN,
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
@@ -252,11 +253,13 @@ databaseChangeLog:
                 phone_number VARCHAR(50),
                 number VARCHAR(100),
                 partner_side VARCHAR(20),
+                activity_id BIGINT,
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
                 modified_by VARCHAR(255),
-                version BIGINT NOT NULL DEFAULT 0
+                version BIGINT NOT NULL DEFAULT 0,
+                FOREIGN KEY (activity_id) REFERENCES activity(id)
               );
       rollback:
         - sql:

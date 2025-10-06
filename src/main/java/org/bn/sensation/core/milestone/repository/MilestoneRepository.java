@@ -34,4 +34,8 @@ public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
     @Query("SELECT m FROM MilestoneEntity m WHERE m.activity.id = :activityId AND m.state IN :states ORDER BY m.milestoneOrder ASC")
     List<MilestoneEntity> findByActivityIdAndStateInWithCriteriaAssignments(@Param("activityId") Long activityId, @Param("states") List<MilestoneState> states);
 
+    @EntityGraph(attributePaths = {"activity"})
+    @Query("SELECT m FROM MilestoneEntity m WHERE m.id = :id")
+    Optional<MilestoneEntity> findByIdWithActivity(@Param("id") Long id);
+
 }

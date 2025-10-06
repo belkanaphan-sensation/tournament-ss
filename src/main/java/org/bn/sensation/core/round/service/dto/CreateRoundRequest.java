@@ -1,5 +1,7 @@
 package org.bn.sensation.core.round.service.dto;
 
+import java.util.List;
+
 import org.bn.sensation.core.common.dto.EmptyDto;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
 
@@ -40,4 +42,11 @@ public class CreateRoundRequest extends EmptyDto {
     @NotNull
     @Schema(description = "Статус раунда", example = "DRAFT")
     private RoundState state;
+
+    @NotNull
+    @Schema(description = "Дополнительный раунд", example = "true")
+    private Boolean isExtraRound;
+
+    @Schema(description = "Список ID участников для раунда")
+    private List<Long> participantIds;
 }

@@ -3,17 +3,17 @@ package org.bn.sensation.core.activity.presentation;
 import java.util.List;
 
 import org.bn.sensation.core.activity.service.ActivityService;
+import org.bn.sensation.core.activity.service.ActivityStateMachineService;
 import org.bn.sensation.core.activity.service.dto.ActivityDto;
 import org.bn.sensation.core.activity.service.dto.ActivityResultDto;
 import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.statemachine.event.ActivityEvent;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.statemachine.config.StateMachineFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,10 +31,11 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Activity", description = "The Activity API")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
 public class ActivityController {
 
     private final ActivityService activityService;
-    private final StateMachineFactory<ActivityState, ActivityEvent> activityStateMachine;
+    private final ActivityStateMachineService activityStateMachineService;
 
     @Operation(summary = "Получить активность по ID")
     @GetMapping(path = "/{id}")
@@ -99,5 +100,32 @@ public class ActivityController {
                         .build()
         );
         return ResponseEntity.ok(result);
+    }
+
+    @Operation(summary = "Запланировать активность по ID",
+            description = "Запланировать активность может администратор")
+    @GetMapping(path = "/plan/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> planActivity(@Parameter @PathVariable("id") @NotNull Long id) {
+        activityStateMachineService.sendEvent(id, ActivityEvent.PLAN);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Начать активность по ID",
+            description = "Начать активность может администратор")
+    @GetMapping(path = "/start/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> startActivity(@Parameter @PathVariable("id") @NotNull Long id) {
+        activityStateMachineService.sendEvent(id, ActivityEvent.START);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Завершить активность по ID",
+            description = "Завершить активность может администратор")
+    @GetMapping(path = "/stop/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> completeActivity(@Parameter @PathVariable("id") @NotNull Long id) {
+        activityStateMachineService.sendEvent(id, ActivityEvent.COMPLETE);
+        return ResponseEntity.noContent().build();
     }
 }

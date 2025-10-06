@@ -182,6 +182,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .build())
                 .number("001")
                 .partnerSide(PartnerSide.LEADER)
+                .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         testParticipant = participantRepository.save(testParticipant);
@@ -230,6 +231,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .phoneNumber("+0987654321")
                 .number("002")
                 .partnerSide(PartnerSide.FOLLOWER)
+                .activityId(testActivity.getId())
                 .build();
 
         // When
@@ -323,6 +325,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+2222222222")
                         .build())
                 .number("003")
+                .activity(testActivity)
                 .build();
         participantRepository.save(participant2);
 
@@ -334,6 +337,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+3333333333")
                         .build())
                 .number("004")
+                .activity(testActivity)
                 .build();
         participantRepository.save(participant3);
 
@@ -435,6 +439,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .secondName(null) // Null second name
                 .email(null) // Null email
                 .phoneNumber(null) // Null phone
+                .activityId(testActivity.getId())
                 .build();
 
         // When
@@ -467,6 +472,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .secondName("Validation")
                 .email("mapping@test.com")
                 .phoneNumber("+5555555555")
+                .activityId(testActivity.getId())
                 .build();
 
         // When
@@ -518,6 +524,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .phoneNumber("+6666666666")
                 .number("R-001")
                 .partnerSide(PartnerSide.FOLLOWER)
+                .activityId(testActivity.getId())
                 .build();
 
         // When
@@ -565,6 +572,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .phoneNumber("+7777777777")
                 .number("N-001")
                 .partnerSide(null) // Null competition role
+                .activityId(testActivity.getId())
                 .build();
 
         // When
@@ -609,6 +617,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .build())
                 .number("003")
                 .partnerSide(PartnerSide.FOLLOWER)
+                .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         participantRepository.save(participant2);
@@ -622,6 +631,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .build())
                 .number("004")
                 .partnerSide(PartnerSide.LEADER)
+                .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         participantRepository.save(participant3);
@@ -653,6 +663,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                             .build())
                     .number("P-" + String.format("%03d", i))
                     .partnerSide(PartnerSide.FOLLOWER)
+                    .activity(testActivity)
                     .rounds(new HashSet<>(Set.of(testRound)))
                     .build();
             participantRepository.save(participant);
@@ -684,6 +695,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .build())
                 .number("OTHER-001")
                 .partnerSide(PartnerSide.FOLLOWER)
+                .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound1))) // Only in testRound1, not testRound
                 .build();
         participantRepository.save(participantForOtherRound);
@@ -729,6 +741,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .build())
                 .number("MULTI-001")
                 .partnerSide(PartnerSide.LEADER)
+                .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound, testRound1))) // In both rounds
                 .build();
         participantRepository.save(multiRoundParticipant);
@@ -857,6 +870,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .build())
                 .number("002")
                 .partnerSide(PartnerSide.FOLLOWER)
+                .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         followerParticipant = participantRepository.save(followerParticipant);
@@ -899,6 +913,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .build())
                 .number("002")
                 .partnerSide(PartnerSide.FOLLOWER)
+                .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         followerParticipant = participantRepository.save(followerParticipant);
@@ -971,6 +986,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .build())
                 .number("002")
                 .partnerSide(PartnerSide.FOLLOWER)
+                .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         followerParticipant1 = participantRepository.save(followerParticipant1);
@@ -984,6 +1000,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .build())
                 .number("003")
                 .partnerSide(PartnerSide.FOLLOWER)
+                .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         followerParticipant2 = participantRepository.save(followerParticipant2);
@@ -1068,6 +1085,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .build())
                 .number("002")
                 .partnerSide(PartnerSide.FOLLOWER)
+                .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         followerParticipant = participantRepository.save(followerParticipant);
@@ -1115,6 +1133,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .build())
                 .number("002")
                 .partnerSide(PartnerSide.FOLLOWER)
+                .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         followerParticipant = participantRepository.save(followerParticipant);
@@ -1155,6 +1174,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .build())
                 .number("003")
                 .partnerSide(PartnerSide.LEADER)
+                .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound1)))
                 .build();
         participant2 = participantRepository.save(participant2);

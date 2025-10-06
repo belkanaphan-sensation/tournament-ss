@@ -4,6 +4,7 @@ import org.bn.sensation.core.round.entity.JudgeRoundStatus;
 import org.bn.sensation.core.round.service.RoundService;
 import org.bn.sensation.core.round.service.dto.JudgeRoundDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Judge Round Status", description = "The Judge Round Status API")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
 public class JudgeRoundController {
 
     private final RoundService roundService;
