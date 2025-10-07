@@ -17,7 +17,7 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO activity (name, description, state, start_date_time, end_date_time, country, city, street_name, street_number, comment, occasion_id, created_at, created_by, modified_at, modified_by, version) VALUES
-              ('Соревнование Школы танцев', 'Основная активность школы танцев с тремя этапами обучения', 'IN_PROGRESS', '2025-11-01 09:00:00', '2025-11-03 18:00:00', 'Казахстан', 'Алматы', 'ул. Танцевальная', '15', 'Школа для всех уровней подготовки', (SELECT id FROM occasion WHERE name = 'Школа'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+              ('Соревнование Школы танцев', 'Основная активность школы танцев с тремя этапами обучения', 'IN_PROGRESS', '2025-11-01 09:00:00', '2025-11-03 18:00:00', 'Казахстан', 'Алматы', 'ул. Танцевальная', '15', 'Школа для всех уровней подготовки', (SELECT id FROM occasion WHERE name = 'Школьное мероприятие'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
 
   # Test data for judges for "Школа" activity
   - changeSet:
