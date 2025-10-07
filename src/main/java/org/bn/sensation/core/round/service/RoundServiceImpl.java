@@ -12,7 +12,9 @@ import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
+import org.bn.sensation.core.participant.entity.ParticipantRoundResultEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
+import org.bn.sensation.core.participant.repository.ParticipantRoundResultRepository;
 import org.bn.sensation.core.round.entity.JudgeRoundEntity;
 import org.bn.sensation.core.round.entity.JudgeRoundStatus;
 import org.bn.sensation.core.round.entity.RoundEntity;
@@ -50,6 +52,7 @@ public class RoundServiceImpl implements RoundService {
     private final ParticipantRepository participantRepository;
     private final JudgeRoundRepository judgeRoundRepository;
     private final JudgeRoundMapper judgeRoundMapper;
+    private final ParticipantRoundResultRepository participantRoundResultRepository;
     private final CurrentUser currentUser;
 
     @Override
@@ -150,10 +153,35 @@ public class RoundServiceImpl implements RoundService {
         Preconditions.checkState(round.getState() == RoundState.IN_PROGRESS,
                 "Статус раунда %s. Не может быть принят или отменен судьей", round.getState());
 
+        checkAccepted(judgeRoundStatus, activityAssignment, round);
+
         JudgeRoundEntity judgeRoundEntity = judgeRoundRepository.findByRoundIdAndJudgeId(roundId, activityAssignment.getId())
                 .orElse(JudgeRoundEntity.builder().round(round).judge(activityAssignment).build());
         judgeRoundEntity.setStatus(judgeRoundStatus);
         return judgeRoundMapper.toDto(judgeRoundRepository.save(judgeRoundEntity));
+    }
+
+    private void checkAccepted(JudgeRoundStatus judgeRoundStatus, UserActivityAssignmentEntity activityAssignment, RoundEntity round) {
+        if (judgeRoundStatus == JudgeRoundStatus.ACCEPTED) {
+            List<ParticipantRoundResultEntity> results = participantRoundResultRepository.findByActivityUserId(activityAssignment.getId());
+            if (activityAssignment.getPartnerSide() == null) {
+                Preconditions.checkState(round.getParticipants().size() == results.size(),
+                        "Судья оценил не всех участников. Оценено: %s. Всего участников в раунде: %s",
+                        results.size(), round.getParticipants().size());
+            } else {
+                //TODO добавить смену сторон, если есть правило этапа на смену сторон судей
+                long participantsCount = round.getParticipants()
+                        .stream()
+                        .filter(p -> p.getPartnerSide() == activityAssignment.getPartnerSide())
+                        .count();
+                long resultsCount = results.stream()
+                        .filter(prr -> prr.getParticipant().getPartnerSide() == activityAssignment.getPartnerSide())
+                        .count();
+                Preconditions.checkState(participantsCount == resultsCount,
+                        "Судья оценил не всех участников своей стороны. Оценено: %s. Всего участников в раунде: %s",
+                        results.size(), round.getParticipants().size());
+            }
+        }
     }
 
     @Override

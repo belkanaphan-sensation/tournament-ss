@@ -10,10 +10,28 @@ import org.springframework.data.repository.query.Param;
 
 public interface ParticipantRoundResultRepository extends BaseRepository<ParticipantRoundResultEntity> {
 
+    @EntityGraph(attributePaths = {"participant", "round", "milestoneCriteria", "activityUser"})
+    @Query("""
+            SELECT DISTINCT rr
+            FROM ParticipantRoundResultEntity rr
+            WHERE rr.round.id = :roundId
+            """)
     List<ParticipantRoundResultEntity> findByRoundId(Long roundId);
 
+    @EntityGraph(attributePaths = {"participant", "round", "milestoneCriteria", "activityUser"})
+    @Query("""
+            SELECT DISTINCT rr
+            FROM ParticipantRoundResultEntity rr
+            WHERE rr.participant.id = :participantId
+            """)
     List<ParticipantRoundResultEntity> findByParticipantId(Long participantId);
 
+    @EntityGraph(attributePaths = {"participant.activity", "round", "milestoneCriteria", "activityUser"})
+    @Query("""
+            SELECT DISTINCT rr
+            FROM ParticipantRoundResultEntity rr
+            WHERE rr.participant.activity = :activityUserId
+            """)
     List<ParticipantRoundResultEntity> findByActivityUserId(Long activityUserId);
 
     @EntityGraph(attributePaths = {"participant", "round", "milestoneCriteria", "activityUser"})

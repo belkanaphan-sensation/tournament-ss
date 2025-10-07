@@ -34,7 +34,7 @@ public class ParticipantRoundResultController {
 
     @Operation(summary = "Получить результат раунда по ID")
     @GetMapping(path = "/{id}")
-    public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
+    public ResponseEntity<ParticipantRoundResultDto> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return participantRoundResultService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).build());

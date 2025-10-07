@@ -35,7 +35,7 @@ public class AuthController {
 
     @Operation(summary = "Смена пароля")
     @PatchMapping(path = "/change-password")
-    public ResponseEntity<?> changePassword(
+    public ResponseEntity<Void> changePassword(
             @Valid @RequestBody ChangePasswordRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         userService.changePassword(request, userDetails);
@@ -44,7 +44,7 @@ public class AuthController {
 
     @Operation(summary = "Восстановление пароля")
     @PostMapping(path = "/forgot-password")
-    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         userService.sendEmail(request);
         return ResponseEntity.ok().build();
     }
