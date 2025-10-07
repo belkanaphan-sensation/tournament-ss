@@ -36,6 +36,6 @@ public class MilestoneResultDto extends BaseDto {
     private Integer totalScore;
 
     @Schema(description = "Результаты по критериям")
-    private List<MilestoneCriteriaScoreDto> criteriaScores;
+    private List<MilestoneCriteriaResultDto> criteriaResults;
 
 }

@@ -36,7 +36,7 @@ public class RoundEntity extends BaseEntity {
     private RoundState state;
 
     @Column(name = "extra_round")
-    private Boolean isExtraRound;
+    private Boolean extraRound;
 
     @ManyToMany(mappedBy = "rounds")
     @Builder.Default

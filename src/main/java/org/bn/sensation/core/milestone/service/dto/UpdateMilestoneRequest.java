@@ -20,7 +20,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Запрос на обновление вехи")
+@Schema(description = "Запрос на обновление этапа")
 public class UpdateMilestoneRequest extends EmptyDto {
 
     @Size(max = 255)

@@ -19,7 +19,7 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Суммарный балл участника по критерию в рамках этапа")
-public class MilestoneCriteriaScoreDto extends BaseDto {
+public class MilestoneCriteriaResultDto extends BaseDto {
 
     @Schema(description = "Назначение критерия на этап")
     private EntityLinkDto milestoneCriteriaAssignment;

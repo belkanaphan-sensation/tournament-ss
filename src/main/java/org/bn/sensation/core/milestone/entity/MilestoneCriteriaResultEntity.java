@@ -17,16 +17,16 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class MilestoneCriteriaScoreEntity extends BaseEntity {
+public class MilestoneCriteriaResultEntity extends BaseEntity {
+
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "milestone_criteria_assignment_id")
+    private MilestoneCriteriaAssignmentEntity milestoneCriteria;
+
+    @Column(name = "total_score")
+    private Integer totalScore;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "milestone_result_id")
     private MilestoneResultEntity milestoneResult;
-
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "milestone_criteria_assignment_id")
-    private MilestoneCriteriaAssignmentEntity milestoneCriteriaAssignment;
-
-    @Column(name = "total_score")
-    private Integer totalScore;
 }

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
+import org.bn.sensation.core.milestone.service.MilestoneResultService;
 import org.bn.sensation.core.milestone.service.MilestoneService;
 import org.bn.sensation.core.milestone.service.MilestoneStateMachineService;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
@@ -36,10 +37,11 @@ public class MilestoneController {
 
     private final MilestoneService milestoneService;
     private final MilestoneStateMachineService milestoneStateMachineService;
+    private final MilestoneResultService milestoneResultService;
 
     @Operation(summary = "Получить этап по ID")
     @GetMapping(path = "/{id}")
-    public ResponseEntity<?> getById(@Parameter @PathVariable("id") @NotNull Long id) {
+    public ResponseEntity<MilestoneDto> getById(@Parameter @PathVariable("id") @NotNull Long id) {
         return milestoneService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).build());
@@ -65,9 +67,11 @@ public class MilestoneController {
 
     @Operation(summary = "Завершить этап по ID",
             description = "Завершить этап может администратор")
-    @GetMapping(path = "/stop/{id}")
+    @PostMapping(path = "/stop/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> completeMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
+    public ResponseEntity<Void> completeMilestone(@Parameter @PathVariable("id") @NotNull Long id,
+                                                  @Valid @RequestBody List<MilestoneResultDto> request) {
+        request.forEach(result -> milestoneResultService.update(result));
         milestoneStateMachineService.sendEvent(id, MilestoneEvent.COMPLETE);
         return ResponseEntity.noContent().build();
     }
