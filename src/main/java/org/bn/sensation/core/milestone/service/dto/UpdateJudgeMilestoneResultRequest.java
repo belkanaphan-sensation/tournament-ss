@@ -1,6 +1,6 @@
 package org.bn.sensation.core.milestone.service.dto;
 
-import org.bn.sensation.core.common.dto.EmptyDto;
+import org.bn.sensation.core.common.dto.BaseDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
-public class UpdateJudgeMilestoneResultRequest extends EmptyDto {
+public class UpdateJudgeMilestoneResultRequest extends BaseDto {
 
     @PositiveOrZero
     @NotNull
