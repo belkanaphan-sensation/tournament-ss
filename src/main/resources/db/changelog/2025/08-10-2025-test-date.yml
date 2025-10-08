@@ -1,0 +1,198 @@
+databaseChangeLog:
+  # Test data for occasion
+  - changeSet:
+      id: 2025-10-08-1
+      author: system
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO occasion (name, description, state, start_date, end_date, organization_id, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('Sensation J&J', 'Ежегодное соревнования в рамках фестиваля SBF', 'IN_PROGRESS', '2025-11-01', '2025-11-03', 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+
+  # Test data for activity
+  - changeSet:
+      id: 2025-10-08-2
+      author: system
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO activity (name, description, state, start_date_time, end_date_time, country, city, street_name, street_number, comment, occasion_id, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('Соревнования категории Любители', 'Формат соревнований Jack & Jill', 'IN_PROGRESS', '2025-11-01 09:00:00', '2025-11-03 18:00:00', 'Казахстан', 'Алматы', 'ул. Танцевальная', '15', 'Школа для всех уровней подготовки', (SELECT id FROM occasion WHERE name = 'Sensation J&J'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+
+  # Test data for judges
+  - changeSet:
+      id: 2025-10-08-3
+      author: system
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO users (username, password, status, name, surname, second_name, email, phone_number, created_at, created_by, modified_at, modified_by, version) VALUES
+              -- Судьи для лидеров
+              ('bogdan', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Богдан', 'Болдырев', 'Отчестович', 'bogdan@test.kz', '+7 777 201 00 01', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('kevin', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Кевин', 'Бака-Сегура', 'Батькович', 'kevin@test.kz', '+7 777 201 00 02', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              -- Судьи для фоловеров
+              ('polina', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Полина', 'Горбачёва', 'Отчестовна', 'polina@test.kz', '+7 777 201 00 03', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('masha', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Мария', 'Болдырева', 'Батьковна', 'masha@test.kz', '+7 777 201 00 04', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+
+  # Test data for judge roles
+  - changeSet:
+      id: 2025-10-08-4
+      author: system
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO user_roles (user_id, role) VALUES
+              ((SELECT id FROM users WHERE username = 'bogdan'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'kevin'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'polina'), 'USER'),
+              ((SELECT id FROM users WHERE username = 'masha'), 'USER');
+
+  # Test data for participants for "Школа" activity (25 participants: 13 leaders + 12 followers)
+  - changeSet:
+      id: 2025-10-08-5
+      author: system
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO participant (name, surname, second_name, email, phone_number, number, partner_side, activity_id, created_at, created_by, modified_at, modified_by, version) VALUES
+              -- Лидеры (10 участников)
+              ('Алексей', 'Танцоров', 'Александрович', 'alexey_t@school.kz', '+7 777 301 00 01', '001-L', 'LEADER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Борис', 'Танцоров', 'Борисович', 'boris_t@school.kz', '+7 777 301 00 02', '002-L', 'LEADER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Владимир', 'Танцоров', 'Владимирович', 'vladimir_t@school.kz', '+7 777 301 00 03', '003-L', 'LEADER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Григорий', 'Танцоров', 'Григорьевич', 'grigory_t@school.kz', '+7 777 301 00 04', '004-L', 'LEADER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Дмитрий', 'Танцоров', 'Дмитриевич', 'dmitry_t@school.kz', '+7 777 301 00 05', '005-L', 'LEADER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Евгений', 'Танцоров', 'Евгеньевич', 'evgeny_t@school.kz', '+7 777 301 00 06', '006-L', 'LEADER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Жан', 'Танцоров', 'Жанович', 'zhan_t@school.kz', '+7 777 301 00 07', '007-L', 'LEADER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Игорь', 'Танцоров', 'Игоревич', 'igor_t@school.kz', '+7 777 301 00 08', '008-L', 'LEADER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Кирилл', 'Танцоров', 'Кириллович', 'kirill_t@school.kz', '+7 777 301 00 09', '009-L', 'LEADER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Леонид', 'Танцоров', 'Леонидович', 'leonid_t@school.kz', '+7 777 301 00 10', '010-L', 'LEADER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              
+              -- Фоловеры (12 участников)
+              ('Анна', 'Танцорова', 'Александровна', 'anna_t@school.kz', '+7 777 301 00 14', '001-F', 'FOLLOWER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Белла', 'Танцорова', 'Борисовна', 'bella_t@school.kz', '+7 777 301 00 15', '002-F', 'FOLLOWER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Валентина', 'Танцорова', 'Владимировна', 'valentina_t@school.kz', '+7 777 301 00 16', '003-F', 'FOLLOWER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Галина', 'Танцорова', 'Григорьевна', 'galina_t@school.kz', '+7 777 301 00 17', '004-F', 'FOLLOWER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Дарья', 'Танцорова', 'Дмитриевна', 'darya_t@school.kz', '+7 777 301 00 18', '005-F', 'FOLLOWER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Елена', 'Танцорова', 'Евгеньевна', 'elena_t@school.kz', '+7 777 301 00 19', '006-F', 'FOLLOWER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Жанна', 'Танцорова', 'Жановна', 'zhanna_t@school.kz', '+7 777 301 00 20', '007-F', 'FOLLOWER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Ирина', 'Танцорова', 'Игоревна', 'irina_t@school.kz', '+7 777 301 00 21', '008-F', 'FOLLOWER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Кристина', 'Танцорова', 'Кирилловна', 'kristina_t@school.kz', '+7 777 301 00 22', '009-F', 'FOLLOWER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Лариса', 'Танцорова', 'Леонидовна', 'larisa_t@school.kz', '+7 777 301 00 23', '010-F', 'FOLLOWER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Мария', 'Танцорова', 'Максимовна', 'maria_t@school.kz', '+7 777 301 00 24', '011-F', 'FOLLOWER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Наталья', 'Танцорова', 'Николаевна', 'natalya_t@school.kz', '+7 777 301 00 25', '012-F', 'FOLLOWER', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+
+  # Test data for milestones (3 stages with order 2, 1, 0)
+  - changeSet:
+      id: 2025-10-08-6
+      author: system
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO milestone (name, description, state, activity_id, milestone_order, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('Отборочный', 'Первый отборочный этап категории Любители', 'IN_PROGRESS', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Полуфинал', 'Полуфинальный этап категории Любители', 'IN_PROGRESS', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Финал', 'Финальный этап категории Любители', 'IN_PROGRESS', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+
+  # Test data for criteria assignments
+  - changeSet:
+      id: 2025-10-08-7
+      author: system
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO milestone_criteria_assignment (milestone_id, criteria_id, partner_side, weight, scale, priority, created_at, created_by, modified_at, modified_by, version) VALUES
+              -- Этап 1: 1 критерий по шкале 0-1
+              ((SELECT id FROM milestone WHERE name = 'Отборочный'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 1, 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              
+              -- Этап 2: 1 критерий по шкале 0-1
+              ((SELECT id FROM milestone WHERE name = 'Полуфинал'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 1, 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              
+              -- Этап 3: 3 критерия по шкале 12 (финал)
+              ((SELECT id FROM milestone WHERE name = 'Финал'), (SELECT id FROM criteria WHERE name = 'Взаимодействие'), null, 4.0, 5, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Финал'), (SELECT id FROM criteria WHERE name = 'Техника'), null, 3.0, 5, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Финал'), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, 2.0, 5, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone WHERE name = 'Финал'), (SELECT id FROM criteria WHERE name = 'Имидж'), null, 1.0, 5, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+
+  # Test data for rounds
+  - changeSet:
+      id: 2025-10-08-8
+      author: system
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO round (name, description, state, milestone_id, extra_round, created_at, created_by, modified_at, modified_by, version) VALUES
+              -- Этап 1: 5 раундов
+              ('Раунд 1', 'Первый раунд отборочного этапа', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Отборочный'), false, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Раунд 2', 'Второй раунд отборочного этапа', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Отборочный'), false, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              
+              -- Этап 2: 3 раунда
+              ('Раунд 1', 'Первый раунд полуфинала', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Полуфинал'), false, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Раунд 2', 'Второй раунд полуфинала', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Полуфинал'), false, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              
+              -- Этап 3: 2 раунда
+              ('Раунд 3', 'Финальный раунд', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Финал'), false, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+
+  # Test data for rounds_participants_association with progressive selection
+  - changeSet:
+      id: 2025-10-08-9
+      author: system
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO rounds_participants_association (participant_id, round_id) VALUES
+              -- Раунд 1.1: 5 пар
+              ((SELECT id FROM participant WHERE number = '001-L'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '002-L'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '003-L'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '004-L'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '005-L'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+
+              ((SELECT id FROM participant WHERE number = '001-F'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '002-F'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '003-F'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '004-F'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '005-F'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              
+              -- Раунд 2: 5 пар на оценку и 2 парнерши с ассистентами
+              ((SELECT id FROM participant WHERE number = '006-L'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '007-L'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '008-L'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '009-L'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '010-L'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              
+              ((SELECT id FROM participant WHERE number = '006-F'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '007-F'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '008-F'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '009-F'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '010-F'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '011-F'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
+              ((SELECT id FROM participant WHERE number = '012-F'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный')));
+
+  # Test data for user_activity_assignment (judges for school activity)
+  - changeSet:
+      id: 2025-10-08-10
+      author: system
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO user_activity_assignment (user_id, activity_id, position, partner_side, created_at, created_by, modified_at, modified_by, version) VALUES
+              -- Судьи для лидеров
+              ((SELECT id FROM users WHERE username = 'kevin'), (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 'JUDGE_CHIEF', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM users WHERE username = 'bogdan'), (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 'JUDGE', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              
+              -- Судьи для фоловеров
+              ((SELECT id FROM users WHERE username = 'polina'), (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 'JUDGE_CHIEF', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM users WHERE username = 'masha'), (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+
+  # Test data for users_organizations_association (judges to organization)
+  - changeSet:
+      id: 2025-10-08-11
+      author: system
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO users_organizations_association (user_id, organization_id) VALUES
+              ((SELECT id FROM users WHERE username = 'kevin'), 1),
+              ((SELECT id FROM users WHERE username = 'bogdan'), 1),
+              ((SELECT id FROM users WHERE username = 'polina'), 1),
+              ((SELECT id FROM users WHERE username = 'masha'), 1);
