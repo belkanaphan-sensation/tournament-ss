@@ -5,13 +5,10 @@ import java.util.Set;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
+import org.bn.sensation.core.round.entity.RoundEntity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
@@ -31,6 +28,10 @@ public class MilestoneResultEntity extends BaseEntity {
     @JoinColumn(name = "participant_id")
     private ParticipantEntity participant;
 
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "round_id")
+    private RoundEntity round;
+
     @Column(name = "passed")
     private Boolean passed;
 
@@ -39,5 +40,5 @@ public class MilestoneResultEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "milestoneResult", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @Builder.Default
-    private Set<MilestoneCriteriaScoreEntity> criteriaScores = new HashSet<>();
+    private Set<MilestoneCriteriaResultEntity> criteriaScores = new HashSet<>();
 }

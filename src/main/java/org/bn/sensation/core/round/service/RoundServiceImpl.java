@@ -12,7 +12,9 @@ import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
+import org.bn.sensation.core.milestone.entity.JudgeMilestoneResultEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
+import org.bn.sensation.core.milestone.repository.JudgeMilestoneResultRepository;
 import org.bn.sensation.core.round.entity.JudgeRoundEntity;
 import org.bn.sensation.core.round.entity.JudgeRoundStatus;
 import org.bn.sensation.core.round.entity.RoundEntity;
@@ -50,6 +52,7 @@ public class RoundServiceImpl implements RoundService {
     private final ParticipantRepository participantRepository;
     private final JudgeRoundRepository judgeRoundRepository;
     private final JudgeRoundMapper judgeRoundMapper;
+    private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
     private final CurrentUser currentUser;
 
     @Override
@@ -150,10 +153,35 @@ public class RoundServiceImpl implements RoundService {
         Preconditions.checkState(round.getState() == RoundState.IN_PROGRESS,
                 "Статус раунда %s. Не может быть принят или отменен судьей", round.getState());
 
+        checkAccepted(judgeRoundStatus, activityAssignment, round);
+
         JudgeRoundEntity judgeRoundEntity = judgeRoundRepository.findByRoundIdAndJudgeId(roundId, activityAssignment.getId())
                 .orElse(JudgeRoundEntity.builder().round(round).judge(activityAssignment).build());
         judgeRoundEntity.setStatus(judgeRoundStatus);
         return judgeRoundMapper.toDto(judgeRoundRepository.save(judgeRoundEntity));
+    }
+
+    private void checkAccepted(JudgeRoundStatus judgeRoundStatus, UserActivityAssignmentEntity activityAssignment, RoundEntity round) {
+        if (judgeRoundStatus == JudgeRoundStatus.ACCEPTED) {
+            List<JudgeMilestoneResultEntity> results = judgeMilestoneResultRepository.findByActivityUserId(activityAssignment.getId());
+            if (activityAssignment.getPartnerSide() == null) {
+                Preconditions.checkState(round.getParticipants().size() == results.size(),
+                        "Судья оценил не всех участников. Оценено: %s. Всего участников в раунде: %s",
+                        results.size(), round.getParticipants().size());
+            } else {
+                //TODO добавить смену сторон, если есть правило этапа на смену сторон судей
+                long participantsCount = round.getParticipants()
+                        .stream()
+                        .filter(p -> p.getPartnerSide() == activityAssignment.getPartnerSide())
+                        .count();
+                long resultsCount = results.stream()
+                        .filter(prr -> prr.getParticipant().getPartnerSide() == activityAssignment.getPartnerSide())
+                        .count();
+                Preconditions.checkState(participantsCount == resultsCount,
+                        "Судья оценил не всех участников своей стороны. Оценено: %s. Всего участников в раунде: %s",
+                        results.size(), round.getParticipants().size());
+            }
+        }
     }
 
     @Override
@@ -166,13 +194,14 @@ public class RoundServiceImpl implements RoundService {
     @Override
     public boolean canTransition(RoundEntity round, RoundEvent event) {
         return switch (event) {
-            case PLAN -> true;
+            //TODO сделать для COMPLETE
+            case PLAN, COMPLETE -> true;
             case START -> {
                 Preconditions.checkState(round.getMilestone().getState() == MilestoneState.IN_PROGRESS,
                         "Нельзя стартовать раунд, т.к. этап находится в статусе %s", round.getMilestone().getState());
                 yield true;
             }
-            case COMPLETE -> {
+            case ACCEPT -> {
                 List<JudgeRoundEntity> judgeRoundStatuses = judgeRoundRepository.findByRoundId(round.getId());
                 Set<Long> acceptedJudgeIds = judgeRoundStatuses.stream()
                         .filter(jrs -> jrs.getStatus() == JudgeRoundStatus.ACCEPTED)
@@ -189,7 +218,6 @@ public class RoundServiceImpl implements RoundService {
                 Preconditions.checkState(allJudgesAccepted, "Не все судьи подтвердили результаты. Раунд не может быть завершен");
                 yield true;
             }
-
         };
     }
 
@@ -197,8 +225,13 @@ public class RoundServiceImpl implements RoundService {
     public RoundState getNextState(RoundState currentState, RoundEvent event) {
         return switch (currentState) {
             case DRAFT -> event == RoundEvent.PLAN ? RoundState.PLANNED : currentState;
-            case PLANNED, COMPLETED -> event == RoundEvent.START ? RoundState.IN_PROGRESS : currentState;
-            case IN_PROGRESS -> event == RoundEvent.COMPLETE ? RoundState.COMPLETED : currentState;
+            case PLANNED -> event == RoundEvent.START ? RoundState.IN_PROGRESS : currentState;
+            case IN_PROGRESS, COMPLETED -> event == RoundEvent.ACCEPT ? RoundState.ACCEPTED : currentState;
+            case ACCEPTED -> event == RoundEvent.COMPLETE
+                    ? RoundState.COMPLETED :
+                    event == RoundEvent.PLAN
+                            ? RoundState.IN_PROGRESS
+                            : currentState;
         };
     }
 

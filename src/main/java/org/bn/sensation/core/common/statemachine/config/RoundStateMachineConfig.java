@@ -24,39 +24,46 @@ public class RoundStateMachineConfig extends StateMachineConfigurerAdapter<Round
     @Override
     public void configure(StateMachineConfigurationConfigurer<RoundState, RoundEvent> config) throws Exception {
         config
-            .withConfiguration()
-            .autoStartup(false)
-            .listener(roundStateMachineListener);
+                .withConfiguration()
+                .autoStartup(false)
+                .listener(roundStateMachineListener);
     }
 
     @Override
     public void configure(StateMachineStateConfigurer<RoundState, RoundEvent> states) throws Exception {
         states
-            .withStates()
-            .initial(RoundState.DRAFT)
-            .states(java.util.EnumSet.allOf(RoundState.class));
+                .withStates()
+                .initial(RoundState.DRAFT)
+                .states(java.util.EnumSet.allOf(RoundState.class));
     }
 
     @Override
     public void configure(StateMachineTransitionConfigurer<RoundState, RoundEvent> transitions) throws Exception {
         transitions
-            // DRAFT -> PLANNED
-            .withExternal()
+                // DRAFT -> PLANNED
+                .withExternal()
                 .source(RoundState.DRAFT)
                 .target(RoundState.PLANNED)
                 .event(RoundEvent.PLAN)
                 .action(roundAction)
                 .and()
-            // PLANNED -> IN_PROGRESS
-            .withExternal()
+                // PLANNED -> IN_PROGRESS
+                .withExternal()
                 .source(RoundState.PLANNED)
                 .target(RoundState.IN_PROGRESS)
                 .event(RoundEvent.START)
                 .action(roundAction)
                 .and()
-            // IN_PROGRESS -> COMPLETED
-            .withExternal()
+                // IN_PROGRESS -> ACCEPTED
+                .withExternal()
                 .source(RoundState.IN_PROGRESS)
+                .target(RoundState.ACCEPTED)
+                .event(RoundEvent.START)
+                .action(roundAction)
+                .and()
+                // ACCEPTED -> COMPLETED
+                .withExternal()
+                .source(RoundState.ACCEPTED)
                 .target(RoundState.COMPLETED)
                 .event(RoundEvent.COMPLETE)
                 .action(roundAction);

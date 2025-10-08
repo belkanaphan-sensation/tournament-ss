@@ -50,7 +50,7 @@ databaseChangeLog:
             sql: |
               DROP TABLE IF EXISTS milestone_result;
 
-  # Create participant_round_result table
+  # Create judge_milestone_result table
   - changeSet:
       id: 2025-09-25-3
       author: belkanaphan
@@ -58,7 +58,7 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              CREATE TABLE IF NOT EXISTS participant_round_result (
+              CREATE TABLE IF NOT EXISTS judge_milestone_result (
                 id BIGSERIAL PRIMARY KEY,
                 score INTEGER,
                 favorite BOOLEAN NOT NULL DEFAULT FALSE,
@@ -79,4 +79,4 @@ databaseChangeLog:
       rollback:
         - sql:
             sql: |
-              DROP TABLE IF EXISTS participant_round_result;
+              DROP TABLE IF EXISTS judge_milestone_result;

@@ -1,4 +1,4 @@
-package org.bn.sensation.core.participant.service;
+package org.bn.sensation.core.milestone.service;
 
 import java.util.List;
 import java.util.Objects;
@@ -9,16 +9,16 @@ import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
-import org.bn.sensation.core.participant.entity.ParticipantRoundResultEntity;
+import org.bn.sensation.core.milestone.entity.JudgeMilestoneResultEntity;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.participant.repository.ParticipantRoundResultRepository;
-import org.bn.sensation.core.participant.service.dto.CreateParticipantRoundResultRequest;
-import org.bn.sensation.core.participant.service.dto.ParticipantRoundResultDto;
-import org.bn.sensation.core.participant.service.dto.UpdateParticipantRoundResultRequest;
-import org.bn.sensation.core.participant.service.mapper.CreateParticipantRoundResultRequestMapper;
-import org.bn.sensation.core.participant.service.mapper.ParticipantRoundResultDtoMapper;
-import org.bn.sensation.core.participant.service.mapper.UpdateParticipantRoundResultRequestMapper;
+import org.bn.sensation.core.milestone.repository.JudgeMilestoneResultRepository;
+import org.bn.sensation.core.milestone.service.dto.CreateJudgeMilestoneResultRequest;
+import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultDto;
+import org.bn.sensation.core.milestone.service.dto.UpdateJudgeMilestoneResultRequest;
+import org.bn.sensation.core.milestone.service.mapper.CreateJudgeMilestoneResultRequestMapper;
+import org.bn.sensation.core.milestone.service.mapper.JudgeMilestoneResultDtoMapper;
+import org.bn.sensation.core.milestone.service.mapper.UpdateJudgeMilestoneResultRequestMapper;
 import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
 import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
@@ -35,12 +35,12 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class ParticipantRoundResultServiceImpl implements ParticipantRoundResultService {
+public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultService {
 
-    private final ParticipantRoundResultRepository participantRoundResultRepository;
-    private final ParticipantRoundResultDtoMapper participantRoundResultDtoMapper;
-    private final CreateParticipantRoundResultRequestMapper createParticipantRoundResultRequestMapper;
-    private final UpdateParticipantRoundResultRequestMapper updateParticipantRoundResultRequestMapper;
+    private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
+    private final JudgeMilestoneResultDtoMapper judgeMilestoneResultDtoMapper;
+    private final CreateJudgeMilestoneResultRequestMapper createJudgeMilestoneResultRequestMapper;
+    private final UpdateJudgeMilestoneResultRequestMapper updateJudgeMilestoneResultRequestMapper;
     private final MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
     private final UserActivityAssignmentRepository userActivityAssignmentRepository;
     private final RoundRepository roundRepository;
@@ -48,19 +48,19 @@ public class ParticipantRoundResultServiceImpl implements ParticipantRoundResult
     private final CurrentUser currentUser;
 
     @Override
-    public BaseRepository<ParticipantRoundResultEntity> getRepository() {
-        return participantRoundResultRepository;
+    public BaseRepository<JudgeMilestoneResultEntity> getRepository() {
+        return judgeMilestoneResultRepository;
     }
 
     @Override
-    public BaseDtoMapper<ParticipantRoundResultEntity, ParticipantRoundResultDto> getMapper() {
-        return participantRoundResultDtoMapper;
+    public BaseDtoMapper<JudgeMilestoneResultEntity, JudgeMilestoneResultDto> getMapper() {
+        return judgeMilestoneResultDtoMapper;
     }
 
     @Override
     @Transactional
     //todo тут должно быть применено правило, если судьи меняются сторонами, пока оно не учитывается
-    public ParticipantRoundResultDto create(CreateParticipantRoundResultRequest request) {
+    public JudgeMilestoneResultDto create(CreateJudgeMilestoneResultRequest request) {
         ParticipantEntity participant = participantRepository.findById(request.getParticipantId())
                 .orElseThrow(EntityNotFoundException::new);
         MilestoneCriteriaAssignmentEntity milestoneCriteria = milestoneCriteriaAssignmentRepository
@@ -84,23 +84,23 @@ public class ParticipantRoundResultServiceImpl implements ParticipantRoundResult
                         .anyMatch(p -> p.getId().equals(request.getParticipantId())),
                 "Участник не участвует в данном раунде");
 
-        boolean exists = participantRoundResultRepository.existsByRoundIdAndParticipantIdAndActivityUserIdAndMilestoneCriteriaId(
+        boolean exists = judgeMilestoneResultRepository.existsByRoundIdAndParticipantIdAndActivityUserIdAndMilestoneCriteriaId(
                 request.getRoundId(), request.getParticipantId(), activityUser.getId(), request.getMilestoneCriteriaId());
         Preconditions.checkArgument(!exists, "Результат уже существует для данного раунда, участника, судьи и критерия");
 
-        ParticipantRoundResultEntity entity = createParticipantRoundResultRequestMapper.toEntity(request);
+        JudgeMilestoneResultEntity entity = createJudgeMilestoneResultRequestMapper.toEntity(request);
         entity.setParticipant(participant);
         entity.setRound(roundEntity);
         entity.setActivityUser(activityUser);
         entity.setMilestoneCriteria(milestoneCriteria);
-        ParticipantRoundResultEntity saved = participantRoundResultRepository.save(entity);
-        return participantRoundResultDtoMapper.toDto(saved);
+        JudgeMilestoneResultEntity saved = judgeMilestoneResultRepository.save(entity);
+        return judgeMilestoneResultDtoMapper.toDto(saved);
     }
 
     @Override
     @Transactional
-    public ParticipantRoundResultDto update(Long id, UpdateParticipantRoundResultRequest request) {
-        ParticipantRoundResultEntity entity = participantRoundResultRepository.findById(id)
+    public JudgeMilestoneResultDto update(Long id, UpdateJudgeMilestoneResultRequest request) {
+        JudgeMilestoneResultEntity entity = judgeMilestoneResultRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Результат раунда не найден с id: " + id));
 
         Preconditions.checkArgument(currentUser.getSecurityUser()
@@ -109,61 +109,61 @@ public class ParticipantRoundResultServiceImpl implements ParticipantRoundResult
                         .anyMatch(role -> role == Role.ADMIN || role == Role.SUPERADMIN || role == Role.OCCASION_ADMIN)
                         || entity.getActivityUser().getUser().getId().equals(currentUser.getSecurityUser().getId()),
                 "Нельзя изменить результат");
-        updateParticipantRoundResultRequestMapper.updateRoundFromRequest(request, entity);
-        ParticipantRoundResultEntity saved = participantRoundResultRepository.save(entity);
-        return participantRoundResultDtoMapper.toDto(saved);
+        updateJudgeMilestoneResultRequestMapper.updateRoundFromRequest(request, entity);
+        JudgeMilestoneResultEntity saved = judgeMilestoneResultRepository.save(entity);
+        return judgeMilestoneResultDtoMapper.toDto(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ParticipantRoundResultDto> findByRoundId(Long roundId) {
-        List<ParticipantRoundResultEntity> entities = participantRoundResultRepository.findByRoundId(roundId);
+    public List<JudgeMilestoneResultDto> findByRoundId(Long roundId) {
+        List<JudgeMilestoneResultEntity> entities = judgeMilestoneResultRepository.findByRoundId(roundId);
         return entities.stream()
-                .map(participantRoundResultDtoMapper::toDto)
+                .map(judgeMilestoneResultDtoMapper::toDto)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ParticipantRoundResultDto> findByMilestoneId(Long milestoneId) {
-        List<ParticipantRoundResultEntity> entities = participantRoundResultRepository.findByMilestoneId(milestoneId);
+    public List<JudgeMilestoneResultDto> findByMilestoneId(Long milestoneId) {
+        List<JudgeMilestoneResultEntity> entities = judgeMilestoneResultRepository.findByMilestoneId(milestoneId);
         return entities.stream()
-                .map(participantRoundResultDtoMapper::toDto)
+                .map(judgeMilestoneResultDtoMapper::toDto)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ParticipantRoundResultDto> findByParticipantId(Long participantId) {
-        List<ParticipantRoundResultEntity> entities = participantRoundResultRepository.findByParticipantId(participantId);
+    public List<JudgeMilestoneResultDto> findByParticipantId(Long participantId) {
+        List<JudgeMilestoneResultEntity> entities = judgeMilestoneResultRepository.findByParticipantId(participantId);
         return entities.stream()
-                .map(participantRoundResultDtoMapper::toDto)
+                .map(judgeMilestoneResultDtoMapper::toDto)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ParticipantRoundResultDto> findByActivityUserId(Long activityUserId) {
-        List<ParticipantRoundResultEntity> entities = participantRoundResultRepository.findByActivityUserId(activityUserId);
+    public List<JudgeMilestoneResultDto> findByActivityUserId(Long activityUserId) {
+        List<JudgeMilestoneResultEntity> entities = judgeMilestoneResultRepository.findByActivityUserId(activityUserId);
         return entities.stream()
-                .map(participantRoundResultDtoMapper::toDto)
+                .map(judgeMilestoneResultDtoMapper::toDto)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ParticipantRoundResultDto> findAll(Pageable pageable) {
-        return participantRoundResultRepository.findAll(pageable).map(participantRoundResultDtoMapper::toDto);
+    public Page<JudgeMilestoneResultDto> findAll(Pageable pageable) {
+        return judgeMilestoneResultRepository.findAll(pageable).map(judgeMilestoneResultDtoMapper::toDto);
     }
 
     @Override
     @Transactional
     public void deleteById(Long id) {
-        if (!participantRoundResultRepository.existsById(id)) {
+        if (!judgeMilestoneResultRepository.existsById(id)) {
             throw new EntityNotFoundException("Результат раунда не найден с id: " + id);
         }
 
-        participantRoundResultRepository.deleteById(id);
+        judgeMilestoneResultRepository.deleteById(id);
     }
 
 }
