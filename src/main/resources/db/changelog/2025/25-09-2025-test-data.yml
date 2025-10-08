@@ -66,14 +66,14 @@ databaseChangeLog:
 #              (40, (SELECT id FROM participant WHERE number = 'P-003-6'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0),
 #              (41, (SELECT id FROM participant WHERE number = 'P-003-6'), (SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), '2025-09-25 10:00:00', 'judge3_1', '2025-09-25 10:00:00', 'judge3_1', 0);
 
-  # Test data for participant_round_result
+  # Test data for judge_milestone_result
   - changeSet:
       id: 2025-09-25-3
       author: belkanaphan
       changes:
         - sql:
             sql: |
-              INSERT INTO participant_round_result (score, participant_id, round_id, milestone_criteria_id, activity_user_id, created_at, created_by, modified_at, modified_by, version, favorite) VALUES
+              INSERT INTO judge_milestone_result (score, participant_id, round_id, milestone_criteria_id, activity_user_id, created_at, created_by, modified_at, modified_by, version, favorite) VALUES
               -- Результаты для участников организации 1 по раунду 1.1 с разными критериями и судьями
               (10, (SELECT id FROM participant WHERE number = 'P-001'), (SELECT id FROM round WHERE name = 'Раунд 1.1'), 
                    (SELECT mca.id FROM milestone_criteria_assignment mca JOIN milestone m ON mca.milestone_id = m.id WHERE m.name = 'Этап 1' AND mca.criteria_id = (SELECT id FROM criteria WHERE name = 'Прохождение') AND mca.partner_side IS NULL), 
@@ -211,5 +211,5 @@ databaseChangeLog:
               -- Для milestone_result
               SELECT setval('milestone_result_id_seq', GREATEST(COALESCE((SELECT MAX(id) FROM milestone_result), 0), 1));
               
-              -- Для participant_round_result
-              SELECT setval('participant_round_result_id_seq', GREATEST(COALESCE((SELECT MAX(id) FROM participant_round_result), 0), 1));
+              -- Для judge_milestone_result
+              SELECT setval('judge_milestone_result_id_seq', GREATEST(COALESCE((SELECT MAX(id) FROM judge_milestone_result), 0), 1));

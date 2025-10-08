@@ -9,8 +9,8 @@ import org.bn.sensation.core.milestone.entity.MilestoneResultEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneResultRepository;
 import org.bn.sensation.core.milestone.service.dto.MilestoneResultDto;
 import org.bn.sensation.core.milestone.service.mapper.MilestoneResultDtoMapper;
-import org.bn.sensation.core.participant.entity.ParticipantRoundResultEntity;
-import org.bn.sensation.core.participant.repository.ParticipantRoundResultRepository;
+import org.bn.sensation.core.milestone.entity.JudgeMilestoneResultEntity;
+import org.bn.sensation.core.milestone.repository.JudgeMilestoneResultRepository;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService{
 
     private final MilestoneResultRepository milestoneResultRepository;
     private final MilestoneResultDtoMapper milestoneResultDtoMapper;
-    private final ParticipantRoundResultRepository participantRoundResultRepository;
+    private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
     @Override
     public BaseRepository<MilestoneResultEntity> getRepository() {
         return milestoneResultRepository;
@@ -34,10 +34,10 @@ public class MilestoneResultServiceImpl implements MilestoneResultService{
 
     @Override
     public List<MilestoneResultDto> getByMilestoneId(Long milestoneId) {
-        List<ParticipantRoundResultEntity> roundResults = participantRoundResultRepository.findByMilestoneId(milestoneId);
-        List<ParticipantRoundResultEntity> extraRounds = roundResults.stream()
+        List<JudgeMilestoneResultEntity> roundResults = judgeMilestoneResultRepository.findByMilestoneId(milestoneId);
+        List<JudgeMilestoneResultEntity> extraRounds = roundResults.stream()
                 .filter(prr -> prr.getRound().getExtraRound())
-                .sorted(Comparator.comparingLong((ParticipantRoundResultEntity prr) -> prr.getRound().getId()).reversed())
+                .sorted(Comparator.comparingLong((JudgeMilestoneResultEntity prr) -> prr.getRound().getId()).reversed())
                 .toList();
         return List.of();
     }

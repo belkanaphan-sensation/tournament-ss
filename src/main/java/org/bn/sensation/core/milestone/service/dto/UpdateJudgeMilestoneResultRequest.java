@@ -1,4 +1,4 @@
-package org.bn.sensation.core.participant.service.dto;
+package org.bn.sensation.core.milestone.service.dto;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
 
@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
-public class UpdateParticipantRoundResultRequest extends EmptyDto {
+public class UpdateJudgeMilestoneResultRequest extends EmptyDto {
 
     @PositiveOrZero
     @NotNull
