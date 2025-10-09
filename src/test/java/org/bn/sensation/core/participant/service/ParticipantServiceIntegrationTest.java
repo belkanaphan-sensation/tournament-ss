@@ -840,20 +840,17 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         testParticipant.getRounds().add(testRound);
         participantRepository.save(testParticipant);
         // When
-        RoundParticipantsDto result = participantService.getByRoundByRoundIdForCurrentUser(testRound.getId());
+        List<ParticipantDto> result = participantService.getByRoundByRoundIdForCurrentUser(testRound.getId());
 
         // Then
         assertNotNull(result);
-        assertNotNull(result.getRound());
-        assertEquals(testRound.getId(), result.getRound().getId());
-        assertEquals(testRound.getName(), result.getRound().getValue());
+        assertEquals(1, result.size());
 
-        assertNotNull(result.getParticipants());
-        assertEquals(1, result.getParticipants().size());
-
-        var participant = result.getParticipants().get(0);
+        var participant = result.get(0);
         assertEquals(testParticipant.getId(), participant.getId());
-        assertEquals(testParticipant.getNumber(), participant.getValue());
+        assertEquals(testParticipant.getNumber(), participant.getNumber());
+        assertEquals(testParticipant.getPerson().getName(), participant.getPerson().getName());
+        assertEquals(testParticipant.getPerson().getSurname(), participant.getPerson().getSurname());
     }
 
     @Test
@@ -881,14 +878,13 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // testUser has PartnerSide.LEADER, so only LEADER participants should be returned
 
         // When
-        RoundParticipantsDto result = participantService.getByRoundByRoundIdForCurrentUser(testRound.getId());
+        List<ParticipantDto> result = participantService.getByRoundByRoundIdForCurrentUser(testRound.getId());
 
         // Then
         assertNotNull(result);
-        assertNotNull(result.getParticipants());
-        assertEquals(1, result.getParticipants().size()); // Only LEADER participant
+        assertEquals(1, result.size()); // Only LEADER participant
 
-        var participant = result.getParticipants().get(0);
+        var participant = result.get(0);
         assertEquals(testParticipant.getId(), participant.getId());
         assertEquals(PartnerSide.LEADER, testParticipant.getPartnerSide());
     }
@@ -922,12 +918,11 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         roundRepository.save(testRound);
 
         // When
-        RoundParticipantsDto result = participantService.getByRoundByRoundIdForCurrentUser(testRound.getId());
+        List<ParticipantDto> result = participantService.getByRoundByRoundIdForCurrentUser(testRound.getId());
 
         // Then - Should return all participants since user has no partnerSide
         assertNotNull(result);
-        assertNotNull(result.getParticipants());
-        assertEquals(2, result.getParticipants().size()); // Both LEADER and FOLLOWER
+        assertEquals(2, result.size()); // Both LEADER and FOLLOWER
     }
 
     @Test
@@ -1019,14 +1014,13 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         activityRepository.save(testActivity);
 
         // When
-        RoundParticipantsDto result = participantService.getByRoundByRoundIdForCurrentUser(testRound.getId());
+        List<ParticipantDto> result = participantService.getByRoundByRoundIdForCurrentUser(testRound.getId());
 
         // Then - Should return only FOLLOWER participants
         assertNotNull(result);
-        assertNotNull(result.getParticipants());
-        assertEquals(2, result.getParticipants().size()); // Only FOLLOWER participants
+        assertEquals(2, result.size()); // Only FOLLOWER participants
 
-        result.getParticipants().forEach(participant -> {
+        result.forEach(participant -> {
             // Verify all returned participants are FOLLOWER
             ParticipantEntity entity = participantRepository.findById(participant.getId()).orElseThrow();
             assertEquals(PartnerSide.FOLLOWER, entity.getPartnerSide());

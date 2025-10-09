@@ -122,7 +122,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     @Transactional(readOnly = true)
-    public RoundParticipantsDto getByRoundByRoundIdForCurrentUser(Long roundId) {
+    public List<ParticipantDto> getByRoundByRoundIdForCurrentUser(Long roundId) {
         Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
         RoundEntity round = roundRepository.findByIdWithUserAssignments(roundId)
                 .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + roundId));
@@ -141,7 +141,9 @@ public class ParticipantServiceImpl implements ParticipantService {
                     return true;
                 })
                 .sorted(Comparator.comparing(p -> p.getNumber())).toList();
-        return roundParticipantsDtoMapper.toDto(round, participants);
+        return participants.stream()
+                .map(this::enrichParticipantDto)
+                .toList();
     }
 
     @Override

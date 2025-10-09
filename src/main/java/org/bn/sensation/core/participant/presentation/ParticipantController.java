@@ -55,7 +55,7 @@ public class ParticipantController {
 
     @Operation(summary = "Получить участников, расформированных по раундам по ID раунда")
     @GetMapping(path = "/by-round/round/{roundId}/currentUser")
-    public ResponseEntity<RoundParticipantsDto> getByRoundByRoundIdForCurrentUser(@PathVariable("roundId") Long roundId) {
+    public ResponseEntity<List<ParticipantDto>> getByRoundByRoundIdForCurrentUser(@PathVariable("roundId") Long roundId) {
         return ResponseEntity.ok(participantService.getByRoundByRoundIdForCurrentUser(roundId));
     }
 
