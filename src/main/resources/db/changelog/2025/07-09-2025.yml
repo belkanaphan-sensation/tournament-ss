@@ -3,6 +3,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-07-1
       author: belkanaphan
+      context: prod
       onFail: MARK_RAN
       changes:
         - sql:
@@ -22,6 +23,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-07-2
       author: belkanaphan
+      context: prod
       onFail: MARK_RAN
       changes:
         - sql:
