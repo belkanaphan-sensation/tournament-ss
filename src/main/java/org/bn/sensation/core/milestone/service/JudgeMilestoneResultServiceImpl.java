@@ -188,18 +188,20 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
             long countInCurrentMilestone = milestone.getRounds().stream()
                     .flatMap(round -> round.getParticipants().stream())
                     .filter(p -> p.getPartnerSide() == partnerSide).count();
-
+            List<JudgeMilestoneResultMilestoneRequest> partnerSideRequests = requests.stream()
+                    .filter(req -> results.get(req.getId()).getParticipant().getPartnerSide() == partnerSide)
+                    .toList();
             // Проверяем, что все оценки в диапазоне от 1 до количества участников
-            for (JudgeMilestoneResultMilestoneRequest request : requests) {
+            for (JudgeMilestoneResultMilestoneRequest request : partnerSideRequests) {
                 Preconditions.checkArgument(request.getScore() != null,
                         "Оценка не может быть null для режима PLACE");
                 Preconditions.checkArgument(request.getScore() >= 1 && request.getScore() <= countInCurrentMilestone,
-                        "Для режима PLACE оценка должна быть от 1 до %d, получена: %s",
+                        "Для режима PLACE оценка должна быть от 1 до %s, получена: %s",
                         countInCurrentMilestone, request.getScore());
             }
 
             // Проверяем уникальность мест (каждое место может быть только один раз)
-            List<Integer> scores = requests.stream()
+            List<Integer> scores = partnerSideRequests.stream()
                     .map(JudgeMilestoneResultMilestoneRequest::getScore)
                     .sorted()
                     .toList();

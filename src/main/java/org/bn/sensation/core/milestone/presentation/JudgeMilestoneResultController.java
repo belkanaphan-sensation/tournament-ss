@@ -78,13 +78,13 @@ public class JudgeMilestoneResultController {
         return ResponseEntity.ok(judgeMilestoneResultService.findByActivityUserId(activityUserId));
     }
 
-    @Operation(summary = "Создать новые результаты судьи для раунда")
+    @Operation(summary = "Создать новые результаты судьи для раунда. Судья - текущий пользователь")
     @PostMapping(path = "/createOrUpdateForRound")
     public ResponseEntity<List<JudgeMilestoneResultDto>> createOrUpdateForRound(@Valid @RequestBody List<JudgeMilestoneResultRoundRequest> request) {
         return ResponseEntity.ok(judgeMilestoneResultService.createOrUpdateForRound(request));
     }
 
-    @Operation(summary = "Обновить результаты судьи по этапу")
+    @Operation(summary = "Обновить результаты судьи по этапу. Судья - текущий пользователь")
     @PostMapping(path = "/updateForMilestone/{milestoneId}")
     public ResponseEntity<List<JudgeMilestoneResultDto>> updateForMilestone(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId,
                                                                             @Valid @RequestBody List<JudgeMilestoneResultMilestoneRequest> request) {

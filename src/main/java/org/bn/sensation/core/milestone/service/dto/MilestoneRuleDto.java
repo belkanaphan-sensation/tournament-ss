@@ -28,6 +28,9 @@ public class MilestoneRuleDto extends BaseDto {
     @Schema(description = "Максимальное количество участников в этапе", example = "10")
     private Integer participantLimit;
 
+    @Schema(description = "Максимальное количество участников в раунде этапа. Не больше чем participantLimit", example = "10")
+    private Integer roundParticipantLimit;
+
     @Schema(description = "Этап, к которому относится правило")
     private EntityLinkDto milestone;
 }

@@ -54,6 +54,9 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
     public MilestoneRuleDto create(CreateMilestoneRuleRequest request) {
         Preconditions.checkArgument(request.getMilestoneId() != null, "Milestone ID не может быть null");
 
+        // Валидация roundParticipantLimit
+        validateRoundParticipantLimit(request.getParticipantLimit(), request.getRoundParticipantLimit());
+
         MilestoneEntity milestone = milestoneRepository.findById(request.getMilestoneId())
                 .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + request.getMilestoneId()));
 
@@ -78,6 +81,13 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
 
         MilestoneRuleEntity rule = milestoneRuleRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Правило не найдено с id: " + id));
+
+        Integer participantLimit = request.getParticipantLimit() != null ?
+            request.getParticipantLimit() : rule.getParticipantLimit();
+        Integer roundParticipantLimit = request.getRoundParticipantLimit() != null ? 
+            request.getRoundParticipantLimit() : rule.getRoundParticipantLimit();
+
+        validateRoundParticipantLimit(participantLimit, roundParticipantLimit);
 
         updateMilestoneRuleRequestMapper.updateMilestoneRuleFromRequest(request, rule);
 
@@ -110,5 +120,12 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
                 .orElseThrow(() -> new EntityNotFoundException("Правило не найдено для этапа с id: " + milestoneId));
 
         return milestoneRuleDtoMapper.toDto(rule);
+    }
+
+    private void validateRoundParticipantLimit(Integer participantLimit, Integer roundParticipantLimit) {
+        if (participantLimit != null && roundParticipantLimit != null && 
+            roundParticipantLimit > participantLimit) {
+            throw new IllegalArgumentException("roundParticipantLimit должен быть меньше или равен participantLimit");
+        }
     }
 }

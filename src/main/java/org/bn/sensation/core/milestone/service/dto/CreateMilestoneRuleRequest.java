@@ -33,6 +33,11 @@ public class CreateMilestoneRuleRequest extends EmptyDto {
     private Integer participantLimit;
 
     @NotNull
+    @Positive
+    @Schema(description = "Максимальное количество участников в раунде этапа. Не больше чем participantLimit", example = "10")
+    private Integer roundParticipantLimit;
+
+    @NotNull
     @Schema(description = "ID этапа, к которому относится правило", example = "1")
     private Long milestoneId;
 }

@@ -110,10 +110,10 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO milestone_rule (assessment_mode, participant_limit, milestone_id, created_at, created_by, modified_at, modified_by, version) VALUES
-              ('SCORE', 25, (SELECT id FROM milestone WHERE name = 'Этап 1 - Отборочный'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
-              ('SCORE', 15, (SELECT id FROM milestone WHERE name = 'Этап 2 - Полуфинал'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
-              ('SCORE', 10, (SELECT id FROM milestone WHERE name = 'Этап 3 - Финал'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+              INSERT INTO milestone_rule (assessment_mode, participant_limit, round_participant_limit, milestone_id, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('SCORE', 25, 10, (SELECT id FROM milestone WHERE name = 'Этап 1 - Отборочный'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('SCORE', 15, 10, (SELECT id FROM milestone WHERE name = 'Этап 2 - Полуфинал'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('SCORE', 10, 10, (SELECT id FROM milestone WHERE name = 'Этап 3 - Финал'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
 
   # Test data for criteria assignments
   - changeSet:

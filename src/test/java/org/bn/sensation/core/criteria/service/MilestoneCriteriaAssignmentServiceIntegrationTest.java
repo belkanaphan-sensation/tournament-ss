@@ -184,6 +184,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
             testMilestoneRule = MilestoneRuleEntity.builder()
                     .assessmentMode(AssessmentMode.SCORE)
                     .participantLimit(10)
+                    .roundParticipantLimit(10)
                     .milestone(testMilestone)
                     .build();
             testMilestoneRule = milestoneRuleRepository.save(testMilestoneRule);
@@ -457,6 +458,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         MilestoneRuleEntity anotherMilestoneRule = MilestoneRuleEntity.builder()
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(10)
+                .roundParticipantLimit(10)
                 .milestone(anotherMilestone)
                 .build();
         anotherMilestoneRule = milestoneRuleRepository.save(anotherMilestoneRule);
@@ -494,6 +496,7 @@ class MilestoneCriteriaAssignmentServiceIntegrationTest extends AbstractIntegrat
         MilestoneRuleEntity milestone2Rule = MilestoneRuleEntity.builder()
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(10)
+                .roundParticipantLimit(10)
                 .milestone(milestone2)
                 .build();
         milestone2Rule = milestoneRuleRepository.save(milestone2Rule);

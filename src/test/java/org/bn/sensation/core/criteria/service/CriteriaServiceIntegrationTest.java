@@ -130,6 +130,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
             testMilestoneRule = MilestoneRuleEntity.builder()
                     .assessmentMode(AssessmentMode.SCORE)
                     .participantLimit(10)
+                    .roundParticipantLimit(10)
                     .milestone(testMilestone)
                     .build();
             testMilestoneRule = milestoneRuleRepository.save(testMilestoneRule);
