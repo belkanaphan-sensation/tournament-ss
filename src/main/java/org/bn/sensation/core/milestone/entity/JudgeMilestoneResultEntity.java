@@ -25,6 +25,9 @@ public class JudgeMilestoneResultEntity extends BaseEntity {
     @Column(name = "favorite")
     private Boolean isFavorite;
 
+    @Column(name = "candidate")
+    private Boolean isCandidate;
+
     @ManyToOne
     @JoinColumn(name = "participant_id")
     private ParticipantEntity participant;

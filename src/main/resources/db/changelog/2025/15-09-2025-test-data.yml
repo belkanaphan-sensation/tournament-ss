@@ -2,7 +2,8 @@ databaseChangeLog:
   # Test data for organizations
   - changeSet:
       id: 2025-09-15-1
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |
@@ -14,7 +15,8 @@ databaseChangeLog:
   # Test data for users (пароль 1111 у всех)
   - changeSet:
       id: 2025-09-15-2
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |
@@ -45,7 +47,8 @@ databaseChangeLog:
   # Test data for user roles
   - changeSet:
       id: 2025-09-15-3
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |
@@ -77,7 +80,8 @@ databaseChangeLog:
   # Test data for occasions
   - changeSet:
       id: 2025-09-15-4
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |
@@ -92,7 +96,8 @@ databaseChangeLog:
   # Test data for activities
   - changeSet:
       id: 2025-09-15-5
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |
@@ -116,7 +121,8 @@ databaseChangeLog:
   # Test data for milestones
   - changeSet:
       id: 2025-09-15-6
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |
@@ -149,7 +155,8 @@ databaseChangeLog:
   # Test data for milestone rules
   - changeSet:
       id: 2025-09-15-7
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |
@@ -182,7 +189,8 @@ databaseChangeLog:
   # Test data for rounds
   - changeSet:
       id: 2025-09-15-8
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |
@@ -225,7 +233,8 @@ databaseChangeLog:
   # Test data for criteria
   - changeSet:
       id: 2025-09-15-9
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |
@@ -242,7 +251,8 @@ databaseChangeLog:
   # Test data for participants
   - changeSet:
       id: 2025-09-15-10
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |
@@ -279,7 +289,8 @@ databaseChangeLog:
   # Test data for users_organizations_association
   - changeSet:
       id: 2025-09-15-11
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |
@@ -304,7 +315,8 @@ databaseChangeLog:
   # Test data for rounds_participants_association
   - changeSet:
       id: 2025-09-15-12
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |
@@ -385,7 +397,8 @@ databaseChangeLog:
   # Test data for milestone_criteria_assignment
   - changeSet:
       id: 2025-09-15-13
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |
@@ -443,7 +456,8 @@ databaseChangeLog:
   # Test data for user_activity_assignment
   - changeSet:
       id: 2025-09-15-14
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |

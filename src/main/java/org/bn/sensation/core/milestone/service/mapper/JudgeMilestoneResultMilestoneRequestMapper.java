@@ -9,7 +9,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(config = BaseDtoMapper.class)
-public interface UpdateJudgeMilestoneResultRequestMapper extends BaseDtoMapper<JudgeMilestoneResultEntity, JudgeMilestoneResultMilestoneRequest> {
+public interface JudgeMilestoneResultMilestoneRequestMapper extends BaseDtoMapper<JudgeMilestoneResultEntity, JudgeMilestoneResultMilestoneRequest> {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateRoundFromRequest(JudgeMilestoneResultMilestoneRequest request, @MappingTarget JudgeMilestoneResultEntity entity);

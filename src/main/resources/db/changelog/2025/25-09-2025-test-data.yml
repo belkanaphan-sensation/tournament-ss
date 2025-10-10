@@ -69,7 +69,8 @@ databaseChangeLog:
   # Test data for judge_milestone_result
   - changeSet:
       id: 2025-09-25-3
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |
@@ -197,7 +198,8 @@ databaseChangeLog:
   # Fix sequences to avoid ID conflicts
   - changeSet:
       id: 2025-09-25-0
-      author: belkanaphan
+      author: system
+      context: test_data
       changes:
         - sql:
             sql: |

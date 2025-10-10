@@ -3,11 +3,10 @@ package org.bn.sensation.core.milestone.service.mapper;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.milestone.entity.JudgeMilestoneResultEntity;
 import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultRoundRequest;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 
 @Mapper(config = BaseDtoMapper.class)
-public interface CreateJudgeMilestoneResultRequestMapper extends BaseDtoMapper<JudgeMilestoneResultEntity, JudgeMilestoneResultRoundRequest> {
+public interface JudgeMilestoneResultRoundRequestMapper extends BaseDtoMapper<JudgeMilestoneResultEntity, JudgeMilestoneResultRoundRequest> {
 
     @Override
     @Mapping(target = "participant", ignore = true)
@@ -22,4 +21,10 @@ public interface CreateJudgeMilestoneResultRequestMapper extends BaseDtoMapper<J
     @Mapping(target = "milestoneCriteriaId", source = "milestoneCriteria.id")
     JudgeMilestoneResultRoundRequest toDto(JudgeMilestoneResultEntity entity);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "participant", ignore = true)
+    @Mapping(target = "round", ignore = true)
+    @Mapping(target = "milestoneCriteria", ignore = true)
+    @Mapping(target = "activityUser", ignore = true)
+    void updateRoundFromRequest(JudgeMilestoneResultRoundRequest request, @MappingTarget JudgeMilestoneResultEntity entity);
 }

@@ -7,8 +7,8 @@ spring:
       idle-timeout: 300000
       max-lifetime: 1200000
   
-#  liquibase:
-#    contexts: '!test-data'
+  liquibase:
+    contexts: prod
 
   jpa:
     properties:

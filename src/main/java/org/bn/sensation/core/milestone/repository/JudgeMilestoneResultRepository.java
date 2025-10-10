@@ -42,6 +42,14 @@ public interface JudgeMilestoneResultRepository extends BaseRepository<JudgeMile
             """)
     List<JudgeMilestoneResultEntity> findByMilestoneId(@Param("milestoneId") Long milestoneId);
 
+    @EntityGraph(attributePaths = {"milestoneCriteria"})
+    @Query("""
+            SELECT jm
+            FROM JudgeMilestoneResultEntity jm
+            WHERE jm.id in :ids
+            """)
+    List<JudgeMilestoneResultEntity> findByIdsIn(@Param("ids") List<Long> ids);
+
     boolean existsByRoundIdAndParticipantIdAndActivityUserIdAndMilestoneCriteriaId(
             Long roundId, Long participantId, Long activityUserId, Long milestoneCriteriaId);
 }

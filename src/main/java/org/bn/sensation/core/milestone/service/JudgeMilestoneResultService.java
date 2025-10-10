@@ -4,15 +4,15 @@ import java.util.List;
 
 import org.bn.sensation.core.common.service.BaseCrudService;
 import org.bn.sensation.core.milestone.entity.JudgeMilestoneResultEntity;
-import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultRoundRequest;
 import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultDto;
 import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultMilestoneRequest;
+import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultRoundRequest;
 
 public interface JudgeMilestoneResultService extends BaseCrudService<
         JudgeMilestoneResultEntity,
         JudgeMilestoneResultDto,
         JudgeMilestoneResultRoundRequest,
-        JudgeMilestoneResultMilestoneRequest> {
+        JudgeMilestoneResultRoundRequest> {
 
     List<JudgeMilestoneResultDto> findByRoundId(Long roundId);
 
@@ -21,4 +21,8 @@ public interface JudgeMilestoneResultService extends BaseCrudService<
     List<JudgeMilestoneResultDto> findByParticipantId(Long participantId);
 
     List<JudgeMilestoneResultDto> findByActivityUserId(Long activityUserId);
+
+    List<JudgeMilestoneResultDto> createOrUpdateForRound(List<JudgeMilestoneResultRoundRequest> requests);
+
+    List<JudgeMilestoneResultDto> createOrUpdateForMilestone(Long milestoneId, List<JudgeMilestoneResultMilestoneRequest> requests);
 }
