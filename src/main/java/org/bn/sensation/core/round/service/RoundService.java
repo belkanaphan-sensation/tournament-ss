@@ -25,5 +25,7 @@ public interface RoundService extends BaseCrudService<
 
     List<RoundDto> findByMilestoneIdInLifeStates(@NotNull Long id);
 
-    JudgeRoundDto changeRoundStatus(@NotNull Long roundId, @NotNull JudgeRoundStatus judgeRoundStatus);
+    JudgeRoundDto changeJudgeRoundStatus(Long roundId, JudgeRoundStatus judgeRoundStatus);
+
+    void changeJudgeRoundStatusIfPossible(Long activityUserId, Long roundId, JudgeRoundStatus judgeRoundStatus);
 }

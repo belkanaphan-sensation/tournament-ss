@@ -30,7 +30,7 @@ public class RoundDto extends BaseDto {
     @Schema(description = "Описание раунда", example = "Матчи по круговой системе")
     private String description;
 
-    @Schema(description = "активность, к которому принадлежит этап")
+    @Schema(description = "Aктивность, к которому принадлежит этап")
     private EntityLinkDto activity;
 
     @Schema(description = "Этап, к которому принадлежит раунд")

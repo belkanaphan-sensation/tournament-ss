@@ -29,6 +29,7 @@ import org.bn.sensation.core.round.service.mapper.JudgeRoundMapper;
 import org.bn.sensation.core.round.service.mapper.RoundDtoMapper;
 import org.bn.sensation.core.round.service.mapper.UpdateRoundRequestMapper;
 import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
+import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,21 +40,24 @@ import com.google.common.base.Preconditions;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RoundServiceImpl implements RoundService {
 
-    private final RoundRepository roundRepository;
-    private final RoundDtoMapper roundDtoMapper;
+    private final CurrentUser currentUser;
     private final CreateRoundRequestMapper createRoundRequestMapper;
-    private final UpdateRoundRequestMapper updateRoundRequestMapper;
+    private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
+    private final JudgeRoundMapper judgeRoundMapper;
+    private final JudgeRoundRepository judgeRoundRepository;
     private final MilestoneRepository milestoneRepository;
     private final ParticipantRepository participantRepository;
-    private final JudgeRoundRepository judgeRoundRepository;
-    private final JudgeRoundMapper judgeRoundMapper;
-    private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
-    private final CurrentUser currentUser;
+    private final RoundDtoMapper roundDtoMapper;
+    private final RoundRepository roundRepository;
+    private final UpdateRoundRequestMapper updateRoundRequestMapper;
+    private final UserActivityAssignmentRepository userActivityAssignmentRepository;
 
     @Override
     public BaseRepository<RoundEntity> getRepository() {
@@ -135,7 +139,7 @@ public class RoundServiceImpl implements RoundService {
 
     @Override
     @Transactional
-    public JudgeRoundDto changeRoundStatus(Long roundId, JudgeRoundStatus judgeRoundStatus) {
+    public JudgeRoundDto changeJudgeRoundStatus(Long roundId, JudgeRoundStatus judgeRoundStatus) {
         Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
         Preconditions.checkArgument(judgeRoundStatus != null, "Статус не может быть null");
 
@@ -153,35 +157,57 @@ public class RoundServiceImpl implements RoundService {
         Preconditions.checkState(round.getState() == RoundState.IN_PROGRESS,
                 "Статус раунда %s. Не может быть принят или отменен судьей", round.getState());
 
-        checkAccepted(judgeRoundStatus, activityAssignment, round);
+        if (!canChange(judgeRoundStatus, activityAssignment, round)) {
+            throw new IllegalStateException("Судья оценил не всех участников");
+        }
 
-        JudgeRoundEntity judgeRoundEntity = judgeRoundRepository.findByRoundIdAndJudgeId(roundId, activityAssignment.getId())
+        return createOrUpdateJudgeRoundStatus(judgeRoundStatus, activityAssignment, round);
+    }
+
+    private JudgeRoundDto createOrUpdateJudgeRoundStatus(JudgeRoundStatus judgeRoundStatus, UserActivityAssignmentEntity activityAssignment, RoundEntity round) {
+        JudgeRoundEntity judgeRoundEntity = judgeRoundRepository.findByRoundIdAndJudgeId(round.getId(), activityAssignment.getId())
                 .orElse(JudgeRoundEntity.builder().round(round).judge(activityAssignment).build());
         judgeRoundEntity.setStatus(judgeRoundStatus);
         return judgeRoundMapper.toDto(judgeRoundRepository.save(judgeRoundEntity));
     }
 
-    private void checkAccepted(JudgeRoundStatus judgeRoundStatus, UserActivityAssignmentEntity activityAssignment, RoundEntity round) {
-        if (judgeRoundStatus == JudgeRoundStatus.ACCEPTED) {
-            List<JudgeMilestoneResultEntity> results = judgeMilestoneResultRepository.findByActivityUserId(activityAssignment.getId());
-            if (activityAssignment.getPartnerSide() == null) {
-                Preconditions.checkState(round.getParticipants().size() == results.size(),
-                        "Судья оценил не всех участников. Оценено: %s. Всего участников в раунде: %s",
-                        results.size(), round.getParticipants().size());
+    private boolean canChange(JudgeRoundStatus judgeRoundStatus, UserActivityAssignmentEntity activityUser, RoundEntity round) {
+        if (judgeRoundStatus == JudgeRoundStatus.READY) {
+            List<JudgeMilestoneResultEntity> results = judgeMilestoneResultRepository.findByActivityUserId(activityUser.getId());
+            if (activityUser.getPartnerSide() == null) {
+                return round.getParticipants().size() == results.size();
             } else {
                 //TODO добавить смену сторон, если есть правило этапа на смену сторон судей
                 long participantsCount = round.getParticipants()
                         .stream()
-                        .filter(p -> p.getPartnerSide() == activityAssignment.getPartnerSide())
+                        .filter(p -> p.getPartnerSide() == activityUser.getPartnerSide())
                         .count();
                 long resultsCount = results.stream()
-                        .filter(prr -> prr.getParticipant().getPartnerSide() == activityAssignment.getPartnerSide())
+                        .filter(prr -> prr.getParticipant().getPartnerSide() == activityUser.getPartnerSide())
                         .count();
-                Preconditions.checkState(participantsCount == resultsCount,
-                        "Судья оценил не всех участников своей стороны. Оценено: %s. Всего участников в раунде: %s",
-                        results.size(), round.getParticipants().size());
+                return participantsCount == resultsCount;
             }
         }
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public void changeJudgeRoundStatusIfPossible(Long activityUserId, Long roundId, JudgeRoundStatus judgeRoundStatus) {
+        Preconditions.checkArgument(activityUserId != null, "ID судьи не может быть null");
+        Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
+        Preconditions.checkArgument(judgeRoundStatus != null, "Статус не может быть null");
+        UserActivityAssignmentEntity activityUser = userActivityAssignmentRepository.findById(activityUserId).orElseThrow(EntityNotFoundException::new);
+        RoundEntity round = roundRepository.findByIdWithUserAssignments(roundId).orElseThrow(EntityNotFoundException::new);
+        Preconditions.checkArgument(round.getMilestone().getActivity().getUserAssignments()
+                .stream()
+                .map(UserActivityAssignmentEntity::getId)
+                .anyMatch(id -> id.equals(activityUser.getId())),
+                "Некорректные данные");
+        if (round.getState() == RoundState.IN_PROGRESS && canChange(judgeRoundStatus, activityUser, round)) {
+            createOrUpdateJudgeRoundStatus(judgeRoundStatus, activityUser, round);
+        }
+        log.info("Judge round status for activity user {} and round {} changed to {}", activityUserId, roundId, judgeRoundStatus);
     }
 
     @Override
@@ -201,10 +227,13 @@ public class RoundServiceImpl implements RoundService {
                         "Нельзя стартовать раунд, т.к. этап находится в статусе %s", round.getMilestone().getState());
                 yield true;
             }
-            case ACCEPT -> {
+            case CONFIRM -> {
+                if (round.getMilestone().getState() != MilestoneState.IN_PROGRESS) {
+                    yield false;
+                }
                 List<JudgeRoundEntity> judgeRoundStatuses = judgeRoundRepository.findByRoundId(round.getId());
                 Set<Long> acceptedJudgeIds = judgeRoundStatuses.stream()
-                        .filter(jrs -> jrs.getStatus() == JudgeRoundStatus.ACCEPTED)
+                        .filter(jrs -> jrs.getStatus() == JudgeRoundStatus.READY)
                         .map(jrs -> jrs.getJudge().getUser().getId())
                         .collect(Collectors.toSet());
 
@@ -214,9 +243,8 @@ public class RoundServiceImpl implements RoundService {
                         .map(ua -> ua.getUser().getId())
                         .collect(Collectors.toSet());
 
-                boolean allJudgesAccepted = acceptedJudgeIds.containsAll(requiredJudgeIds);
-                Preconditions.checkState(allJudgesAccepted, "Не все судьи подтвердили результаты. Раунд не может быть завершен");
-                yield true;
+                boolean allJudgesReady = acceptedJudgeIds.containsAll(requiredJudgeIds);
+                yield allJudgesReady;
             }
         };
     }
@@ -226,8 +254,8 @@ public class RoundServiceImpl implements RoundService {
         return switch (currentState) {
             case DRAFT -> event == RoundEvent.PLAN ? RoundState.PLANNED : currentState;
             case PLANNED -> event == RoundEvent.START ? RoundState.IN_PROGRESS : currentState;
-            case IN_PROGRESS, COMPLETED -> event == RoundEvent.ACCEPT ? RoundState.ACCEPTED : currentState;
-            case ACCEPTED -> event == RoundEvent.COMPLETE
+            case IN_PROGRESS, COMPLETED -> event == RoundEvent.CONFIRM ? RoundState.READY : currentState;
+            case READY -> event == RoundEvent.COMPLETE
                     ? RoundState.COMPLETED :
                     event == RoundEvent.PLAN
                             ? RoundState.IN_PROGRESS

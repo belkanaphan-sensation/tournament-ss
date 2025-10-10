@@ -313,7 +313,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeRoundEntity judgeRound = JudgeRoundEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
-                .status(JudgeRoundStatus.ACCEPTED)
+                .status(JudgeRoundStatus.READY)
                 .build();
         judgeRoundRepository.save(judgeRound);
 
@@ -347,7 +347,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeRoundEntity judgeRound = JudgeRoundEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
-                .status(JudgeRoundStatus.ACCEPTED)
+                .status(JudgeRoundStatus.READY)
                 .build();
         judgeRoundRepository.save(judgeRound);
 
@@ -418,7 +418,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeRoundEntity judgeRound = JudgeRoundEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
-                .status(JudgeRoundStatus.ACCEPTED)
+                .status(JudgeRoundStatus.READY)
                 .build();
         judgeRoundRepository.save(judgeRound);
 
@@ -473,7 +473,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeRoundEntity judgeRound = JudgeRoundEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
-                .status(JudgeRoundStatus.ACCEPTED)
+                .status(JudgeRoundStatus.READY)
                 .build();
         judgeRoundRepository.save(judgeRound);
 
@@ -509,7 +509,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeRoundEntity judgeRound = JudgeRoundEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
-                .status(JudgeRoundStatus.ACCEPTED)
+                .status(JudgeRoundStatus.READY)
                 .build();
         judgeRoundRepository.save(judgeRound);
 

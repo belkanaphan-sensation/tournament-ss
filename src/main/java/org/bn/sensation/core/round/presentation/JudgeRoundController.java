@@ -1,5 +1,6 @@
 package org.bn.sensation.core.round.presentation;
 
+import org.bn.sensation.core.milestone.service.MilestoneService;
 import org.bn.sensation.core.round.entity.JudgeRoundStatus;
 import org.bn.sensation.core.round.service.RoundService;
 import org.bn.sensation.core.round.service.dto.JudgeRoundDto;
@@ -28,18 +29,25 @@ import lombok.RequiredArgsConstructor;
 public class JudgeRoundController {
 
     private final RoundService roundService;
+    private final MilestoneService milestoneService;
 
     @Operation(summary = "Принять результаты раунда",
             description = "Результаты раунда принимаются для текущего пользователя который должен являться судьей раунда")
-    @GetMapping(path = "/accept/{roundId}")
-    public ResponseEntity<JudgeRoundDto> acceptRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
-        return ResponseEntity.ok(roundService.changeRoundStatus(roundId, JudgeRoundStatus.ACCEPTED));
+    @GetMapping(path = "/ready/{roundId}")
+    public ResponseEntity<JudgeRoundDto> readyRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
+        return ResponseEntity.ok(roundService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.READY));
     }
 
     @Operation(summary = "Отменить результаты раунда",
             description = "Результаты раунда отменяются для текущего пользователя который должен являться судьей раунда")
-    @GetMapping(path = "/reject/{roundId}")
-    public ResponseEntity<JudgeRoundDto> rejectRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
-        return ResponseEntity.ok(roundService.changeRoundStatus(roundId, JudgeRoundStatus.REJECTED));
+    @GetMapping(path = "/not-ready/{roundId}")
+    public ResponseEntity<JudgeRoundDto> notReadyRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
+        return ResponseEntity.ok(roundService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.NOT_READY));
+    }
+
+    @Operation(summary = "Проверить готовность раундов для текущего юзера - судьи")
+    @GetMapping(path = "/all-rounds-ready/{milestoneId}/currentUser")
+    public ResponseEntity<Boolean> isAllRoundsReady(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+        return ResponseEntity.ok(milestoneService.allRoundsReady(milestoneId));
     }
 }

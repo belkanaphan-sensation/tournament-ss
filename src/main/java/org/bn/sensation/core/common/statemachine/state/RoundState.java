@@ -8,8 +8,8 @@ public enum RoundState implements BaseState {
     DRAFT,
     PLANNED,
     IN_PROGRESS,
-    ACCEPTED,
+    READY,
     COMPLETED;
 
-    public static List<RoundState> LIFE_ROUND_STATES = List.of(PLANNED, IN_PROGRESS, ACCEPTED, COMPLETED);
+    public static List<RoundState> LIFE_ROUND_STATES = List.of(PLANNED, IN_PROGRESS, READY, COMPLETED);
 }

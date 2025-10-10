@@ -1,18 +1,17 @@
 package org.bn.sensation.core.milestone.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.common.statemachine.event.RoundEvent;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
 import org.bn.sensation.core.milestone.entity.JudgeMilestoneResultEntity;
+import org.bn.sensation.core.milestone.entity.JudgeMilestoneStatus;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.JudgeMilestoneResultRepository;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
@@ -24,8 +23,11 @@ import org.bn.sensation.core.milestone.service.mapper.JudgeMilestoneResultMilest
 import org.bn.sensation.core.milestone.service.mapper.JudgeMilestoneResultRoundRequestMapper;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
+import org.bn.sensation.core.round.entity.JudgeRoundStatus;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
+import org.bn.sensation.core.round.service.RoundService;
+import org.bn.sensation.core.round.service.RoundStateMachineService;
 import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
 import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
@@ -44,16 +46,21 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultService {
 
-    private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
-    private final JudgeMilestoneResultDtoMapper judgeMilestoneResultDtoMapper;
-    private final JudgeMilestoneResultRoundRequestMapper judgeMilestoneResultRoundRequestMapper;
-    private final JudgeMilestoneResultMilestoneRequestMapper judgeMilestoneResultMilestoneRequestMapper;
-    private final MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
-    private final UserActivityAssignmentRepository userActivityAssignmentRepository;
-    private final RoundRepository roundRepository;
-    private final MilestoneRepository milestoneRepository;
-    private final ParticipantRepository participantRepository;
     private final CurrentUser currentUser;
+    private final JudgeMilestoneResultDtoMapper judgeMilestoneResultDtoMapper;
+    private final JudgeMilestoneResultMilestoneRequestMapper judgeMilestoneResultMilestoneRequestMapper;
+    private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
+    private final JudgeMilestoneResultRoundRequestMapper judgeMilestoneResultRoundRequestMapper;
+    private final MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
+    private final MilestoneRepository milestoneRepository;
+    //TODO может быть сделать через ApplicationEvents потом
+    private final MilestoneService milestoneService;
+    private final ParticipantRepository participantRepository;
+    private final RoundRepository roundRepository;
+    //TODO может быть сделать через ApplicationEvents потом
+    private final RoundService roundService;
+    private final RoundStateMachineService roundStateMachineService;
+    private final UserActivityAssignmentRepository userActivityAssignmentRepository;
 
     @Override
     public BaseRepository<JudgeMilestoneResultEntity> getRepository() {
@@ -71,10 +78,17 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         List<JudgeMilestoneResultDto> dtos = new ArrayList<>();
         requests.forEach(request -> {
             if (request.getId() == null) {
-                dtos.add(create(request));
+                dtos.add(createEntity(request));
             } else {
-                dtos.add(update(request.getId(), request));
+                dtos.add(updateEntity(request.getId(), request));
             }
+        });
+
+        Set<Long> activityUser = dtos.stream().map(res -> res.getActivityUser().getId()).collect(Collectors.toSet());
+        Preconditions.checkArgument(activityUser.size() == 1, "Некорректные данные");
+        dtos.stream().map(res -> res.getRound().getId()).distinct().forEach(roundId -> {
+            roundService.changeJudgeRoundStatusIfPossible(activityUser.iterator().next(), roundId, JudgeRoundStatus.READY);
+            roundStateMachineService.sendEvent(roundId, RoundEvent.CONFIRM);
         });
         return dtos;
     }
@@ -109,10 +123,13 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
         List<JudgeMilestoneResultEntity> updated = new ArrayList<>();
         requests.forEach(request -> {
-            judgeMilestoneResultMilestoneRequestMapper.updateRoundFromRequest(request, results.get(request.getId()));
+            judgeMilestoneResultMilestoneRequestMapper.updateJudgeMilestoneResultFromRequest(request, results.get(request.getId()));
             updated.add(judgeMilestoneResultRepository.save(results.get(request.getId())));
         });
-
+        updated.stream().map(res -> res.getRound().getId()).distinct().forEach(roundId -> {
+            roundService.changeJudgeRoundStatusIfPossible(activityUser.getId(), roundId, JudgeRoundStatus.READY);
+        });
+        milestoneService.changeMilestoneStatus(milestone, activityUser, JudgeMilestoneStatus.READY);
         return updated.stream().map(judgeMilestoneResultDtoMapper::toDto).toList();
     }
 
