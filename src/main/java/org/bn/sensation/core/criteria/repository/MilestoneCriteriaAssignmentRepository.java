@@ -5,24 +5,39 @@ import java.util.Optional;
 
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MilestoneCriteriaAssignmentRepository extends BaseRepository<MilestoneCriteriaAssignmentEntity> {
 
+    @EntityGraph(attributePaths = {"milestoneRule", "criteria"})
+    @Query("SELECT mca FROM MilestoneCriteriaAssignmentEntity mca " +
+            "WHERE mca.milestoneRule.milestone.id = :milestoneId " +
+            "AND mca.criteria.id = :criteriaId")
     Optional<MilestoneCriteriaAssignmentEntity> findByMilestoneIdAndCriteriaId(Long milestoneId, Long criteriaId);
 
-    Page<MilestoneCriteriaAssignmentEntity> findByMilestoneId(Long milestoneId, Pageable pageable);
+    @EntityGraph(attributePaths = {"milestoneRule", "criteria"})
+    @Query("SELECT mca FROM MilestoneCriteriaAssignmentEntity mca " +
+            "WHERE mca.milestoneRule.id = :milestoneRuleId " +
+            "AND mca.criteria.id = :criteriaId")
+    Optional<MilestoneCriteriaAssignmentEntity> findByMilestoneRuleIdAndCriteriaId(Long milestoneRuleId, Long criteriaId);
 
-    Page<MilestoneCriteriaAssignmentEntity> findByCriteriaId(Long criteriaId, Pageable pageable);
-
+    @EntityGraph(attributePaths = {"milestoneRule", "criteria"})
+    @Query("SELECT mca FROM MilestoneCriteriaAssignmentEntity mca WHERE mca.milestoneRule.milestone.id = :milestoneId")
     List<MilestoneCriteriaAssignmentEntity> findByMilestoneId(Long milestoneId);
 
-    boolean existsByMilestoneIdAndCriteriaId(Long milestoneId, Long criteriaId);
+    @EntityGraph(attributePaths = {"milestoneRule", "criteria"})
+    @Query("SELECT mca FROM MilestoneCriteriaAssignmentEntity mca WHERE mca.milestoneRule.id = :milestoneRuleId")
+    List<MilestoneCriteriaAssignmentEntity> findByMilestoneRuleId(Long milestoneRuleId);
+
+    @EntityGraph(attributePaths = {"milestoneRule", "criteria"})
+    @Query("SELECT mca FROM MilestoneCriteriaAssignmentEntity mca WHERE mca.criteria.id = :criteriaId")
+    List<MilestoneCriteriaAssignmentEntity> findByCriteriaId(Long criteriaId);
+
+    boolean existsByMilestoneRuleIdAndCriteriaId(Long milestoneRuleId, Long criteriaId);
 
     boolean existsByCriteriaId(Long criteriaId);
 
-    long countByMilestoneId(Long milestoneId);
 }

@@ -18,8 +18,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Запрос на обновление критерия оценки")
-public class UpdateCriteriaRequest extends EmptyDto {
+@Schema(description = "Запрос на создание критерия оценки")
+public class CriteriaRequest extends EmptyDto {
 
     @Schema(description = "Название критерия", example = "Техника", required = true)
     @NotBlank(message = "Название критерия не может быть пустым")

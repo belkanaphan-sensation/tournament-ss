@@ -30,7 +30,7 @@ public interface JudgeMilestoneResultRepository extends BaseRepository<JudgeMile
     @Query("""
             SELECT DISTINCT jm
             FROM JudgeMilestoneResultEntity jm
-            WHERE jm.participant.activity = :activityUserId
+            WHERE jm.activityUser.id = :activityUserId
             """)
     List<JudgeMilestoneResultEntity> findByActivityUserId(Long activityUserId);
 

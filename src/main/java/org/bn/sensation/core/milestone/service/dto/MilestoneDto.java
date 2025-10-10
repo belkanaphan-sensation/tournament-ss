@@ -43,6 +43,6 @@ public class MilestoneDto extends BaseDto {
     @Schema(description = "Порядок этапа в рамках активности", example = "1")
     private Integer milestoneOrder;
 
-    @Schema(description = "Режим оценивания участника", example = "PASS")
-    private AssessmentMode assessmentMode;
+    @Schema(description = "Набор правил этапа")
+    private EntityLinkDto milestoneRule;
 }

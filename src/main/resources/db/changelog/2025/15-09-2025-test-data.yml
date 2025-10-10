@@ -146,9 +146,42 @@ databaseChangeLog:
               -- Активность 3.3: 1 этап с минимальными данными
               ('Этап 3.3.1', 'Единственный этап активности 3.3 без связанных сущностей', 'DRAFT', 8, 1, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0);
 
-  # Test data for rounds
+  # Test data for milestone rules
   - changeSet:
       id: 2025-09-15-7
+      author: belkanaphan
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO milestone_rule (assessment_mode, participant_limit, milestone_id, created_at, created_by, modified_at, modified_by, version) VALUES
+              -- Правила для этапов активности 1
+              ('SCORE', 6, (SELECT id FROM milestone WHERE name = 'Этап 1'), '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              
+              -- Правила для этапов активности 2.1
+              ('SCORE', 3, (SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ('SCORE', 2, (SELECT id FROM milestone WHERE name = 'Этап 2.1.2'), '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ('SCORE', 1, (SELECT id FROM milestone WHERE name = 'Этап 2.1.3'), '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              
+              -- Правила для этапов активности 2.2
+              ('SCORE', 2, (SELECT id FROM milestone WHERE name = 'Этап 2.2.1'), '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ('SCORE', 1, (SELECT id FROM milestone WHERE name = 'Этап 2.2.2'), '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              
+              -- Правила для этапов активности 3.1
+              ('SCORE', 6, (SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('SCORE', 4, (SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('SCORE', 2, (SELECT id FROM milestone WHERE name = 'Этап 3.1.3'), '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('SCORE', 1, (SELECT id FROM milestone WHERE name = 'Этап 3.1.4'), '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              
+              -- Правила для этапов активности 3.2
+              ('SCORE', 3, (SELECT id FROM milestone WHERE name = 'Этап 3.2.1'), '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ('SCORE', 1, (SELECT id FROM milestone WHERE name = 'Этап 3.2.2'), '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              
+              -- Правила для этапов активности 3.3
+              ('SCORE', 1, (SELECT id FROM milestone WHERE name = 'Этап 3.3.1'), '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0);
+
+  # Test data for rounds
+  - changeSet:
+      id: 2025-09-15-8
       author: belkanaphan
       changes:
         - sql:
@@ -191,7 +224,7 @@ databaseChangeLog:
 
   # Test data for criteria
   - changeSet:
-      id: 2025-09-15-8
+      id: 2025-09-15-9
       author: belkanaphan
       changes:
         - sql:
@@ -208,7 +241,7 @@ databaseChangeLog:
 
   # Test data for participants
   - changeSet:
-      id: 2025-09-15-9
+      id: 2025-09-15-10
       author: belkanaphan
       changes:
         - sql:
@@ -245,7 +278,7 @@ databaseChangeLog:
 
   # Test data for users_organizations_association
   - changeSet:
-      id: 2025-09-15-10
+      id: 2025-09-15-11
       author: belkanaphan
       changes:
         - sql:
@@ -270,7 +303,7 @@ databaseChangeLog:
 
   # Test data for rounds_participants_association
   - changeSet:
-      id: 2025-09-15-11
+      id: 2025-09-15-12
       author: belkanaphan
       changes:
         - sql:
@@ -351,65 +384,65 @@ databaseChangeLog:
 
   # Test data for milestone_criteria_assignment
   - changeSet:
-      id: 2025-09-15-12
+      id: 2025-09-15-13
       author: belkanaphan
       changes:
         - sql:
             sql: |
-              INSERT INTO milestone_criteria_assignment (milestone_id, criteria_id, partner_side, weight, scale, priority, created_at, created_by, modified_at, modified_by, version) VALUES
+              INSERT INTO milestone_criteria_assignment (milestone_rule_id, criteria_id, partner_side, weight, scale, created_at, created_by, modified_at, modified_by, version) VALUES
               -- Этап 1: расширенные критерии с разными ролями (полные данные)
               -- Общие критерии (для всех участников)
-              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 1, 0, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, 1.2, 10, 1, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Имидж'), null, 0.8, 10, 0, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 1')), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 1, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 1')), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, 1.2, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 1')), (SELECT id FROM criteria WHERE name = 'Имидж'), null, 0.8, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
               -- Критерии для лидеров
-              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Техника'), 'LEADER', 1.5, 10, 2, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Ведение'), 'LEADER', 1.0, 10, 1, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Следование'), 'LEADER', 1.0, 10, 0, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 1')), (SELECT id FROM criteria WHERE name = 'Техника'), 'LEADER', 1.5, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 1')), (SELECT id FROM criteria WHERE name = 'Ведение'), 'LEADER', 1.0, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 1')), (SELECT id FROM criteria WHERE name = 'Следование'), 'LEADER', 1.0, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
               -- Критерии для фоловеров
-              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Техника'), 'FOLLOWER', 1.5, 10, 0, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 1'), (SELECT id FROM criteria WHERE name = 'Стилистика'), 'FOLLOWER', 1.0, 10, 0, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 1')), (SELECT id FROM criteria WHERE name = 'Техника'), 'FOLLOWER', 1.5, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 1')), (SELECT id FROM criteria WHERE name = 'Стилистика'), 'FOLLOWER', 1.0, 10, '2025-03-01 10:00:00', 'org1_admin', '2025-03-01 10:00:00', 'org1_admin', 0),
               
               -- Этап 2.1.1: все критерии с ролями (полные данные)
-              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 1, 0, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), (SELECT id FROM criteria WHERE name = 'Техника'), 'LEADER', 1.5, 10, 3, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), (SELECT id FROM criteria WHERE name = 'Ведение'), null, 1.0, 10, 2, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), (SELECT id FROM criteria WHERE name = 'Стилистика'), 'FOLLOWER', 1.0, 10, 1, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, 1.2, 10, 1, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), (SELECT id FROM criteria WHERE name = 'Следование'), 'LEADER', 1.0, 10, 0, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.1'), (SELECT id FROM criteria WHERE name = 'Имидж'), null, 0.8, 10, 0, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 2.1.1')), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 1, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 2.1.1')), (SELECT id FROM criteria WHERE name = 'Техника'), 'LEADER', 1.5, 10, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 2.1.1')), (SELECT id FROM criteria WHERE name = 'Ведение'), null, 1.0, 10, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 2.1.1')), (SELECT id FROM criteria WHERE name = 'Стилистика'), 'FOLLOWER', 1.0, 10, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 2.1.1')), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, 1.2, 10, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 2.1.1')), (SELECT id FROM criteria WHERE name = 'Следование'), 'LEADER', 1.0, 10, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 2.1.1')), (SELECT id FROM criteria WHERE name = 'Имидж'), null, 0.8, 10, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
               
               -- Этап 2.1.2: частичные критерии (частичные данные)
-              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.2'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 1, 0, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.2'), (SELECT id FROM criteria WHERE name = 'Техника'), null, 1.0, 1, 0, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.2'), (SELECT id FROM criteria WHERE name = 'Ведение'), null, 1.0, 1, 0, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 2.1.2'), (SELECT id FROM criteria WHERE name = 'Стилистика'), null, 1.0, 1, 0, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 2.1.2')), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 1, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 2.1.2')), (SELECT id FROM criteria WHERE name = 'Техника'), null, 1.0, 1, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 2.1.2')), (SELECT id FROM criteria WHERE name = 'Ведение'), null, 1.0, 1, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 2.1.2')), (SELECT id FROM criteria WHERE name = 'Стилистика'), null, 1.0, 1, '2025-04-01 10:00:00', 'org2_admin', '2025-04-01 10:00:00', 'org2_admin', 0),
               
               -- Этап 3.1.1: все критерии с ролями (полные данные)
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Техника'), 'LEADER', 1.5, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Техника'), 'FOLLOWER', 1.5, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Ведение'), null, 1.0, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Стилистика'), 'FOLLOWER', 1.0, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, 1.2, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Следование'), 'LEADER', 1.0, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.1'), (SELECT id FROM criteria WHERE name = 'Имидж'), null, 0.8, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.1')), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.1')), (SELECT id FROM criteria WHERE name = 'Техника'), 'LEADER', 1.5, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.1')), (SELECT id FROM criteria WHERE name = 'Техника'), 'FOLLOWER', 1.5, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.1')), (SELECT id FROM criteria WHERE name = 'Ведение'), null, 1.0, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.1')), (SELECT id FROM criteria WHERE name = 'Стилистика'), 'FOLLOWER', 1.0, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.1')), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, 1.2, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.1')), (SELECT id FROM criteria WHERE name = 'Следование'), 'LEADER', 1.0, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.1')), (SELECT id FROM criteria WHERE name = 'Имидж'), null, 0.8, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
               
               -- Этап 3.1.2: частичные критерии (частичные данные)
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), (SELECT id FROM criteria WHERE name = 'Техника'), null, 1.0, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), (SELECT id FROM criteria WHERE name = 'Ведение'), null, 1.0, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), (SELECT id FROM criteria WHERE name = 'Стилистика'), null, 1.0, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.2'), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, 1.0, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.2')), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.2')), (SELECT id FROM criteria WHERE name = 'Техника'), null, 1.0, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.2')), (SELECT id FROM criteria WHERE name = 'Ведение'), null, 1.0, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.2')), (SELECT id FROM criteria WHERE name = 'Стилистика'), null, 1.0, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.2')), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, 1.0, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
               
               -- Этап 3.1.3: минимальные критерии (минимальные данные)
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.3'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.3'), (SELECT id FROM criteria WHERE name = 'Техника'), null, 1.0, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 3.1.3'), (SELECT id FROM criteria WHERE name = 'Ведение'), null, 1.0, 10, 0, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0);
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.3')), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.3')), (SELECT id FROM criteria WHERE name = 'Техника'), null, 1.0, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3.1.3')), (SELECT id FROM criteria WHERE name = 'Ведение'), null, 1.0, 10, '2025-05-01 10:00:00', 'org3_admin', '2025-05-01 10:00:00', 'org3_admin', 0);
 
   # Test data for user_activity_assignment
   - changeSet:
-      id: 2025-09-15-13
+      id: 2025-09-15-14
       author: belkanaphan
       changes:
         - sql:

@@ -18,21 +18,7 @@ public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
     @Query("SELECT m FROM MilestoneEntity m WHERE m.id = :id")
     Optional<MilestoneEntity> findByIdWithUserAssignments(@Param("id") Long id);
 
-    @EntityGraph(attributePaths = {"criteriaAssignments"})
-    @Query("SELECT m FROM MilestoneEntity m WHERE m.id = :id")
-    Optional<MilestoneEntity> findByIdWithCriteriaAssignments(@Param("id") Long id);
-
-    @EntityGraph(attributePaths = {"criteriaAssignments"})
-    @Query("SELECT m FROM MilestoneEntity m")
-    List<MilestoneEntity> findAllWithCriteriaAssignments();
-
-    @EntityGraph(attributePaths = {"criteriaAssignments"})
-    @Query("SELECT m FROM MilestoneEntity m WHERE m.activity.id = :activityId ORDER BY m.milestoneOrder ASC")
-    List<MilestoneEntity> findByActivityIdWithCriteriaAssignments(@Param("activityId") Long activityId);
-
-    @EntityGraph(attributePaths = {"criteriaAssignments"})
-    @Query("SELECT m FROM MilestoneEntity m WHERE m.activity.id = :activityId AND m.state IN :states ORDER BY m.milestoneOrder ASC")
-    List<MilestoneEntity> findByActivityIdAndStateInWithCriteriaAssignments(@Param("activityId") Long activityId, @Param("states") List<MilestoneState> states);
+    List<MilestoneEntity> findByActivityIdAndStateIn(@Param("activityId") Long activityId, @Param("states") List<MilestoneState> states);
 
     @EntityGraph(attributePaths = {"activity"})
     @Query("SELECT m FROM MilestoneEntity m WHERE m.id = :id")

@@ -198,11 +198,15 @@ databaseChangeLog:
             sql: |
               CREATE TABLE IF NOT EXISTS milestone_rule (
                 id BIGSERIAL PRIMARY KEY,
+                assessment_mode VARCHAR(50) NOT NULL,
+                participant_limit INTEGER NOT NULL,
+                milestone_id BIGINT,
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
                 modified_by VARCHAR(255),
-                version BIGINT NOT NULL DEFAULT 0
+                version BIGINT NOT NULL DEFAULT 0,
+                FOREIGN KEY (milestone_id) REFERENCES milestone(id)
               );
       rollback:
         - sql:

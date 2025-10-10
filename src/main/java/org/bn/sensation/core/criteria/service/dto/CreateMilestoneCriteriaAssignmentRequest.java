@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -24,8 +23,8 @@ import lombok.experimental.SuperBuilder;
 public class CreateMilestoneCriteriaAssignmentRequest extends EmptyDto {
 
     @NotNull
-    @Schema(description = "ID этапа", example = "1")
-    private Long milestoneId;
+    @Schema(description = "ID правила этапа", example = "1")
+    private Long milestoneRuleId;
 
     @NotNull
     @Schema(description = "ID критерия оценки", example = "1")
@@ -43,8 +42,4 @@ public class CreateMilestoneCriteriaAssignmentRequest extends EmptyDto {
     @NotNull
     private Integer scale;
 
-    @PositiveOrZero
-    @Schema(description = "Приоритет критерия перед другими", example = "10")
-    @NotNull
-    private Integer priority;
 }

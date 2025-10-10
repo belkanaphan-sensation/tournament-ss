@@ -1,14 +1,14 @@
 package org.bn.sensation.core.milestone.entity;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.round.entity.RoundEntity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
@@ -38,7 +38,4 @@ public class MilestoneResultEntity extends BaseEntity {
     @Column(name = "total_score")
     private Integer totalScore;
 
-    @OneToMany(mappedBy = "milestoneResult", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
-    @Builder.Default
-    private Set<MilestoneCriteriaResultEntity> criteriaScores = new HashSet<>();
 }

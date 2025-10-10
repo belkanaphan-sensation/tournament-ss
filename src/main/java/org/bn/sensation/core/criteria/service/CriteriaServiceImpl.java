@@ -4,12 +4,10 @@ import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 import org.bn.sensation.core.criteria.repository.CriteriaRepository;
-import org.bn.sensation.core.criteria.service.dto.CreateCriteriaRequest;
+import org.bn.sensation.core.criteria.service.dto.CriteriaRequest;
 import org.bn.sensation.core.criteria.service.dto.CriteriaDto;
-import org.bn.sensation.core.criteria.service.dto.UpdateCriteriaRequest;
 import org.bn.sensation.core.criteria.service.mapper.CriteriaDtoMapper;
-import org.bn.sensation.core.criteria.service.mapper.CreateCriteriaRequestMapper;
-import org.bn.sensation.core.criteria.service.mapper.UpdateCriteriaRequestMapper;
+import org.bn.sensation.core.criteria.service.mapper.CriteriaRequestMapper;
 import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,8 +27,7 @@ public class CriteriaServiceImpl implements CriteriaService {
 
     private final CriteriaRepository criteriaRepository;
     private final CriteriaDtoMapper criteriaDtoMapper;
-    private final CreateCriteriaRequestMapper createCriteriaRequestMapper;
-    private final UpdateCriteriaRequestMapper updateCriteriaRequestMapper;
+    private final CriteriaRequestMapper criteriaRequestMapper;
     private final MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
 
     @Override
@@ -51,7 +48,7 @@ public class CriteriaServiceImpl implements CriteriaService {
 
     @Override
     @Transactional
-    public CriteriaDto create(CreateCriteriaRequest request) {
+    public CriteriaDto create(CriteriaRequest request) {
         Preconditions.checkArgument(StringUtils.hasText(request.getName()), "Название критерия не может быть пустым");
 
         // Проверяем уникальность названия
@@ -59,14 +56,14 @@ public class CriteriaServiceImpl implements CriteriaService {
             throw new IllegalArgumentException("Критерий с названием '" + request.getName() + "' уже существует");
         }
 
-        CriteriaEntity criteria = createCriteriaRequestMapper.toEntity(request);
+        CriteriaEntity criteria = criteriaRequestMapper.toEntity(request);
         CriteriaEntity saved = criteriaRepository.save(criteria);
         return criteriaDtoMapper.toDto(saved);
     }
 
     @Override
     @Transactional
-    public CriteriaDto update(Long id, UpdateCriteriaRequest request) {
+    public CriteriaDto update(Long id, CriteriaRequest request) {
         CriteriaEntity criteria = criteriaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Критерий не найден с id: " + id));
 
@@ -89,7 +86,7 @@ public class CriteriaServiceImpl implements CriteriaService {
         }
 
         // Обновляем поля критерия
-        updateCriteriaRequestMapper.updateCriteriaFromRequest(request, criteria);
+        criteriaRequestMapper.updateCriteriaFromRequest(request, criteria);
 
         CriteriaEntity saved = criteriaRepository.save(criteria);
         return criteriaDtoMapper.toDto(saved);

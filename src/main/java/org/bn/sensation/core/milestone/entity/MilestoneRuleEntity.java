@@ -1,9 +1,13 @@
 package org.bn.sensation.core.milestone.entity;
 
-import org.bn.sensation.core.common.entity.BaseEntity;
+import java.util.HashSet;
+import java.util.Set;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import org.bn.sensation.core.common.entity.BaseEntity;
+import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
+
+import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,5 +21,21 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 public class MilestoneRuleEntity extends BaseEntity {
 
-    //не уверена что это должна быть энтити
+    @Column(name = "assessment_mode", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AssessmentMode assessmentMode;
+
+    //TODO вероятно в будущем заменится на какой-то объект
+    @Column(name = "participant_limit", nullable = false)
+    private Integer participantLimit;
+
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "milestone_id", unique = true)
+    private MilestoneEntity milestone;
+
+    @OneToMany(mappedBy = "milestoneRule",
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
+            orphanRemoval = true)
+    @Builder.Default
+    private Set<MilestoneCriteriaAssignmentEntity> criteriaAssignments = new HashSet<>();
 }

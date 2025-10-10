@@ -7,8 +7,6 @@ import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.criteria.service.dto.CreateMilestoneCriteriaAssignmentRequest;
 import org.bn.sensation.core.criteria.service.dto.MilestoneCriteriaAssignmentDto;
 import org.bn.sensation.core.criteria.service.dto.UpdateMilestoneCriteriaAssignmentRequest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -18,12 +16,17 @@ public interface MilestoneCriteriaAssignmentService extends BaseCrudService<
         CreateMilestoneCriteriaAssignmentRequest,
         UpdateMilestoneCriteriaAssignmentRequest> {
 
-    // Custom operations
+    MilestoneCriteriaAssignmentDto findByMilestoneRuleIdAndCriteriaId(@NotNull Long milestoneRuleId, @NotNull Long criteriaId);
+
     MilestoneCriteriaAssignmentDto findByMilestoneIdAndCriteriaId(@NotNull Long milestoneId, @NotNull Long criteriaId);
 
-    Page<MilestoneCriteriaAssignmentDto> findByMilestoneId(@NotNull Long milestoneId, Pageable pageable);
+    List<MilestoneCriteriaAssignmentDto> findByMilestoneId(@NotNull Long milestoneId);
 
-    Page<MilestoneCriteriaAssignmentDto> findByCriteriaId(@NotNull Long criteriaId, Pageable pageable);
+    List<MilestoneCriteriaAssignmentDto> findByMilestoneRuleId(@NotNull Long milestoneRuleId);
+
+    List<MilestoneCriteriaAssignmentDto> findByMilestoneRuleIdForCurrentUser(@NotNull Long milestoneRuleId);
 
     List<MilestoneCriteriaAssignmentDto> findByMilestoneIdForCurrentUser(@NotNull Long milestoneId);
+
+    List<MilestoneCriteriaAssignmentDto> findByCriteriaId(@NotNull Long criteriaId);
 }

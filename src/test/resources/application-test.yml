@@ -7,6 +7,9 @@ spring:
       idle-timeout: 300000
       max-lifetime: 1200000
   
+#  liquibase:
+#    contexts: '!test-data'
+
   jpa:
     properties:
       hibernate:
@@ -22,10 +25,12 @@ logging:
   level:
     org.bn.sensation: DEBUG
     org.springframework.security: DEBUG
-    org.hibernate.SQL: WARN
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+#    org.hibernate.SQL: DEBUG
+#    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+#    org.hibernate.event.internal.AbstractFlushingEventListener: TRACE
+#    org.springframework.transaction: DEBUG
+#    org.springframework.orm.jpa: DEBUG
 
-# Test specific configurations
 test:
   user:
     default-role: USER

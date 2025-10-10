@@ -3,10 +3,13 @@ package org.bn.sensation.core.milestone.presentation;
 import java.util.Comparator;
 import java.util.List;
 
+import org.bn.sensation.core.milestone.entity.JudgeMilestoneStatus;
 import org.bn.sensation.core.milestone.service.JudgeMilestoneResultService;
-import org.bn.sensation.core.milestone.service.dto.CreateJudgeMilestoneResultRequest;
+import org.bn.sensation.core.milestone.service.MilestoneService;
+import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultRoundRequest;
+import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneDto;
 import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultDto;
-import org.bn.sensation.core.milestone.service.dto.UpdateJudgeMilestoneResultRequest;
+import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultMilestoneRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -27,11 +30,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Validated
 @SecurityRequirement(name = "cookieAuth")
-@Tag(name = "Judge milestone Result", description = "The Judge milestone API")
+@Tag(name = "Judge milestone Result", description = "The Judge milestone result API")
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
 public class JudgeMilestoneResultController {
 
     private final JudgeMilestoneResultService judgeMilestoneResultService;
+    private final MilestoneService milestoneService;
 
     @Operation(summary = "Получить результат судьи по ID")
     @GetMapping(path = "/{id}")
@@ -77,14 +81,14 @@ public class JudgeMilestoneResultController {
 
     @Operation(summary = "Создать новый результат судьи")
     @PostMapping
-    public ResponseEntity<JudgeMilestoneResultDto> create(@Valid @RequestBody CreateJudgeMilestoneResultRequest request) {
+    public ResponseEntity<JudgeMilestoneResultDto> create(@Valid @RequestBody JudgeMilestoneResultRoundRequest request) {
         JudgeMilestoneResultDto created = judgeMilestoneResultService.create(request);
         return ResponseEntity.ok(created);
     }
 
-    @Operation(summary = "Создать новые результаты судьи")
-    @PostMapping(path = "/createBulk")
-    public ResponseEntity<List<JudgeMilestoneResultDto>> createBulk(@Valid @RequestBody List<CreateJudgeMilestoneResultRequest> request) {
+    @Operation(summary = "Создать новые результаты судьи для раунда")
+    @PostMapping(path = "/createOrUpdateForRound")
+    public ResponseEntity<List<JudgeMilestoneResultDto>> createOrUpdateForRound(@Valid @RequestBody List<JudgeMilestoneResultRoundRequest> request) {
         List<JudgeMilestoneResultDto> created = request.stream()
                 .map(req -> judgeMilestoneResultService.create(req))
                 .sorted(Comparator.comparing(JudgeMilestoneResultDto::getScore).reversed())
@@ -95,14 +99,14 @@ public class JudgeMilestoneResultController {
     @Operation(summary = "Обновить результат судьи по ID")
     @PutMapping("/{id}")
     public ResponseEntity<JudgeMilestoneResultDto> update(@PathVariable("id") @NotNull Long id,
-                                                          @Valid @RequestBody UpdateJudgeMilestoneResultRequest request) {
+                                                          @Valid @RequestBody JudgeMilestoneResultMilestoneRequest request) {
         JudgeMilestoneResultDto updated = judgeMilestoneResultService.update(id, request);
         return ResponseEntity.ok(updated);
     }
 
-    @Operation(summary = "Обновить результаты судьи по ID")
-    @PostMapping(path = "/updateBulk")
-    public ResponseEntity<List<JudgeMilestoneResultDto>> updateBulk(@Valid @RequestBody List<UpdateJudgeMilestoneResultRequest> request) {
+    @Operation(summary = "Обновить результаты судьи по этапу")
+    @PostMapping(path = "/updateForMilestone")
+    public ResponseEntity<List<JudgeMilestoneResultDto>> updateForMilestone(@Valid @RequestBody List<JudgeMilestoneResultMilestoneRequest> request) {
         List<JudgeMilestoneResultDto> updated = request.stream()
                 .map(req -> judgeMilestoneResultService.update(req.getId(), req))
                 .sorted(Comparator.comparing(JudgeMilestoneResultDto::getScore).reversed())
@@ -115,5 +119,19 @@ public class JudgeMilestoneResultController {
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         judgeMilestoneResultService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Принять результаты этапа",
+            description = "Результаты этапа принимаются для текущего пользователя который должен являться судьей этапа")
+    @GetMapping(path = "/accept/{milestoneId}")
+    public ResponseEntity<JudgeMilestoneDto> acceptRound(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+        return ResponseEntity.ok(milestoneService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.ACCEPTED));
+    }
+
+    @Operation(summary = "Отменить результаты раунда",
+            description = "Результаты этапа отменяются для текущего пользователя который должен являться судьей этапа")
+    @GetMapping(path = "/reject/{milestoneId}")
+    public ResponseEntity<JudgeMilestoneDto> rejectRound(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+        return ResponseEntity.ok(milestoneService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.REJECTED));
     }
 }

@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
-public class UpdateJudgeMilestoneResultRequest extends BaseDto {
+public class JudgeMilestoneResultMilestoneRequest extends BaseDto {
 
     @PositiveOrZero
     @NotNull
@@ -23,4 +23,7 @@ public class UpdateJudgeMilestoneResultRequest extends BaseDto {
 
     @Schema(description = "Добавление участника в избранные (возможные кандидаты)", example = "true", defaultValue = "false")
     private Boolean isFavorite;
+
+    @Schema(description = "Участник - возможный кандидат для выбора в этапе", example = "true", defaultValue = "false")
+    private Boolean isCandidate;
 }
