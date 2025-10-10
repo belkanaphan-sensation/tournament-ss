@@ -12,20 +12,17 @@ import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
 import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
-import org.bn.sensation.core.criteria.entity.CriteriaEntity;
-import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
-import org.bn.sensation.core.criteria.repository.CriteriaRepository;
-import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
+import org.bn.sensation.core.milestone.entity.AssessmentMode;
+import org.bn.sensation.core.milestone.entity.JudgeMilestoneStatus;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
-import org.bn.sensation.core.milestone.service.dto.AssessmentMode;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
+import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneDto;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
 import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.mapper.CreateMilestoneRequestMapper;
 import org.bn.sensation.core.milestone.service.mapper.MilestoneDtoMapper;
 import org.bn.sensation.core.milestone.service.mapper.UpdateMilestoneRequestMapper;
-import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -41,17 +38,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MilestoneServiceImpl implements MilestoneService {
 
-    //todo как то откуда-то брать?
-    private static final String DEFAULT_CRITERIA = "Прохождение";
-
     private final MilestoneRepository milestoneRepository;
     private final MilestoneDtoMapper milestoneDtoMapper;
     private final CreateMilestoneRequestMapper createMilestoneRequestMapper;
     private final UpdateMilestoneRequestMapper updateMilestoneRequestMapper;
     private final ActivityRepository activityRepository;
-    private final CriteriaRepository criteriaRepository;
-    private final MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
-    private final CurrentUser currentUser;
 
     @Override
     public BaseRepository<MilestoneEntity> getRepository() {
@@ -66,13 +57,11 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     @Transactional(readOnly = true)
     public Page<MilestoneDto> findAll(Pageable pageable) {
-        // Используем жадную загрузку для избежания N+1 проблемы
-        List<MilestoneEntity> milestones = milestoneRepository.findAllWithCriteriaAssignments();
+        List<MilestoneEntity> milestones = milestoneRepository.findAll();
         List<MilestoneDto> enrichedDtos = milestones.stream()
                 .map(this::enrichMilestoneDtoWithStatistics)
                 .toList();
 
-        // Создаем Page вручную для пагинации
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), enrichedDtos.size());
         List<MilestoneDto> pageContent = enrichedDtos.subList(start, end);
@@ -83,7 +72,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     @Transactional(readOnly = true)
     public Optional<MilestoneDto> findById(Long id) {
-        return milestoneRepository.findByIdWithCriteriaAssignments(id)
+        return milestoneRepository.findById(id)
                 .map(this::enrichMilestoneDtoWithStatistics);
     }
 
@@ -105,8 +94,6 @@ public class MilestoneServiceImpl implements MilestoneService {
         }
 
         MilestoneEntity saved = milestoneRepository.save(milestone);
-
-        addDefaultCriteriaIfNeeded(saved);
 
         return enrichMilestoneDtoWithStatistics(saved);
     }
@@ -142,30 +129,11 @@ public class MilestoneServiceImpl implements MilestoneService {
         milestoneRepository.deleteById(id);
     }
 
-
-    private void addDefaultCriteriaIfNeeded(MilestoneEntity milestone) {
-        if (milestone.getCriteriaAssignments().isEmpty()) {
-            // Получаем критерий по умолчанию по имени "Прохождение"
-            CriteriaEntity defaultCriteria = criteriaRepository.findByName(DEFAULT_CRITERIA)
-                    .orElseThrow(() -> new EntityNotFoundException("Критерий по умолчанию 'Прохождение' не найден"));
-
-            MilestoneCriteriaAssignmentEntity assignment = MilestoneCriteriaAssignmentEntity.builder()
-                    .milestone(milestone)
-                    .criteria(defaultCriteria)
-                    .scale(1)
-                    .build();
-
-            milestoneCriteriaAssignmentRepository.save(assignment);
-
-            milestone.getCriteriaAssignments().add(assignment);
-        }
-    }
-
     @Override
     @Transactional(readOnly = true)
     public List<MilestoneDto> findByActivityId(Long id) {
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
-        return milestoneRepository.findByActivityIdWithCriteriaAssignments(id).stream()
+        return milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(id).stream()
                 .map(this::enrichMilestoneDtoWithStatistics)
                 .toList();
     }
@@ -174,36 +142,19 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Transactional(readOnly = true)
     public List<MilestoneDto> findByActivityIdInLifeStates(Long id) {
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
-        return milestoneRepository.findByActivityIdAndStateInWithCriteriaAssignments(id, MilestoneState.LIFE_MILESTONE_STATES).stream()
+        return milestoneRepository.findByActivityIdAndStateIn(id, MilestoneState.LIFE_MILESTONE_STATES).stream()
                 .map(this::enrichMilestoneDtoWithStatistics)
                 .toList();
     }
 
     private MilestoneDto enrichMilestoneDtoWithStatistics(MilestoneEntity milestone) {
         MilestoneDto dto = milestoneDtoMapper.toDto(milestone);
-        dto.setAssessmentMode(calculateAssessmentMode(milestone));
         dto.setCompletedRoundsCount((int) milestone.getRounds().stream()
                 .filter(round -> round.getState() == RoundState.COMPLETED)
                 .count());
         dto.setTotalRoundsCount(milestone.getRounds().size());
 
         return dto;
-    }
-
-    /**
-     * Рассчитывает AssessmentMode на основе criteriaAssignments
-     * Если у milestone всего 1 criteriaAssignments и у него scale = 1, то PASS, иначе CRITERIA
-     */
-    private AssessmentMode calculateAssessmentMode(MilestoneEntity milestone) {
-        if (milestone.getCriteriaAssignments() == null || milestone.getCriteriaAssignments().isEmpty()) {
-            return AssessmentMode.CRITERIA; // По умолчанию CRITERIA если еще нет назначений
-        }
-        if (milestone.getCriteriaAssignments().size() == 1
-                && milestone.getCriteriaAssignments().iterator().next().getScale() == 1) {
-            return AssessmentMode.PASS;
-
-        }
-        return AssessmentMode.CRITERIA;
     }
 
     /**
@@ -256,6 +207,35 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     @Override
+    @Transactional
+    public JudgeMilestoneDto changeMilestoneStatus(Long milestoneId, JudgeMilestoneStatus judgeMilestoneStatus) {
+        Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
+        Preconditions.checkArgument(judgeMilestoneStatus != null, "Статус не может быть null");
+        return new JudgeMilestoneDto();
+//        milestoneRepository.
+//        RoundEntity round = roundRepository.findByIdWithUserAssignments(roundId)
+//                .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + roundId));
+//        UserActivityAssignmentEntity activityAssignment = round.getMilestone().getActivity().getUserAssignments()
+//                .stream()
+//                .filter(ua ->
+//                        ua.getUser()
+//                                .getId()
+//                                .equals(currentUser.getSecurityUser().getId())
+//                                && ua.getPosition().isJudge())
+//                .findFirst()
+//                .orElseThrow(() -> new EntityNotFoundException("Юзер с id %s не привязан к раунду с id: %s".formatted(currentUser.getSecurityUser().getId(), roundId)));
+//        Preconditions.checkState(round.getState() == RoundState.IN_PROGRESS,
+//                "Статус раунда %s. Не может быть принят или отменен судьей", round.getState());
+//
+//        checkAccepted(judgeRoundStatus, activityAssignment, round);
+//
+//        JudgeMilestoneEntity judgeMilestoneEntity = judgeRoundRepository.findByRoundIdAndJudgeId(roundId, activityAssignment.getId())
+//                .orElse(JudgeMilestoneEntity.builder().milestone(round).judge(activityAssignment).build());
+//        judgeMilestoneEntity.setStatus(judgeRoundStatus);
+//        return judgeRoundMapper.toDto(judgeRoundRepository.save(judgeMilestoneEntity));
+    }
+
+    @Override
     public void saveTransition(MilestoneEntity milestone, MilestoneState state) {
         milestone.setState(state);
         milestoneRepository.save(milestone);
@@ -275,7 +255,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                         .stream()
                         .allMatch(round -> round.getState() == RoundState.COMPLETED);
                 Preconditions.checkState(allRoundsCompleted, "Не все раунды завершены");
-                AssessmentMode assessmentMode = calculateAssessmentMode(milestone);
+                AssessmentMode assessmentMode = milestone.getMilestoneRule().getAssessmentMode();
                 //должны быть посчитаны результаты этапа - проверка
                 //это должно уйтив проверку подсчетов результата этапа
                 if (assessmentMode == AssessmentMode.PASS) {

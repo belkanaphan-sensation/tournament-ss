@@ -6,7 +6,7 @@ import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
 import org.mapstruct.Mapper;
 
-@Mapper(config = BaseDtoMapper.class, uses = {EntityLinkMapper.class})
+@Mapper(config = BaseDtoMapper.class, uses = {EntityLinkMapper.class, MilestoneRuleDtoMapper.class})
 public interface MilestoneDtoMapper extends BaseDtoMapper<MilestoneEntity, MilestoneDto> {
 
     @Override

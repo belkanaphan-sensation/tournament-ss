@@ -9,7 +9,7 @@ import org.bn.sensation.core.common.statemachine.listener.ActivityStateMachineLi
 import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
-import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
+import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter;
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @EnableStateMachineFactory(name = "activityStateMachine")
 @RequiredArgsConstructor
-public class ActivityStateMachineConfig extends StateMachineConfigurerAdapter<ActivityState, ActivityEvent> {
+public class ActivityStateMachineConfig extends EnumStateMachineConfigurerAdapter<ActivityState, ActivityEvent> {
 
     private final ActivityGuard activityGuard;
     private final ActivityAction activityAction;

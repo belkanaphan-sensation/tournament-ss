@@ -7,15 +7,15 @@ import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
+import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultRoundRequest;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.milestone.entity.JudgeMilestoneResultEntity;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.core.milestone.repository.JudgeMilestoneResultRepository;
-import org.bn.sensation.core.milestone.service.dto.CreateJudgeMilestoneResultRequest;
 import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultDto;
-import org.bn.sensation.core.milestone.service.dto.UpdateJudgeMilestoneResultRequest;
+import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultMilestoneRequest;
 import org.bn.sensation.core.milestone.service.mapper.CreateJudgeMilestoneResultRequestMapper;
 import org.bn.sensation.core.milestone.service.mapper.JudgeMilestoneResultDtoMapper;
 import org.bn.sensation.core.milestone.service.mapper.UpdateJudgeMilestoneResultRequestMapper;
@@ -60,7 +60,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
     @Override
     @Transactional
     //todo тут должно быть применено правило, если судьи меняются сторонами, пока оно не учитывается
-    public JudgeMilestoneResultDto create(CreateJudgeMilestoneResultRequest request) {
+    public JudgeMilestoneResultDto create(JudgeMilestoneResultRoundRequest request) {
         ParticipantEntity participant = participantRepository.findById(request.getParticipantId())
                 .orElseThrow(EntityNotFoundException::new);
         MilestoneCriteriaAssignmentEntity milestoneCriteria = milestoneCriteriaAssignmentRepository
@@ -99,7 +99,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
     @Override
     @Transactional
-    public JudgeMilestoneResultDto update(Long id, UpdateJudgeMilestoneResultRequest request) {
+    public JudgeMilestoneResultDto update(Long id, JudgeMilestoneResultMilestoneRequest request) {
         JudgeMilestoneResultEntity entity = judgeMilestoneResultRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Результат раунда не найден с id: " + id));
 

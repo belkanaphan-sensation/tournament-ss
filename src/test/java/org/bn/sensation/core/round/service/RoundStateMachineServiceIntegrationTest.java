@@ -309,7 +309,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
-        
+
         JudgeRoundEntity judgeRound = JudgeRoundEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
@@ -343,7 +343,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
-        
+
         JudgeRoundEntity judgeRound = JudgeRoundEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
@@ -414,7 +414,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
-        
+
         JudgeRoundEntity judgeRound = JudgeRoundEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
@@ -469,7 +469,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
-        
+
         JudgeRoundEntity judgeRound = JudgeRoundEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
@@ -505,7 +505,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
-        
+
         JudgeRoundEntity judgeRound = JudgeRoundEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)

@@ -1,6 +1,6 @@
 package org.bn.sensation.core.milestone.service.dto;
 
-import org.bn.sensation.core.common.dto.EmptyDto;
+import org.bn.sensation.core.common.dto.BaseDto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -20,7 +20,7 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Запрос на создание результатов судьи для раунда в этапе")
-public class CreateJudgeMilestoneResultRequest extends EmptyDto {
+public class JudgeMilestoneResultRoundRequest extends BaseDto {
 
     @NotNull
     @Schema(description = "Участник")
@@ -35,11 +35,13 @@ public class CreateJudgeMilestoneResultRequest extends EmptyDto {
     private Long milestoneCriteriaId;
 
     @PositiveOrZero
-    @NotNull
     @Schema(description = "Значение оценки для данного участника данным судьей по данному критерию", example = "5")
     private Integer score;
 
     @NotNull
     @Schema(description = "Добавление участника в избранные (возможные кандидаты)", example = "true", defaultValue = "false")
     private Boolean isFavorite;
+
+    @Schema(description = "Участник - возможный кандидат для выбора в этапе", example = "true", defaultValue = "false")
+    private Boolean isCandidate;
 }

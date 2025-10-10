@@ -21,7 +21,7 @@ public class CriteriaEntity extends BaseEntity {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @OneToMany(mappedBy = "criteria", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "criteria")
     @Builder.Default
     private Set<MilestoneCriteriaAssignmentEntity> milestoneAssignments = new HashSet<>();
 }

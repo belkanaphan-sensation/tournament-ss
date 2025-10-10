@@ -2,11 +2,11 @@ package org.bn.sensation.core.common.statemachine.config;
 
 import org.bn.sensation.core.common.statemachine.action.RoundAction;
 import org.bn.sensation.core.common.statemachine.event.RoundEvent;
-import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.common.statemachine.listener.RoundStateMachineListener;
+import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
-import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
+import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter;
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @EnableStateMachineFactory(name = "roundStateMachine")
 @RequiredArgsConstructor
-public class RoundStateMachineConfig extends StateMachineConfigurerAdapter<RoundState, RoundEvent> {
+public class RoundStateMachineConfig extends EnumStateMachineConfigurerAdapter<RoundState, RoundEvent> {
 
     private final RoundAction roundAction;
     private final RoundStateMachineListener roundStateMachineListener;

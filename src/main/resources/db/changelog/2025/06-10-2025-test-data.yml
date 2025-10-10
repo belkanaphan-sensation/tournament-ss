@@ -96,28 +96,40 @@ databaseChangeLog:
               ('Этап 2 - Полуфинал', 'Полуфинальный этап школы танцев', 'IN_PROGRESS', (SELECT id FROM activity WHERE name = 'Соревнование Школы танцев'), 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
               ('Этап 3 - Финал', 'Финальный этап школы танцев', 'IN_PROGRESS', (SELECT id FROM activity WHERE name = 'Соревнование Школы танцев'), 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
 
-  # Test data for criteria assignments
+  # Test data for milestone rules (3 rules for school stages)
   - changeSet:
       id: 2025-10-06-7
       author: system
       changes:
         - sql:
             sql: |
-              INSERT INTO milestone_criteria_assignment (milestone_id, criteria_id, partner_side, weight, scale, priority, created_at, created_by, modified_at, modified_by, version) VALUES
+              INSERT INTO milestone_rule (assessment_mode, participant_limit, milestone_id, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('SCORE', 25, (SELECT id FROM milestone WHERE name = 'Этап 1 - Отборочный'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('SCORE', 15, (SELECT id FROM milestone WHERE name = 'Этап 2 - Полуфинал'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('SCORE', 10, (SELECT id FROM milestone WHERE name = 'Этап 3 - Финал'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+
+  # Test data for criteria assignments
+  - changeSet:
+      id: 2025-10-06-8
+      author: system
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO milestone_criteria_assignment (milestone_rule_id, criteria_id, partner_side, weight, scale, created_at, created_by, modified_at, modified_by, version) VALUES
               -- Этап 1: 1 критерий по шкале 0-1
-              ((SELECT id FROM milestone WHERE name = 'Этап 1 - Отборочный'), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 1, 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 1 - Отборочный')), (SELECT id FROM criteria WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
               
               -- Этап 2: 1 критерий по шкале 10
-              ((SELECT id FROM milestone WHERE name = 'Этап 2 - Полуфинал'), (SELECT id FROM criteria WHERE name = 'Техника'), null, 1.0, 10, 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 2 - Полуфинал')), (SELECT id FROM criteria WHERE name = 'Техника'), null, 1.0, 10, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
               
               -- Этап 3: 3 критерия по шкале 12 (финал)
-              ((SELECT id FROM milestone WHERE name = 'Этап 3 - Финал'), (SELECT id FROM criteria WHERE name = 'Техника'), null, 1.0, 12, 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 3 - Финал'), (SELECT id FROM criteria WHERE name = 'Стилистика'), null, 1.0, 12, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
-              ((SELECT id FROM milestone WHERE name = 'Этап 3 - Финал'), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, 1.0, 12, 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3 - Финал')), (SELECT id FROM criteria WHERE name = 'Техника'), null, 1.0, 12, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3 - Финал')), (SELECT id FROM criteria WHERE name = 'Стилистика'), null, 1.0, 12, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Этап 3 - Финал')), (SELECT id FROM criteria WHERE name = 'Музыкальность'), null, 1.0, 12, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
 
   # Test data for rounds
   - changeSet:
-      id: 2025-10-06-8
+      id: 2025-10-06-9
       author: system
       changes:
         - sql:
@@ -141,7 +153,7 @@ databaseChangeLog:
 
   # Test data for rounds_participants_association with progressive selection
   - changeSet:
-      id: 2025-10-06-9
+      id: 2025-10-06-10
       author: system
       changes:
         - sql:
@@ -222,7 +234,7 @@ databaseChangeLog:
 
   # Test data for user_activity_assignment (judges for school activity)
   - changeSet:
-      id: 2025-10-06-10
+      id: 2025-10-06-11
       author: system
       changes:
         - sql:
@@ -238,7 +250,7 @@ databaseChangeLog:
 
   # Test data for users_organizations_association (judges to organization)
   - changeSet:
-      id: 2025-10-06-11
+      id: 2025-10-06-12
       author: system
       changes:
         - sql:

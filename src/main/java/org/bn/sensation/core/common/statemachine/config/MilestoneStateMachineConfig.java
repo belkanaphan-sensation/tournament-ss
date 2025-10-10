@@ -9,7 +9,7 @@ import org.bn.sensation.core.common.statemachine.listener.MilestoneStateMachineL
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
-import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
+import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter;
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @EnableStateMachineFactory(name = "milestoneStateMachine")
 @RequiredArgsConstructor
-public class MilestoneStateMachineConfig extends StateMachineConfigurerAdapter<MilestoneState, MilestoneEvent> {
+public class MilestoneStateMachineConfig extends EnumStateMachineConfigurerAdapter<MilestoneState, MilestoneEvent> {
 
     private final MilestoneGuard milestoneGuard;
     private final MilestoneAction milestoneAction;

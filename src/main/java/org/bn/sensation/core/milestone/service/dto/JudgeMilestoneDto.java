@@ -2,7 +2,7 @@ package org.bn.sensation.core.milestone.service.dto;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.bn.sensation.core.milestone.entity.AssessmentMode;
+import org.bn.sensation.core.milestone.entity.JudgeMilestoneStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -19,15 +19,15 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Правило этапа")
-public class MilestoneRuleDto extends BaseDto {
+@Schema(description = "Статус этапа по судьям")
+public class JudgeMilestoneDto extends BaseDto {
 
-    @Schema(description = "Режим оценивания участника", example = "PASS")
-    private AssessmentMode assessmentMode;
+    @Schema(description = "Судья. Юзер привязанный к активности (UserActivityAssignmentEntity)")
+    private EntityLinkDto judge;
 
-    @Schema(description = "Максимальное количество участников в этапе", example = "10")
-    private Integer participantLimit;
-
-    @Schema(description = "Этап, к которому относится правило")
+    @Schema(description = "Этап")
     private EntityLinkDto milestone;
+
+    @Schema(description = "Статус этапа, проставленный судьей", example = "ACCEPTED")
+    private JudgeMilestoneStatus status;
 }

@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.common.entity.PartnerSide;
-import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,8 +20,8 @@ import lombok.experimental.SuperBuilder;
 public class MilestoneCriteriaAssignmentEntity extends BaseEntity {
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "milestone_id", nullable = false)
-    private MilestoneEntity milestone;
+    @JoinColumn(name = "milestone_rule_id", nullable = false)
+    private MilestoneRuleEntity milestoneRule;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "criteria_id", nullable = false)
@@ -38,7 +38,4 @@ public class MilestoneCriteriaAssignmentEntity extends BaseEntity {
     @Column(name = "scale", nullable = false)
     private Integer scale;
 
-    @Column(name = "priority", nullable = false)
-    @Builder.Default
-    private Integer priority = 0;
 }

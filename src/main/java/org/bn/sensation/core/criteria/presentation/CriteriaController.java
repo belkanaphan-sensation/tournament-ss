@@ -1,9 +1,8 @@
 package org.bn.sensation.core.criteria.presentation;
 
 import org.bn.sensation.core.criteria.service.CriteriaService;
-import org.bn.sensation.core.criteria.service.dto.CreateCriteriaRequest;
+import org.bn.sensation.core.criteria.service.dto.CriteriaRequest;
 import org.bn.sensation.core.criteria.service.dto.CriteriaDto;
-import org.bn.sensation.core.criteria.service.dto.UpdateCriteriaRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +46,7 @@ public class CriteriaController {
 
     @Operation(summary = "Создать новый критерий")
     @PostMapping
-    public ResponseEntity<CriteriaDto> create(@Valid @RequestBody CreateCriteriaRequest request) {
+    public ResponseEntity<CriteriaDto> create(@Valid @RequestBody CriteriaRequest request) {
         CriteriaDto created = criteriaService.create(request);
         return ResponseEntity.ok(created);
     }
@@ -55,7 +54,7 @@ public class CriteriaController {
     @Operation(summary = "Обновить критерий по ID")
     @PutMapping("/{id}")
     public ResponseEntity<CriteriaDto> update(@PathVariable("id") @NotNull Long id,
-                                             @Valid @RequestBody UpdateCriteriaRequest request) {
+                                             @Valid @RequestBody CriteriaRequest request) {
         CriteriaDto updated = criteriaService.update(id, request);
         return ResponseEntity.ok(updated);
     }

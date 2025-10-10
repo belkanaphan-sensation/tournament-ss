@@ -9,7 +9,7 @@ import org.bn.sensation.core.common.statemachine.listener.OccasionStateMachineLi
 import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
-import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
+import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter;
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @EnableStateMachineFactory(name = "occasionStateMachine")
 @RequiredArgsConstructor
-public class OccasionStateMachineConfig extends StateMachineConfigurerAdapter<OccasionState, OccasionEvent> {
+public class OccasionStateMachineConfig extends EnumStateMachineConfigurerAdapter<OccasionState, OccasionEvent> {
 
     private final OccasionGuard occasionGuard;
     private final OccasionAction occasionAction;

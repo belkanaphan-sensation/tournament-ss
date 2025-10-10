@@ -15,7 +15,9 @@ import org.bn.sensation.core.criteria.service.mapper.CreateMilestoneCriteriaAssi
 import org.bn.sensation.core.criteria.service.mapper.MilestoneCriteriaAssignmentDtoMapper;
 import org.bn.sensation.core.criteria.service.mapper.UpdateMilestoneCriteriaAssignmentRequestMapper;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.bn.sensation.core.milestone.repository.MilestoneRuleRepository;
 import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
 import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
 import org.bn.sensation.security.CurrentUser;
@@ -40,6 +42,7 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
     private final MilestoneRepository milestoneRepository;
     private final CriteriaRepository criteriaRepository;
     private final UserActivityAssignmentRepository userActivityAssignmentRepository;
+    private final MilestoneRuleRepository milestoneRuleRepository;
     private final CurrentUser currentUser;
 
     @Override
@@ -59,38 +62,19 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<MilestoneCriteriaAssignmentDto> findByMilestoneIdForCurrentUser(Long milestoneId) {
-        Preconditions.checkArgument(milestoneId != null, "Milestone ID не может быть null");
-        MilestoneEntity milestone = milestoneRepository.findById(milestoneId)
-                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
-        List<MilestoneCriteriaAssignmentEntity> mcae = milestoneCriteriaAssignmentRepository.findByMilestoneId(milestoneId);
-        if (mcae.isEmpty()) {
-            return List.of();
-        }
-        UserActivityAssignmentEntity uaae = userActivityAssignmentRepository.findByUserIdAndActivityId(currentUser.getSecurityUser().getId(), milestone.getActivity().getId())
-                .orElseThrow(() -> new EntityNotFoundException("Данный юзер не подписан на активность, включающую этап с id: " + milestoneId));
-
-        return mcae.stream()
-                .filter(mc -> mc.getPartnerSide() == null || mc.getPartnerSide() == uaae.getPartnerSide())
-                .map(milestoneCriteriaAssignmentDtoMapper::toDto)
-                .toList();
-    }
-
-    @Override
     @Transactional
     public MilestoneCriteriaAssignmentDto create(CreateMilestoneCriteriaAssignmentRequest request) {
-        Preconditions.checkArgument(request.getMilestoneId() != null, "Milestone ID не может быть null");
+        Preconditions.checkArgument(request.getMilestoneRuleId() != null, "Milestone rule ID не может быть null");
         Preconditions.checkArgument(request.getCriteriaId() != null, "Criteria ID не может быть null");
 
         // Проверяем, что назначение еще не существует
-        if (milestoneCriteriaAssignmentRepository.existsByMilestoneIdAndCriteriaId(request.getMilestoneId(), request.getCriteriaId())) {
+        if (milestoneCriteriaAssignmentRepository.existsByMilestoneRuleIdAndCriteriaId(request.getMilestoneRuleId(), request.getCriteriaId())) {
             throw new IllegalArgumentException("Критерий уже назначен на этот этап");
         }
 
         // Проверяем существование этапа
-        MilestoneEntity milestone = milestoneRepository.findById(request.getMilestoneId())
-                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + request.getMilestoneId()));
+        MilestoneRuleEntity milestoneRule = milestoneRuleRepository.findById(request.getMilestoneRuleId())
+                .orElseThrow(() -> new EntityNotFoundException("Правило этапа не найден с id: " + request.getMilestoneRuleId()));
 
         // Проверяем существование критерия
         CriteriaEntity criteria = criteriaRepository.findById(request.getCriteriaId())
@@ -98,7 +82,7 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
 
         // Создаем сущность назначения
         MilestoneCriteriaAssignmentEntity assignment = createMilestoneCriteriaAssignmentRequestMapper.toEntity(request);
-        assignment.setMilestone(milestone);
+        assignment.setMilestoneRule(milestoneRule);
         assignment.setCriteria(criteria);
 
         MilestoneCriteriaAssignmentEntity saved = milestoneCriteriaAssignmentRepository.save(assignment);
@@ -143,18 +127,84 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MilestoneCriteriaAssignmentDto> findByMilestoneId(Long milestoneId, Pageable pageable) {
+    public List<MilestoneCriteriaAssignmentDto> findByMilestoneId(Long milestoneId) {
         Preconditions.checkArgument(milestoneId != null, "Milestone ID не может быть null");
 
-        return milestoneCriteriaAssignmentRepository.findByMilestoneId(milestoneId, pageable).map(milestoneCriteriaAssignmentDtoMapper::toDto);
+        return milestoneCriteriaAssignmentRepository.findByMilestoneId(milestoneId)
+                .stream()
+                .map(milestoneCriteriaAssignmentDtoMapper::toDto)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MilestoneCriteriaAssignmentDto> findByCriteriaId(Long criteriaId, Pageable pageable) {
+    public List<MilestoneCriteriaAssignmentDto> findByCriteriaId(Long criteriaId) {
         Preconditions.checkArgument(criteriaId != null, "Criteria ID не может быть null");
 
-        return milestoneCriteriaAssignmentRepository.findByCriteriaId(criteriaId, pageable).map(milestoneCriteriaAssignmentDtoMapper::toDto);
+        return milestoneCriteriaAssignmentRepository.findByCriteriaId(criteriaId)
+                .stream()
+                .map(milestoneCriteriaAssignmentDtoMapper::toDto)
+                .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public MilestoneCriteriaAssignmentDto findByMilestoneRuleIdAndCriteriaId(Long milestoneRuleId, Long criteriaId) {
+        Preconditions.checkArgument(milestoneRuleId != null, "Milestone rule ID не может быть null");
+        Preconditions.checkArgument(criteriaId != null, "Criteria ID не может быть null");
+
+        MilestoneCriteriaAssignmentEntity assignment = milestoneCriteriaAssignmentRepository.findByMilestoneRuleIdAndCriteriaId(milestoneRuleId, criteriaId)
+                .orElseThrow(() -> new EntityNotFoundException("Назначение не найдено для правила этапа " + milestoneRuleId + " и критерия " + criteriaId));
+
+        return milestoneCriteriaAssignmentDtoMapper.toDto(assignment);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MilestoneCriteriaAssignmentDto> findByMilestoneRuleId(Long milestoneRuleId) {
+        Preconditions.checkArgument(milestoneRuleId != null, "Milestone rule ID не может быть null");
+        return milestoneCriteriaAssignmentRepository
+                .findByMilestoneRuleId(milestoneRuleId).stream()
+                .map(milestoneCriteriaAssignmentDtoMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MilestoneCriteriaAssignmentDto> findByMilestoneRuleIdForCurrentUser(Long milestoneRuleId) {
+        Preconditions.checkArgument(milestoneRuleId != null, "Milestone ID не может быть null");
+        MilestoneRuleEntity milestoneRule = milestoneRuleRepository.findByIdWithMilestone(milestoneRuleId)
+                .orElseThrow(() -> new EntityNotFoundException("Правило этапа не найден с id: " + milestoneRuleId));
+        List<MilestoneCriteriaAssignmentEntity> mcae = milestoneCriteriaAssignmentRepository.findByMilestoneRuleId(milestoneRuleId);
+        if (mcae.isEmpty()) {
+            return List.of();
+        }
+        UserActivityAssignmentEntity uaae = userActivityAssignmentRepository.findByUserIdAndActivityId(
+                currentUser.getSecurityUser().getId(), milestoneRule.getMilestone().getActivity().getId())
+                .orElseThrow(() -> new EntityNotFoundException("Данный юзер не подписан на активность, включающую этап правилом с id: " + milestoneRuleId));
+
+        return mcae.stream()
+                .filter(mc -> mc.getPartnerSide() == null || mc.getPartnerSide() == uaae.getPartnerSide())
+                .map(milestoneCriteriaAssignmentDtoMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MilestoneCriteriaAssignmentDto> findByMilestoneIdForCurrentUser(Long milestoneId) {
+        Preconditions.checkArgument(milestoneId != null, "Milestone ID не может быть null");
+        MilestoneEntity milestone = milestoneRepository.findById(milestoneId)
+                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
+        List<MilestoneCriteriaAssignmentEntity> mcae = milestoneCriteriaAssignmentRepository.findByMilestoneId(milestoneId);
+        if (mcae.isEmpty()) {
+            return List.of();
+        }
+        UserActivityAssignmentEntity uaae = userActivityAssignmentRepository.findByUserIdAndActivityId(currentUser.getSecurityUser().getId(), milestone.getActivity().getId())
+                .orElseThrow(() -> new EntityNotFoundException("Данный юзер не подписан на активность, включающую этап с id: " + milestoneId));
+
+        return mcae.stream()
+                .filter(mc -> mc.getPartnerSide() == null || mc.getPartnerSide() == uaae.getPartnerSide())
+                .map(milestoneCriteriaAssignmentDtoMapper::toDto)
+                .toList();
+    }
 }

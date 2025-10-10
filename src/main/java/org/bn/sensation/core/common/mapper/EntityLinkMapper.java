@@ -5,6 +5,7 @@ import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
@@ -56,4 +57,8 @@ public interface EntityLinkMapper {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "value", source = "user.username")
     EntityLinkDto toEntityLinkDto(UserActivityAssignmentEntity entity);
+
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "value", source = "assessmentMode")
+    EntityLinkDto toEntityLinkDto(MilestoneRuleEntity entity);
 }

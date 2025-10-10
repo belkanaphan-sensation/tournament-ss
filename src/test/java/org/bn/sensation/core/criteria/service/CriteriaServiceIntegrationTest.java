@@ -15,11 +15,13 @@ import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.criteria.repository.CriteriaRepository;
 import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
-import org.bn.sensation.core.criteria.service.dto.CreateCriteriaRequest;
 import org.bn.sensation.core.criteria.service.dto.CriteriaDto;
-import org.bn.sensation.core.criteria.service.dto.UpdateCriteriaRequest;
+import org.bn.sensation.core.criteria.service.dto.CriteriaRequest;
+import org.bn.sensation.core.milestone.entity.AssessmentMode;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.bn.sensation.core.milestone.repository.MilestoneRuleRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
@@ -52,6 +54,9 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
     private MilestoneRepository milestoneRepository;
 
     @Autowired
+    private MilestoneRuleRepository milestoneRuleRepository;
+
+    @Autowired
     private ActivityRepository activityRepository;
 
     @Autowired
@@ -65,6 +70,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
 
     private CriteriaEntity testCriteria;
     private MilestoneEntity testMilestone;
+    private MilestoneRuleEntity testMilestoneRule;
 
     @BeforeEach
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -75,6 +81,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
         // Очистка данных в отдельной транзакции
         transactionTemplate.execute(status -> {
             milestoneCriteriaAssignmentRepository.deleteAll();
+            milestoneRuleRepository.deleteAll();
             criteriaRepository.deleteAll();
             milestoneRepository.deleteAll();
             activityRepository.deleteAll();
@@ -119,6 +126,18 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
                     .build();
             testMilestone = milestoneRepository.save(testMilestone);
 
+            // Создаем тестовое правило этапа
+            testMilestoneRule = MilestoneRuleEntity.builder()
+                    .assessmentMode(AssessmentMode.SCORE)
+                    .participantLimit(10)
+                    .milestone(testMilestone)
+                    .build();
+            testMilestoneRule = milestoneRuleRepository.save(testMilestoneRule);
+
+            // Связываем этап с правилом
+            testMilestone.setMilestoneRule(testMilestoneRule);
+            milestoneRepository.save(testMilestone);
+
             // Создаем тестовый критерий
             testCriteria = CriteriaEntity.builder()
                     .name("Техника")
@@ -132,7 +151,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testCreateCriteria() {
         // Given
-        CreateCriteriaRequest request = CreateCriteriaRequest.builder()
+        CriteriaRequest request = CriteriaRequest.builder()
                 .name("Ведение")
                 .build();
 
@@ -152,7 +171,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testCreateCriteriaWithExistingName() {
         // Given
-        CreateCriteriaRequest request = CreateCriteriaRequest.builder()
+        CriteriaRequest request = CriteriaRequest.builder()
                 .name("Техника") // То же название, что и у существующего критерия
                 .build();
 
@@ -165,7 +184,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testUpdateCriteria() {
         // Given
-        UpdateCriteriaRequest request = UpdateCriteriaRequest.builder()
+        CriteriaRequest request = CriteriaRequest.builder()
                 .name("Обновленная техника")
                 .build();
 
@@ -192,7 +211,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
         criteriaRepository.save(anotherCriteria);
 
-        UpdateCriteriaRequest request = UpdateCriteriaRequest.builder()
+        CriteriaRequest request = CriteriaRequest.builder()
                 .name("Другой критерий") // То же название, что и у другого критерия
                 .build();
 
@@ -205,7 +224,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testUpdateCriteriaWithSameName() {
         // Given
-        UpdateCriteriaRequest request = UpdateCriteriaRequest.builder()
+        CriteriaRequest request = CriteriaRequest.builder()
                 .name("Техника") // То же название, что и у текущего критерия
                 .build();
 
@@ -221,7 +240,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testUpdateCriteriaWithNonExistentCriteria() {
         // Given
-        UpdateCriteriaRequest request = UpdateCriteriaRequest.builder()
+        CriteriaRequest request = CriteriaRequest.builder()
                 .name("Updated")
                 .build();
 
@@ -298,9 +317,9 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testDeleteCriteriaWithMilestoneAssignments() {
         // Given
-        // Создаем назначение критерия этапу
+        // Создаем назначение критерия правилу этапа
         MilestoneCriteriaAssignmentEntity assignment = MilestoneCriteriaAssignmentEntity.builder()
-                .milestone(testMilestone)
+                .milestoneRule(testMilestoneRule)
                 .criteria(testCriteria)
                 .partnerSide(PartnerSide.LEADER)
                 .scale(10)
@@ -335,7 +354,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testCriteriaNameMapping() {
         // Given
-        CreateCriteriaRequest request = CreateCriteriaRequest.builder()
+        CriteriaRequest request = CriteriaRequest.builder()
                 .name("Маппинг тест")
                 .build();
 
@@ -396,7 +415,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testCriteriaWithSpecialCharacters() {
         // Given
-        CreateCriteriaRequest request = CreateCriteriaRequest.builder()
+        CriteriaRequest request = CriteriaRequest.builder()
                 .name("Критерий с символами: !@#$%^&*()")
                 .build();
 
@@ -417,7 +436,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
     void testCriteriaWithLongName() {
         // Given
         String longName = "Очень длинное название критерия оценки, которое содержит много символов и должно корректно обрабатываться системой";
-        CreateCriteriaRequest request = CreateCriteriaRequest.builder()
+        CriteriaRequest request = CriteriaRequest.builder()
                 .name(longName)
                 .build();
 
@@ -437,7 +456,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testUpdateCriteriaWithEmptyName() {
         // Given
-        UpdateCriteriaRequest request = UpdateCriteriaRequest.builder()
+        CriteriaRequest request = CriteriaRequest.builder()
                 .name("") // Пустое название
                 .build();
 
@@ -450,7 +469,7 @@ class CriteriaServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testUpdateCriteriaWithNullName() {
         // Given
-        UpdateCriteriaRequest request = UpdateCriteriaRequest.builder()
+        CriteriaRequest request = CriteriaRequest.builder()
                 .name(null) // Null название
                 .build();
 

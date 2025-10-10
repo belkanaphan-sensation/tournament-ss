@@ -24,8 +24,8 @@ import lombok.experimental.SuperBuilder;
 @Schema(description = "Назначение критерия оценки этапу")
 public class MilestoneCriteriaAssignmentDto extends BaseDto {
 
-    @Schema(description = "Этап")
-    private EntityLinkDto milestone;
+    @Schema(description = "Правило этапа")
+    private EntityLinkDto milestoneRule;
 
     @Schema(description = "Критерий оценки")
     private EntityLinkDto criteria;
@@ -39,6 +39,4 @@ public class MilestoneCriteriaAssignmentDto extends BaseDto {
     @Schema(description = "Максимальный балл шкалы для критерия в рамках этапа", example = "10")
     private Integer scale;
 
-    @Schema(description = "Приоритет критерия перед другими", example = "10")
-    private Integer priority;
 }

@@ -41,6 +41,22 @@ public class MilestoneCriteriaAssignmentController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
+    @Operation(summary = "Получить назначение по ID правила этапа и критерия")
+    @GetMapping(path = "/milestone-rule/{milestoneRuleId}/criteria/{criteriaId}")
+    public ResponseEntity<MilestoneCriteriaAssignmentDto> getByMilestoneRuleIdAndCriteriaId(
+            @Parameter @PathVariable("milestoneRuleId") @NotNull Long milestoneRuleId,
+            @Parameter @PathVariable("criteriaId") @NotNull Long criteriaId) {
+        MilestoneCriteriaAssignmentDto assignment = milestoneCriteriaAssignmentService.findByMilestoneRuleIdAndCriteriaId(milestoneRuleId, criteriaId);
+        return ResponseEntity.ok(assignment);
+    }
+
+    @Operation(summary = "Получить критерии для правила этапа для текущего юзера")
+    @GetMapping(path = "/milestone/{milestoneRuleId}/currentUser")
+    public ResponseEntity<List<MilestoneCriteriaAssignmentDto>> getByMilestoneRuleIdForCurrentUser(
+            @Parameter @PathVariable("milestoneRuleId") @NotNull Long milestoneRuleId) {
+        return ResponseEntity.ok(milestoneCriteriaAssignmentService.findByMilestoneRuleIdForCurrentUser(milestoneRuleId));
+    }
+
     @Operation(summary = "Получить назначение по ID этапа и критерия")
     @GetMapping(path = "/milestone/{milestoneId}/criteria/{criteriaId}")
     public ResponseEntity<MilestoneCriteriaAssignmentDto> getByMilestoneIdAndCriteriaId(
@@ -65,16 +81,23 @@ public class MilestoneCriteriaAssignmentController {
 
     @Operation(summary = "Получить назначения этапа")
     @GetMapping(path = "/milestone/{milestoneId}")
-    public ResponseEntity<Page<MilestoneCriteriaAssignmentDto>> getByMilestoneId(
-            @Parameter @PathVariable("milestoneId") @NotNull Long milestoneId, Pageable pageable) {
-        return ResponseEntity.ok(milestoneCriteriaAssignmentService.findByMilestoneId(milestoneId, pageable));
+    public ResponseEntity<List<MilestoneCriteriaAssignmentDto>> getByMilestoneId(
+            @Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+        return ResponseEntity.ok(milestoneCriteriaAssignmentService.findByMilestoneId(milestoneId));
+    }
+
+    @Operation(summary = "Получить назначения правила этапа")
+    @GetMapping(path = "/milestone-rule/{milestoneRuleId}")
+    public ResponseEntity<List<MilestoneCriteriaAssignmentDto>> getByMilestoneRuleId(
+            @Parameter @PathVariable("milestoneRuleId") @NotNull Long milestoneRuleId) {
+        return ResponseEntity.ok(milestoneCriteriaAssignmentService.findByMilestoneRuleId(milestoneRuleId));
     }
 
     @Operation(summary = "Получить назначения критерия")
     @GetMapping(path = "/criteria/{criteriaId}")
-    public ResponseEntity<Page<MilestoneCriteriaAssignmentDto>> getByCriteriaId(
+    public ResponseEntity<List<MilestoneCriteriaAssignmentDto>> getByCriteriaId(
             @Parameter @PathVariable("criteriaId") @NotNull Long criteriaId, Pageable pageable) {
-        return ResponseEntity.ok(milestoneCriteriaAssignmentService.findByCriteriaId(criteriaId, pageable));
+        return ResponseEntity.ok(milestoneCriteriaAssignmentService.findByCriteriaId(criteriaId));
     }
 
 
