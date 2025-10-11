@@ -57,6 +57,13 @@ public class JudgeMilestoneResultController {
         return ResponseEntity.ok(judgeMilestoneResultService.findByRoundId(roundId));
     }
 
+    @Operation(summary = "Получить результаты по ID раунда для текущего пользователя")
+    @GetMapping(path = "/round/{roundId}/currentUser")
+    public ResponseEntity<List<JudgeMilestoneResultDto>> getResultByRoundIdCurrentUser(
+            @Parameter @PathVariable("roundId") @NotNull Long roundId) {
+        return ResponseEntity.ok(judgeMilestoneResultService.findByRoundIdForCurrentUser(roundId));
+    }
+
     @Operation(summary = "Получить результаты по ID этапа")
     @GetMapping(path = "/milestone/{milestoneId}")
     public ResponseEntity<List<JudgeMilestoneResultDto>> getResultByMilestoneId(
@@ -68,7 +75,7 @@ public class JudgeMilestoneResultController {
     @GetMapping(path = "/milestone/{milestoneId}/currentUser")
     public ResponseEntity<List<JudgeMilestoneResultDto>> getResultByMilestoneIdCurrentUser(
             @Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        return ResponseEntity.ok(judgeMilestoneResultService.findByMilestoneId(milestoneId));
+        return ResponseEntity.ok(judgeMilestoneResultService.findByMilestoneIdForCurrentUser(milestoneId));
     }
 
     @Operation(summary = "Получить результаты по ID участника")

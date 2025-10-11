@@ -314,6 +314,19 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
     }
 
     @Override
+    public List<JudgeMilestoneResultDto> findByRoundIdForCurrentUser(Long roundId) {
+        RoundEntity round = roundRepository.findByIdWithUserAssignments(roundId)
+                .orElseThrow(EntityNotFoundException::new);
+        UserActivityAssignmentEntity activityUser = round.getMilestone().getActivity().getUserAssignments().stream()
+                .filter(ua -> ua.getUser().getId().equals(currentUser.getSecurityUser().getId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Данный юзер не зарегистрирован для раунда " + roundId));
+        return judgeMilestoneResultRepository.findByRoundIdAndActivityUserId(roundId, activityUser.getId()).stream()
+                .map(judgeMilestoneResultDtoMapper::toDto)
+                .toList();
+    }
+
+    @Override
     public List<JudgeMilestoneResultDto> findByMilestoneIdForCurrentUser(Long milestoneId) {
         MilestoneEntity milestone = milestoneRepository.findByIdWithUserAssignments(milestoneId)
                 .orElseThrow(EntityNotFoundException::new);

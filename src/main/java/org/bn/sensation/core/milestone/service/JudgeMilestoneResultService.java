@@ -18,6 +18,8 @@ public interface JudgeMilestoneResultService extends BaseCrudService<
 
     List<JudgeMilestoneResultDto> findByMilestoneId(Long milestoneId);
 
+    List<JudgeMilestoneResultDto> findByRoundIdForCurrentUser(Long roundId);
+
     List<JudgeMilestoneResultDto> findByMilestoneIdForCurrentUser(Long milestoneId);
 
     List<JudgeMilestoneResultDto> findByParticipantId(Long participantId);
