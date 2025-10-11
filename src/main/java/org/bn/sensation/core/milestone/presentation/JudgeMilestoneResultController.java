@@ -64,6 +64,13 @@ public class JudgeMilestoneResultController {
         return ResponseEntity.ok(judgeMilestoneResultService.findByMilestoneId(milestoneId));
     }
 
+    @Operation(summary = "Получить результаты по ID этапа для текущего пользователя")
+    @GetMapping(path = "/milestone/{milestoneId}/currentUser")
+    public ResponseEntity<List<JudgeMilestoneResultDto>> getResultByMilestoneIdCurrentUser(
+            @Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+        return ResponseEntity.ok(judgeMilestoneResultService.findByMilestoneId(milestoneId));
+    }
+
     @Operation(summary = "Получить результаты по ID участника")
     @GetMapping(path = "/participant/{participantId}")
     public ResponseEntity<List<JudgeMilestoneResultDto>> getByParticipantId(
