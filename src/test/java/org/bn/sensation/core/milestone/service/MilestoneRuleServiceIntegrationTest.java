@@ -176,6 +176,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(testMilestone.getId())
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(10)
+                .roundParticipantLimit(10)
                 .build();
 
         // When
@@ -201,6 +202,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(999L)
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(10)
+                .roundParticipantLimit(10)
                 .build();
 
         // When & Then
@@ -216,6 +218,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(null)
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(10)
+                .roundParticipantLimit(10)
                 .build();
 
         // When & Then
@@ -231,6 +234,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(testMilestone.getId())
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(10)
+                .roundParticipantLimit(10)
                 .build();
         milestoneRuleService.create(firstRequest);
 
@@ -239,6 +243,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(testMilestone.getId())
                 .assessmentMode(AssessmentMode.PASS)
                 .participantLimit(20)
+                .roundParticipantLimit(10)
                 .build();
 
         // Then
@@ -254,6 +259,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(testMilestone.getId())
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(10)
+                .roundParticipantLimit(10)
                 .build();
         MilestoneRuleDto created = milestoneRuleService.create(request);
 
@@ -286,6 +292,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(testMilestone.getId())
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(10)
+                .roundParticipantLimit(10)
                 .build();
         milestoneRuleService.create(request1);
 
@@ -293,6 +300,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(milestone2.getId())
                 .assessmentMode(AssessmentMode.PASS)
                 .participantLimit(20)
+                .roundParticipantLimit(10)
                 .build();
         milestoneRuleService.create(request2);
 
@@ -300,6 +308,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(milestone3.getId())
                 .assessmentMode(AssessmentMode.PLACE)
                 .participantLimit(30)
+                .roundParticipantLimit(10)
                 .build();
         milestoneRuleService.create(request3);
 
@@ -320,6 +329,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(testMilestone.getId())
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(10)
+                .roundParticipantLimit(10)
                 .build();
         MilestoneRuleDto created = milestoneRuleService.create(request);
 
@@ -348,12 +358,14 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(testMilestone.getId())
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(10)
+                .roundParticipantLimit(10)
                 .build();
         MilestoneRuleDto created = milestoneRuleService.create(createRequest);
 
         UpdateMilestoneRuleRequest updateRequest = UpdateMilestoneRuleRequest.builder()
                 .assessmentMode(AssessmentMode.PASS)
                 .participantLimit(20)
+                .roundParticipantLimit(10)
                 .build();
 
         // When
@@ -379,6 +391,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(testMilestone.getId())
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(10)
+                .roundParticipantLimit(10)
                 .build();
         MilestoneRuleDto created = milestoneRuleService.create(createRequest);
 
@@ -401,6 +414,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
         UpdateMilestoneRuleRequest updateRequest = UpdateMilestoneRuleRequest.builder()
                 .assessmentMode(AssessmentMode.PASS)
                 .participantLimit(20)
+                .roundParticipantLimit(10)
                 .build();
 
         // When & Then
@@ -415,6 +429,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
         UpdateMilestoneRuleRequest updateRequest = UpdateMilestoneRuleRequest.builder()
                 .assessmentMode(AssessmentMode.PASS)
                 .participantLimit(20)
+                .roundParticipantLimit(10)
                 .build();
 
         // When & Then
@@ -430,6 +445,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(testMilestone.getId())
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(10)
+                .roundParticipantLimit(10)
                 .build();
         MilestoneRuleDto created = milestoneRuleService.create(request);
         // When
@@ -466,6 +482,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(milestoneScore.getId())
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(10)
+                .roundParticipantLimit(10)
                 .build();
         MilestoneRuleDto scoreResult = milestoneRuleService.create(scoreRequest);
         assertEquals(AssessmentMode.SCORE, scoreResult.getAssessmentMode());
@@ -474,6 +491,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(milestonePass.getId())
                 .assessmentMode(AssessmentMode.PASS)
                 .participantLimit(20)
+                .roundParticipantLimit(10)
                 .build();
         MilestoneRuleDto passResult = milestoneRuleService.create(passRequest);
         assertEquals(AssessmentMode.PASS, passResult.getAssessmentMode());
@@ -482,6 +500,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(milestonePlace.getId())
                 .assessmentMode(AssessmentMode.PLACE)
                 .participantLimit(30)
+                .roundParticipantLimit(10)
                 .build();
         MilestoneRuleDto placeResult = milestoneRuleService.create(placeRequest);
         assertEquals(AssessmentMode.PLACE, placeResult.getAssessmentMode());
@@ -499,6 +518,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(milestone1.getId())
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(1)
+                .roundParticipantLimit(10)
                 .build();
         MilestoneRuleDto result1 = milestoneRuleService.create(request1);
         assertEquals(1, result1.getParticipantLimit());
@@ -507,6 +527,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(milestone2.getId())
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(100)
+                .roundParticipantLimit(10)
                 .build();
         MilestoneRuleDto result2 = milestoneRuleService.create(request2);
         assertEquals(100, result2.getParticipantLimit());
@@ -515,6 +536,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(milestone3.getId())
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(1000)
+                .roundParticipantLimit(10)
                 .build();
         MilestoneRuleDto result3 = milestoneRuleService.create(request3);
         assertEquals(1000, result3.getParticipantLimit());
@@ -527,6 +549,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(testMilestone.getId())
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(10)
+                .roundParticipantLimit(10)
                 .build();
 
         // When

@@ -208,6 +208,7 @@ databaseChangeLog:
                 id BIGSERIAL PRIMARY KEY,
                 assessment_mode VARCHAR(50) NOT NULL,
                 participant_limit INTEGER NOT NULL,
+                round_participant_limit INTEGER NOT NULL,
                 milestone_id BIGINT,
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),

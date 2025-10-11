@@ -190,6 +190,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
         testMilestoneRule = MilestoneRuleEntity.builder()
                 .assessmentMode(org.bn.sensation.core.milestone.entity.AssessmentMode.SCORE)
                 .participantLimit(10)
+                .roundParticipantLimit(10)
                 .milestone(testMilestone)
                 .build();
         testMilestoneRule = milestoneRuleRepository.save(testMilestoneRule);
