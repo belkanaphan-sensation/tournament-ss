@@ -12,6 +12,7 @@ import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneDto;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
 import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
+import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -26,4 +27,8 @@ public interface MilestoneService extends BaseCrudService<
     List<MilestoneDto> findByActivityIdInLifeStates(@NotNull Long id);
 
     JudgeMilestoneDto changeMilestoneStatus(@NotNull Long milestoneId, JudgeMilestoneStatus judgeRoundStatus);
+
+    JudgeMilestoneDto changeMilestoneStatus(MilestoneEntity milestone, UserActivityAssignmentEntity activityUser, JudgeMilestoneStatus judgeMilestoneStatus);
+
+    boolean allRoundsReady(Long milestoneId);
 }

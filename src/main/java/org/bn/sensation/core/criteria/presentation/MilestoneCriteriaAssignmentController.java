@@ -51,10 +51,17 @@ public class MilestoneCriteriaAssignmentController {
     }
 
     @Operation(summary = "Получить критерии для правила этапа для текущего юзера")
-    @GetMapping(path = "/milestone/{milestoneRuleId}/currentUser")
+    @GetMapping(path = "/milestone-rule/{milestoneRuleId}/currentUser")
     public ResponseEntity<List<MilestoneCriteriaAssignmentDto>> getByMilestoneRuleIdForCurrentUser(
             @Parameter @PathVariable("milestoneRuleId") @NotNull Long milestoneRuleId) {
         return ResponseEntity.ok(milestoneCriteriaAssignmentService.findByMilestoneRuleIdForCurrentUser(milestoneRuleId));
+    }
+
+    @Operation(summary = "Получить критерии для этапа для текущего юзера")
+    @GetMapping(path = "/milestone/{milestoneId}/currentUser")
+    public ResponseEntity<List<MilestoneCriteriaAssignmentDto>> getByMilestoneIdForCurrentUser(
+            @Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+        return ResponseEntity.ok(milestoneCriteriaAssignmentService.findByMilestoneIdForCurrentUser(milestoneId));
     }
 
     @Operation(summary = "Получить назначение по ID этапа и критерия")
@@ -64,13 +71,6 @@ public class MilestoneCriteriaAssignmentController {
             @Parameter @PathVariable("criteriaId") @NotNull Long criteriaId) {
         MilestoneCriteriaAssignmentDto assignment = milestoneCriteriaAssignmentService.findByMilestoneIdAndCriteriaId(milestoneId, criteriaId);
         return ResponseEntity.ok(assignment);
-    }
-
-    @Operation(summary = "Получить критерии для этапа для текущего юзера")
-    @GetMapping(path = "/milestone/{milestoneId}/currentUser")
-    public ResponseEntity<List<MilestoneCriteriaAssignmentDto>> getByMilestoneIdForCurrentUser(
-            @Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        return ResponseEntity.ok(milestoneCriteriaAssignmentService.findByMilestoneIdForCurrentUser(milestoneId));
     }
 
     @Operation(summary = "Получить все назначения")

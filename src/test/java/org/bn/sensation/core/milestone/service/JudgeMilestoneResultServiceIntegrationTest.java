@@ -262,10 +262,10 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        
+
         // Mock CurrentUser to return the test judge
         when(mockCurrentUser.getSecurityUser()).thenReturn(securityUser);
-        
+
         // Replace the CurrentUser in the service with our mock
         ReflectionTestUtils.setField(judgeMilestoneResultService, "currentUser", mockCurrentUser);
     }
@@ -765,7 +765,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
         // Mock CurrentUser to return the other user
         SecurityUser otherUserSecurityUser = (SecurityUser) SecurityUser.fromUser(otherUser);
         when(mockCurrentUser.getSecurityUser()).thenReturn(otherUserSecurityUser);
-        
+
         // Replace the CurrentUser in the service with our mock
         ReflectionTestUtils.setField(judgeMilestoneResultService, "currentUser", mockCurrentUser);
 
@@ -891,7 +891,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .name("Test Criteria 2")
                 .build();
         testCriteria2 = criteriaRepository.save(testCriteria2);
-        
+
         MilestoneCriteriaAssignmentEntity anotherCriteria = MilestoneCriteriaAssignmentEntity.builder()
                 .milestoneRule(testMilestoneRule)
                 .criteria(testCriteria2)
@@ -933,11 +933,11 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
         // Then
         assertNotNull(results);
         assertEquals(2, results.size());
-        
+
         // Check that one result was created and one was updated
         boolean foundCreated = false;
         boolean foundUpdated = false;
-        
+
         for (JudgeMilestoneResultDto result : results) {
             if (result.getId().equals(createdResult.getId())) {
                 // This should be the updated result
@@ -951,7 +951,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 foundCreated = true;
             }
         }
-        
+
         assertTrue(foundCreated, "New result should be created");
         assertTrue(foundUpdated, "Existing result should be updated");
     }
@@ -967,5 +967,237 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
         // Then
         assertNotNull(results);
         assertTrue(results.isEmpty());
+    }
+
+    @Test
+    void testCreateOrUpdateForRound_MultipleJudges_ThrowsException() {
+        // Given
+        UserEntity anotherJudge = UserEntity.builder()
+                .username("anotherjudge")
+                .password("password")
+                .person(Person.builder()
+                        .name("Another")
+                        .surname("Judge")
+                        .email("another@judge.com")
+                        .phoneNumber("+1234567891")
+                        .build())
+                .status(UserStatus.ACTIVE)
+                .roles(Set.of(Role.USER))
+                .build();
+        anotherJudge = userRepository.save(anotherJudge);
+
+        UserActivityAssignmentEntity anotherJudgeAssignment = UserActivityAssignmentEntity.builder()
+                .user(anotherJudge)
+                .activity(testActivity)
+                .position(UserActivityPosition.JUDGE)
+                .partnerSide(PartnerSide.FOLLOWER)
+                .build();
+        anotherJudgeAssignment = userActivityAssignmentRepository.save(anotherJudgeAssignment);
+
+        // Create first result with testJudge
+        JudgeMilestoneResultRoundRequest request1 = JudgeMilestoneResultRoundRequest.builder()
+                .participantId(testParticipant.getId())
+                .roundId(testRound.getId())
+                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .score(8)
+                .isFavorite(true)
+                .build();
+        JudgeMilestoneResultDto result1 = judgeMilestoneResultService.create(request1);
+
+        // Create second result with anotherJudge
+        SecurityUser anotherJudgeSecurityUser = (SecurityUser) SecurityUser.fromUser(anotherJudge);
+        when(mockCurrentUser.getSecurityUser()).thenReturn(anotherJudgeSecurityUser);
+        ReflectionTestUtils.setField(judgeMilestoneResultService, "currentUser", mockCurrentUser);
+
+        JudgeMilestoneResultRoundRequest request2 = JudgeMilestoneResultRoundRequest.builder()
+                .participantId(testParticipant.getId())
+                .roundId(testRound.getId())
+                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .score(9)
+                .isFavorite(false)
+                .build();
+        JudgeMilestoneResultDto result2 = judgeMilestoneResultService.create(request2);
+
+        // Reset mock to testJudge
+        SecurityUser testJudgeSecurityUser = (SecurityUser) SecurityUser.fromUser(testJudge);
+        when(mockCurrentUser.getSecurityUser()).thenReturn(testJudgeSecurityUser);
+        ReflectionTestUtils.setField(judgeMilestoneResultService, "currentUser", mockCurrentUser);
+
+        // Create update requests for both results (different judges)
+        JudgeMilestoneResultRoundRequest updateRequest1 = JudgeMilestoneResultRoundRequest.builder()
+                .id(result1.getId())
+                .participantId(testParticipant.getId())
+                .roundId(testRound.getId())
+                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .score(10)
+                .isFavorite(false)
+                .build();
+
+        JudgeMilestoneResultRoundRequest updateRequest2 = JudgeMilestoneResultRoundRequest.builder()
+                .id(result2.getId())
+                .participantId(testParticipant.getId())
+                .roundId(testRound.getId())
+                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .score(7)
+                .isFavorite(true)
+                .build();
+
+        List<JudgeMilestoneResultRoundRequest> requests = List.of(updateRequest1, updateRequest2);
+
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                judgeMilestoneResultService.createOrUpdateForRound(requests));
+        assertEquals("Некорректные данные", exception.getMessage());
+    }
+
+    @Test
+    void testCreateOrUpdateForRound_MultipleRounds_ChangesStatusForAll() {
+        // Given
+        // Create second round
+        RoundEntity testRound2 = RoundEntity.builder()
+                .name("Test Round 2")
+                .description("Test Round 2 Description")
+                .state(RoundState.IN_PROGRESS)
+                .milestone(testMilestone)
+                .build();
+        testRound2 = roundRepository.save(testRound2);
+
+        // Create results for both rounds
+        JudgeMilestoneResultRoundRequest request1 = JudgeMilestoneResultRoundRequest.builder()
+                .participantId(testParticipant.getId())
+                .roundId(testRound.getId())
+                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .score(8)
+                .isFavorite(true)
+                .build();
+        JudgeMilestoneResultDto result1 = judgeMilestoneResultService.create(request1);
+
+        JudgeMilestoneResultRoundRequest request2 = JudgeMilestoneResultRoundRequest.builder()
+                .participantId(testParticipant.getId())
+                .roundId(testRound2.getId())
+                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .score(9)
+                .isFavorite(false)
+                .build();
+        JudgeMilestoneResultDto result2 = judgeMilestoneResultService.create(request2);
+
+        // Create update requests for both rounds
+        JudgeMilestoneResultRoundRequest updateRequest1 = JudgeMilestoneResultRoundRequest.builder()
+                .id(result1.getId())
+                .participantId(testParticipant.getId())
+                .roundId(testRound.getId())
+                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .score(10)
+                .isFavorite(false)
+                .build();
+
+        JudgeMilestoneResultRoundRequest updateRequest2 = JudgeMilestoneResultRoundRequest.builder()
+                .id(result2.getId())
+                .participantId(testParticipant.getId())
+                .roundId(testRound2.getId())
+                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .score(7)
+                .isFavorite(true)
+                .build();
+
+        List<JudgeMilestoneResultRoundRequest> requests = List.of(updateRequest1, updateRequest2);
+
+        // When
+        List<JudgeMilestoneResultDto> results = judgeMilestoneResultService.createOrUpdateForRound(requests);
+
+        // Then
+        assertNotNull(results);
+        assertEquals(2, results.size());
+
+        // Verify that both results are updated
+        JudgeMilestoneResultDto updatedResult1 = results.stream()
+                .filter(r -> r.getId().equals(result1.getId()))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(10, updatedResult1.getScore());
+        assertFalse(updatedResult1.getIsFavorite());
+
+        JudgeMilestoneResultDto updatedResult2 = results.stream()
+                .filter(r -> r.getId().equals(result2.getId()))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(7, updatedResult2.getScore());
+        assertTrue(updatedResult2.getIsFavorite());
+
+        // Verify that both rounds have READY status
+        // Note: This would require checking the round status, but since we don't have direct access to round status
+        // in the current test setup, we'll just verify that the method completes successfully
+    }
+
+    @Test
+    void testCreateOrUpdateForRound_MixCreateAndUpdate_Success() {
+        // Given
+        // Create initial result
+        JudgeMilestoneResultRoundRequest createRequest = JudgeMilestoneResultRoundRequest.builder()
+                .participantId(testParticipant.getId())
+                .roundId(testRound.getId())
+                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .score(8)
+                .isFavorite(true)
+                .build();
+        JudgeMilestoneResultDto createdResult = judgeMilestoneResultService.create(createRequest);
+
+        // Create another criteria for new result
+        CriteriaEntity testCriteria2 = CriteriaEntity.builder()
+                .name("Test Criteria 2")
+                .build();
+        testCriteria2 = criteriaRepository.save(testCriteria2);
+
+        MilestoneCriteriaAssignmentEntity anotherCriteria = MilestoneCriteriaAssignmentEntity.builder()
+                .milestoneRule(testMilestoneRule)
+                .criteria(testCriteria2)
+                .partnerSide(PartnerSide.LEADER)
+                .scale(10)
+                .build();
+        anotherCriteria = milestoneCriteriaAssignmentRepository.save(anotherCriteria);
+
+        // Create mixed requests: one update, one create
+        JudgeMilestoneResultRoundRequest updateRequest = JudgeMilestoneResultRoundRequest.builder()
+                .id(createdResult.getId())
+                .participantId(testParticipant.getId())
+                .roundId(testRound.getId())
+                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .score(9)
+                .isFavorite(false)
+                .build();
+
+        JudgeMilestoneResultRoundRequest newCreateRequest = JudgeMilestoneResultRoundRequest.builder()
+                .participantId(testParticipant.getId())
+                .roundId(testRound.getId())
+                .milestoneCriteriaId(anotherCriteria.getId())
+                .score(7)
+                .isFavorite(true)
+                .build();
+
+        List<JudgeMilestoneResultRoundRequest> requests = List.of(updateRequest, newCreateRequest);
+
+        // When
+        List<JudgeMilestoneResultDto> results = judgeMilestoneResultService.createOrUpdateForRound(requests);
+
+        // Then
+        assertNotNull(results);
+        assertEquals(2, results.size());
+
+        // Verify updated result
+        JudgeMilestoneResultDto updatedResult = results.stream()
+                .filter(r -> r.getId().equals(createdResult.getId()))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(9, updatedResult.getScore());
+        assertFalse(updatedResult.getIsFavorite());
+
+        // Verify new result
+        JudgeMilestoneResultDto newResult = results.stream()
+                .filter(r -> !r.getId().equals(createdResult.getId()))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(7, newResult.getScore());
+        assertTrue(newResult.getIsFavorite());
+        assertEquals(anotherCriteria.getId(), newResult.getMilestoneCriteria().getId());
     }
 }

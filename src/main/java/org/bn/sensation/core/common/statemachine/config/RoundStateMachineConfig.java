@@ -57,13 +57,13 @@ public class RoundStateMachineConfig extends EnumStateMachineConfigurerAdapter<R
                 // IN_PROGRESS -> ACCEPTED
                 .withExternal()
                 .source(RoundState.IN_PROGRESS)
-                .target(RoundState.ACCEPTED)
+                .target(RoundState.READY)
                 .event(RoundEvent.START)
                 .action(roundAction)
                 .and()
                 // ACCEPTED -> COMPLETED
                 .withExternal()
-                .source(RoundState.ACCEPTED)
+                .source(RoundState.READY)
                 .target(RoundState.COMPLETED)
                 .event(RoundEvent.COMPLETE)
                 .action(roundAction);

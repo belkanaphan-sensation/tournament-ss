@@ -15,35 +15,15 @@ databaseChangeLog:
       relativeToChangelogFile: true
       file: 2025/15-09-2025.yml
   - include:
-      id: 15-09-2025-bn-0
-      author: belkanaphan
-      relativeToChangelogFile: true
-      file: 2025/15-09-2025-test-data.yml
-  - include:
-      id: 15-09-2025-bn-1
-      author: belkanaphan
-      relativeToChangelogFile: true
-      file: 2025/15-09-2025-fix-sequences.yml
-  - include:
       id: 25-09-2025-bn-0
       author: belkanaphan
       relativeToChangelogFile: true
       file: 2025/25-09-2025.yml
   - include:
-      id: 25-09-2025-bn-1
-      author: belkanaphan
-      relativeToChangelogFile: true
-      file: 2025/25-09-2025-test-data.yml
-  - include:
       id: 04-10-2025-bn-0
       author: belkanaphan
       relativeToChangelogFile: true
       file: 2025/04-10-2025.yml
-  - include:
-      id: 06-10-2025-bn-0
-      author: belkanaphan
-      relativeToChangelogFile: true
-      file: 2025/06-10-2025-test-data.yml
   - include:
       id: 08-10-2025-bn-0
       author: belkanaphan

@@ -115,15 +115,15 @@ public class JudgeMilestoneResultController {
 
     @Operation(summary = "Принять результаты этапа",
             description = "Результаты этапа принимаются для текущего пользователя который должен являться судьей этапа")
-    @GetMapping(path = "/accept/{milestoneId}")
+    @GetMapping(path = "/ready/{milestoneId}")
     public ResponseEntity<JudgeMilestoneDto> acceptRound(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        return ResponseEntity.ok(milestoneService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.ACCEPTED));
+        return ResponseEntity.ok(milestoneService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.READY));
     }
 
     @Operation(summary = "Отменить результаты раунда",
             description = "Результаты этапа отменяются для текущего пользователя который должен являться судьей этапа")
-    @GetMapping(path = "/reject/{milestoneId}")
+    @GetMapping(path = "/not-ready/{milestoneId}")
     public ResponseEntity<JudgeMilestoneDto> rejectRound(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        return ResponseEntity.ok(milestoneService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.REJECTED));
+        return ResponseEntity.ok(milestoneService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.NOT_READY));
     }
 }

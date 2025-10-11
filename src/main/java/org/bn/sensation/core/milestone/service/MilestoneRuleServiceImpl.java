@@ -84,7 +84,7 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
 
         Integer participantLimit = request.getParticipantLimit() != null ?
             request.getParticipantLimit() : rule.getParticipantLimit();
-        Integer roundParticipantLimit = request.getRoundParticipantLimit() != null ? 
+        Integer roundParticipantLimit = request.getRoundParticipantLimit() != null ?
             request.getRoundParticipantLimit() : rule.getRoundParticipantLimit();
 
         validateRoundParticipantLimit(participantLimit, roundParticipantLimit);
@@ -123,7 +123,7 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
     }
 
     private void validateRoundParticipantLimit(Integer participantLimit, Integer roundParticipantLimit) {
-        if (participantLimit != null && roundParticipantLimit != null && 
+        if (participantLimit != null && roundParticipantLimit != null &&
             roundParticipantLimit > participantLimit) {
             throw new IllegalArgumentException("roundParticipantLimit должен быть меньше или равен participantLimit");
         }
