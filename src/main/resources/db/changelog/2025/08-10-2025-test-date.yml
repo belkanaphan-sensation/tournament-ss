@@ -1,5 +1,5 @@
 databaseChangeLog:
-  # Test data for occasion
+  # Test data for organizations
   - changeSet:
       id: 2025-10-08-1
       author: system
@@ -7,10 +7,9 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO occasion (name, description, state, start_date, end_date, organization_id, created_at, created_by, modified_at, modified_by, version) VALUES
-              ('Sensation J&J', 'Ежегодное соревнования в рамках фестиваля SBF', 'IN_PROGRESS', '2025-11-01', '2025-11-03', 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
-
-  # Test data for activity
+              INSERT INTO organization (name, description, phone_number, email, country, city, street_name, street_number, comment, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('Sense Samara', 'Самарская школа социальных танцев', '+7 777 111 11 11', 'org1@test.kz', 'Россия', 'Самара', 'ул. Киевская', '1', '', '2025-01-01 10:00:00', 'admin', '2025-01-01 10:00:00', 'admin', 0);
+  # Test data for criteria
   - changeSet:
       id: 2025-10-08-2
       author: system
@@ -18,10 +17,16 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO activity (name, description, state, start_date_time, end_date_time, country, city, street_name, street_number, comment, occasion_id, created_at, created_by, modified_at, modified_by, version) VALUES
-              ('Соревнования категории Любители', 'Формат соревнований Jack & Jill', 'IN_PROGRESS', '2025-11-01 09:00:00', '2025-11-03 18:00:00', 'Казахстан', 'Алматы', 'ул. Танцевальная', '15', 'Школа для всех уровней подготовки', (SELECT id FROM occasion WHERE name = 'Sensation J&J'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
-
-  # Test data for judges
+              INSERT INTO criteria (name, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('Прохождение', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
+              ('Техника', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
+              ('Ведение', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
+              ('Стилистика', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
+              ('Музыкальность', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
+              ('Следование', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
+              ('Имидж', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0),
+              ('Взаимодействие', '2025-03-01 10:00:00', 'organizer1', '2025-03-01 10:00:00', 'organizer1', 0);
+  # Test data for occasion
   - changeSet:
       id: 2025-10-08-3
       author: system
@@ -29,7 +34,54 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
+              INSERT INTO occasion (name, description, state, start_date, end_date, organization_id, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('Sensation J&J', 'Ежегодное соревнования в рамках фестиваля SBF', 'IN_PROGRESS', '2025-11-01', '2025-11-03', (SELECT id FROM organization WHERE name = 'Sense Samara'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+
+  # Test data for activity
+  - changeSet:
+      id: 2025-10-08-4
+      author: system
+      context: test_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO activity (name, description, state, start_date_time, end_date_time, country, city, street_name, street_number, comment, occasion_id, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('Соревнования категории Любители', 'Формат соревнований Jack & Jill', 'IN_PROGRESS', '2025-11-01 09:00:00', '2025-11-03 18:00:00', 'Казахстан', 'Алматы', 'ул. Танцевальная', '15', 'Школа для всех уровней подготовки', (SELECT id FROM occasion WHERE name = 'Sensation J&J'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+  # Test data for milestones (3 stages with order 2, 1, 0)
+  - changeSet:
+      id: 2025-10-08-5
+      author: system
+      context: test_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO milestone (name, description, state, activity_id, milestone_order, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('Этап 1 - Отборочный', 'Первый отборочный этап школы танцев', 'IN_PROGRESS', (SELECT id FROM activity WHERE name = 'Соревнование Школы танцев'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Этап 2 - Полуфинал', 'Полуфинальный этап школы танцев', 'IN_PROGRESS', (SELECT id FROM activity WHERE name = 'Соревнование Школы танцев'), 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Этап 3 - Финал', 'Финальный этап школы танцев', 'IN_PROGRESS', (SELECT id FROM activity WHERE name = 'Соревнование Школы танцев'), 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+  # Test data for milestone rules (3 rules for school stages)
+  - changeSet:
+      id: 2025-10-08-6
+      author: system
+      context: test_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO milestone_rule (assessment_mode, participant_limit, round_participant_limit, milestone_id, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('SCORE', 25, 10, (SELECT id FROM milestone WHERE name = 'Этап 1 - Отборочный'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('SCORE', 15, 10, (SELECT id FROM milestone WHERE name = 'Этап 2 - Полуфинал'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('SCORE', 10, 10, (SELECT id FROM milestone WHERE name = 'Этап 3 - Финал'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+
+  # Test data for judges
+  - changeSet:
+      id: 2025-10-08-7
+      author: system
+      context: test_data
+      changes:
+        - sql:
+            sql: |
               INSERT INTO users (username, password, status, name, surname, second_name, email, phone_number, created_at, created_by, modified_at, modified_by, version) VALUES
+              ('admin', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Админ', 'Админов', 'Админович', 'admin@test.kz', '+7 777 000 00 01', '2025-01-01 10:00:00', 'system', '2025-01-01 10:00:00', 'system', 0),
               -- Судьи для лидеров
               ('bogdan', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Богдан', 'Болдырев', 'Отчестович', 'bogdan@test.kz', '+7 777 201 00 01', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
               ('kevin', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Кевин', 'Бака-Сегура', 'Батькович', 'kevin@test.kz', '+7 777 201 00 02', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
@@ -39,13 +91,14 @@ databaseChangeLog:
 
   # Test data for judge roles
   - changeSet:
-      id: 2025-10-08-4
+      id: 2025-10-08-8
       author: system
       context: test_data
       changes:
         - sql:
             sql: |
               INSERT INTO user_roles (user_id, role) VALUES
+              ((SELECT id FROM users WHERE username = 'admin'), 'SUPERADMIN'),
               ((SELECT id FROM users WHERE username = 'bogdan'), 'USER'),
               ((SELECT id FROM users WHERE username = 'kevin'), 'USER'),
               ((SELECT id FROM users WHERE username = 'polina'), 'USER'),
@@ -53,7 +106,7 @@ databaseChangeLog:
 
   # Test data for participants for "Школа" activity (25 participants: 13 leaders + 12 followers)
   - changeSet:
-      id: 2025-10-08-5
+      id: 2025-10-08-9
       author: system
       context: test_data
       changes:
@@ -88,7 +141,7 @@ databaseChangeLog:
 
   # Test data for milestones (3 stages with order 2, 1, 0)
   - changeSet:
-      id: 2025-10-08-6
+      id: 2025-10-08-10
       author: system
       context: test_data
       changes:
@@ -101,7 +154,7 @@ databaseChangeLog:
 
   # Test data for milestone rules
   - changeSet:
-      id: 2025-10-08-7
+      id: 2025-10-08-11
       author: system
       context: test_data
       changes:
@@ -114,7 +167,7 @@ databaseChangeLog:
 
   # Test data for criteria assignments
   - changeSet:
-      id: 2025-10-08-8
+      id: 2025-10-08-12
       author: system
       context: test_data
       changes:
@@ -135,7 +188,7 @@ databaseChangeLog:
 
   # Test data for rounds
   - changeSet:
-      id: 2025-10-08-9
+      id: 2025-10-08-13
       author: system
       context: test_data
       changes:
@@ -155,7 +208,7 @@ databaseChangeLog:
 
   # Test data for rounds_participants_association with progressive selection
   - changeSet:
-      id: 2025-10-08-10
+      id: 2025-10-08-14
       author: system
       context: test_data
       changes:
@@ -192,7 +245,7 @@ databaseChangeLog:
 
   # Test data for user_activity_assignment (judges for school activity)
   - changeSet:
-      id: 2025-10-08-11
+      id: 2025-10-08-15
       author: system
       context: test_data
       changes:
@@ -209,7 +262,7 @@ databaseChangeLog:
 
   # Test data for users_organizations_association (judges to organization)
   - changeSet:
-      id: 2025-10-08-12
+      id: 2025-10-08-16
       author: system
       context: test_data
       changes:
