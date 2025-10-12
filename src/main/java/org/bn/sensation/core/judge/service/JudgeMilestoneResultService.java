@@ -1,12 +1,12 @@
-package org.bn.sensation.core.milestone.service;
+package org.bn.sensation.core.judge.service;
 
 import java.util.List;
 
 import org.bn.sensation.core.common.service.BaseCrudService;
-import org.bn.sensation.core.milestone.entity.JudgeMilestoneResultEntity;
-import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultDto;
-import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultMilestoneRequest;
-import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultRoundRequest;
+import org.bn.sensation.core.judge.entity.JudgeMilestoneResultEntity;
+import org.bn.sensation.core.judge.service.dto.JudgeMilestoneResultDto;
+import org.bn.sensation.core.judge.service.dto.JudgeMilestoneResultMilestoneRequest;
+import org.bn.sensation.core.judge.service.dto.JudgeMilestoneResultRoundRequest;
 
 public interface JudgeMilestoneResultService extends BaseCrudService<
         JudgeMilestoneResultEntity,

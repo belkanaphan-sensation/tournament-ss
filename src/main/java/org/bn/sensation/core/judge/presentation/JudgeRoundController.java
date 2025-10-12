@@ -1,9 +1,9 @@
-package org.bn.sensation.core.round.presentation;
+package org.bn.sensation.core.judge.presentation;
 
-import org.bn.sensation.core.milestone.service.MilestoneService;
-import org.bn.sensation.core.round.entity.JudgeRoundStatus;
-import org.bn.sensation.core.round.service.RoundService;
-import org.bn.sensation.core.round.service.dto.JudgeRoundDto;
+import org.bn.sensation.core.judge.entity.JudgeRoundStatus;
+import org.bn.sensation.core.judge.service.JudgeMilestoneService;
+import org.bn.sensation.core.judge.service.JudgeRoundService;
+import org.bn.sensation.core.judge.service.dto.JudgeRoundDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -28,26 +28,26 @@ import lombok.RequiredArgsConstructor;
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
 public class JudgeRoundController {
 
-    private final RoundService roundService;
-    private final MilestoneService milestoneService;
+    private final JudgeRoundService judgeRoundService;
+    private final JudgeMilestoneService judgeMilestoneService;
 
     @Operation(summary = "Принять результаты раунда",
             description = "Результаты раунда принимаются для текущего пользователя который должен являться судьей раунда")
     @GetMapping(path = "/ready/{roundId}")
     public ResponseEntity<JudgeRoundDto> readyRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
-        return ResponseEntity.ok(roundService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.READY));
+        return ResponseEntity.ok(judgeRoundService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.READY));
     }
 
     @Operation(summary = "Отменить результаты раунда",
             description = "Результаты раунда отменяются для текущего пользователя который должен являться судьей раунда")
     @GetMapping(path = "/not-ready/{roundId}")
     public ResponseEntity<JudgeRoundDto> notReadyRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
-        return ResponseEntity.ok(roundService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.NOT_READY));
+        return ResponseEntity.ok(judgeRoundService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.NOT_READY));
     }
 
     @Operation(summary = "Проверить готовность раундов для текущего юзера - судьи")
     @GetMapping(path = "/all-rounds-ready/{milestoneId}/currentUser")
     public ResponseEntity<Boolean> isAllRoundsReady(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        return ResponseEntity.ok(milestoneService.allRoundsReady(milestoneId));
+        return ResponseEntity.ok(judgeMilestoneService.allRoundsReady(milestoneId));
     }
 }

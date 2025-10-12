@@ -1,11 +1,11 @@
-package org.bn.sensation.core.round.repository;
+package org.bn.sensation.core.judge.repository;
 
 import java.util.List;
 import java.util.Optional;
 
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.round.entity.JudgeRoundEntity;
-import org.bn.sensation.core.round.entity.JudgeRoundStatus;
+import org.bn.sensation.core.judge.entity.JudgeRoundEntity;
+import org.bn.sensation.core.judge.entity.JudgeRoundStatus;
 
 public interface JudgeRoundRepository extends BaseRepository<JudgeRoundEntity> {
 

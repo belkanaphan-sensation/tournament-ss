@@ -1,9 +1,9 @@
-package org.bn.sensation.core.round.service.mapper;
+package org.bn.sensation.core.judge.service.mapper;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.mapper.EntityLinkMapper;
-import org.bn.sensation.core.round.entity.JudgeRoundEntity;
-import org.bn.sensation.core.round.service.dto.JudgeRoundDto;
+import org.bn.sensation.core.judge.entity.JudgeRoundEntity;
+import org.bn.sensation.core.judge.service.dto.JudgeRoundDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

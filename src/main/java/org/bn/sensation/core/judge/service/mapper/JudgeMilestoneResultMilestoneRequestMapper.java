@@ -1,8 +1,8 @@
-package org.bn.sensation.core.milestone.service.mapper;
+package org.bn.sensation.core.judge.service.mapper;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
-import org.bn.sensation.core.milestone.entity.JudgeMilestoneResultEntity;
-import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultMilestoneRequest;
+import org.bn.sensation.core.judge.entity.JudgeMilestoneResultEntity;
+import org.bn.sensation.core.judge.service.dto.JudgeMilestoneResultMilestoneRequest;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;

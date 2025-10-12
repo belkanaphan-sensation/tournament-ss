@@ -1,12 +1,11 @@
-package org.bn.sensation.core.milestone.service.dto;
+package org.bn.sensation.core.judge.service.dto;
 
 import org.bn.sensation.core.common.dto.BaseDto;
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,26 +18,24 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Запрос на создание результатов судьи для раунда в этапе")
-public class JudgeMilestoneResultRoundRequest extends BaseDto {
+@Schema(description = "Результат этапа по судьям и критериям для участника")
+public class JudgeMilestoneResultDto extends BaseDto {
 
-    @NotNull
     @Schema(description = "Участник")
-    private Long participantId;
+    private EntityLinkDto participant;
 
-    @NotNull
     @Schema(description = "Раунд")
-    private Long roundId;
+    private EntityLinkDto round;
 
-    @NotNull
     @Schema(description = "Критерий, сформированный для данного этапа")
-    private Long milestoneCriteriaId;
+    private EntityLinkDto milestoneCriteria;
 
-    @PositiveOrZero
+    @Schema(description = "Судья")
+    private EntityLinkDto activityUser;
+
     @Schema(description = "Значение оценки для данного участника данным судьей по данному критерию", example = "5")
     private Integer score;
 
-    @NotNull
     @Schema(description = "Добавление участника в избранные (возможные кандидаты)", example = "true", defaultValue = "false")
     private Boolean isFavorite;
 

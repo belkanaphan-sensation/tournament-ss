@@ -1,9 +1,9 @@
-package org.bn.sensation.core.milestone.repository;
+package org.bn.sensation.core.judge.repository;
 
 import java.util.List;
 
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.milestone.entity.JudgeMilestoneResultEntity;
+import org.bn.sensation.core.judge.entity.JudgeMilestoneResultEntity;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

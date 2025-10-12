@@ -1,4 +1,4 @@
-package org.bn.sensation.core.milestone.entity;
+package org.bn.sensation.core.judge.entity;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;

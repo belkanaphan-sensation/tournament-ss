@@ -1,14 +1,14 @@
-package org.bn.sensation.core.milestone.presentation;
+package org.bn.sensation.core.judge.presentation;
 
 import java.util.List;
 
-import org.bn.sensation.core.milestone.entity.JudgeMilestoneStatus;
-import org.bn.sensation.core.milestone.service.JudgeMilestoneResultService;
-import org.bn.sensation.core.milestone.service.MilestoneService;
-import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneDto;
-import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultDto;
-import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultMilestoneRequest;
-import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultRoundRequest;
+import org.bn.sensation.core.judge.entity.JudgeMilestoneStatus;
+import org.bn.sensation.core.judge.service.JudgeMilestoneResultService;
+import org.bn.sensation.core.judge.service.JudgeMilestoneService;
+import org.bn.sensation.core.judge.service.dto.JudgeMilestoneDto;
+import org.bn.sensation.core.judge.service.dto.JudgeMilestoneResultDto;
+import org.bn.sensation.core.judge.service.dto.JudgeMilestoneResultMilestoneRequest;
+import org.bn.sensation.core.judge.service.dto.JudgeMilestoneResultRoundRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class JudgeMilestoneResultController {
 
     private final JudgeMilestoneResultService judgeMilestoneResultService;
-    private final MilestoneService milestoneService;
+    private final JudgeMilestoneService judgeMilestoneService;
 
     @Operation(summary = "Получить результат судьи по ID")
     @GetMapping(path = "/{id}")
@@ -131,13 +131,13 @@ public class JudgeMilestoneResultController {
             description = "Результаты этапа принимаются для текущего пользователя который должен являться судьей этапа")
     @GetMapping(path = "/ready/{milestoneId}")
     public ResponseEntity<JudgeMilestoneDto> acceptRound(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        return ResponseEntity.ok(milestoneService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.READY));
+        return ResponseEntity.ok(judgeMilestoneService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.READY));
     }
 
     @Operation(summary = "Отменить результаты раунда",
             description = "Результаты этапа отменяются для текущего пользователя который должен являться судьей этапа")
     @GetMapping(path = "/not-ready/{milestoneId}")
     public ResponseEntity<JudgeMilestoneDto> rejectRound(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        return ResponseEntity.ok(milestoneService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.NOT_READY));
+        return ResponseEntity.ok(judgeMilestoneService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.NOT_READY));
     }
 }

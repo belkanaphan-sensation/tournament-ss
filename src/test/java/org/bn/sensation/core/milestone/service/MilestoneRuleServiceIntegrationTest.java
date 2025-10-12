@@ -518,7 +518,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestoneId(milestone1.getId())
                 .assessmentMode(AssessmentMode.SCORE)
                 .participantLimit(1)
-                .roundParticipantLimit(10)
+                .roundParticipantLimit(1)
                 .build();
         MilestoneRuleDto result1 = milestoneRuleService.create(request1);
         assertEquals(1, result1.getParticipantLimit());
