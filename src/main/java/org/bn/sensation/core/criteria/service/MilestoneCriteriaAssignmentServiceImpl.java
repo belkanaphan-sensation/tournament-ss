@@ -1,5 +1,6 @@
 package org.bn.sensation.core.criteria.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
@@ -73,7 +74,7 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
         }
 
         // Проверяем существование этапа
-        MilestoneRuleEntity milestoneRule = milestoneRuleRepository.findById(request.getMilestoneRuleId())
+        MilestoneRuleEntity milestoneRule = milestoneRuleRepository.findByIdWithCriteria(request.getMilestoneRuleId())
                 .orElseThrow(() -> new EntityNotFoundException("Правило этапа не найден с id: " + request.getMilestoneRuleId()));
 
         // Проверяем существование критерия
@@ -84,9 +85,28 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
         MilestoneCriteriaAssignmentEntity assignment = createMilestoneCriteriaAssignmentRequestMapper.toEntity(request);
         assignment.setMilestoneRule(milestoneRule);
         assignment.setCriteria(criteria);
+        validateScale(milestoneRule, assignment);
 
         MilestoneCriteriaAssignmentEntity saved = milestoneCriteriaAssignmentRepository.save(assignment);
         return milestoneCriteriaAssignmentDtoMapper.toDto(saved);
+    }
+
+    private void validateScale(MilestoneRuleEntity milestoneRule, MilestoneCriteriaAssignmentEntity assignment) {
+        switch (milestoneRule.getAssessmentMode()) {
+            case PASS -> {
+                Preconditions.checkArgument(assignment.getScale().equals(1),
+                    "Для режима прохождения (PASS) максимальный балл шкалы оценок равен 1");
+                Preconditions.checkArgument(assignment.getId() == null
+                        ? milestoneRule.getCriteriaAssignments().size() == 0
+                        : milestoneRule.getCriteriaAssignments().size() == 1
+                                && milestoneRule.getCriteriaAssignments().iterator().next().getId().equals(assignment.getId()),
+                        "Для режима прохождения (PASS) количество критериев должно быть 1");
+            }
+            case SCORE -> Preconditions.checkArgument(assignment.getScale() != null && assignment.getScale().compareTo(1) > 0,
+                    "Для режима шкалы оценок (SCORE) шкала должна быть установлена и быть больше 1");
+            case PLACE -> Preconditions.checkArgument(assignment.getWeight().equals(BigDecimal.ONE),
+                    "Для режима распределения по местам коэффициент критерия должен быть равен 1");
+        }
     }
 
     @Override
@@ -94,11 +114,12 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
     public MilestoneCriteriaAssignmentDto update(Long id, UpdateMilestoneCriteriaAssignmentRequest request) {
         Preconditions.checkArgument(id != null, "ID назначения не может быть null");
 
-        MilestoneCriteriaAssignmentEntity assignment = milestoneCriteriaAssignmentRepository.findById(id)
+        MilestoneCriteriaAssignmentEntity assignment = milestoneCriteriaAssignmentRepository.findByIdWithRule(id)
                 .orElseThrow(() -> new EntityNotFoundException("Назначение не найдено с id: " + id));
 
         // Обновляем поля назначения
         updateMilestoneCriteriaAssignmentRequestMapper.updateMilestoneCriteriaAssignmentFromRequest(request, assignment);
+        validateScale(assignment.getMilestoneRule(), assignment);
 
         MilestoneCriteriaAssignmentEntity saved = milestoneCriteriaAssignmentRepository.save(assignment);
         return milestoneCriteriaAssignmentDtoMapper.toDto(saved);
@@ -180,7 +201,7 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
             return List.of();
         }
         UserActivityAssignmentEntity uaae = userActivityAssignmentRepository.findByUserIdAndActivityId(
-                currentUser.getSecurityUser().getId(), milestoneRule.getMilestone().getActivity().getId())
+                        currentUser.getSecurityUser().getId(), milestoneRule.getMilestone().getActivity().getId())
                 .orElseThrow(() -> new EntityNotFoundException("Данный юзер не подписан на активность, включающую этап правилом с id: " + milestoneRuleId));
 
         return mcae.stream()

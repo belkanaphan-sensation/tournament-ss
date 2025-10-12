@@ -121,6 +121,17 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
+    @Transactional
+    public ParticipantDto removeParticipantFromRound(Long participantId, Long roundId) {
+        ParticipantEntity participant = findParticipantById(participantId);
+        RoundEntity round = findRoundById(roundId);
+
+        participant.getRounds().remove(round);
+        ParticipantEntity saved = participantRepository.save(participant);
+        return enrichParticipantDto(saved);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<ParticipantDto> getByRoundByRoundIdForCurrentUser(Long roundId) {
         Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");

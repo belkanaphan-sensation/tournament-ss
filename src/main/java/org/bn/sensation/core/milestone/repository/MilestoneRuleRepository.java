@@ -16,4 +16,8 @@ public interface MilestoneRuleRepository extends BaseRepository<MilestoneRuleEnt
     @EntityGraph(attributePaths = {"milestone"})
     @Query("SELECT mr FROM MilestoneRuleEntity mr WHERE mr.milestone.id = :milestoneId")
     Optional<MilestoneRuleEntity> findByMilestoneId(Long milestoneId);
+
+    @EntityGraph(attributePaths = {"criteriaAssignments"})
+    @Query("SELECT mr FROM MilestoneRuleEntity mr WHERE mr.id = :id")
+    Optional<MilestoneRuleEntity> findByIdWithCriteria(Long id);
 }

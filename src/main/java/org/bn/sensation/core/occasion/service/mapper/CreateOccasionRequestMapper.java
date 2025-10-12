@@ -10,19 +10,8 @@ import org.mapstruct.Mapping;
 @Mapper(config = BaseDtoMapper.class)
 public interface CreateOccasionRequestMapper extends BaseDtoMapper<OccasionEntity, CreateOccasionRequest> {
     @Override
-    @Mapping(target = "organization", source = "organizationId")
+    @Mapping(target = "organization", ignore = true)
     OccasionEntity toEntity(CreateOccasionRequest dto);
 
-    @Override
-    @Mapping(target = "organizationId", source = "organization.id")
-    CreateOccasionRequest toDto(OccasionEntity entity);
 
-    default OrganizationEntity map(Long organizationId) {
-        if (organizationId == null) {
-            return null;
-        }
-        OrganizationEntity organization = new OrganizationEntity();
-        organization.setId(organizationId);
-        return organization;
-    }
 }

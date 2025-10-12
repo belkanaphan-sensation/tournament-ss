@@ -39,7 +39,6 @@ public class CreateMilestoneCriteriaAssignmentRequest extends EmptyDto {
 
     @Positive
     @Schema(description = "Максимальный балл шкалы для критерия в рамках этапа", example = "10")
-    @NotNull
     private Integer scale;
 
 }

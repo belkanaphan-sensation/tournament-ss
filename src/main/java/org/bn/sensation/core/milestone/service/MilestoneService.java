@@ -23,4 +23,6 @@ public interface MilestoneService extends BaseCrudService<
 
     List<MilestoneDto> findByActivityIdInLifeStates(@NotNull Long id);
 
+    void completeMilestone(Long milestoneId);
+
 }

@@ -9,6 +9,7 @@ import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
+import org.bn.sensation.core.common.statemachine.event.RoundEvent;
 import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
@@ -21,6 +22,7 @@ import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.mapper.CreateMilestoneRequestMapper;
 import org.bn.sensation.core.milestone.service.mapper.MilestoneDtoMapper;
 import org.bn.sensation.core.milestone.service.mapper.UpdateMilestoneRequestMapper;
+import org.bn.sensation.core.round.service.RoundStateMachineService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +42,8 @@ public class MilestoneServiceImpl implements MilestoneService {
     private final CreateMilestoneRequestMapper createMilestoneRequestMapper;
     private final MilestoneDtoMapper milestoneDtoMapper;
     private final MilestoneRepository milestoneRepository;
+    private final MilestoneStateMachineService milestoneStateMachineService;
+    private final RoundStateMachineService roundStateMachineService;
     private final UpdateMilestoneRequestMapper updateMilestoneRequestMapper;
 
     @Override
@@ -50,6 +54,15 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     public BaseDtoMapper<MilestoneEntity, MilestoneDto> getMapper() {
         return milestoneDtoMapper;
+    }
+
+    @Override
+    public void completeMilestone(Long milestoneId) {
+        Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
+        MilestoneEntity milestone = milestoneRepository.findById(milestoneId)
+                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
+        milestone.getRounds().forEach(round -> roundStateMachineService.sendEvent(round.getId(), RoundEvent.COMPLETE));
+        milestoneStateMachineService.sendEvent(milestoneId, MilestoneEvent.COMPLETE);
     }
 
     @Override

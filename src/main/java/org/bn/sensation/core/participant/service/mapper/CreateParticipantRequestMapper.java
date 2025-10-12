@@ -18,13 +18,5 @@ public interface CreateParticipantRequestMapper extends BaseDtoMapper<Participan
     @Mapping(target = "person.phoneNumber", source = "phoneNumber")
     ParticipantEntity toEntity(CreateParticipantRequest dto);
 
-    @Override
-    @Mapping(target = "name", source = "person.name")
-    @Mapping(target = "surname", source = "person.surname")
-    @Mapping(target = "secondName", source = "person.secondName")
-    @Mapping(target = "email", source = "person.email")
-    @Mapping(target = "phoneNumber", source = "person.phoneNumber")
-    CreateParticipantRequest toDto(ParticipantEntity entity);
-
 
 }

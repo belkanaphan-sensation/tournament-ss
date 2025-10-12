@@ -176,7 +176,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
                     "Для режима PASS оценка может быть только 0 или 1, получена: %s", request.getScore());
         }
 
-        if (!milestone.getMilestoneOrder().equals(0)) {
+        if (!milestone.getMilestoneOrder().equals(0) && milestone.getMilestoneRule().getStrictPassMode()) {
             // Получаем количество участников следующего этапа
             int nextMilestoneParticipantLimit = milestoneRepository.getParticipantLimitForNextMilestone(milestone.getActivity().getId(), milestone.getMilestoneOrder());
 

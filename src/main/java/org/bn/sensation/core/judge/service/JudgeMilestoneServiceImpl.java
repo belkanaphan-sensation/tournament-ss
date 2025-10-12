@@ -51,15 +51,7 @@ public class JudgeMilestoneServiceImpl implements JudgeMilestoneService{
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
         Preconditions.checkArgument(judgeMilestoneStatus != null, "Статус не может быть null");
         MilestoneEntity milestone = milestoneRepository.findByIdWithUserAssignments(milestoneId).orElseThrow(EntityNotFoundException::new);
-        UserActivityAssignmentEntity activityUser = milestone.getActivity().getUserAssignments()
-                .stream()
-                .filter(ua ->
-                        ua.getUser()
-                                .getId()
-                                .equals(currentUser.getSecurityUser().getId())
-                                && ua.getPosition().isJudge())
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("Юзер с id %s не привязан к этапу с id: %s".formatted(currentUser.getSecurityUser().getId(), milestoneId)));
+        UserActivityAssignmentEntity activityUser = getActivityUser(milestoneId, milestone);
         Preconditions.checkState(milestone.getState() == MilestoneState.IN_PROGRESS,
                 "Статус этапа %s. Не может быть принят или отменен судьей", milestone.getState());
 
@@ -84,6 +76,12 @@ public class JudgeMilestoneServiceImpl implements JudgeMilestoneService{
     @Transactional(readOnly = true)
     public boolean allRoundsReady(Long milestoneId) {
         MilestoneEntity milestone = milestoneRepository.findByIdWithUserAssignments(milestoneId).orElseThrow(EntityNotFoundException::new);
+        UserActivityAssignmentEntity activityUser = getActivityUser(milestoneId, milestone);
+
+        return canChange(activityUser.getId(), milestone.getRounds().stream().map(RoundEntity::getId).distinct().toList(), JudgeMilestoneStatus.READY);
+    }
+
+    private UserActivityAssignmentEntity getActivityUser(Long milestoneId, MilestoneEntity milestone) {
         UserActivityAssignmentEntity activityUser = milestone.getActivity().getUserAssignments()
                 .stream()
                 .filter(ua ->
@@ -93,8 +91,7 @@ public class JudgeMilestoneServiceImpl implements JudgeMilestoneService{
                                 && ua.getPosition().isJudge())
                 .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("Юзер с id %s не привязан к этапу с id: %s".formatted(currentUser.getSecurityUser().getId(), milestoneId)));
-
-        return canChange(activityUser.getId(), milestone.getRounds().stream().map(RoundEntity::getId).distinct().toList(), JudgeMilestoneStatus.READY);
+        return activityUser;
     }
 
     private boolean canChange(Long activityUserId, List<Long> roundIds, JudgeMilestoneStatus judgeMilestoneStatus) {

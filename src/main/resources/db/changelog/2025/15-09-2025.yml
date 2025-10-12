@@ -66,7 +66,7 @@ databaseChangeLog:
                 criteria_id BIGINT NOT NULL,
                 partner_side VARCHAR(20),
                 weight DECIMAL(10,2) NOT NULL DEFAULT 1.0,
-                scale INTEGER NOT NULL DEFAULT 1,
+                scale INTEGER,
                 priority INTEGER NOT NULL DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 created_by VARCHAR(255),

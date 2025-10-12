@@ -13,9 +13,4 @@ public interface CreateMilestoneCriteriaAssignmentRequestMapper extends BaseDtoM
     @Mapping(target = "milestoneRule", ignore = true)
     @Mapping(target = "criteria", ignore = true)
     MilestoneCriteriaAssignmentEntity toEntity(CreateMilestoneCriteriaAssignmentRequest dto);
-
-    @Override
-    @Mapping(target = "milestoneRuleId", source = "milestoneRule.id")
-    @Mapping(target = "criteriaId", source = "criteria.id")
-    CreateMilestoneCriteriaAssignmentRequest toDto(MilestoneCriteriaAssignmentEntity entity);
 }

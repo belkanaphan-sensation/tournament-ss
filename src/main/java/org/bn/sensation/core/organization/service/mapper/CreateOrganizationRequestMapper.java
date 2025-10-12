@@ -15,10 +15,4 @@ public interface CreateOrganizationRequestMapper extends BaseDtoMapper<Organizat
     @Mapping(target = "address.streetNumber", source = "address.streetNumber")
     @Mapping(target = "users", ignore = true)
     OrganizationEntity toEntity(CreateOrganizationRequest dto);
-
-    @Override
-    @Mapping(target = "address.city", source = "address.city")
-    @Mapping(target = "address.streetName", source = "address.streetName")
-    @Mapping(target = "address.streetNumber", source = "address.streetNumber")
-    CreateOrganizationRequest toDto(OrganizationEntity entity);
 }

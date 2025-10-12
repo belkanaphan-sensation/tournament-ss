@@ -94,4 +94,12 @@ public class ParticipantController {
         ParticipantDto updated = participantService.assignParticipantToRound(participantId, roundId);
         return ResponseEntity.ok(updated);
     }
+
+    @Operation(summary = "Отвязать участника от раунда")
+    @DeleteMapping("/{participantId}/rounds/{roundId}")
+    public ResponseEntity<ParticipantDto> removeParticipantFromRound(@PathVariable Long participantId,
+                                                                     @PathVariable Long roundId) {
+        ParticipantDto updated = participantService.removeParticipantFromRound(participantId, roundId);
+        return ResponseEntity.ok(updated);
+    }
 }

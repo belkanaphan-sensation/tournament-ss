@@ -64,8 +64,8 @@ databaseChangeLog:
               CREATE TABLE IF NOT EXISTS judge_milestone_result (
                 id BIGSERIAL PRIMARY KEY,
                 score INTEGER,
-                favorite BOOLEAN DEFAULT FALSE,
-                candidate BOOLEAN DEFAULT FALSE,
+                is_favorite BOOLEAN DEFAULT FALSE,
+                is_candidate BOOLEAN DEFAULT FALSE,
                 participant_id BIGINT NOT NULL,
                 round_id BIGINT NOT NULL,
                 milestone_criteria_id BIGINT NOT NULL,

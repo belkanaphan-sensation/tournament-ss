@@ -36,6 +36,10 @@ public interface MilestoneCriteriaAssignmentRepository extends BaseRepository<Mi
     @Query("SELECT mca FROM MilestoneCriteriaAssignmentEntity mca WHERE mca.criteria.id = :criteriaId")
     List<MilestoneCriteriaAssignmentEntity> findByCriteriaId(Long criteriaId);
 
+    @EntityGraph(attributePaths = {"milestoneRule"})
+    @Query("SELECT mca FROM MilestoneCriteriaAssignmentEntity mca WHERE mca.id = :id")
+    Optional<MilestoneCriteriaAssignmentEntity> findByIdWithRule(Long id);
+
     boolean existsByMilestoneRuleIdAndCriteriaId(Long milestoneRuleId, Long criteriaId);
 
     boolean existsByCriteriaId(Long criteriaId);

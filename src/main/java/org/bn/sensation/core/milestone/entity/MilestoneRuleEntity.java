@@ -32,6 +32,9 @@ public class MilestoneRuleEntity extends BaseEntity {
     @Column(name = "round_participant_limit", nullable = false)
     private Integer roundParticipantLimit;
 
+    @Column(name = "strict_pass_mode")
+    private Boolean strictPassMode;
+
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "milestone_id", unique = true)
     private MilestoneEntity milestone;

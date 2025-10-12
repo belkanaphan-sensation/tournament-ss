@@ -22,10 +22,10 @@ public class JudgeMilestoneResultEntity extends BaseEntity {
     @Column(name = "score")
     private Integer score;
 
-    @Column(name = "favorite")
+    @Column(name = "is_favorite")
     private Boolean isFavorite;
 
-    @Column(name = "candidate")
+    @Column(name = "is_candidate")
     private Boolean isCandidate;
 
     @ManyToOne

@@ -13,9 +13,4 @@ public interface CreateUserActivityAssignmentRequestMapper extends BaseDtoMapper
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "activity", ignore = true)
     UserActivityAssignmentEntity toEntity(CreateUserActivityAssignmentRequest dto);
-
-    @Override
-    @Mapping(target = "userId", source = "user.id")
-    @Mapping(target = "activityId", source = "activity.id")
-    CreateUserActivityAssignmentRequest toDto(UserActivityAssignmentEntity entity);
 }

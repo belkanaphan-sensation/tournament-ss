@@ -40,4 +40,7 @@ public class CreateMilestoneRuleRequest extends EmptyDto {
     @NotNull
     @Schema(description = "ID этапа, к которому относится правило", example = "1")
     private Long milestoneId;
+
+//    @Schema(description = "Нужно ли строго соблюдать количество пропущенных в следующий этап участников", example = "false")
+//    private Boolean strictPassMode;
 }
