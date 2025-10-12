@@ -18,6 +18,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/judge-round-status")
 @RequiredArgsConstructor
@@ -49,5 +52,15 @@ public class JudgeRoundController {
     @GetMapping(path = "/round/{roundId}/current-user")
     public ResponseEntity<JudgeRoundStatus> getRoundStatus(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
         return ResponseEntity.ok(JudgeRoundStatus.NOT_READY);
+    }
+
+    @Operation(summary = "Получить статусы всех раундов текущего пользователя по id этапа",
+            description = "Получить статусы всех раундов текущего пользователя по id этапа")
+    @GetMapping(path = "/milestone/{milestoneId}/current-user")
+    public ResponseEntity<Map<Long, JudgeRoundStatus>> getRoundStatusByMilestoneId(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+        Map<Long, JudgeRoundStatus> mockData = new HashMap<>();
+        mockData.put(1L, JudgeRoundStatus.NOT_READY);
+        mockData.put(2L, JudgeRoundStatus.NOT_READY);
+        return ResponseEntity.ok(mockData);
     }
 }
