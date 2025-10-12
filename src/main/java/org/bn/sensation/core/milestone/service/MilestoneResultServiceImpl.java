@@ -9,8 +9,8 @@ import org.bn.sensation.core.milestone.entity.MilestoneResultEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneResultRepository;
 import org.bn.sensation.core.milestone.service.dto.MilestoneResultDto;
 import org.bn.sensation.core.milestone.service.mapper.MilestoneResultDtoMapper;
-import org.bn.sensation.core.milestone.entity.JudgeMilestoneResultEntity;
-import org.bn.sensation.core.milestone.repository.JudgeMilestoneResultRepository;
+import org.bn.sensation.core.judge.entity.JudgeMilestoneResultEntity;
+import org.bn.sensation.core.judge.repository.JudgeMilestoneResultRepository;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;

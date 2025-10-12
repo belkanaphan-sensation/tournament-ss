@@ -1,4 +1,4 @@
-package org.bn.sensation.core.milestone.service;
+package org.bn.sensation.core.judge.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -26,9 +26,9 @@ import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.repository.MilestoneRuleRepository;
-import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultDto;
-import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultMilestoneRequest;
-import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultRoundRequest;
+import org.bn.sensation.core.judge.service.dto.JudgeMilestoneResultDto;
+import org.bn.sensation.core.judge.service.dto.JudgeMilestoneResultMilestoneRequest;
+import org.bn.sensation.core.judge.service.dto.JudgeMilestoneResultRoundRequest;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;

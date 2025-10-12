@@ -1,9 +1,9 @@
-package org.bn.sensation.core.milestone.repository;
+package org.bn.sensation.core.judge.repository;
 
 import java.util.Optional;
 
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.milestone.entity.JudgeMilestoneEntity;
+import org.bn.sensation.core.judge.entity.JudgeMilestoneEntity;
 
 public interface JudgeMilestoneRepository extends BaseRepository<JudgeMilestoneEntity> {
 

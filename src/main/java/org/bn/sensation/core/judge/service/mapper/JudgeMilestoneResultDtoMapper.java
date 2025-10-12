@@ -1,9 +1,9 @@
-package org.bn.sensation.core.milestone.service.mapper;
+package org.bn.sensation.core.judge.service.mapper;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.mapper.EntityLinkMapper;
-import org.bn.sensation.core.milestone.entity.JudgeMilestoneResultEntity;
-import org.bn.sensation.core.milestone.service.dto.JudgeMilestoneResultDto;
+import org.bn.sensation.core.judge.entity.JudgeMilestoneResultEntity;
+import org.bn.sensation.core.judge.service.dto.JudgeMilestoneResultDto;
 import org.mapstruct.Mapper;
 
 @Mapper(config = BaseDtoMapper.class, uses = {EntityLinkMapper.class})
