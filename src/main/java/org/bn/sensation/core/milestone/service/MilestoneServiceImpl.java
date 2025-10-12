@@ -41,7 +41,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     private final CreateMilestoneRequestMapper createMilestoneRequestMapper;
     private final MilestoneDtoMapper milestoneDtoMapper;
     private final MilestoneRepository milestoneRepository;
-    private final MilestoneStateMachineService milestoneStateMachineService;
+//    private final MilestoneStateMachineService milestoneStateMachineService;
     private final RoundStateMachineService roundStateMachineService;
     private final UpdateMilestoneRequestMapper updateMilestoneRequestMapper;
 
@@ -61,7 +61,7 @@ public class MilestoneServiceImpl implements MilestoneService {
         MilestoneEntity milestone = milestoneRepository.findById(milestoneId)
                 .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
         milestone.getRounds().forEach(round -> roundStateMachineService.sendEvent(round.getId(), RoundEvent.COMPLETE));
-        milestoneStateMachineService.sendEvent(milestoneId, MilestoneEvent.COMPLETE);
+//        milestoneStateMachineService.sendEvent(milestoneId, MilestoneEvent.COMPLETE);
     }
 
     @Override
