@@ -19,7 +19,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/judge-round")
+@RequestMapping("/api/v1/judge-round-status")
 @RequiredArgsConstructor
 @Validated
 @SecurityRequirement(name = "cookieAuth")
@@ -41,5 +41,13 @@ public class JudgeRoundController {
     @GetMapping(path = "/not-ready/{roundId}")
     public ResponseEntity<JudgeRoundDto> notReadyRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
         return ResponseEntity.ok(judgeRoundService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.NOT_READY));
+    }
+
+    // TODO я сделал, но потом надо переделать, потому что сейчас времени нет
+    @Operation(summary = "Получить статус раунда текущего пользователя",
+            description = "Получить статус раунда текущего пользователя")
+    @GetMapping(path = "/round/{roundId}/current-user")
+    public ResponseEntity<JudgeRoundStatus> getRoundStatus(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
+        return ResponseEntity.ok(JudgeRoundStatus.NOT_READY);
     }
 }
