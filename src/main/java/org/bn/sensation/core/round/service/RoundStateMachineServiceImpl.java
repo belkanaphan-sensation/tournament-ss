@@ -38,6 +38,14 @@ public class RoundStateMachineServiceImpl implements RoundStateMachineService {
             log.info("🎯 [ROUND_EVENT_START] Round ID: {} | Event: {} | Current State: {}",
                 roundId, event, round.getState());
 
+            // Проверяем, изменится ли состояние
+            RoundState nextState = roundService.getNextState(round.getState(), event);
+            if (nextState == round.getState()) {
+                log.info("ℹ️ [ROUND_EVENT_NO_CHANGE] Round ID: {} | Event: {} | State remains: {}",
+                    roundId, event, round.getState());
+                return; // Состояние не меняется, просто выходим
+            }
+
             if (!roundService.isValidTransition(round.getState(), event)) {
                 log.warn("❌ [ROUND_EVENT_REJECTED] Round ID: {} | Invalid transition from {} to {}",
                     roundId, round.getState(), event);

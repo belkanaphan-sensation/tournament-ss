@@ -13,7 +13,6 @@ import org.bn.sensation.core.common.statemachine.event.RoundEvent;
 import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
-import org.bn.sensation.core.milestone.entity.AssessmentMode;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
@@ -226,7 +225,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     public boolean canTransition(MilestoneEntity milestone, MilestoneEvent event) {
         switch (event) {
-            case PLAN -> {
+            case DRAFT, PLAN -> {
             }
             case START -> {
                 Preconditions.checkState(milestone.getActivity().getState() == ActivityState.IN_PROGRESS,
@@ -237,15 +236,13 @@ public class MilestoneServiceImpl implements MilestoneService {
                         .stream()
                         .allMatch(round -> round.getState() == RoundState.COMPLETED);
                 Preconditions.checkState(allRoundsCompleted, "Не все раунды завершены");
-                AssessmentMode assessmentMode = milestone.getMilestoneRule().getAssessmentMode();
-                //должны быть посчитаны результаты этапа - проверка
-                //это должно уйтив проверку подсчетов результата этапа
-                if (assessmentMode == AssessmentMode.PASS) {
-                    //Нужно проверить что каждый судья выбрал ровное необходимое количество участников
-                    //где-то нужно хранить количество пользователей следующего этапа
-                    //т.е. для каждого судьи должно быть необходимое количество ParticipantRoundResultEntity
-                    //учесть пол участников и судей
-                }
+                int resultsCount = milestone.getResults().size();
+                long participantsCount = milestone.getRounds().stream()
+                        .filter(round -> !round.getExtraRound())
+                        .flatMap(round -> round.getParticipants().stream())
+                        .count();
+                Preconditions.checkState(resultsCount == participantsCount,
+                        "Результаты готовы не для всех участников");
             }
         }
         return true;
@@ -255,8 +252,17 @@ public class MilestoneServiceImpl implements MilestoneService {
     public MilestoneState getNextState(MilestoneState currentState, MilestoneEvent event) {
         return switch (currentState) {
             case DRAFT -> event == MilestoneEvent.PLAN ? MilestoneState.PLANNED : currentState;
-            case PLANNED, COMPLETED -> event == MilestoneEvent.START ? MilestoneState.IN_PROGRESS : currentState;
-            case IN_PROGRESS -> event == MilestoneEvent.COMPLETE ? MilestoneState.COMPLETED : currentState;
+            case PLANNED -> switch (event) {
+                case DRAFT -> MilestoneState.DRAFT;
+                case START -> MilestoneState.IN_PROGRESS;
+                default -> currentState;
+            };
+            case IN_PROGRESS -> switch (event) {
+                case PLAN -> MilestoneState.PLANNED;
+                case COMPLETE -> MilestoneState.COMPLETED;
+                default -> currentState;
+            };
+            case COMPLETED -> event == MilestoneEvent.START ? MilestoneState.IN_PROGRESS : currentState;
         };
     }
 

@@ -160,7 +160,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     public List<RoundParticipantsDto> getByRoundByMilestoneIdForCurrentUser(Long milestoneId) {
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
-        MilestoneEntity milestone = milestoneRepository.findByIdWithUserAssignments(milestoneId)
+        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId)
                 .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
         Long userId = currentUser.getSecurityUser().getId();
         UserActivityAssignmentEntity activityAssignment = milestone.getActivity()

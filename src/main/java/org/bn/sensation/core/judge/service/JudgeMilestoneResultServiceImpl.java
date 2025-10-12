@@ -97,7 +97,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
     @Override
     @Transactional
     public List<JudgeMilestoneResultDto> createOrUpdateForMilestone(Long milestoneId, List<JudgeMilestoneResultMilestoneRequest> requests) {
-        MilestoneEntity milestone = milestoneRepository.findByIdWithUserAssignments(milestoneId)
+        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId)
                 .orElseThrow(EntityNotFoundException::new);
         UserActivityAssignmentEntity activityUser = milestone.getActivity().getUserAssignments().stream()
                 .filter(ua -> ua.getUser().getId().equals(currentUser.getSecurityUser().getId()))
@@ -329,7 +329,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
     @Override
     public List<JudgeMilestoneResultDto> findByMilestoneIdForCurrentUser(Long milestoneId) {
-        MilestoneEntity milestone = milestoneRepository.findByIdWithUserAssignments(milestoneId)
+        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId)
                 .orElseThrow(EntityNotFoundException::new);
         UserActivityAssignmentEntity activityUser = milestone.getActivity().getUserAssignments().stream()
                 .filter(ua -> ua.getUser().getId().equals(currentUser.getSecurityUser().getId()))

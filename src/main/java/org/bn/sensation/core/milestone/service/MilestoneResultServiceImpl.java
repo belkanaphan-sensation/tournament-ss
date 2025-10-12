@@ -1,10 +1,16 @@
 package org.bn.sensation.core.milestone.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.judge.entity.JudgeMilestoneEntity;
+import org.bn.sensation.core.judge.entity.JudgeMilestoneStatus;
+import org.bn.sensation.core.judge.repository.JudgeMilestoneRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneResultEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
@@ -31,8 +37,9 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class MilestoneResultServiceImpl implements MilestoneResultService{
+public class MilestoneResultServiceImpl implements MilestoneResultService {
 
+    private final JudgeMilestoneRepository judgeMilestoneRepository;
     private final MilestoneResultRepository milestoneResultRepository;
     private final MilestoneResultDtoMapper milestoneResultDtoMapper;
     private final CreateMilestoneResultRequestMapper createMilestoneResultRequestMapper;
@@ -40,6 +47,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService{
     private final MilestoneRepository milestoneRepository;
     private final ParticipantRepository participantRepository;
     private final RoundRepository roundRepository;
+
     @Override
     public BaseRepository<MilestoneResultEntity> getRepository() {
         return milestoneResultRepository;
@@ -51,9 +59,24 @@ public class MilestoneResultServiceImpl implements MilestoneResultService{
     }
 
     @Override
+    @Transactional
+    //TODO вопрос про то, как и где должен админ обновлять поля. Например принимать решение по местам
     public List<MilestoneResultDto> getByMilestoneId(Long milestoneId) {
-        // TODO: Implement logic to process round results and return milestone results
-        // List<JudgeMilestoneResultEntity> roundResults = judgeMilestoneResultRepository.findByMilestoneId(milestoneId);
+        Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
+        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId)
+                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
+        Map<Long, JudgeMilestoneEntity> judgeResults = judgeMilestoneRepository.findByMilestoneId(milestoneId)
+                .stream()
+                .collect(Collectors.toMap(jm -> jm.getJudge().getId(), Function.identity()));
+        Preconditions.checkState(milestone.getActivity().getUserAssignments().stream()
+                .allMatch(ua -> judgeResults.get(ua.getId()) != null
+                        && judgeResults.get(ua.getId()).getStatus() == JudgeMilestoneStatus.READY),
+                "Для получения результатов этапа все судьи должны завершить этап");
+        if (milestone.getResults().isEmpty()) {
+            //создаем результаты из всего что есть
+        } else {
+            //пересчитываем
+        }
         return List.of();
     }
 

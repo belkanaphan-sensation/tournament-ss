@@ -1,7 +1,6 @@
 package org.bn.sensation.core.judge.presentation;
 
 import org.bn.sensation.core.judge.entity.JudgeRoundStatus;
-import org.bn.sensation.core.judge.service.JudgeMilestoneService;
 import org.bn.sensation.core.judge.service.JudgeRoundService;
 import org.bn.sensation.core.judge.service.dto.JudgeRoundDto;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 public class JudgeRoundController {
 
     private final JudgeRoundService judgeRoundService;
-    private final JudgeMilestoneService judgeMilestoneService;
 
     @Operation(summary = "Принять результаты раунда",
             description = "Результаты раунда принимаются для текущего пользователя который должен являться судьей раунда")
@@ -43,11 +41,5 @@ public class JudgeRoundController {
     @GetMapping(path = "/not-ready/{roundId}")
     public ResponseEntity<JudgeRoundDto> notReadyRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
         return ResponseEntity.ok(judgeRoundService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.NOT_READY));
-    }
-
-    @Operation(summary = "Проверить готовность раундов для текущего юзера - судьи")
-    @GetMapping(path = "/all-rounds-ready/{milestoneId}/currentUser")
-    public ResponseEntity<Boolean> isAllRoundsReady(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        return ResponseEntity.ok(judgeMilestoneService.allRoundsReady(milestoneId));
     }
 }

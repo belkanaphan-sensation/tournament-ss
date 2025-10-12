@@ -28,12 +28,16 @@ public class MilestoneResultEntity extends BaseEntity {
     @JoinColumn(name = "participant_id")
     private ParticipantEntity participant;
 
+    //TODO не факт что нужно. М.б. убрать
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "round_id")
     private RoundEntity round;
 
-    @Column(name = "passed")
-    private Boolean passed;
+    @Column(name = "judge_approved")
+    private Boolean judgeApproved;
+
+    @Column(name = "finally_approved")
+    private Boolean finallyApproved;
 
     @Column(name = "total_score")
     private Integer totalScore;

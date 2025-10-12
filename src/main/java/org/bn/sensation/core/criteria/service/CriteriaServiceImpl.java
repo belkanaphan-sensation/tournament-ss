@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-//todo подумать над тем, какие плавила создания изменения и т.д. должны быть у критерия. Вероятно нужны какие то статусы использования
 public class CriteriaServiceImpl implements CriteriaService {
 
     private final CriteriaRepository criteriaRepository;

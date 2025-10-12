@@ -30,7 +30,7 @@ public class MilestoneResultDto extends BaseDto {
     private EntityLinkDto milestone;
 
     @Schema(description = "Прошел участник в следующий этап или нет")
-    private Boolean passed;
+    private Boolean passedByAdmin;
 
     @Schema(description = "Суммарный балл этапа для участника", example = "5")
     private Integer totalScore;

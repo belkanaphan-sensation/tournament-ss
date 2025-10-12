@@ -24,7 +24,6 @@ import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
 import org.bn.sensation.core.round.service.mapper.CreateRoundRequestMapper;
 import org.bn.sensation.core.round.service.mapper.RoundDtoMapper;
 import org.bn.sensation.core.round.service.mapper.UpdateRoundRequestMapper;
-import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -137,8 +136,7 @@ public class RoundServiceImpl implements RoundService {
     @Override
     public boolean canTransition(RoundEntity round, RoundEvent event) {
         return switch (event) {
-            //TODO сделать для COMPLETE
-            case PLAN, COMPLETE -> true;
+            case DRAFT, PLAN, COMPLETE -> true;
             case START -> {
                 Preconditions.checkState(round.getMilestone().getState() == MilestoneState.IN_PROGRESS,
                         "Нельзя стартовать раунд, т.к. этап находится в статусе %s", round.getMilestone().getState());
@@ -170,13 +168,22 @@ public class RoundServiceImpl implements RoundService {
     public RoundState getNextState(RoundState currentState, RoundEvent event) {
         return switch (currentState) {
             case DRAFT -> event == RoundEvent.PLAN ? RoundState.PLANNED : currentState;
-            case PLANNED -> event == RoundEvent.START ? RoundState.IN_PROGRESS : currentState;
-            case IN_PROGRESS, COMPLETED -> event == RoundEvent.CONFIRM ? RoundState.READY : currentState;
-            case READY -> event == RoundEvent.COMPLETE
-                    ? RoundState.COMPLETED :
-                    event == RoundEvent.PLAN
-                            ? RoundState.IN_PROGRESS
-                            : currentState;
+            case PLANNED -> switch (event) {
+                case DRAFT -> RoundState.DRAFT;
+                case START -> RoundState.IN_PROGRESS;
+                default -> currentState;
+            };
+            case IN_PROGRESS -> switch (event) {
+                case PLAN -> RoundState.PLANNED;
+                case CONFIRM -> RoundState.READY;
+                default -> currentState;
+            };
+            case READY -> switch (event) {
+                case START -> RoundState.IN_PROGRESS;
+                case COMPLETE -> RoundState.COMPLETED;
+                default -> currentState;
+            };
+            case COMPLETED -> event == RoundEvent.START ? RoundState.IN_PROGRESS : currentState;
         };
     }
 

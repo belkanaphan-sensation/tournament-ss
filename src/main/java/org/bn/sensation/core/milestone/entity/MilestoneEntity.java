@@ -40,11 +40,16 @@ public class MilestoneEntity extends BaseEntity {
     @Fetch(FetchMode.JOIN)
     private MilestoneRuleEntity milestoneRule;
 
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "activity_id")
+    private ActivityEntity activity;
+
     @OneToMany(mappedBy = "milestone", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     @Builder.Default
     private Set<RoundEntity> rounds =  new HashSet<>();
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "activity_id")
-    private ActivityEntity activity;
+    @OneToMany(mappedBy = "milestone", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+    @Builder.Default
+    private Set<MilestoneResultEntity> results =  new HashSet<>();
+
 }

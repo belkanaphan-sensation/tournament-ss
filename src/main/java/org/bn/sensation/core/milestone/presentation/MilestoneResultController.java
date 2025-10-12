@@ -27,10 +27,17 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Milestone Result", description = "The Milestone Result API")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN')")
 public class MilestoneResultController {
 
     private final MilestoneResultService milestoneResultService;
+
+    @Operation(summary = "Получить результаты этапа для участников по ID этапа")
+    @GetMapping(path = "/{milestoneId}")
+    public ResponseEntity<List<MilestoneResultDto>> getResultsByMilestoneId(
+            @Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+        return ResponseEntity.ok(milestoneResultService.getByMilestoneId(milestoneId));
+    }
 
     @Operation(summary = "Получить результат этапа по ID")
     @GetMapping(path = "/{id}")

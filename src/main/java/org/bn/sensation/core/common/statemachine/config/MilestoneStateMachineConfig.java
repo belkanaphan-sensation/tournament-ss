@@ -28,44 +28,62 @@ public class MilestoneStateMachineConfig extends EnumStateMachineConfigurerAdapt
     @Override
     public void configure(StateMachineConfigurationConfigurer<MilestoneState, MilestoneEvent> config) throws Exception {
         config
-            .withConfiguration()
-            .autoStartup(false)
-            .listener(milestoneStateMachineListener);
+                .withConfiguration()
+                .autoStartup(false)
+                .listener(milestoneStateMachineListener);
     }
 
     @Override
     public void configure(StateMachineStateConfigurer<MilestoneState, MilestoneEvent> states) throws Exception {
         states
-            .withStates()
-            .initial(MilestoneState.DRAFT)
-            .states(EnumSet.allOf(MilestoneState.class));
+                .withStates()
+                .initial(MilestoneState.DRAFT)
+                .states(EnumSet.allOf(MilestoneState.class));
     }
 
     @Override
     public void configure(StateMachineTransitionConfigurer<MilestoneState, MilestoneEvent> transitions) throws Exception {
         transitions
-            // DRAFT -> PLANNED
-            .withExternal()
+                // DRAFT -> PLANNED
+                .withExternal()
                 .source(MilestoneState.DRAFT)
                 .target(MilestoneState.PLANNED)
                 .event(MilestoneEvent.PLAN)
-                .guard(milestoneGuard)
                 .action(milestoneAction)
                 .and()
-            // PLANNED -> IN_PROGRESS
-            .withExternal()
+                // PLANNED -> DRAFT
+                .withExternal()
+                .source(MilestoneState.PLANNED)
+                .target(MilestoneState.DRAFT)
+                .event(MilestoneEvent.DRAFT)
+                .action(milestoneAction)
+                .and()
+                // PLANNED -> IN_PROGRESS
+                .withExternal()
                 .source(MilestoneState.PLANNED)
                 .target(MilestoneState.IN_PROGRESS)
                 .event(MilestoneEvent.START)
-                .guard(milestoneGuard)
                 .action(milestoneAction)
                 .and()
-            // IN_PROGRESS -> COMPLETED
-            .withExternal()
+                // IN_PROGRESS -> PLANNED
+                .withExternal()
+                .source(MilestoneState.IN_PROGRESS)
+                .target(MilestoneState.PLANNED)
+                .event(MilestoneEvent.PLAN)
+                .action(milestoneAction)
+                .and()
+                // IN_PROGRESS -> COMPLETED
+                .withExternal()
                 .source(MilestoneState.IN_PROGRESS)
                 .target(MilestoneState.COMPLETED)
                 .event(MilestoneEvent.COMPLETE)
-                .guard(milestoneGuard)
+                .action(milestoneAction)
+                .and()
+                // COMPLETED -> IN_PROGRESS
+                .withExternal()
+                .source(MilestoneState.COMPLETED)
+                .target(MilestoneState.IN_PROGRESS)
+                .event(MilestoneEvent.START)
                 .action(milestoneAction);
     }
 }

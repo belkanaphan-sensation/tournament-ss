@@ -35,6 +35,16 @@ public class RoundController {
     private final RoundService roundService;
     private final RoundStateMachineService roundStateMachineService;
 
+    @Operation(summary = "Сменить стейт раунда по ID и ивенту",
+            description = "Сменить стейт раунда может администратор")
+    @GetMapping(path = "/{id}/change-state/{event}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> changeRoundState(@Parameter @PathVariable("id") @NotNull Long id,
+                                                 @Parameter @PathVariable("event") @NotNull RoundEvent event) {
+        roundStateMachineService.sendEvent(id, event);
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "Запланировать раунд по ID",
             description = "Запланировать раунд может администратор")
     @GetMapping(path = "/plan/{id}")

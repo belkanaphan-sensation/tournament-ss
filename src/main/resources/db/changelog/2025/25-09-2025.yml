@@ -38,6 +38,8 @@ databaseChangeLog:
                 id BIGSERIAL PRIMARY KEY,
                 total_score INTEGER,
                 participant_id BIGINT NOT NULL,
+                judge_approved BOOLEAN NOT NULL DEFAULT FALSE,
+                finally_approved BOOLEAN NOT NULL DEFAULT FALSE,
                 milestone_id BIGINT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 created_by VARCHAR(255),

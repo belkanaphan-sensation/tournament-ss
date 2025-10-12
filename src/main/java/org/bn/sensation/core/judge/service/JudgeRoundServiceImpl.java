@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.common.statemachine.event.RoundEvent;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.judge.entity.JudgeMilestoneResultEntity;
 import org.bn.sensation.core.judge.entity.JudgeRoundEntity;
@@ -14,6 +15,7 @@ import org.bn.sensation.core.judge.service.dto.JudgeRoundDto;
 import org.bn.sensation.core.judge.service.mapper.JudgeRoundMapper;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
+import org.bn.sensation.core.round.service.RoundStateMachineService;
 import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
 import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
 import org.bn.sensation.security.CurrentUser;
@@ -36,6 +38,7 @@ public class JudgeRoundServiceImpl implements JudgeRoundService{
     private final JudgeRoundMapper judgeRoundMapper;
     private final JudgeRoundRepository judgeRoundRepository;
     private final RoundRepository roundRepository;
+    private final RoundStateMachineService roundStateMachineService;
     private final UserActivityAssignmentRepository userActivityAssignmentRepository;
 
     @Override
@@ -72,6 +75,7 @@ public class JudgeRoundServiceImpl implements JudgeRoundService{
             throw new IllegalStateException("Судья оценил не всех участников");
         }
 
+        roundStateMachineService.sendEvent(roundId, RoundEvent.START);
         return createOrUpdateJudgeRoundStatus(judgeRoundStatus, activityAssignment, round);
     }
 

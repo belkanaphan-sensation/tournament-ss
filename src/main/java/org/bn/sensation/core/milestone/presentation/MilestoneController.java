@@ -2,13 +2,11 @@ package org.bn.sensation.core.milestone.presentation;
 
 import java.util.List;
 
-import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
 import org.bn.sensation.core.milestone.service.MilestoneService;
 import org.bn.sensation.core.milestone.service.MilestoneStateMachineService;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
-import org.bn.sensation.core.milestone.service.dto.MilestoneResultDto;
 import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +43,16 @@ public class MilestoneController {
                 .orElseGet(() -> ResponseEntity.status(404).build());
     }
 
+    @Operation(summary = "Сменить стейт этапа по ID и ивенту",
+            description = "Сменить стейт этапа может администратор")
+    @GetMapping(path = "/{id}/change-state/{event}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> changeMilestoneState(@Parameter @PathVariable("id") @NotNull Long id,
+                                                 @Parameter @PathVariable("event") @NotNull MilestoneEvent event) {
+        milestoneStateMachineService.sendEvent(id, event);
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "Запланировать этап по ID",
             description = "Запланировать этап может администратор")
     @GetMapping(path = "/plan/{id}")
@@ -59,6 +67,7 @@ public class MilestoneController {
     @GetMapping(path = "/start/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> startMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
+        //TODO проверить или рассчитать участников и раунды
         milestoneStateMachineService.sendEvent(id, MilestoneEvent.START);
         return ResponseEntity.noContent().build();
     }
@@ -112,22 +121,4 @@ public class MilestoneController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Получить результаты этапа для участников")
-    @GetMapping(path = "/{id}/result")
-    public ResponseEntity<List<MilestoneResultDto>> getResultById(
-            @Parameter @PathVariable("id") @NotNull Long id) {
-        List<MilestoneResultDto> result = List.of(
-                MilestoneResultDto.builder()
-                        .participant(new EntityLinkDto(1L, "25"))
-                        .milestone(new EntityLinkDto(1L, "milestone 1"))
-                        .totalScore(71)
-                        .build(),
-                MilestoneResultDto.builder()
-                        .participant(new EntityLinkDto(2L, "35"))
-                        .milestone(new EntityLinkDto(1L, "milestone 1"))
-                        .totalScore(22)
-                        .build()
-        );
-        return ResponseEntity.ok(result);
-    }
 }

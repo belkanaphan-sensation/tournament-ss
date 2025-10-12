@@ -47,6 +47,13 @@ public class RoundStateMachineConfig extends EnumStateMachineConfigurerAdapter<R
                 .event(RoundEvent.PLAN)
                 .action(roundAction)
                 .and()
+                // PLANNED -> DRAFT
+                .withExternal()
+                .source(RoundState.PLANNED)
+                .target(RoundState.DRAFT)
+                .event(RoundEvent.DRAFT)
+                .action(roundAction)
+                .and()
                 // PLANNED -> IN_PROGRESS
                 .withExternal()
                 .source(RoundState.PLANNED)
@@ -54,18 +61,39 @@ public class RoundStateMachineConfig extends EnumStateMachineConfigurerAdapter<R
                 .event(RoundEvent.START)
                 .action(roundAction)
                 .and()
-                // IN_PROGRESS -> ACCEPTED
+                // IN_PROGRESS -> PLANNED
+                .withExternal()
+                .source(RoundState.IN_PROGRESS)
+                .target(RoundState.PLANNED)
+                .event(RoundEvent.PLAN)
+                .action(roundAction)
+                .and()
+                // IN_PROGRESS -> READY
                 .withExternal()
                 .source(RoundState.IN_PROGRESS)
                 .target(RoundState.READY)
+                .event(RoundEvent.CONFIRM)
+                .action(roundAction)
+                .and()
+                // READY -> IN_PROGRESS
+                .withExternal()
+                .source(RoundState.READY)
+                .target(RoundState.IN_PROGRESS)
                 .event(RoundEvent.START)
                 .action(roundAction)
                 .and()
-                // ACCEPTED -> COMPLETED
+                // READY -> COMPLETED
                 .withExternal()
                 .source(RoundState.READY)
                 .target(RoundState.COMPLETED)
                 .event(RoundEvent.COMPLETE)
+                .action(roundAction)
+                .and()
+                // COMPLETED -> IN_PROGRESS
+                .withExternal()
+                .source(RoundState.COMPLETED)
+                .target(RoundState.IN_PROGRESS)
+                .event(RoundEvent.START)
                 .action(roundAction);
     }
 }

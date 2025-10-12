@@ -3,9 +3,7 @@ package org.bn.sensation.core.judge.service;
 import org.bn.sensation.core.common.service.BaseService;
 import org.bn.sensation.core.judge.entity.JudgeMilestoneEntity;
 import org.bn.sensation.core.judge.entity.JudgeMilestoneStatus;
-import org.bn.sensation.core.judge.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judge.service.dto.JudgeMilestoneDto;
-import org.bn.sensation.core.judge.service.dto.JudgeRoundDto;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
 

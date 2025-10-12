@@ -14,9 +14,9 @@ public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
 
     List<MilestoneEntity> findByActivityIdOrderByMilestoneOrderAsc(Long activityId);
 
-    @EntityGraph(attributePaths = {"activity.userAssignments.user", "rounds.participants", "milestoneRule"})
+    @EntityGraph(attributePaths = {"activity.userAssignments.user", "rounds.participants", "milestoneRule", "results"})
     @Query("SELECT m FROM MilestoneEntity m WHERE m.id = :id")
-    Optional<MilestoneEntity> findByIdWithUserAssignments(@Param("id") Long id);
+    Optional<MilestoneEntity> findByIdFullEntity(@Param("id") Long id);
 
     @EntityGraph(attributePaths = {"activity", "milestoneRule"})
     @Query("SELECT m FROM MilestoneEntity m WHERE m.activity.id = :activityId AND m.state IN :states")

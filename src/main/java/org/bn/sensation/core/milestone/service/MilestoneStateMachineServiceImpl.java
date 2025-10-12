@@ -32,11 +32,19 @@ public class MilestoneStateMachineServiceImpl implements MilestoneStateMachineSe
         MilestoneStateMachineListener.setMilestoneId(milestoneId);
 
         try {
-            MilestoneEntity milestone =  milestoneRepository.findByIdWithUserAssignments(milestoneId)
+            MilestoneEntity milestone =  milestoneRepository.findByIdFullEntity(milestoneId)
                     .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
 
             log.info("🎯 [MILESTONE_EVENT_START] Milestone ID: {} | Event: {} | Current State: {}",
                 milestoneId, event, milestone.getState());
+
+            // Проверяем, изменится ли состояние
+            MilestoneState nextState = milestoneService.getNextState(milestone.getState(), event);
+            if (nextState == milestone.getState()) {
+                log.info("ℹ️ [MILESTONE_EVENT_NO_CHANGE] Round ID: {} | Event: {} | State remains: {}",
+                        milestoneId, event, milestone.getState());
+                return; // Состояние не меняется, просто выходим
+            }
 
             if (!milestoneService.isValidTransition(milestone.getState(), event)) {
                 log.warn("❌ [MILESTONE_EVENT_REJECTED] Milestone ID: {} | Invalid transition from {} to {}",

@@ -50,7 +50,7 @@ public class JudgeMilestoneServiceImpl implements JudgeMilestoneService{
     public JudgeMilestoneDto changeMilestoneStatus(Long milestoneId, JudgeMilestoneStatus judgeMilestoneStatus) {
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
         Preconditions.checkArgument(judgeMilestoneStatus != null, "Статус не может быть null");
-        MilestoneEntity milestone = milestoneRepository.findByIdWithUserAssignments(milestoneId).orElseThrow(EntityNotFoundException::new);
+        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId).orElseThrow(EntityNotFoundException::new);
         UserActivityAssignmentEntity activityUser = getActivityUser(milestoneId, milestone);
         Preconditions.checkState(milestone.getState() == MilestoneState.IN_PROGRESS,
                 "Статус этапа %s. Не может быть принят или отменен судьей", milestone.getState());
@@ -75,7 +75,7 @@ public class JudgeMilestoneServiceImpl implements JudgeMilestoneService{
     @Override
     @Transactional(readOnly = true)
     public boolean allRoundsReady(Long milestoneId) {
-        MilestoneEntity milestone = milestoneRepository.findByIdWithUserAssignments(milestoneId).orElseThrow(EntityNotFoundException::new);
+        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId).orElseThrow(EntityNotFoundException::new);
         UserActivityAssignmentEntity activityUser = getActivityUser(milestoneId, milestone);
 
         return canChange(activityUser.getId(), milestone.getRounds().stream().map(RoundEntity::getId).distinct().toList(), JudgeMilestoneStatus.READY);

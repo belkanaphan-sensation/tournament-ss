@@ -140,4 +140,10 @@ public class JudgeMilestoneResultController {
     public ResponseEntity<JudgeMilestoneDto> rejectRound(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
         return ResponseEntity.ok(judgeMilestoneService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.NOT_READY));
     }
+
+    @Operation(summary = "Проверить готовность этапа для текущего юзера - судьи")
+    @GetMapping(path = "/milestone-ready/{milestoneId}/currentUser")
+    public ResponseEntity<Boolean> isAllRoundsReady(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+        return ResponseEntity.ok(judgeMilestoneService.allRoundsReady(milestoneId));
+    }
 }
