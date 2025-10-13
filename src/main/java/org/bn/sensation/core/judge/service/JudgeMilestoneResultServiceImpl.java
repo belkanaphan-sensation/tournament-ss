@@ -124,7 +124,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
         List<JudgeMilestoneResultEntity> updated = new ArrayList<>();
         requests.forEach(request -> {
-            judgeMilestoneResultMilestoneRequestMapper.updateJudgeMilestoneResultFromRequest(request, results.get(request.getId()));
+            judgeMilestoneResultMilestoneRequestMapper.updateJudgeMilestoneResultMilestoneFromRequest(request, results.get(request.getId()));
             updated.add(judgeMilestoneResultRepository.save(results.get(request.getId())));
         });
         updated.stream().map(res -> res.getRound().getId()).distinct().forEach(roundId -> {
@@ -244,6 +244,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
     //TODO тут должно быть применено правило, если судьи меняются сторонами, пока оно не учитывается
     private JudgeMilestoneResultDto createEntity(JudgeMilestoneResultRoundRequest request) {
+        Preconditions.checkArgument(request.getScore() != null && request.getScore().compareTo(0) > 0);
         ParticipantEntity participant = participantRepository.findById(request.getParticipantId())
                 .orElseThrow(EntityNotFoundException::new);
         MilestoneCriteriaAssignmentEntity milestoneCriteria = milestoneCriteriaAssignmentRepository
@@ -291,7 +292,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
                         || entity.getActivityUser().getUser().getId().equals(currentUser.getSecurityUser().getId()),
                 "Нельзя изменить результат другого судьи");
 
-        judgeMilestoneResultRoundRequestMapper.updateRoundFromRequest(request, entity);
+        judgeMilestoneResultRoundRequestMapper.updateJudgeMilestoneResultRoundFromRequest(request, entity);
         JudgeMilestoneResultEntity saved = judgeMilestoneResultRepository.save(entity);
         return judgeMilestoneResultDtoMapper.toDto(saved);
     }

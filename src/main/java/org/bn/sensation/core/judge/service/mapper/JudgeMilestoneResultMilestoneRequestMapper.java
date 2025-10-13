@@ -3,15 +3,13 @@ package org.bn.sensation.core.judge.service.mapper;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.judge.entity.JudgeMilestoneResultEntity;
 import org.bn.sensation.core.judge.service.dto.JudgeMilestoneResultMilestoneRequest;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 
 @Mapper(config = BaseDtoMapper.class)
 public interface JudgeMilestoneResultMilestoneRequestMapper extends BaseDtoMapper<JudgeMilestoneResultEntity, JudgeMilestoneResultMilestoneRequest> {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateJudgeMilestoneResultFromRequest(JudgeMilestoneResultMilestoneRequest request, @MappingTarget JudgeMilestoneResultEntity entity);
+    @Mapping(target = "id", ignore = true)
+    void updateJudgeMilestoneResultMilestoneFromRequest(JudgeMilestoneResultMilestoneRequest request, @MappingTarget JudgeMilestoneResultEntity entity);
 
 }

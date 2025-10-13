@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -34,11 +33,9 @@ public class JudgeMilestoneResultRoundRequest extends BaseDto {
     @Schema(description = "Критерий, сформированный для данного этапа")
     private Long milestoneCriteriaId;
 
-    @PositiveOrZero
     @Schema(description = "Значение оценки для данного участника данным судьей по данному критерию", example = "5")
     private Integer score;
 
-    @NotNull
     @Schema(description = "Добавление участника в избранные (возможные кандидаты)", example = "true", defaultValue = "false")
     private Boolean isFavorite;
 
