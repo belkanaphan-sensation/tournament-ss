@@ -1,7 +1,9 @@
 package org.bn.sensation.core.round.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
@@ -20,10 +22,14 @@ import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
 import org.bn.sensation.core.round.service.dto.RoundDto;
+import org.bn.sensation.core.round.service.dto.RoundWithJRStatusDto;
 import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
 import org.bn.sensation.core.round.service.mapper.CreateRoundRequestMapper;
 import org.bn.sensation.core.round.service.mapper.RoundDtoMapper;
+import org.bn.sensation.core.round.service.mapper.RoundWithJRStatusMapper;
 import org.bn.sensation.core.round.service.mapper.UpdateRoundRequestMapper;
+import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
+import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -40,12 +46,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RoundServiceImpl implements RoundService {
 
+    private final CurrentUser currentUser;
     private final CreateRoundRequestMapper createRoundRequestMapper;
     private final JudgeRoundRepository judgeRoundRepository;
     private final MilestoneRepository milestoneRepository;
     private final ParticipantRepository participantRepository;
     private final RoundDtoMapper roundDtoMapper;
     private final RoundRepository roundRepository;
+    private final RoundWithJRStatusMapper roundWithJRStatusMapper;
     private final UpdateRoundRequestMapper updateRoundRequestMapper;
 
     @Override
@@ -119,10 +127,26 @@ public class RoundServiceImpl implements RoundService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<RoundDto> findByMilestoneIdInLifeStates(Long id) {
-        Preconditions.checkArgument(id != null, "ID этапа не может быть null");
-        return roundRepository.findByMilestoneIdAndStateIn(id, RoundState.LIFE_ROUND_STATES).stream()
-                .map(roundDtoMapper::toDto)
+    public List<RoundWithJRStatusDto> findByMilestoneIdInLifeStates(Long milestoneId) {
+        Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
+        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId)
+                .orElseThrow(EntityNotFoundException::new);
+        UserActivityAssignmentEntity judge = milestone.getActivity().getUserAssignments()
+                .stream()
+                .filter(ua ->
+                        ua.getUser()
+                                .getId()
+                                .equals(currentUser.getSecurityUser().getId())
+                                && ua.getPosition().isJudge())
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("Юзер с id %s не привязан к этапу с id: %s".formatted(currentUser.getSecurityUser().getId(), milestoneId)));
+        Map<Long, JudgeRoundEntity> judgeRoundEntityMap = judgeRoundRepository.findByMilestoneIdAndJudgeId(milestoneId, judge.getId())
+                .stream()
+                .collect(Collectors.toMap(jre -> jre.getRound().getId(), Function.identity()));
+        return milestone.getRounds()
+                .stream()
+                .filter(round -> RoundState.LIFE_ROUND_STATES.contains(round.getState()))
+                .map(round -> roundWithJRStatusMapper.toDto(round, judgeRoundEntityMap.get(round.getId())))
                 .toList();
     }
 

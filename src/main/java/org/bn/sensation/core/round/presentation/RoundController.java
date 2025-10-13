@@ -7,6 +7,7 @@ import org.bn.sensation.core.round.service.RoundService;
 import org.bn.sensation.core.round.service.RoundStateMachineService;
 import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
 import org.bn.sensation.core.round.service.dto.RoundDto;
+import org.bn.sensation.core.round.service.dto.RoundWithJRStatusDto;
 import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -86,9 +87,9 @@ public class RoundController {
         return ResponseEntity.ok(roundService.findByMilestoneId(id));
     }
 
-    @Operation(summary = "Получить раунды по ID этапа в лайфстейтах")
+    @Operation(summary = "Получить раунды по ID этапа в лайфстейтах со статусом раунда для текущего пользователя")
     @GetMapping(path = "/milestone/{id}/life")
-    public ResponseEntity<List<RoundDto>> getByMilestoneIdInLifeStates(@Parameter @PathVariable("id") @NotNull Long id) {
+    public ResponseEntity<List<RoundWithJRStatusDto>> getByMilestoneIdInLifeStates(@Parameter @PathVariable("id") @NotNull Long id) {
         return ResponseEntity.ok(roundService.findByMilestoneIdInLifeStates(id));
     }
 

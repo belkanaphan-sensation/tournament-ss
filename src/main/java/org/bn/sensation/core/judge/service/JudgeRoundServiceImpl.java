@@ -130,6 +130,7 @@ public class JudgeRoundServiceImpl implements JudgeRoundService{
             if (activityUser.getPartnerSide() == null) {
                 return round.getParticipants().size() == results.size();
             } else {
+                //BUG количество результатов считать по участникам т.к. их больше изза количества критериев
                 //TODO добавить смену сторон, если есть правило этапа на смену сторон судей
                 long participantsCount = round.getParticipants()
                         .stream()
