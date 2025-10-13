@@ -11,7 +11,7 @@ public interface CreateMilestoneResultRequestMapper extends BaseDtoMapper<Milest
 
     @Mapping(target = "milestone", ignore = true)
     @Mapping(target = "participant", ignore = true)
-    @Mapping(target = "round", ignore = true)
+//    @Mapping(target = "round", ignore = true)
     @Override
     MilestoneResultEntity toEntity(CreateMilestoneResultRequest request);
 

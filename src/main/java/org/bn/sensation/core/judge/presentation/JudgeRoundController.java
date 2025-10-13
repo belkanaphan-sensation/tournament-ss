@@ -1,5 +1,7 @@
 package org.bn.sensation.core.judge.presentation;
 
+import java.util.List;
+
 import org.bn.sensation.core.judge.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judge.service.JudgeRoundService;
 import org.bn.sensation.core.judge.service.dto.JudgeRoundDto;
@@ -17,9 +19,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/judge-round-status")
@@ -46,21 +45,17 @@ public class JudgeRoundController {
         return ResponseEntity.ok(judgeRoundService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.NOT_READY));
     }
 
-    // TODO я сделал, но потом надо переделать, потому что сейчас времени нет
     @Operation(summary = "Получить статус раунда текущего пользователя",
             description = "Получить статус раунда текущего пользователя")
-    @GetMapping(path = "/round/{roundId}/current-user")
+    @GetMapping(path = "/round/{roundId}/currentUser")
     public ResponseEntity<JudgeRoundStatus> getRoundStatus(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
-        return ResponseEntity.ok(JudgeRoundStatus.NOT_READY);
+        return ResponseEntity.ok(judgeRoundService.getRoundStatusForCurrentUser(roundId));
     }
 
     @Operation(summary = "Получить статусы всех раундов текущего пользователя по id этапа",
             description = "Получить статусы всех раундов текущего пользователя по id этапа")
-    @GetMapping(path = "/milestone/{milestoneId}/current-user")
-    public ResponseEntity<Map<Long, JudgeRoundStatus>> getRoundStatusByMilestoneId(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        Map<Long, JudgeRoundStatus> mockData = new HashMap<>();
-        mockData.put(1L, JudgeRoundStatus.NOT_READY);
-        mockData.put(2L, JudgeRoundStatus.NOT_READY);
-        return ResponseEntity.ok(mockData);
+    @GetMapping(path = "/milestone/{milestoneId}/currentUser")
+    public ResponseEntity<List<JudgeRoundDto>> getRoundStatusByMilestoneId(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+        return ResponseEntity.ok(judgeRoundService.getByMilestoneIdForCurrentUser(milestoneId));
     }
 }

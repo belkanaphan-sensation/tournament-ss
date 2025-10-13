@@ -13,6 +13,8 @@ import org.bn.sensation.core.judge.repository.JudgeMilestoneResultRepository;
 import org.bn.sensation.core.judge.repository.JudgeRoundRepository;
 import org.bn.sensation.core.judge.service.dto.JudgeRoundDto;
 import org.bn.sensation.core.judge.service.mapper.JudgeRoundMapper;
+import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.core.round.service.RoundStateMachineService;
@@ -37,6 +39,7 @@ public class JudgeRoundServiceImpl implements JudgeRoundService{
     private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
     private final JudgeRoundMapper judgeRoundMapper;
     private final JudgeRoundRepository judgeRoundRepository;
+    private final MilestoneRepository milestoneRepository;
     private final RoundRepository roundRepository;
     private final RoundStateMachineService roundStateMachineService;
     private final UserActivityAssignmentRepository userActivityAssignmentRepository;
@@ -77,6 +80,41 @@ public class JudgeRoundServiceImpl implements JudgeRoundService{
 
         roundStateMachineService.sendEvent(roundId, RoundEvent.START);
         return createOrUpdateJudgeRoundStatus(judgeRoundStatus, activityAssignment, round);
+    }
+
+    @Override
+    public JudgeRoundStatus getRoundStatusForCurrentUser(Long roundId) {
+        RoundEntity round = roundRepository.findByIdWithUserAssignments(roundId)
+                .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + roundId));
+        UserActivityAssignmentEntity activityAssignment = round.getMilestone().getActivity().getUserAssignments()
+                .stream()
+                .filter(ua ->
+                        ua.getUser()
+                                .getId()
+                                .equals(currentUser.getSecurityUser().getId())
+                                && ua.getPosition().isJudge())
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("Юзер с id %s не привязан к раунду с id: %s".formatted(currentUser.getSecurityUser().getId(), roundId)));
+        return judgeRoundRepository.findByRoundIdAndJudgeId(roundId, activityAssignment.getId()).map(JudgeRoundEntity::getStatus).orElse(null);
+    }
+
+    @Override
+    public List<JudgeRoundDto> getByMilestoneIdForCurrentUser(Long milestoneId) {
+        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId)
+                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
+        UserActivityAssignmentEntity activityAssignment = milestone.getActivity().getUserAssignments()
+                .stream()
+                .filter(ua ->
+                        ua.getUser()
+                                .getId()
+                                .equals(currentUser.getSecurityUser().getId())
+                                && ua.getPosition().isJudge())
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("Юзер с id %s не привязан к этапу с id: %s".formatted(currentUser.getSecurityUser().getId(), milestoneId)));
+        return judgeRoundRepository.findByMilestoneIdAndJudgeId(milestoneId, activityAssignment.getId())
+                .stream()
+                .map(judgeRoundMapper::toDto)
+                .toList();
     }
 
     private JudgeRoundDto createOrUpdateJudgeRoundStatus(JudgeRoundStatus judgeRoundStatus, UserActivityAssignmentEntity activityAssignment, RoundEntity round) {

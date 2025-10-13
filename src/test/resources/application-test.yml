@@ -13,8 +13,8 @@ spring:
   jpa:
     properties:
       hibernate:
-        show-sql: false
-        format_sql: false
+        show-sql: true
+        format_sql: true
 
   security:
     user:
@@ -25,7 +25,7 @@ logging:
   level:
     org.bn.sensation: DEBUG
     org.springframework.security: DEBUG
-#    org.hibernate.SQL: DEBUG
+    org.hibernate.SQL: DEBUG
 #    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 #    org.hibernate.event.internal.AbstractFlushingEventListener: TRACE
 #    org.springframework.transaction: DEBUG

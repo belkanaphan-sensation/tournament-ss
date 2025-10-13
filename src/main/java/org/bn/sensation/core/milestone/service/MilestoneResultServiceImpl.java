@@ -112,7 +112,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         MilestoneResultEntity result = createMilestoneResultRequestMapper.toEntity(request);
         result.setMilestone(milestone);
         result.setParticipant(participant);
-        result.setRound(round);
+//        result.setRound(round);
 
         MilestoneResultEntity saved = milestoneResultRepository.save(result);
         return milestoneResultDtoMapper.toDto(saved);

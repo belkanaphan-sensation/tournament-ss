@@ -21,7 +21,6 @@ public interface JudgeMilestoneResultRoundRequestMapper extends BaseDtoMapper<Ju
     @Mapping(target = "milestoneCriteriaId", source = "milestoneCriteria.id")
     JudgeMilestoneResultRoundRequest toDto(JudgeMilestoneResultEntity entity);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "participant", ignore = true)
     @Mapping(target = "round", ignore = true)

@@ -92,7 +92,8 @@ public class JudgeMilestoneResultController {
         return ResponseEntity.ok(judgeMilestoneResultService.findByActivityUserId(activityUserId));
     }
 
-    @Operation(summary = "Создать новые результаты судьи для раунда. Судья - текущий пользователь")
+    @Operation(summary = "Создать новые результаты судьи для раунда. Судья - текущий пользователь",
+            description = "Запрос полностью перезаписывает предыдущий, поэтому нужно передавать все поля")
     @PostMapping(path = "/createOrUpdateForRound")
     public ResponseEntity<List<JudgeMilestoneResultDto>> createOrUpdateForRound(@Valid @RequestBody List<JudgeMilestoneResultRoundRequest> request) {
         return ResponseEntity.ok(judgeMilestoneResultService.createOrUpdateForRound(request));
@@ -112,7 +113,8 @@ public class JudgeMilestoneResultController {
         return ResponseEntity.ok(created);
     }
 
-    @Operation(summary = "Обновить результат судьи по ID")
+    @Operation(summary = "Обновить результат судьи по ID",
+            description = "Запрос полностью перезаписывает предыдущий, поэтому нужно передавать все поля")
     @PutMapping("/{id}")
     public ResponseEntity<JudgeMilestoneResultDto> update(@PathVariable("id") @NotNull Long id,
                                                           @Valid @RequestBody JudgeMilestoneResultRoundRequest request) {
