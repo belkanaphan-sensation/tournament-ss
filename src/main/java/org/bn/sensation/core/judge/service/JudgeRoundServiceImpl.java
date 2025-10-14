@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class JudgeRoundServiceImpl implements JudgeRoundService{
+public class JudgeRoundServiceImpl implements JudgeRoundService {
 
     private final CurrentUser currentUser;
     private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
@@ -130,16 +130,16 @@ public class JudgeRoundServiceImpl implements JudgeRoundService{
             if (activityUser.getPartnerSide() == null) {
                 return round.getParticipants().size() == results.size();
             } else {
-                //BUG количество результатов считать по участникам т.к. их больше изза количества критериев
                 //TODO добавить смену сторон, если есть правило этапа на смену сторон судей
                 long participantsCount = round.getParticipants()
                         .stream()
                         .filter(p -> p.getPartnerSide() == activityUser.getPartnerSide())
                         .count();
+                int criteriaCount = round.getMilestone().getMilestoneRule().getCriteriaAssignments().size();
                 long resultsCount = results.stream()
                         .filter(prr -> prr.getParticipant().getPartnerSide() == activityUser.getPartnerSide())
                         .count();
-                return participantsCount == resultsCount;
+                return participantsCount * criteriaCount == resultsCount;
             }
         }
         return true;
