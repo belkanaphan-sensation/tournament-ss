@@ -339,7 +339,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
         if (!milestone.getMilestoneOrder().equals(0) && milestone.getMilestoneRule().getStrictPassMode()) {
             // Получаем количество участников следующего этапа
-            int nextMilestoneParticipantLimit = milestoneRepository.getParticipantLimitForNextMilestone(milestone.getActivity().getId(), milestone.getMilestoneOrder());
+            int nextMilestoneParticipantLimit = milestoneRepository.getParticipantLimitForNextMilestone(milestone.getActivity().getId(), milestone.getMilestoneOrder() - 1);
 
             for (PartnerSide partnerSide : PartnerSide.values()) {
                 long countInCurrentMilestone = milestone.getRounds().stream()

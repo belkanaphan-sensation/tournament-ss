@@ -20,6 +20,6 @@ public interface RoundWithJRStatusMapper {
     @Mapping(target = "participants", source = "roundEntity.participants")
     @Mapping(target = "state", source = "roundEntity.state")
     @Mapping(target = "isExtraRound", source = "roundEntity.extraRound")
-    @Mapping(target = "judgeRoundStatus", source = "judgeRoundEntity", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "judgeRoundStatus", source = "judgeRoundStatusEntity", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     RoundWithJRStatusDto toDto(RoundEntity roundEntity, JudgeRoundStatusEntity judgeRoundStatusEntity);
 }

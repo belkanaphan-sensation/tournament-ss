@@ -1,6 +1,7 @@
 package org.bn.sensation.core.milestone.service.dto;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
+import org.bn.sensation.core.milestone.entity.PassStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -20,8 +21,11 @@ import lombok.experimental.SuperBuilder;
 @Schema(description = "Запрос на обновление результата этапа")
 public class UpdateMilestoneResultRequest extends EmptyDto {
 
-    @Schema(description = "Прошел участник в следующий этап или нет", example = "true")
-    private Boolean passed;
+    @Schema(description = "Прошел участник в следующий этап или нет по результатам оценок")
+    private PassStatus judgePassed;
+
+    @Schema(description = "Прошел участник в следующий этап или нет по решению организатора")
+    private Boolean finallyApproved;
 
     @Schema(description = "Суммарный балл этапа для участника", example = "5")
     private Integer totalScore;

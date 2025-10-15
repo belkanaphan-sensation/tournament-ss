@@ -32,13 +32,13 @@ public class MilestoneResultEntity extends BaseEntity {
 //    @JoinColumn(name = "round_id")
 //    private RoundEntity round;
 
-    @Column(name = "judge_approved")
-    private Boolean judgeApproved;
+    @Column(name = "judge_passed")
+    private PassStatus judgePassed;
 
     @Column(name = "finally_approved")
     private Boolean finallyApproved;
 
     @Column(name = "total_score")
-    private Integer totalScore;
+    private Double totalScore;
 
 }
