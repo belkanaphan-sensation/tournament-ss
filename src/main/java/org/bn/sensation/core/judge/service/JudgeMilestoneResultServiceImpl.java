@@ -112,6 +112,9 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
             judgeRoundStatusService.changeJudgeRoundStatusIfPossible(activityUser.getId(), roundId, JudgeRoundStatus.READY);
             roundStateMachineService.sendEvent(roundId, RoundEvent.CONFIRM);
         }
+        if (judgeMilestoneStatusService.allRoundsReady(round.getMilestone().getId())) {
+            judgeMilestoneStatusService.changeMilestoneStatus(round.getMilestone(), activityUser, JudgeMilestoneStatus.READY);
+        }
         return dtos;
     }
 
