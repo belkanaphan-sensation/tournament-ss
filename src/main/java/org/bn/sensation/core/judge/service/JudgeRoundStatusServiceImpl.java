@@ -7,12 +7,12 @@ import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.common.statemachine.event.RoundEvent;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.judge.entity.JudgeMilestoneResultEntity;
-import org.bn.sensation.core.judge.entity.JudgeRoundEntity;
+import org.bn.sensation.core.judge.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judge.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judge.repository.JudgeMilestoneResultRepository;
-import org.bn.sensation.core.judge.repository.JudgeRoundRepository;
-import org.bn.sensation.core.judge.service.dto.JudgeRoundDto;
-import org.bn.sensation.core.judge.service.mapper.JudgeRoundMapper;
+import org.bn.sensation.core.judge.repository.JudgeRoundStatusRepository;
+import org.bn.sensation.core.judge.service.dto.JudgeRoundStatusDto;
+import org.bn.sensation.core.judge.service.mapper.JudgeRoundStatusDtoMapper;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
@@ -33,30 +33,30 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class JudgeRoundServiceImpl implements JudgeRoundService {
+public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
 
     private final CurrentUser currentUser;
     private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
-    private final JudgeRoundMapper judgeRoundMapper;
-    private final JudgeRoundRepository judgeRoundRepository;
+    private final JudgeRoundStatusDtoMapper judgeRoundStatusDtoMapper;
+    private final JudgeRoundStatusRepository judgeRoundStatusRepository;
     private final MilestoneRepository milestoneRepository;
     private final RoundRepository roundRepository;
     private final RoundStateMachineService roundStateMachineService;
     private final UserActivityAssignmentRepository userActivityAssignmentRepository;
 
     @Override
-    public BaseRepository<JudgeRoundEntity> getRepository() {
-        return judgeRoundRepository;
+    public BaseRepository<JudgeRoundStatusEntity> getRepository() {
+        return judgeRoundStatusRepository;
     }
 
     @Override
-    public BaseDtoMapper<JudgeRoundEntity, JudgeRoundDto> getMapper() {
-        return judgeRoundMapper;
+    public BaseDtoMapper<JudgeRoundStatusEntity, JudgeRoundStatusDto> getMapper() {
+        return judgeRoundStatusDtoMapper;
     }
 
     @Override
     @Transactional
-    public JudgeRoundDto changeJudgeRoundStatus(Long roundId, JudgeRoundStatus judgeRoundStatus) {
+    public JudgeRoundStatusDto changeJudgeRoundStatus(Long roundId, JudgeRoundStatus judgeRoundStatus) {
         Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
         Preconditions.checkArgument(judgeRoundStatus != null, "Статус не может быть null");
 
@@ -95,11 +95,11 @@ public class JudgeRoundServiceImpl implements JudgeRoundService {
                                 && ua.getPosition().isJudge())
                 .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("Юзер с id %s не привязан к раунду с id: %s".formatted(currentUser.getSecurityUser().getId(), roundId)));
-        return judgeRoundRepository.findByRoundIdAndJudgeId(roundId, activityAssignment.getId()).map(JudgeRoundEntity::getStatus).orElse(null);
+        return judgeRoundStatusRepository.findByRoundIdAndJudgeId(roundId, activityAssignment.getId()).map(JudgeRoundStatusEntity::getStatus).orElse(null);
     }
 
     @Override
-    public List<JudgeRoundDto> getByMilestoneIdForCurrentUser(Long milestoneId) {
+    public List<JudgeRoundStatusDto> getByMilestoneIdForCurrentUser(Long milestoneId) {
         MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId)
                 .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
         UserActivityAssignmentEntity activityAssignment = milestone.getActivity().getUserAssignments()
@@ -111,17 +111,17 @@ public class JudgeRoundServiceImpl implements JudgeRoundService {
                                 && ua.getPosition().isJudge())
                 .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("Юзер с id %s не привязан к этапу с id: %s".formatted(currentUser.getSecurityUser().getId(), milestoneId)));
-        return judgeRoundRepository.findByMilestoneIdAndJudgeId(milestoneId, activityAssignment.getId())
+        return judgeRoundStatusRepository.findByMilestoneIdAndJudgeId(milestoneId, activityAssignment.getId())
                 .stream()
-                .map(judgeRoundMapper::toDto)
+                .map(judgeRoundStatusDtoMapper::toDto)
                 .toList();
     }
 
-    private JudgeRoundDto createOrUpdateJudgeRoundStatus(JudgeRoundStatus judgeRoundStatus, UserActivityAssignmentEntity activityAssignment, RoundEntity round) {
-        JudgeRoundEntity judgeRoundEntity = judgeRoundRepository.findByRoundIdAndJudgeId(round.getId(), activityAssignment.getId())
-                .orElse(JudgeRoundEntity.builder().round(round).judge(activityAssignment).build());
-        judgeRoundEntity.setStatus(judgeRoundStatus);
-        return judgeRoundMapper.toDto(judgeRoundRepository.save(judgeRoundEntity));
+    private JudgeRoundStatusDto createOrUpdateJudgeRoundStatus(JudgeRoundStatus judgeRoundStatus, UserActivityAssignmentEntity activityAssignment, RoundEntity round) {
+        JudgeRoundStatusEntity judgeRoundStatusEntity = judgeRoundStatusRepository.findByRoundIdAndJudgeId(round.getId(), activityAssignment.getId())
+                .orElse(JudgeRoundStatusEntity.builder().round(round).judge(activityAssignment).build());
+        judgeRoundStatusEntity.setStatus(judgeRoundStatus);
+        return judgeRoundStatusDtoMapper.toDto(judgeRoundStatusRepository.save(judgeRoundStatusEntity));
     }
 
     private boolean canChange(JudgeRoundStatus judgeRoundStatus, UserActivityAssignmentEntity activityUser, RoundEntity round) {

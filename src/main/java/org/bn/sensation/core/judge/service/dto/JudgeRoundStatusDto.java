@@ -2,15 +2,12 @@ package org.bn.sensation.core.judge.service.dto;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.bn.sensation.core.judge.entity.JudgeMilestoneStatus;
+import org.bn.sensation.core.judge.entity.JudgeRoundStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Data
@@ -19,15 +16,15 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Статус этапа по судьям")
-public class JudgeMilestoneDto extends BaseDto {
+@Schema(description = "Статус раунда который проставляет судья")
+public class JudgeRoundStatusDto extends BaseDto {
 
     @Schema(description = "Судья. Юзер привязанный к активности (UserActivityAssignmentEntity)")
     private EntityLinkDto judge;
 
-    @Schema(description = "Этап")
-    private EntityLinkDto milestone;
+    @Schema(description = "Раунд")
+    private EntityLinkDto round;
 
-    @Schema(description = "Статус этапа, проставленный судьей", example = "ACCEPTED")
-    private JudgeMilestoneStatus status;
+    @Schema(description = "Статус раунда, проставленный судьей", example = "ACCEPTED")
+    private JudgeRoundStatus status;
 }

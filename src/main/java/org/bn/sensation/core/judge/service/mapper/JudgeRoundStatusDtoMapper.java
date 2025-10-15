@@ -2,17 +2,17 @@ package org.bn.sensation.core.judge.service.mapper;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.mapper.EntityLinkMapper;
-import org.bn.sensation.core.judge.entity.JudgeRoundEntity;
-import org.bn.sensation.core.judge.service.dto.JudgeRoundDto;
+import org.bn.sensation.core.judge.entity.JudgeRoundStatusEntity;
+import org.bn.sensation.core.judge.service.dto.JudgeRoundStatusDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(config = BaseDtoMapper.class, uses = {EntityLinkMapper.class})
-public interface JudgeRoundMapper extends BaseDtoMapper<JudgeRoundEntity, JudgeRoundDto> {
+public interface JudgeRoundStatusDtoMapper extends BaseDtoMapper<JudgeRoundStatusEntity, JudgeRoundStatusDto> {
 
-    JudgeRoundDto toDto(JudgeRoundEntity extraRound);
+    JudgeRoundStatusDto toDto(JudgeRoundStatusEntity extraRound);
 
     @Mapping(target = "judge", ignore = true)
     @Mapping(target = "round", ignore = true)
-    JudgeRoundEntity toEntity(JudgeRoundDto request);
+    JudgeRoundStatusEntity toEntity(JudgeRoundStatusDto request);
 }

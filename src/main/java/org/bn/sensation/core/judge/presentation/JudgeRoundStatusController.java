@@ -3,8 +3,8 @@ package org.bn.sensation.core.judge.presentation;
 import java.util.List;
 
 import org.bn.sensation.core.judge.entity.JudgeRoundStatus;
-import org.bn.sensation.core.judge.service.JudgeRoundService;
-import org.bn.sensation.core.judge.service.dto.JudgeRoundDto;
+import org.bn.sensation.core.judge.service.JudgeRoundStatusService;
+import org.bn.sensation.core.judge.service.dto.JudgeRoundStatusDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -27,35 +27,35 @@ import lombok.RequiredArgsConstructor;
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Judge Round Status", description = "The Judge Round Status API")
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
-public class JudgeRoundController {
+public class JudgeRoundStatusController {
 
-    private final JudgeRoundService judgeRoundService;
+    private final JudgeRoundStatusService judgeRoundStatusService;
 
     @Operation(summary = "Принять результаты раунда",
             description = "Результаты раунда принимаются для текущего пользователя который должен являться судьей раунда")
     @GetMapping(path = "/ready/{roundId}")
-    public ResponseEntity<JudgeRoundDto> readyRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
-        return ResponseEntity.ok(judgeRoundService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.READY));
+    public ResponseEntity<JudgeRoundStatusDto> readyRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
+        return ResponseEntity.ok(judgeRoundStatusService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.READY));
     }
 
     @Operation(summary = "Отменить результаты раунда",
             description = "Результаты раунда отменяются для текущего пользователя который должен являться судьей раунда")
     @GetMapping(path = "/not-ready/{roundId}")
-    public ResponseEntity<JudgeRoundDto> notReadyRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
-        return ResponseEntity.ok(judgeRoundService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.NOT_READY));
+    public ResponseEntity<JudgeRoundStatusDto> notReadyRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
+        return ResponseEntity.ok(judgeRoundStatusService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.NOT_READY));
     }
 
     @Operation(summary = "Получить статус раунда текущего пользователя",
             description = "Получить статус раунда текущего пользователя")
     @GetMapping(path = "/round/{roundId}/currentUser")
     public ResponseEntity<JudgeRoundStatus> getRoundStatus(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
-        return ResponseEntity.ok(judgeRoundService.getRoundStatusForCurrentUser(roundId));
+        return ResponseEntity.ok(judgeRoundStatusService.getRoundStatusForCurrentUser(roundId));
     }
 
     @Operation(summary = "Получить статусы всех раундов текущего пользователя по id этапа",
             description = "Получить статусы всех раундов текущего пользователя по id этапа")
     @GetMapping(path = "/milestone/{milestoneId}/currentUser")
-    public ResponseEntity<List<JudgeRoundDto>> getRoundStatusByMilestoneId(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        return ResponseEntity.ok(judgeRoundService.getByMilestoneIdForCurrentUser(milestoneId));
+    public ResponseEntity<List<JudgeRoundStatusDto>> getRoundStatusByMilestoneId(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+        return ResponseEntity.ok(judgeRoundStatusService.getByMilestoneIdForCurrentUser(milestoneId));
     }
 }

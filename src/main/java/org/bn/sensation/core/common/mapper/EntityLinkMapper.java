@@ -4,7 +4,7 @@ import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
-import org.bn.sensation.core.judge.entity.JudgeRoundEntity;
+import org.bn.sensation.core.judge.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
@@ -65,5 +65,5 @@ public interface EntityLinkMapper {
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "value", source = "status")
-    EntityLinkDto toEntityLinkDto(JudgeRoundEntity entity);
+    EntityLinkDto toEntityLinkDto(JudgeRoundStatusEntity entity);
 }

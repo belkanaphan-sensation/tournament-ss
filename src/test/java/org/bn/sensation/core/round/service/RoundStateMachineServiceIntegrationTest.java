@@ -30,9 +30,9 @@ import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.core.user.entity.*;
 import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
 import org.bn.sensation.core.user.repository.UserRepository;
-import org.bn.sensation.core.judge.entity.JudgeRoundEntity;
+import org.bn.sensation.core.judge.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judge.entity.JudgeRoundStatus;
-import org.bn.sensation.core.judge.repository.JudgeRoundRepository;
+import org.bn.sensation.core.judge.repository.JudgeRoundStatusRepository;
 import org.bn.sensation.security.CurrentUser;
 import org.bn.sensation.security.SecurityUser;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,7 +73,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
     private UserActivityAssignmentRepository userActivityAssignmentRepository;
 
     @Autowired
-    private JudgeRoundRepository judgeRoundRepository;
+    private JudgeRoundStatusRepository judgeRoundStatusRepository;
 
     @MockitoBean
     private CurrentUser currentUser;
@@ -94,7 +94,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         cleanDatabase();
 
         // Clean up existing data
-        judgeRoundRepository.deleteAll();
+        judgeRoundStatusRepository.deleteAll();
         roundRepository.deleteAll();
         milestoneRepository.deleteAll();
         activityRepository.deleteAll();
@@ -310,12 +310,12 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
                 .findFirst()
                 .orElseThrow();
 
-        JudgeRoundEntity judgeRound = JudgeRoundEntity.builder()
+        JudgeRoundStatusEntity judgeRound = JudgeRoundStatusEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
                 .status(JudgeRoundStatus.READY)
                 .build();
-        judgeRoundRepository.save(judgeRound);
+        judgeRoundStatusRepository.save(judgeRound);
 
         // Switch to judge and complete
         mockCurrentUser(judgeUser);
@@ -344,12 +344,12 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
                 .findFirst()
                 .orElseThrow();
 
-        JudgeRoundEntity judgeRound = JudgeRoundEntity.builder()
+        JudgeRoundStatusEntity judgeRound = JudgeRoundStatusEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
                 .status(JudgeRoundStatus.READY)
                 .build();
-        judgeRoundRepository.save(judgeRound);
+        judgeRoundStatusRepository.save(judgeRound);
 
         RoundEntity inProgressRound = roundRepository.findById(testRound.getId()).orElseThrow();
         assertEquals(RoundState.IN_PROGRESS, inProgressRound.getState());
@@ -415,12 +415,12 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
                 .findFirst()
                 .orElseThrow();
 
-        JudgeRoundEntity judgeRound = JudgeRoundEntity.builder()
+        JudgeRoundStatusEntity judgeRound = JudgeRoundStatusEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
                 .status(JudgeRoundStatus.READY)
                 .build();
-        judgeRoundRepository.save(judgeRound);
+        judgeRoundStatusRepository.save(judgeRound);
 
         // Complete the round
         roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.COMPLETE);
@@ -470,12 +470,12 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
                 .findFirst()
                 .orElseThrow();
 
-        JudgeRoundEntity judgeRound = JudgeRoundEntity.builder()
+        JudgeRoundStatusEntity judgeRound = JudgeRoundStatusEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
                 .status(JudgeRoundStatus.READY)
                 .build();
-        judgeRoundRepository.save(judgeRound);
+        judgeRoundStatusRepository.save(judgeRound);
 
         // When - Complete
         roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.COMPLETE);
@@ -506,12 +506,12 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
                 .findFirst()
                 .orElseThrow();
 
-        JudgeRoundEntity judgeRound = JudgeRoundEntity.builder()
+        JudgeRoundStatusEntity judgeRound = JudgeRoundStatusEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
                 .status(JudgeRoundStatus.READY)
                 .build();
-        judgeRoundRepository.save(judgeRound);
+        judgeRoundStatusRepository.save(judgeRound);
 
         // When - Complete as Judge
         roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.COMPLETE);

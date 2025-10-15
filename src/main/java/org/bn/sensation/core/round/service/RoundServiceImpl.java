@@ -11,9 +11,9 @@ import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.common.statemachine.event.RoundEvent;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
-import org.bn.sensation.core.judge.entity.JudgeRoundEntity;
+import org.bn.sensation.core.judge.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judge.entity.JudgeRoundStatus;
-import org.bn.sensation.core.judge.repository.JudgeRoundRepository;
+import org.bn.sensation.core.judge.repository.JudgeRoundStatusRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
@@ -48,7 +48,7 @@ public class RoundServiceImpl implements RoundService {
 
     private final CurrentUser currentUser;
     private final CreateRoundRequestMapper createRoundRequestMapper;
-    private final JudgeRoundRepository judgeRoundRepository;
+    private final JudgeRoundStatusRepository judgeRoundStatusRepository;
     private final MilestoneRepository milestoneRepository;
     private final ParticipantRepository participantRepository;
     private final RoundDtoMapper roundDtoMapper;
@@ -140,7 +140,7 @@ public class RoundServiceImpl implements RoundService {
                                 && ua.getPosition().isJudge())
                 .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("Юзер с id %s не привязан к этапу с id: %s".formatted(currentUser.getSecurityUser().getId(), milestoneId)));
-        Map<Long, JudgeRoundEntity> judgeRoundEntityMap = judgeRoundRepository.findByMilestoneIdAndJudgeId(milestoneId, judge.getId())
+        Map<Long, JudgeRoundStatusEntity> judgeRoundEntityMap = judgeRoundStatusRepository.findByMilestoneIdAndJudgeId(milestoneId, judge.getId())
                 .stream()
                 .collect(Collectors.toMap(jre -> jre.getRound().getId(), Function.identity()));
         return milestone.getRounds()
@@ -170,7 +170,7 @@ public class RoundServiceImpl implements RoundService {
                 if (round.getMilestone().getState() != MilestoneState.IN_PROGRESS) {
                     yield false;
                 }
-                List<JudgeRoundEntity> judgeRoundStatuses = judgeRoundRepository.findByRoundId(round.getId());
+                List<JudgeRoundStatusEntity> judgeRoundStatuses = judgeRoundStatusRepository.findByRoundId(round.getId());
                 Set<Long> acceptedJudgeIds = judgeRoundStatuses.stream()
                         .filter(jrs -> jrs.getStatus() == JudgeRoundStatus.READY)
                         .map(jrs -> jrs.getJudge().getUser().getId())

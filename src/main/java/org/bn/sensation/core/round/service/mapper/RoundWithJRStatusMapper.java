@@ -2,7 +2,7 @@ package org.bn.sensation.core.round.service.mapper;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.mapper.EntityLinkMapper;
-import org.bn.sensation.core.judge.entity.JudgeRoundEntity;
+import org.bn.sensation.core.judge.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.service.dto.RoundWithJRStatusDto;
 import org.mapstruct.Mapper;
@@ -21,5 +21,5 @@ public interface RoundWithJRStatusMapper {
     @Mapping(target = "state", source = "roundEntity.state")
     @Mapping(target = "isExtraRound", source = "roundEntity.extraRound")
     @Mapping(target = "judgeRoundStatus", source = "judgeRoundEntity", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    RoundWithJRStatusDto toDto(RoundEntity roundEntity, JudgeRoundEntity judgeRoundEntity);
+    RoundWithJRStatusDto toDto(RoundEntity roundEntity, JudgeRoundStatusEntity judgeRoundStatusEntity);
 }

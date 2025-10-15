@@ -14,10 +14,10 @@ import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
-import org.bn.sensation.core.judge.entity.JudgeRoundEntity;
+import org.bn.sensation.core.judge.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judge.entity.JudgeRoundStatus;
-import org.bn.sensation.core.judge.repository.JudgeRoundRepository;
-import org.bn.sensation.core.judge.service.dto.JudgeRoundDto;
+import org.bn.sensation.core.judge.repository.JudgeRoundStatusRepository;
+import org.bn.sensation.core.judge.service.dto.JudgeRoundStatusDto;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
@@ -41,16 +41,16 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityNotFoundException;
 
 @Transactional
-class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
+class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
-    private JudgeRoundService judgeRoundService;
+    private JudgeRoundStatusService judgeRoundStatusService;
 
     @Autowired
     private RoundRepository roundRepository;
 
     @Autowired
-    private JudgeRoundRepository judgeRoundRepository;
+    private JudgeRoundStatusRepository judgeRoundStatusRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -88,7 +88,7 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
     void setUp() {
         // Clean database
         cleanDatabase();
-        judgeRoundRepository.deleteAll();
+        judgeRoundStatusRepository.deleteAll();
         userActivityAssignmentRepository.deleteAll();
         roundRepository.deleteAll();
         milestoneRepository.deleteAll();
@@ -197,7 +197,7 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
         mockCurrentUser(testJudge);
 
         // When
-        JudgeRoundDto result = judgeRoundService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
+        JudgeRoundStatusDto result = judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
 
         // Then
         assertNotNull(result);
@@ -207,7 +207,7 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result.getRound());
 
         // Verify in database
-        JudgeRoundEntity savedEntity = judgeRoundRepository.findByRoundIdAndJudgeId(
+        JudgeRoundStatusEntity savedEntity = judgeRoundStatusRepository.findByRoundIdAndJudgeId(
                 testRound.getId(), judgeAssignment.getId()).orElseThrow();
         assertEquals(JudgeRoundStatus.READY, savedEntity.getStatus());
         assertEquals(testRound.getId(), savedEntity.getRound().getId());
@@ -220,7 +220,7 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
         mockCurrentUser(testJudge);
 
         // When
-        JudgeRoundDto result = judgeRoundService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.NOT_READY);
+        JudgeRoundStatusDto result = judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.NOT_READY);
 
         // Then
         assertNotNull(result);
@@ -230,7 +230,7 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result.getRound());
 
         // Verify in database
-        JudgeRoundEntity savedEntity = judgeRoundRepository.findByRoundIdAndJudgeId(
+        JudgeRoundStatusEntity savedEntity = judgeRoundStatusRepository.findByRoundIdAndJudgeId(
                 testRound.getId(), judgeAssignment.getId()).orElseThrow();
         assertEquals(JudgeRoundStatus.NOT_READY, savedEntity.getStatus());
     }
@@ -241,15 +241,15 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
         mockCurrentUser(testJudge);
 
         // First accept the round
-        judgeRoundService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
+        judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
 
         // Verify initial status
-        JudgeRoundEntity initialEntity = judgeRoundRepository.findByRoundIdAndJudgeId(
+        JudgeRoundStatusEntity initialEntity = judgeRoundStatusRepository.findByRoundIdAndJudgeId(
                 testRound.getId(), judgeAssignment.getId()).orElseThrow();
         assertEquals(JudgeRoundStatus.READY, initialEntity.getStatus());
 
         // When - change to rejected
-        JudgeRoundDto result = judgeRoundService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.NOT_READY);
+        JudgeRoundStatusDto result = judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.NOT_READY);
 
         // Then
         assertNotNull(result);
@@ -257,7 +257,7 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(initialEntity.getId(), result.getId()); // Same entity, updated
 
         // Verify in database
-        JudgeRoundEntity updatedEntity = judgeRoundRepository.findByRoundIdAndJudgeId(
+        JudgeRoundStatusEntity updatedEntity = judgeRoundStatusRepository.findByRoundIdAndJudgeId(
                 testRound.getId(), judgeAssignment.getId()).orElseThrow();
         assertEquals(JudgeRoundStatus.NOT_READY, updatedEntity.getStatus());
         assertEquals(initialEntity.getId(), updatedEntity.getId()); // Same ID
@@ -270,7 +270,7 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         // When & Then
         assertThrows(EntityNotFoundException.class, () -> {
-            judgeRoundService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
+            judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
         });
     }
 
@@ -281,7 +281,7 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         // When & Then
         assertThrows(EntityNotFoundException.class, () -> {
-            judgeRoundService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
+            judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
         });
     }
 
@@ -293,7 +293,7 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         // When & Then
         assertThrows(EntityNotFoundException.class, () -> {
-            judgeRoundService.changeJudgeRoundStatus(nonExistentRoundId, JudgeRoundStatus.READY);
+            judgeRoundStatusService.changeJudgeRoundStatus(nonExistentRoundId, JudgeRoundStatus.READY);
         });
     }
 
@@ -304,7 +304,7 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         // When & Then
         assertThrows(IllegalArgumentException.class, () -> {
-            judgeRoundService.changeJudgeRoundStatus(null, JudgeRoundStatus.READY);
+            judgeRoundStatusService.changeJudgeRoundStatus(null, JudgeRoundStatus.READY);
         });
     }
 
@@ -315,7 +315,7 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         // When & Then
         assertThrows(IllegalArgumentException.class, () -> {
-            judgeRoundService.changeJudgeRoundStatus(testRound.getId(), null);
+            judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), null);
         });
     }
 
@@ -337,11 +337,11 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         // First judge accepts
         mockCurrentUser(testJudge);
-        JudgeRoundDto firstResult = judgeRoundService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
+        JudgeRoundStatusDto firstResult = judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
 
         // Second judge rejects
         mockCurrentUser(secondJudge);
-        JudgeRoundDto secondResult = judgeRoundService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.NOT_READY);
+        JudgeRoundStatusDto secondResult = judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.NOT_READY);
 
         // Then
         assertNotNull(firstResult);
@@ -352,9 +352,9 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(JudgeRoundStatus.NOT_READY, secondResult.getStatus());
 
         // Verify both in database
-        JudgeRoundEntity firstEntity = judgeRoundRepository.findByRoundIdAndJudgeId(
+        JudgeRoundStatusEntity firstEntity = judgeRoundStatusRepository.findByRoundIdAndJudgeId(
                 testRound.getId(), judgeAssignment.getId()).orElseThrow();
-        JudgeRoundEntity secondEntity = judgeRoundRepository.findByRoundIdAndJudgeId(
+        JudgeRoundStatusEntity secondEntity = judgeRoundStatusRepository.findByRoundIdAndJudgeId(
                 testRound.getId(), secondJudgeAssignment.getId()).orElseThrow();
 
         assertEquals(JudgeRoundStatus.READY, firstEntity.getStatus());
@@ -367,17 +367,17 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
         mockCurrentUser(testJudge);
 
         // When - create first status
-        JudgeRoundDto firstResult = judgeRoundService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
+        JudgeRoundStatusDto firstResult = judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
 
         // When - update same judge's status (should update, not create new)
-        JudgeRoundDto secondResult = judgeRoundService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.NOT_READY);
+        JudgeRoundStatusDto secondResult = judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.NOT_READY);
 
         // Then
         assertEquals(firstResult.getId(), secondResult.getId()); // Same entity updated
         assertEquals(JudgeRoundStatus.NOT_READY, secondResult.getStatus());
 
         // Verify only one record exists for this judge-round combination
-        long count = judgeRoundRepository.findAll().stream()
+        long count = judgeRoundStatusRepository.findAll().stream()
                 .filter(jr -> jr.getRound().getId().equals(testRound.getId())
                            && jr.getJudge().getId().equals(judgeAssignment.getId()))
                 .count();
@@ -400,7 +400,7 @@ class JudgeRoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         // When & Then
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            judgeRoundService.changeJudgeRoundStatus(draftRound.getId(), JudgeRoundStatus.READY);
+            judgeRoundStatusService.changeJudgeRoundStatus(draftRound.getId(), JudgeRoundStatus.READY);
         });
 
         assertTrue(exception.getMessage().contains("Статус раунда DRAFT. Не может быть принят или отменен судьей"));

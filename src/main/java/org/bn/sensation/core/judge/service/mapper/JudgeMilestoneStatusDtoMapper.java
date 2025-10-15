@@ -2,19 +2,19 @@ package org.bn.sensation.core.judge.service.mapper;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.mapper.EntityLinkMapper;
-import org.bn.sensation.core.judge.entity.JudgeMilestoneEntity;
-import org.bn.sensation.core.judge.service.dto.JudgeMilestoneDto;
+import org.bn.sensation.core.judge.entity.JudgeMilestoneStatusEntity;
+import org.bn.sensation.core.judge.service.dto.JudgeMilestoneStatusDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(config = BaseDtoMapper.class, uses = {EntityLinkMapper.class})
-public interface JudgeMilestoneDtoMapper extends BaseDtoMapper<JudgeMilestoneEntity, JudgeMilestoneDto> {
+public interface JudgeMilestoneStatusDtoMapper extends BaseDtoMapper<JudgeMilestoneStatusEntity, JudgeMilestoneStatusDto> {
 
     @Mapping(target = "judge", ignore = true)
     @Mapping(target = "milestone", ignore = true)
     @Override
-    JudgeMilestoneEntity toEntity(JudgeMilestoneDto dto);
+    JudgeMilestoneStatusEntity toEntity(JudgeMilestoneStatusDto dto);
 
     @Override
-    JudgeMilestoneDto toDto(JudgeMilestoneEntity entity);
+    JudgeMilestoneStatusDto toDto(JudgeMilestoneStatusEntity entity);
 }

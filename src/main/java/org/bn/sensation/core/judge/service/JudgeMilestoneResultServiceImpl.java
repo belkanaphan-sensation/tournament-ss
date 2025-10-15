@@ -51,9 +51,9 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
     private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
     private final JudgeMilestoneResultRoundRequestMapper judgeMilestoneResultRoundRequestMapper;
     //TODO может быть сделать через ApplicationEvents потом
-    private final JudgeMilestoneService judgeMilestoneService;
+    private final JudgeMilestoneStatusService judgeMilestoneStatusService;
     //TODO может быть сделать через ApplicationEvents потом
-    private final JudgeRoundService judgeRoundService;
+    private final JudgeRoundStatusService judgeRoundStatusService;
     private final MilestoneRepository milestoneRepository;
     private final RoundRepository roundRepository;
     private final RoundStateMachineService roundStateMachineService;
@@ -109,7 +109,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
                 }
             });
 
-            judgeRoundService.changeJudgeRoundStatusIfPossible(activityUser.getId(), roundId, JudgeRoundStatus.READY);
+            judgeRoundStatusService.changeJudgeRoundStatusIfPossible(activityUser.getId(), roundId, JudgeRoundStatus.READY);
             roundStateMachineService.sendEvent(roundId, RoundEvent.CONFIRM);
         }
         return dtos;
@@ -208,9 +208,9 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
             updated.add(judgeMilestoneResultRepository.save(results.get(request.getId())));
         });
         updated.stream().map(res -> res.getRound().getId()).distinct().forEach(roundId -> {
-            judgeRoundService.changeJudgeRoundStatusIfPossible(activityUser.getId(), roundId, JudgeRoundStatus.READY);
+            judgeRoundStatusService.changeJudgeRoundStatusIfPossible(activityUser.getId(), roundId, JudgeRoundStatus.READY);
         });
-        judgeMilestoneService.changeMilestoneStatus(milestone, activityUser, JudgeMilestoneStatus.READY);
+        judgeMilestoneStatusService.changeMilestoneStatus(milestone, activityUser, JudgeMilestoneStatus.READY);
         return updated.stream().map(judgeMilestoneResultDtoMapper::toDto).toList();
     }
 
