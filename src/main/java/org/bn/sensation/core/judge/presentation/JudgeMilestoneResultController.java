@@ -93,33 +93,29 @@ public class JudgeMilestoneResultController {
     }
 
     @Operation(summary = "Создать новые результаты судьи для раунда. Судья - текущий пользователь",
-            description = "Запрос полностью перезаписывает предыдущий, поэтому нужно передавать все поля")
-    @PostMapping(path = "/createOrUpdateForRound")
-    public ResponseEntity<List<JudgeMilestoneResultDto>> createOrUpdateForRound(@Valid @RequestBody List<JudgeMilestoneResultRoundRequest> request) {
-        return ResponseEntity.ok(judgeMilestoneResultService.createOrUpdateForRound(request));
+            description = "Запрос на апдейт полностью перезаписывает предыдущие результаты, поэтому нужно передавать все значащие поля")
+    @PostMapping(path = "/createOrUpdateForRound/{roundId}")
+    public ResponseEntity<List<JudgeMilestoneResultDto>> createOrUpdateForRound(@Parameter @PathVariable("roundId") @NotNull Long roundId,
+                                                                                @Valid @RequestBody List<JudgeMilestoneResultRoundRequest> request) {
+        return ResponseEntity.ok(judgeMilestoneResultService.createOrUpdateForRound(roundId, request));
     }
 
-    @Operation(summary = "Обновить результаты судьи по этапу. Судья - текущий пользователь")
+    @Operation(summary = "Обновить результаты судьи по этапу. Судья - текущий пользователь",
+            description = "Запрос полностью перезаписывает предыдущие результаты, поэтому нужно передавать все значащие поля")
     @PostMapping(path = "/updateForMilestone/{milestoneId}")
     public ResponseEntity<List<JudgeMilestoneResultDto>> updateForMilestone(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId,
                                                                             @Valid @RequestBody List<JudgeMilestoneResultMilestoneRequest> request) {
         return ResponseEntity.ok(judgeMilestoneResultService.createOrUpdateForMilestone(milestoneId, request));
     }
 
-    @Operation(summary = "Создать новый результат судьи")
-    @PostMapping
-    public ResponseEntity<JudgeMilestoneResultDto> create(@Valid @RequestBody JudgeMilestoneResultRoundRequest request) {
-        JudgeMilestoneResultDto created = judgeMilestoneResultService.create(request);
-        return ResponseEntity.ok(created);
-    }
-
-    @Operation(summary = "Обновить результат судьи по ID",
-            description = "Запрос полностью перезаписывает предыдущий, поэтому нужно передавать все поля")
-    @PutMapping("/{id}")
-    public ResponseEntity<JudgeMilestoneResultDto> update(@PathVariable("id") @NotNull Long id,
+    @Operation(summary = "Создать новый результат для судьи",
+            description = "Можно создать результат для судьи, привязанного к этапу. Функционал для админа. " +
+                    "Запрос на апдейт полностью перезаписывает предыдущие результаты, поэтому нужно передавать все значащие поля")
+    @PostMapping("/{activityUserId}")
+    public ResponseEntity<JudgeMilestoneResultDto> createOrUpdate(@PathVariable("activityUserId") @NotNull Long activityUserId,
                                                           @Valid @RequestBody JudgeMilestoneResultRoundRequest request) {
-        JudgeMilestoneResultDto updated = judgeMilestoneResultService.update(id, request);
-        return ResponseEntity.ok(updated);
+        JudgeMilestoneResultDto created = judgeMilestoneResultService.createOrUpdate(request, activityUserId);
+        return ResponseEntity.ok(created);
     }
 
     @Operation(summary = "Удалить результат судьи по ID")

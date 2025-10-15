@@ -1,6 +1,9 @@
 package org.bn.sensation.core.judge.service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -9,7 +12,6 @@ import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.common.statemachine.event.RoundEvent;
 import org.bn.sensation.core.criteria.entity.MilestoneCriteriaAssignmentEntity;
-import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
 import org.bn.sensation.core.judge.entity.JudgeMilestoneResultEntity;
 import org.bn.sensation.core.judge.entity.JudgeMilestoneStatus;
 import org.bn.sensation.core.judge.entity.JudgeRoundStatus;
@@ -23,13 +25,11 @@ import org.bn.sensation.core.judge.service.mapper.JudgeMilestoneResultRoundReque
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
-import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.core.round.service.RoundStateMachineService;
 import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
-import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -54,12 +54,9 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
     private final JudgeMilestoneService judgeMilestoneService;
     //TODO может быть сделать через ApplicationEvents потом
     private final JudgeRoundService judgeRoundService;
-    private final MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
     private final MilestoneRepository milestoneRepository;
-    private final ParticipantRepository participantRepository;
     private final RoundRepository roundRepository;
     private final RoundStateMachineService roundStateMachineService;
-    private final UserActivityAssignmentRepository userActivityAssignmentRepository;
 
     @Override
     public BaseRepository<JudgeMilestoneResultEntity> getRepository() {
@@ -73,25 +70,108 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
     @Override
     @Transactional
-    public List<JudgeMilestoneResultDto> createOrUpdateForRound(List<JudgeMilestoneResultRoundRequest> requests) {
+    public JudgeMilestoneResultDto createOrUpdate(JudgeMilestoneResultRoundRequest request, Long activityUserId) {
+        if (request.getId() == null) {
+            Preconditions.checkArgument(activityUserId != null, "ID судьи не может быть null");
+            RoundEntity round = roundRepository.findByIdFullEntity(request.getRoundId())
+                    .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + request.getRoundId()));
+            UserActivityAssignmentEntity activityUser = round.getMilestone().getActivity().getUserAssignments().stream()
+                    .filter(ua -> ua.getId().equals(activityUserId))
+                    .findFirst()
+                    .orElseThrow(EntityNotFoundException::new);
+            return createEntity(request, round, activityUser);
+        } else {
+            return updateEntity(request, activityUserId);
+        }
+    }
+
+    @Override
+    @Transactional
+    public List<JudgeMilestoneResultDto> createOrUpdateForRound(Long roundId, List<JudgeMilestoneResultRoundRequest> requests) {
+        Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
+        RoundEntity round = roundRepository.findByIdFullEntity(roundId)
+                .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + roundId));
+
+        validateResultsCount(roundId, requests, round);
+
+        UserActivityAssignmentEntity activityUser = round.getMilestone().getActivity().getUserAssignments().stream()
+                .filter(ua -> ua.getUser().getId().equals(currentUser.getSecurityUser().getId()))
+                .findFirst()
+                .orElseThrow(EntityNotFoundException::new);
+
         List<JudgeMilestoneResultDto> dtos = new ArrayList<>();
         if (requests != null && !requests.isEmpty()) {
             requests.forEach(request -> {
                 if (request.getId() == null) {
-                    dtos.add(createEntity(request));
+                    dtos.add(createEntity(request, round, activityUser));
                 } else {
-                    dtos.add(updateEntity(request.getId(), request));
+                    dtos.add(updateEntity(request, activityUser.getId()));
                 }
             });
 
-            Set<Long> activityUser = dtos.stream().map(res -> res.getActivityUser().getId()).collect(Collectors.toSet());
-            Preconditions.checkArgument(activityUser.size() == 1, "Некорректные данные");
-            dtos.stream().map(res -> res.getRound().getId()).distinct().forEach(roundId -> {
-                judgeRoundService.changeJudgeRoundStatusIfPossible(activityUser.iterator().next(), roundId, JudgeRoundStatus.READY);
-                roundStateMachineService.sendEvent(roundId, RoundEvent.CONFIRM);
-            });
+            judgeRoundService.changeJudgeRoundStatusIfPossible(activityUser.getId(), roundId, JudgeRoundStatus.READY);
+            roundStateMachineService.sendEvent(roundId, RoundEvent.CONFIRM);
         }
         return dtos;
+    }
+
+    private void validateResultsCount(Long roundId, List<JudgeMilestoneResultRoundRequest> requests, RoundEntity round) {
+        List<JudgeMilestoneResultEntity> resultsByRound = judgeMilestoneResultRepository.findByRoundId(roundId);
+        long toCreate = requests.stream().filter(request -> request.getId() == null).count();
+        int resultsTotalCount = round.getParticipants().size() * round.getMilestone().getMilestoneRule().getCriteriaAssignments().size();
+        Preconditions.checkArgument(resultsByRound.size() + toCreate == resultsTotalCount, "Все участники раунда должны быть оценены");
+    }
+
+    //TODO тут должно быть применено правило, если судьи меняются сторонами, пока оно не учитывается
+    private JudgeMilestoneResultDto createEntity(JudgeMilestoneResultRoundRequest request, RoundEntity roundEntity, UserActivityAssignmentEntity activityUser) {
+        Preconditions.checkArgument(roundEntity.getId().equals(request.getRoundId()),
+                "ID раунда не может быть null или отличаться от целевого раунда");
+        Preconditions.checkArgument(request.getParticipantId() != null, "ID участника не может быть null");
+        Preconditions.checkArgument(request.getMilestoneCriteriaId() != null, "ID критерия не может быть null");
+
+        ParticipantEntity participant = roundEntity.getParticipants().stream()
+                .filter(p -> p.getId().equals(request.getParticipantId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Участник не участвует в данном раунде"));
+        MilestoneCriteriaAssignmentEntity milestoneCriteria = roundEntity.getMilestone().getMilestoneRule().getCriteriaAssignments().stream()
+                .filter(ca -> ca.getId().equals(request.getMilestoneCriteriaId()))
+                .findFirst()
+                .orElseThrow(EntityNotFoundException::new);
+
+        Preconditions.checkArgument(activityUser.getPosition().isJudge(), "Оценивающий должен быть судьей");
+
+        //TODO тут должно быть применено правило, если судьи меняются сторонами, пока оно не учитывается
+        Preconditions.checkArgument(milestoneCriteria.getPartnerSide() == null
+                        || activityUser.getPartnerSide() == null
+                        || Objects.equals(milestoneCriteria.getPartnerSide(), activityUser.getPartnerSide()),
+                "Сторона судьи и критерия не совпадает");
+        boolean exists = judgeMilestoneResultRepository.existsByRoundIdAndParticipantIdAndActivityUserIdAndMilestoneCriteriaId(
+                request.getRoundId(), request.getParticipantId(), activityUser.getId(), request.getMilestoneCriteriaId());
+        Preconditions.checkArgument(!exists, "Результат уже существует для данного раунда, участника, судьи и критерия");
+
+        JudgeMilestoneResultEntity entity = judgeMilestoneResultRoundRequestMapper.toEntity(request);
+        entity.setParticipant(participant);
+        entity.setRound(roundEntity);
+        entity.setActivityUser(activityUser);
+        entity.setMilestoneCriteria(milestoneCriteria);
+        JudgeMilestoneResultEntity saved = judgeMilestoneResultRepository.save(entity);
+        return judgeMilestoneResultDtoMapper.toDto(saved);
+    }
+
+    private JudgeMilestoneResultDto updateEntity(JudgeMilestoneResultRoundRequest request, Long activityUserId) {
+        JudgeMilestoneResultEntity entity = judgeMilestoneResultRepository.findByIdWithUser(request.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Результат раунда не найден с id: " + request.getId()));
+
+        Preconditions.checkArgument(currentUser.getSecurityUser()
+                        .getRoles()
+                        .stream()
+                        .anyMatch(role -> role == Role.ADMIN || role == Role.SUPERADMIN || role == Role.OCCASION_ADMIN)
+                        || entity.getActivityUser().getId().equals(activityUserId),
+                "Нельзя изменить результат другого судьи");
+
+        judgeMilestoneResultRoundRequestMapper.updateJudgeMilestoneResultRoundFromRequest(request, entity);
+        JudgeMilestoneResultEntity saved = judgeMilestoneResultRepository.save(entity);
+        return judgeMilestoneResultDtoMapper.toDto(saved);
     }
 
     @Override
@@ -132,6 +212,84 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         });
         judgeMilestoneService.changeMilestoneStatus(milestone, activityUser, JudgeMilestoneStatus.READY);
         return updated.stream().map(judgeMilestoneResultDtoMapper::toDto).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<JudgeMilestoneResultDto> findByRoundId(Long roundId) {
+        List<JudgeMilestoneResultEntity> entities = judgeMilestoneResultRepository.findByRoundId(roundId);
+        return entities.stream()
+                .map(judgeMilestoneResultDtoMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<JudgeMilestoneResultDto> findByMilestoneId(Long milestoneId) {
+        List<JudgeMilestoneResultEntity> entities = judgeMilestoneResultRepository.findByMilestoneId(milestoneId);
+        return entities.stream()
+                .map(judgeMilestoneResultDtoMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    public List<JudgeMilestoneResultDto> findByRoundIdForCurrentUser(Long roundId) {
+        RoundEntity round = roundRepository.findByIdWithUserAssignments(roundId)
+                .orElseThrow(EntityNotFoundException::new);
+        UserActivityAssignmentEntity activityUser = round.getMilestone().getActivity().getUserAssignments().stream()
+                .filter(ua -> ua.getUser().getId().equals(currentUser.getSecurityUser().getId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Данный юзер не зарегистрирован для раунда " + roundId));
+        return judgeMilestoneResultRepository.findByRoundIdAndActivityUserId(roundId, activityUser.getId()).stream()
+                .map(judgeMilestoneResultDtoMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    public List<JudgeMilestoneResultDto> findByMilestoneIdForCurrentUser(Long milestoneId) {
+        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId)
+                .orElseThrow(EntityNotFoundException::new);
+        UserActivityAssignmentEntity activityUser = milestone.getActivity().getUserAssignments().stream()
+                .filter(ua -> ua.getUser().getId().equals(currentUser.getSecurityUser().getId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Данный юзер не зарегистрирован для этапа " + milestoneId));
+        return judgeMilestoneResultRepository.findByMilestoneIdAndActivityUserId(milestoneId, activityUser.getId()).stream()
+                .map(judgeMilestoneResultDtoMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<JudgeMilestoneResultDto> findByParticipantId(Long participantId) {
+        List<JudgeMilestoneResultEntity> entities = judgeMilestoneResultRepository.findByParticipantId(participantId);
+        return entities.stream()
+                .map(judgeMilestoneResultDtoMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<JudgeMilestoneResultDto> findByActivityUserId(Long activityUserId) {
+        List<JudgeMilestoneResultEntity> entities = judgeMilestoneResultRepository.findByActivityUserId(activityUserId);
+        return entities.stream()
+                .map(judgeMilestoneResultDtoMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<JudgeMilestoneResultDto> findAll(Pageable pageable) {
+        return judgeMilestoneResultRepository.findAll(pageable).map(judgeMilestoneResultDtoMapper::toDto);
+    }
+
+    @Override
+    @Transactional
+    public void deleteById(Long id) {
+        if (!judgeMilestoneResultRepository.existsById(id)) {
+            throw new EntityNotFoundException("Результат раунда не найден с id: " + id);
+        }
+
+        judgeMilestoneResultRepository.deleteById(id);
     }
 
     private void validateByAssessmentMode(
@@ -231,148 +389,12 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
     }
 
     @Override
-    @Transactional
     public JudgeMilestoneResultDto create(JudgeMilestoneResultRoundRequest request) {
-        return createEntity(request);
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    @Transactional
     public JudgeMilestoneResultDto update(Long id, JudgeMilestoneResultRoundRequest request) {
-        return updateEntity(id, request);
+        throw new UnsupportedOperationException();
     }
-
-    //TODO тут должно быть применено правило, если судьи меняются сторонами, пока оно не учитывается
-    private JudgeMilestoneResultDto createEntity(JudgeMilestoneResultRoundRequest request) {
-        Preconditions.checkArgument(request.getScore() != null && request.getScore().compareTo(0) > 0);
-        ParticipantEntity participant = participantRepository.findById(request.getParticipantId())
-                .orElseThrow(EntityNotFoundException::new);
-        MilestoneCriteriaAssignmentEntity milestoneCriteria = milestoneCriteriaAssignmentRepository
-                .findById(request.getMilestoneCriteriaId())
-                .orElseThrow(EntityNotFoundException::new);
-        RoundEntity roundEntity = roundRepository.findById(request.getRoundId())
-                .orElseThrow(EntityNotFoundException::new);
-        UserActivityAssignmentEntity activityUser = userActivityAssignmentRepository.findByUserIdAndActivityId(
-                        currentUser.getSecurityUser().getId(),
-                        roundEntity.getMilestone().getActivity().getId())
-                .orElseThrow(EntityNotFoundException::new);
-
-        Preconditions.checkArgument(activityUser.getPosition().isJudge(), "Оценивающий должен быть судьей");
-
-        Preconditions.checkArgument(milestoneCriteria.getPartnerSide() == null
-                        || activityUser.getPartnerSide() == null
-                        || Objects.equals(milestoneCriteria.getPartnerSide(), activityUser.getPartnerSide()),
-                "Сторона судьи и критерия не совпадает");
-
-        Preconditions.checkArgument(roundEntity.getParticipants().stream()
-                        .anyMatch(p -> p.getId().equals(request.getParticipantId())),
-                "Участник не участвует в данном раунде");
-
-        boolean exists = judgeMilestoneResultRepository.existsByRoundIdAndParticipantIdAndActivityUserIdAndMilestoneCriteriaId(
-                request.getRoundId(), request.getParticipantId(), activityUser.getId(), request.getMilestoneCriteriaId());
-        Preconditions.checkArgument(!exists, "Результат уже существует для данного раунда, участника, судьи и критерия");
-
-        JudgeMilestoneResultEntity entity = judgeMilestoneResultRoundRequestMapper.toEntity(request);
-        entity.setParticipant(participant);
-        entity.setRound(roundEntity);
-        entity.setActivityUser(activityUser);
-        entity.setMilestoneCriteria(milestoneCriteria);
-        JudgeMilestoneResultEntity saved = judgeMilestoneResultRepository.save(entity);
-        return judgeMilestoneResultDtoMapper.toDto(saved);
-    }
-
-    private JudgeMilestoneResultDto updateEntity(Long id, JudgeMilestoneResultRoundRequest request) {
-        JudgeMilestoneResultEntity entity = judgeMilestoneResultRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Результат раунда не найден с id: " + id));
-
-        Preconditions.checkArgument(currentUser.getSecurityUser()
-                        .getRoles()
-                        .stream()
-                        .anyMatch(role -> role == Role.ADMIN || role == Role.SUPERADMIN || role == Role.OCCASION_ADMIN)
-                        || entity.getActivityUser().getUser().getId().equals(currentUser.getSecurityUser().getId()),
-                "Нельзя изменить результат другого судьи");
-
-        judgeMilestoneResultRoundRequestMapper.updateJudgeMilestoneResultRoundFromRequest(request, entity);
-        JudgeMilestoneResultEntity saved = judgeMilestoneResultRepository.save(entity);
-        return judgeMilestoneResultDtoMapper.toDto(saved);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<JudgeMilestoneResultDto> findByRoundId(Long roundId) {
-        List<JudgeMilestoneResultEntity> entities = judgeMilestoneResultRepository.findByRoundId(roundId);
-        return entities.stream()
-                .map(judgeMilestoneResultDtoMapper::toDto)
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<JudgeMilestoneResultDto> findByMilestoneId(Long milestoneId) {
-        List<JudgeMilestoneResultEntity> entities = judgeMilestoneResultRepository.findByMilestoneId(milestoneId);
-        return entities.stream()
-                .map(judgeMilestoneResultDtoMapper::toDto)
-                .toList();
-    }
-
-    @Override
-    public List<JudgeMilestoneResultDto> findByRoundIdForCurrentUser(Long roundId) {
-        RoundEntity round = roundRepository.findByIdWithUserAssignments(roundId)
-                .orElseThrow(EntityNotFoundException::new);
-        UserActivityAssignmentEntity activityUser = round.getMilestone().getActivity().getUserAssignments().stream()
-                .filter(ua -> ua.getUser().getId().equals(currentUser.getSecurityUser().getId()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Данный юзер не зарегистрирован для раунда " + roundId));
-        return judgeMilestoneResultRepository.findByRoundIdAndActivityUserId(roundId, activityUser.getId()).stream()
-                .map(judgeMilestoneResultDtoMapper::toDto)
-                .toList();
-    }
-
-    @Override
-    public List<JudgeMilestoneResultDto> findByMilestoneIdForCurrentUser(Long milestoneId) {
-        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId)
-                .orElseThrow(EntityNotFoundException::new);
-        UserActivityAssignmentEntity activityUser = milestone.getActivity().getUserAssignments().stream()
-                .filter(ua -> ua.getUser().getId().equals(currentUser.getSecurityUser().getId()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Данный юзер не зарегистрирован для этапа " + milestoneId));
-        return judgeMilestoneResultRepository.findByMilestoneIdAndActivityUserId(milestoneId, activityUser.getId()).stream()
-                .map(judgeMilestoneResultDtoMapper::toDto)
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<JudgeMilestoneResultDto> findByParticipantId(Long participantId) {
-        List<JudgeMilestoneResultEntity> entities = judgeMilestoneResultRepository.findByParticipantId(participantId);
-        return entities.stream()
-                .map(judgeMilestoneResultDtoMapper::toDto)
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<JudgeMilestoneResultDto> findByActivityUserId(Long activityUserId) {
-        List<JudgeMilestoneResultEntity> entities = judgeMilestoneResultRepository.findByActivityUserId(activityUserId);
-        return entities.stream()
-                .map(judgeMilestoneResultDtoMapper::toDto)
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<JudgeMilestoneResultDto> findAll(Pageable pageable) {
-        return judgeMilestoneResultRepository.findAll(pageable).map(judgeMilestoneResultDtoMapper::toDto);
-    }
-
-    @Override
-    @Transactional
-    public void deleteById(Long id) {
-        if (!judgeMilestoneResultRepository.existsById(id)) {
-            throw new EntityNotFoundException("Результат раунда не найден с id: " + id);
-        }
-
-        judgeMilestoneResultRepository.deleteById(id);
-    }
-
 }

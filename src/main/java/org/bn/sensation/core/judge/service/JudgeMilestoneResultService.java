@@ -14,6 +14,8 @@ public interface JudgeMilestoneResultService extends BaseCrudService<
         JudgeMilestoneResultRoundRequest,
         JudgeMilestoneResultRoundRequest> {
 
+    JudgeMilestoneResultDto createOrUpdate(JudgeMilestoneResultRoundRequest request, Long activityUserId);
+
     List<JudgeMilestoneResultDto> findByRoundId(Long roundId);
 
     List<JudgeMilestoneResultDto> findByMilestoneId(Long milestoneId);
@@ -26,7 +28,7 @@ public interface JudgeMilestoneResultService extends BaseCrudService<
 
     List<JudgeMilestoneResultDto> findByActivityUserId(Long activityUserId);
 
-    List<JudgeMilestoneResultDto> createOrUpdateForRound(List<JudgeMilestoneResultRoundRequest> requests);
+    List<JudgeMilestoneResultDto> createOrUpdateForRound(Long roundId, List<JudgeMilestoneResultRoundRequest> requests);
 
     List<JudgeMilestoneResultDto> createOrUpdateForMilestone(Long milestoneId, List<JudgeMilestoneResultMilestoneRequest> requests);
 }

@@ -1,6 +1,7 @@
 package org.bn.sensation.core.judge.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.judge.entity.JudgeMilestoneResultEntity;
@@ -9,6 +10,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface JudgeMilestoneResultRepository extends BaseRepository<JudgeMilestoneResultEntity> {
+
+    @EntityGraph(attributePaths = {"activityUser.user"})
+    @Query("""
+            SELECT DISTINCT jm
+            FROM JudgeMilestoneResultEntity jm
+            WHERE jm.id = :id
+            """)
+    Optional<JudgeMilestoneResultEntity> findByIdWithUser(Long id);
 
     @EntityGraph(attributePaths = {"participant", "round", "milestoneCriteria", "activityUser"})
     @Query("""

@@ -25,7 +25,7 @@ logging:
   level:
     org.bn.sensation: DEBUG
     org.springframework.security: DEBUG
-    org.hibernate.SQL: DEBUG
+#    org.hibernate.SQL: DEBUG
 #    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 #    org.hibernate.event.internal.AbstractFlushingEventListener: TRACE
 #    org.springframework.transaction: DEBUG
