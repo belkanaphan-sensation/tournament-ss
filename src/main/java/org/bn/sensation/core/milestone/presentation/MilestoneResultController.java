@@ -34,9 +34,9 @@ public class MilestoneResultController {
 
     @Operation(summary = "Получить результаты этапа для участников по ID этапа")
     @GetMapping(path = "/{milestoneId}")
-    public ResponseEntity<List<MilestoneResultDto>> getResultsByMilestoneId(
+    public ResponseEntity<List<MilestoneResultDto>> calculateByMilestoneId(
             @Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        return ResponseEntity.ok(milestoneResultService.getByMilestoneId(milestoneId));
+        return ResponseEntity.ok(milestoneResultService.calculateResults(milestoneId));
     }
 
     @Operation(summary = "Получить результат этапа по ID")
@@ -51,12 +51,6 @@ public class MilestoneResultController {
     @GetMapping
     public ResponseEntity<Page<MilestoneResultDto>> getAll(Pageable pageable) {
         return ResponseEntity.ok(milestoneResultService.findAll(pageable));
-    }
-
-    @Operation(summary = "Получить все результаты этапа по ID этапа")
-    @GetMapping(path = "/milestone/{milestoneId}")
-    public ResponseEntity<List<MilestoneResultDto>> getByMilestoneId(@PathVariable("milestoneId") Long milestoneId) {
-        return ResponseEntity.ok(milestoneResultService.getByMilestoneId(milestoneId));
     }
 
     @Operation(summary = "Создать новый результат этапа")

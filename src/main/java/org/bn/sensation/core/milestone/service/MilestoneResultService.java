@@ -14,6 +14,6 @@ public interface MilestoneResultService extends BaseCrudService<
         CreateMilestoneResultRequest,
         UpdateMilestoneResultRequest> {
 
-    List<MilestoneResultDto> getByMilestoneId(Long milestoneId);
+    List<MilestoneResultDto> calculateResults(Long milestoneId);
 
 }

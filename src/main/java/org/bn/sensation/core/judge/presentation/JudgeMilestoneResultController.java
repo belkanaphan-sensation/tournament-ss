@@ -112,6 +112,7 @@ public class JudgeMilestoneResultController {
             description = "Можно создать результат для судьи, привязанного к этапу. Функционал для админа. " +
                     "Запрос на апдейт полностью перезаписывает предыдущие результаты, поэтому нужно передавать все значащие поля")
     @PostMapping("/{activityUserId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN')")
     public ResponseEntity<JudgeMilestoneResultDto> createOrUpdate(@PathVariable("activityUserId") @NotNull Long activityUserId,
                                                           @Valid @RequestBody JudgeMilestoneResultRoundRequest request) {
         JudgeMilestoneResultDto created = judgeMilestoneResultService.createOrUpdate(request, activityUserId);
@@ -120,6 +121,7 @@ public class JudgeMilestoneResultController {
 
     @Operation(summary = "Удалить результат судьи по ID")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         judgeMilestoneResultService.deleteById(id);
         return ResponseEntity.noContent().build();

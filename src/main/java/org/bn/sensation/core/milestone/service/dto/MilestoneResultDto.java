@@ -1,9 +1,8 @@
 package org.bn.sensation.core.milestone.service.dto;
 
-import java.util.List;
-
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.milestone.entity.PassStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -23,19 +22,19 @@ import lombok.experimental.SuperBuilder;
 @Schema(description = "Результат этапа для участника")
 public class MilestoneResultDto extends BaseDto {
 
-    @Schema(description = "Участник")
-    private EntityLinkDto participant;
-
     @Schema(description = "Этап")
     private EntityLinkDto milestone;
 
-    @Schema(description = "Прошел участник в следующий этап или нет")
-    private Boolean passedByAdmin;
+    @Schema(description = "Участник")
+    private EntityLinkDto participant;
+
+    @Schema(description = "Прошел участник в следующий этап или нет по результатам оценок")
+    private PassStatus judgePassed;
+
+    @Schema(description = "Прошел участник в следующий этап или нет по решению организатора")
+    private Boolean finallyApproved;
 
     @Schema(description = "Суммарный балл этапа для участника", example = "5")
     private Integer totalScore;
-
-    @Schema(description = "Результаты по критериям")
-    private List<MilestoneCriteriaResultDto> criteriaResults;
 
 }
