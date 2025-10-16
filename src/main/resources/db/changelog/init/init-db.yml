@@ -235,7 +235,6 @@ databaseChangeLog:
               CREATE TABLE IF NOT EXISTS round (
                 id BIGSERIAL PRIMARY KEY,
                 name VARCHAR(255),
-                description TEXT,
                 state VARCHAR(20) NOT NULL,
                 milestone_id BIGINT,
                 extra_round BOOLEAN,

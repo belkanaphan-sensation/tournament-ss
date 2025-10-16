@@ -24,9 +24,6 @@ public class RoundEntity extends BaseEntity {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "description")
-    private String description;
-
     @ManyToOne
     @JoinColumn(name = "milestone_id")
     private MilestoneEntity milestone;

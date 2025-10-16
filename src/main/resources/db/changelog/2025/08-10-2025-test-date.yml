@@ -194,17 +194,17 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO round (name, description, state, milestone_id, extra_round, created_at, created_by, modified_at, modified_by, version) VALUES
+              INSERT INTO round (name, state, milestone_id, extra_round, created_at, created_by, modified_at, modified_by, version) VALUES
               -- Этап 1: 5 раундов
-              ('Раунд 1', 'Первый раунд отборочного этапа', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Отборочный'), false, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
-              ('Раунд 2', 'Второй раунд отборочного этапа', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Отборочный'), false, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Раунд 1', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Отборочный'), false, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Раунд 2', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Отборочный'), false, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
               
               -- Этап 2: 3 раунда
-              ('Раунд 1', 'Первый раунд полуфинала', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Полуфинал'), false, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
-              ('Раунд 2', 'Второй раунд полуфинала', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Полуфинал'), false, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Раунд 1', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Полуфинал'), false, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
+              ('Раунд 2', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Полуфинал'), false, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0),
               
               -- Этап 3: 2 раунда
-              ('Раунд 3', 'Финальный раунд', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Финал'), false, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
+              ('Раунд 3', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Финал'), false, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin', 0);
 
   # Test data for rounds_participants_association with progressive selection
   - changeSet:
