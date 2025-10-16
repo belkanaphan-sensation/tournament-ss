@@ -111,7 +111,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         log.debug("Найден судья={} для раунда={}, сторона={}", 
                 activityUser.getId(), roundId, activityUser.getPartnerSide());
 
-        validateResultsCount(roundId, requests, round, activityUser.getPartnerSide());
+        validateResultsCount(roundId, requests, round, activityUser);
 
         List<JudgeMilestoneResultDto> dtos = new ArrayList<>();
         if (requests != null && !requests.isEmpty()) {
@@ -142,20 +142,20 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         return dtos;
     }
 
-    private void validateResultsCount(Long roundId, List<JudgeMilestoneResultRoundRequest> requests, RoundEntity round, PartnerSide judgePartnerSide) {
-        log.debug("Проверка количества результатов для раунда={}, сторона судьи={}", roundId, judgePartnerSide);
+    private void validateResultsCount(Long roundId, List<JudgeMilestoneResultRoundRequest> requests, RoundEntity round, UserActivityAssignmentEntity activityUser) {
+        log.debug("Проверка количества результатов для раунда={}, судья={}, сторона судьи={}", roundId, activityUser.getId(), activityUser.getPartnerSide());
         
-        List<JudgeMilestoneResultEntity> resultsByRound = judgeMilestoneResultRepository.findByRoundId(roundId);
+        List<JudgeMilestoneResultEntity> resultsByRound = judgeMilestoneResultRepository.findByRoundIdAndActivityUserId(roundId, activityUser.getId());
         long toCreate = requests.stream().filter(request -> request.getId() == null).count();
         long participantsCount = round.getParticipants().stream().filter(p -> {
-            if (judgePartnerSide != null) {
-                return p.getPartnerSide() == judgePartnerSide;
+            if (activityUser.getPartnerSide() != null) {
+                return p.getPartnerSide() == activityUser.getPartnerSide();
             }
             return true;
         }).count();
 
         long criteriaCount = round.getMilestone().getMilestoneRule().getCriteriaAssignments().stream()
-                .filter(ca -> ca.getPartnerSide() == null || ca.getPartnerSide() == judgePartnerSide)
+                .filter(ca -> ca.getPartnerSide() == null || ca.getPartnerSide() == activityUser.getPartnerSide())
                 .count();
 
         long resultsTotalCount = participantsCount * criteriaCount;
