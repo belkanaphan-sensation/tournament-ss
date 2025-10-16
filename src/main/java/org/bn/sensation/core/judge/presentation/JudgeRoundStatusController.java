@@ -8,10 +8,7 @@ import org.bn.sensation.core.judge.service.dto.JudgeRoundStatusDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -40,8 +37,8 @@ public class JudgeRoundStatusController {
 
     @Operation(summary = "Отменить результаты раунда",
             description = "Результаты раунда отменяются для текущего пользователя который должен являться судьей раунда")
-    @GetMapping(path = "/not-ready/{roundId}")
-    public ResponseEntity<JudgeRoundStatusDto> notReadyRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
+    @PostMapping(path = "/not-ready")
+    public ResponseEntity<JudgeRoundStatusDto> notReadyRound(@RequestParam @NotNull Long roundId) {
         return ResponseEntity.ok(judgeRoundStatusService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.NOT_READY));
     }
 
