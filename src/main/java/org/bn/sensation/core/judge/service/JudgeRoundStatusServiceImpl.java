@@ -7,6 +7,7 @@ import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.common.statemachine.event.RoundEvent;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.judge.entity.JudgeMilestoneResultEntity;
+import org.bn.sensation.core.judge.entity.JudgeMilestoneStatus;
 import org.bn.sensation.core.judge.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judge.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judge.repository.JudgeMilestoneResultRepository;
@@ -39,6 +40,7 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
     private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
     private final JudgeRoundStatusDtoMapper judgeRoundStatusDtoMapper;
     private final JudgeRoundStatusRepository judgeRoundStatusRepository;
+    private final JudgeMilestoneStatusService judgeMilestoneStatusService;
     private final MilestoneRepository milestoneRepository;
     private final RoundRepository roundRepository;
     private final RoundStateMachineService roundStateMachineService;
@@ -78,7 +80,14 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
             throw new IllegalStateException("Судья оценил не всех участников");
         }
 
+        //TODO а зачем  здесь это???
         roundStateMachineService.sendEvent(roundId, RoundEvent.START);
+
+        if (judgeRoundStatus == JudgeRoundStatus.NOT_READY) {
+            judgeMilestoneStatusService.changeMilestoneStatus(round.getMilestone(), activityAssignment, JudgeMilestoneStatus.NOT_READY);
+        } else if (judgeRoundStatus == JudgeRoundStatus.READY && judgeMilestoneStatusService.allRoundsReady(round.getMilestone().getId())) {
+            judgeMilestoneStatusService.changeMilestoneStatus(round.getMilestone(), activityAssignment, JudgeMilestoneStatus.READY);
+        }
         return createOrUpdateJudgeRoundStatus(judgeRoundStatus, activityAssignment, round);
     }
 
