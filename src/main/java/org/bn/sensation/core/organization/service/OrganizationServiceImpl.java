@@ -20,7 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrganizationServiceImpl implements OrganizationService {
@@ -124,14 +126,24 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     private void validateOrganizationCanBeDeleted(OrganizationEntity organization) {
+        log.debug("Проверка возможности удаления организации={}", organization.getId());
+        
         // Проверяем статус связанных мероприятий
         if (organization.getOccasions() != null) {
+            log.debug("Найдено {} мероприятий для организации={}", organization.getOccasions().size(), organization.getId());
+            
             for (OccasionEntity occasion : organization.getOccasions()) {
+                log.debug("Проверка мероприятия={} со статусом={}", occasion.getId(), occasion.getState());
+                
                 if (occasion.getState() != OccasionState.DRAFT && occasion.getState() != OccasionState.COMPLETED) {
+                    log.warn("Нельзя удалить организацию={}, мероприятие={} имеет активный статус={}", 
+                            organization.getId(), occasion.getId(), occasion.getState());
                     throw new IllegalArgumentException("Нельзя удалить организацию, у которой есть активные мероприятия. " +
                             "Мероприятие '" + occasion.getName() + "' имеет статус: " + occasion.getState());
                 }
             }
         }
+        
+        log.debug("Организация={} может быть удалена", organization.getId());
     }
 }

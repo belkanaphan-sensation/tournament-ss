@@ -69,10 +69,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void changePassword(ChangePasswordRequest request, UserDetails userDetails) {
+        log.info("Смена пароля для пользователя={}", userDetails.getUsername());
+        
         if (!passwordEncoder.matches(request.currentPassword(), userDetails.getPassword())) {
+            log.warn("Неверный текущий пароль для пользователя={}", userDetails.getUsername());
             throw new IllegalArgumentException("Неверный пароль");
         }
         if (!request.newPassword().equals(request.confirmPassword())) {
+            log.warn("Пароли не совпадают для пользователя={}", userDetails.getUsername());
             throw new IllegalArgumentException("Пароли не совпадают");
         }
         UserEntity user =
@@ -85,42 +89,53 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(request.newPassword()));
 
         userRepository.save(user);
+        log.info("Пароль успешно изменен для пользователя={}", userDetails.getUsername());
     }
 
     @Override
     @Async
     public void sendEmail(ForgotPasswordRequest request) {
+        log.info("Запрос восстановления пароля: username={}, email={}", request.username(), request.email());
+        
         if ((request.username() == null || request.username().isBlank())
                 && (request.email() == null || request.email().isBlank())) {
+            log.warn("Не указаны имя пользователя или email для восстановления пароля");
             throw new IllegalArgumentException("Необходимо указать имя пользователя или email");
         }
 
         UserEntity user = null;
         if (request.username() != null && !request.username().isBlank()) {
+            log.debug("Поиск пользователя по username={}", request.username());
             user = userRepository.findByUsername(request.username()).orElse(null);
         }
         if (user == null && request.email() != null && !request.email().isBlank()) {
+            log.debug("Поиск пользователя по email={}", request.email());
             user = userRepository.findByPersonEmail(request.email()).orElse(null);
         }
         if (user == null) {
+            log.warn("Пользователь не найден по username={} или email={}", request.username(), request.email());
             throw new EntityNotFoundException("Пользователь не найден по указанному имени пользователя или email");
         }
 
+        log.debug("Найден пользователь={} для восстановления пароля", user.getId());
         String tempPassword = generateTempPassword(14);
         user.setPassword(passwordEncoder.encode(tempPassword));
         userRepository.save(user);
 
         // Здесь должен быть вызов реального почтового сервиса.
         // Пока логируем, чтобы не ломать окружение.
-        log.info("Password recovery initiated for user '{}'. Temporary password: '{}'. Email: {}",
+        log.info("Восстановление пароля инициировано для пользователя '{}'. Временный пароль: '{}'. Email: {}",
                 user.getUsername(), tempPassword, user.getPerson() != null ? user.getPerson().getEmail() : null);
     }
 
     @Override
     @Transactional
     public UserDto register(RegistrationRequest request) {
+        log.info("Регистрация нового пользователя: username={}, email={}", request.username(), request.email());
+        
         userRepository.findByUsername(request.username())
                 .ifPresent(u -> {
+                    log.warn("Попытка регистрации с занятым username={}", request.username());
                     throw new IllegalArgumentException("Имя пользователя уже занято: " + request.username());
                 });
         validateEmailUniqueness(request.email(), null);
@@ -141,6 +156,7 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         UserEntity saved = userRepository.save(user);
+        log.info("Пользователь успешно зарегистрирован с id={}, username={}", saved.getId(), saved.getUsername());
         return userDtoMapper.toDto(saved);
     }
 
@@ -163,8 +179,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto create(CreateUserRequest request) {
+        log.info("Создание пользователя: username={}, email={}, роли={}", 
+                request.getUsername(), request.getEmail(), request.getRoles());
+        
         userRepository.findByUsername(request.getUsername())
                 .ifPresent(u -> {
+                    log.warn("Попытка создания пользователя с занятым username={}", request.getUsername());
                     throw new IllegalArgumentException("Имя пользователя уже занято: " + request.getUsername());
                 });
 
@@ -172,6 +192,7 @@ public class UserServiceImpl implements UserService {
         validatePhoneNumberUniqueness(request.getPhoneNumber(), null);
 
         Set<Role> roles = request.getRoles() != null ? request.getRoles() : Set.of(Role.USER);
+        log.debug("Установлены роли для пользователя: {}", roles);
 
         UserEntity user = createUserRequestMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -180,6 +201,7 @@ public class UserServiceImpl implements UserService {
         assignUserToOrganizations(user, request.getOrganizationIds());
 
         UserEntity saved = userRepository.save(user);
+        log.info("Пользователь успешно создан с id={}, username={}", saved.getId(), saved.getUsername());
         return userDtoMapper.toDto(saved);
     }
 
@@ -232,12 +254,15 @@ public class UserServiceImpl implements UserService {
     }
 
     private static String generateTempPassword(int length) {
+        log.debug("Генерация временного пароля длиной={} символов", length);
         SecureRandom rnd = new SecureRandom();
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
             sb.append(alphabet.charAt(rnd.nextInt(alphabet.length())));
         }
-        return sb.toString();
+        String password = sb.toString();
+        log.debug("Сгенерирован временный пароль длиной={}", password.length());
+        return password;
     }
 
     private void validateEmailUniqueness(String email, Long excludeUserId) {

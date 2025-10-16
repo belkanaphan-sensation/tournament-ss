@@ -30,7 +30,9 @@ import com.google.common.base.Preconditions;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ActivityServiceImpl implements ActivityService {
@@ -71,10 +73,16 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional(readOnly = true)
     public List<ActivityDto> findByOccasionIdInLifeStatesForCurrentUser(Long id) {
+        log.info("Поиск активностей в жизненных состояниях для мероприятия={}, пользователь={}", 
+                id, currentUser.getSecurityUser().getId());
+        
         Preconditions.checkArgument(id != null, "ID мероприятия не может быть null");
-        return activityRepository.findByOccasionIdAndUserIdAndStateIn(id, currentUser.getSecurityUser().getId(), ActivityState.LIFE_ACTIVITY_STATES).stream()
+        List<ActivityDto> result = activityRepository.findByOccasionIdAndUserIdAndStateIn(id, currentUser.getSecurityUser().getId(), ActivityState.LIFE_ACTIVITY_STATES).stream()
                 .map(this::enrichActivityDtoWithStatistics)
                 .toList();
+        
+        log.debug("Найдено {} активностей в жизненных состояниях для мероприятия={}", result.size(), id);
+        return result;
     }
 
     @Override
@@ -87,15 +95,20 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional
     public ActivityDto create(CreateActivityRequest request) {
+        log.info("Создание активности: название={}, мероприятие={}", request.getName(), request.getOccasionId());
+        
         // Проверяем существование события
         OccasionEntity occasion = occasionRepository.findById(request.getOccasionId())
                 .orElseThrow(() -> new EntityNotFoundException("Событие не найдено с id: " + request.getOccasionId()));
+
+        log.debug("Найдено мероприятие={} для создания активности", occasion.getId());
 
         // Создаем сущность активности
         ActivityEntity activity = createActivityRequestMapper.toEntity(request);
         activity.setOccasion(occasion);
 
         ActivityEntity saved = activityRepository.save(activity);
+        log.info("Активность успешно создана с id={}", saved.getId());
         return enrichActivityDtoWithStatistics(saved);
     }
 
@@ -149,12 +162,21 @@ public class ActivityServiceImpl implements ActivityService {
      * Обогащает ActivityDto статистикой по этапам
      */
     private ActivityDto enrichActivityDtoWithStatistics(ActivityEntity activity) {
+        log.debug("Обогащение статистикой активности={}", activity.getId());
+        
         ActivityDto dto = activityDtoMapper.toDto(activity);
-        dto.setCompletedMilestonesCount((int) activity.getMilestones()
+        
+        int completedCount = (int) activity.getMilestones()
                 .stream()
                 .filter(ms -> ms.getState() == MilestoneState.COMPLETED)
-                .count());
-        dto.setTotalMilestonesCount(activity.getMilestones().size());
+                .count();
+        int totalCount = activity.getMilestones().size();
+        
+        log.debug("Статистика этапов для активности={}: завершено={}, всего={}", 
+                activity.getId(), completedCount, totalCount);
+        
+        dto.setCompletedMilestonesCount(completedCount);
+        dto.setTotalMilestonesCount(totalCount);
         return dto;
     }
 

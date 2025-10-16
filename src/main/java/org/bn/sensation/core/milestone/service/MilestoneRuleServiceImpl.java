@@ -22,7 +22,9 @@ import com.google.common.base.Preconditions;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MilestoneRuleServiceImpl implements MilestoneRuleService {
@@ -52,6 +54,9 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
     @Override
     @Transactional
     public MilestoneRuleDto create(CreateMilestoneRuleRequest request) {
+        log.info("Создание правила этапа: этап={}, режим оценки={}", 
+                request.getMilestoneId(), request.getAssessmentMode());
+        
         Preconditions.checkArgument(request.getMilestoneId() != null, "Milestone ID не может быть null");
 
         // Валидация roundParticipantLimit
@@ -61,16 +66,21 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
                 .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + request.getMilestoneId()));
 
         if (milestone.getMilestoneRule() != null) {
+            log.warn("Попытка создания правила для этапа={}, у которого уже есть правило", milestone.getId());
             throw new IllegalArgumentException("У этапа уже есть правило");
         }
+
+        log.debug("Найден этап={} для создания правила", milestone.getId());
 
         MilestoneRuleEntity rule = createMilestoneRuleRequestMapper.toEntity(request);
         rule.setMilestone(milestone);
 
         MilestoneRuleEntity saved = milestoneRuleRepository.save(rule);
+        log.debug("Правило этапа сохранено с id={}", saved.getId());
 
         milestone.setMilestoneRule(saved);
         milestoneRepository.save(milestone);
+        log.info("Правило этапа успешно создано с id={} для этапа={}", saved.getId(), milestone.getId());
         return milestoneRuleDtoMapper.toDto(saved);
     }
 
@@ -123,9 +133,16 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
     }
 
     private void validateRoundParticipantLimit(Integer participantLimit, Integer roundParticipantLimit) {
+        log.debug("Валидация лимитов участников: лимит этапа={}, лимит раунда={}", 
+                participantLimit, roundParticipantLimit);
+        
         if (participantLimit != null && roundParticipantLimit != null &&
             roundParticipantLimit > participantLimit) {
+            log.warn("Недопустимые лимиты: лимит раунда={} больше лимита этапа={}", 
+                    roundParticipantLimit, participantLimit);
             throw new IllegalArgumentException("roundParticipantLimit должен быть меньше или равен participantLimit");
         }
+        
+        log.debug("Валидация лимитов участников прошла успешно");
     }
 }

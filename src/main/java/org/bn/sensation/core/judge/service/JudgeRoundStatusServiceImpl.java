@@ -59,6 +59,9 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
     @Override
     @Transactional
     public JudgeRoundStatusDto changeJudgeRoundStatus(Long roundId, JudgeRoundStatus judgeRoundStatus) {
+        log.info("Изменение статуса раунда судьи: раунд={}, статус={}, пользователь={}", 
+                roundId, judgeRoundStatus, currentUser.getSecurityUser().getId());
+        
         Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
         Preconditions.checkArgument(judgeRoundStatus != null, "Статус не может быть null");
 
@@ -73,22 +76,34 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
                                 && ua.getPosition().isJudge())
                 .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("Юзер с id %s не привязан к раунду с id: %s".formatted(currentUser.getSecurityUser().getId(), roundId)));
+        
+        log.debug("Найден судья={} для раунда={}, состояние раунда={}", 
+                activityAssignment.getId(), roundId, round.getState());
+        
         Preconditions.checkState(round.getState() == RoundState.IN_PROGRESS,
                 "Статус раунда %s. Не может быть принят или отменен судьей", round.getState());
 
         if (!canChange(judgeRoundStatus, activityAssignment, round)) {
+            log.warn("Судья={} не может изменить статус на {} - не все участники оценены", 
+                    activityAssignment.getId(), judgeRoundStatus);
             throw new IllegalStateException("Судья оценил не всех участников");
         }
 
         //TODO а зачем  здесь это???
+        log.debug("Отправка события START для раунда={}", roundId);
         roundStateMachineService.sendEvent(roundId, RoundEvent.START);
 
         if (judgeRoundStatus == JudgeRoundStatus.NOT_READY) {
+            log.debug("Изменение статуса этапа на NOT_READY для этапа={}", round.getMilestone().getId());
             judgeMilestoneStatusService.changeMilestoneStatus(round.getMilestone(), activityAssignment, JudgeMilestoneStatus.NOT_READY);
         } else if (judgeRoundStatus == JudgeRoundStatus.READY && judgeMilestoneStatusService.allRoundsReady(round.getMilestone().getId())) {
+            log.debug("Все раунды готовы, изменение статуса этапа на READY для этапа={}", round.getMilestone().getId());
             judgeMilestoneStatusService.changeMilestoneStatus(round.getMilestone(), activityAssignment, JudgeMilestoneStatus.READY);
         }
-        return createOrUpdateJudgeRoundStatus(judgeRoundStatus, activityAssignment, round);
+        
+        JudgeRoundStatusDto result = createOrUpdateJudgeRoundStatus(judgeRoundStatus, activityAssignment, round);
+        log.info("Статус раунда судьи успешно изменен: раунд={}, статус={}", roundId, judgeRoundStatus);
+        return result;
     }
 
     @Override
@@ -134,10 +149,20 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
     }
 
     private boolean canChange(JudgeRoundStatus judgeRoundStatus, UserActivityAssignmentEntity activityUser, RoundEntity round) {
+        log.debug("Проверка возможности изменения статуса: судья={}, статус={}, раунд={}", 
+                activityUser.getId(), judgeRoundStatus, round.getId());
+        
         if (judgeRoundStatus == JudgeRoundStatus.READY) {
             List<JudgeMilestoneResultEntity> results = judgeMilestoneResultRepository.findByRoundIdAndActivityUserId(round.getId(), activityUser.getId());
+            log.debug("Найдено {} результатов для судьи={} в раунде={}", results.size(), activityUser.getId(), round.getId());
+            
             if (activityUser.getPartnerSide() == null) {
-                return round.getParticipants().size() * round.getMilestone().getMilestoneRule().getCriteriaAssignments().size() == results.size();
+                int expectedCount = round.getParticipants().size() * round.getMilestone().getMilestoneRule().getCriteriaAssignments().size();
+                boolean canChange = expectedCount == results.size();
+                log.debug("Судья без стороны: участников={}, критериев={}, ожидается результатов={}, найдено={}, может изменить={}", 
+                        round.getParticipants().size(), round.getMilestone().getMilestoneRule().getCriteriaAssignments().size(), 
+                        expectedCount, results.size(), canChange);
+                return canChange;
             } else {
                 //TODO добавить смену сторон, если есть правило этапа на смену сторон судей
                 long participantsCount = round.getParticipants()
@@ -150,9 +175,17 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
                 long resultsCount = results.stream()
                         .filter(prr -> prr.getParticipant().getPartnerSide() == activityUser.getPartnerSide())
                         .count();
-                return participantsCount * criteriaCount == resultsCount;
+                
+                long expectedCount = participantsCount * criteriaCount;
+                boolean canChange = expectedCount == resultsCount;
+                
+                log.debug("Судья со стороной={}: участников={}, критериев={}, ожидается результатов={}, найдено={}, может изменить={}", 
+                        activityUser.getPartnerSide(), participantsCount, criteriaCount, expectedCount, resultsCount, canChange);
+                
+                return canChange;
             }
         }
+        log.debug("Статус не READY, изменение разрешено");
         return true;
     }
 
@@ -172,7 +205,7 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
         if (round.getState() == RoundState.IN_PROGRESS && canChange(judgeRoundStatus, activityUser, round)) {
             createOrUpdateJudgeRoundStatus(judgeRoundStatus, activityUser, round);
         }
-        log.info("Judge round status for activity user {} and round {} changed to {}", activityUserId, roundId, judgeRoundStatus);
+        log.info("Статус раунда судьи изменен: судья={}, раунд={}, статус={}", activityUserId, roundId, judgeRoundStatus);
     }
 
 }

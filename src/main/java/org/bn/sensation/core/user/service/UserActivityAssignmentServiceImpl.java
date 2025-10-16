@@ -26,7 +26,9 @@ import com.google.common.base.Preconditions;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserActivityAssignmentServiceImpl implements UserActivityAssignmentService {
@@ -57,12 +59,17 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
     @Override
     @Transactional
     public UserActivityAssignmentDto create(CreateUserActivityAssignmentRequest request) {
+        log.info("Создание назначения пользователя: пользователь={}, активность={}, роль={}", 
+                request.getUserId(), request.getActivityId(), request.getPosition());
+        
         Preconditions.checkArgument(request.getUserId() != null, "User ID не может быть null");
         Preconditions.checkArgument(request.getActivityId() != null, "Activity ID не может быть null");
         Preconditions.checkArgument(request.getPosition() != null, "Role не может быть null");
 
         // Проверяем, что назначение еще не существует
         if (userActivityAssignmentRepository.existsByUserIdAndActivityId(request.getUserId(), request.getActivityId())) {
+            log.warn("Попытка создания дублирующего назначения: пользователь={}, активность={}", 
+                    request.getUserId(), request.getActivityId());
             throw new IllegalArgumentException("Пользователь уже назначен на эту активность");
         }
 
@@ -74,10 +81,15 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
         ActivityEntity activity = activityRepository.findById(request.getActivityId())
                 .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + request.getActivityId()));
 
+        log.debug("Найдены пользователь={} и активность={} для создания назначения", 
+                user.getId(), activity.getId());
+
         // Бизнес-правило: только один главный судья на активность
         if (request.getPosition() == UserActivityPosition.JUDGE_CHIEF) {
             long chiefCount = userActivityAssignmentRepository.countByActivityIdAndPosition(request.getActivityId(), UserActivityPosition.JUDGE_CHIEF);
+            log.debug("Проверка главного судьи: найдено={} главных судей в активности={}", chiefCount, request.getActivityId());
             if (chiefCount > 0) {
+                log.warn("Попытка назначить второго главного судью в активности={}", request.getActivityId());
                 throw new IllegalArgumentException("В активности уже есть главный судья");
             }
         }
@@ -88,6 +100,7 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
         assignment.setActivity(activity);
 
         UserActivityAssignmentEntity saved = userActivityAssignmentRepository.save(assignment);
+        log.info("Назначение пользователя успешно создано с id={}", saved.getId());
         return userActivityAssignmentDtoMapper.toDto(saved);
     }
 

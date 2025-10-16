@@ -31,7 +31,9 @@ import com.google.common.base.Preconditions;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteriaAssignmentService {
@@ -65,11 +67,16 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
     @Override
     @Transactional
     public MilestoneCriteriaAssignmentDto create(CreateMilestoneCriteriaAssignmentRequest request) {
+        log.info("Создание назначения критерия: правило этапа={}, критерий={}", 
+                request.getMilestoneRuleId(), request.getCriteriaId());
+        
         Preconditions.checkArgument(request.getMilestoneRuleId() != null, "Milestone rule ID не может быть null");
         Preconditions.checkArgument(request.getCriteriaId() != null, "Criteria ID не может быть null");
 
         // Проверяем, что назначение еще не существует
         if (milestoneCriteriaAssignmentRepository.existsByMilestoneRuleIdAndCriteriaId(request.getMilestoneRuleId(), request.getCriteriaId())) {
+            log.warn("Попытка создания дублирующего назначения: правило этапа={}, критерий={}", 
+                    request.getMilestoneRuleId(), request.getCriteriaId());
             throw new IllegalArgumentException("Критерий уже назначен на этот этап");
         }
 
@@ -81,6 +88,9 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
         CriteriaEntity criteria = criteriaRepository.findById(request.getCriteriaId())
                 .orElseThrow(() -> new EntityNotFoundException("Критерий не найден с id: " + request.getCriteriaId()));
 
+        log.debug("Найдены правило этапа={} и критерий={} для создания назначения", 
+                milestoneRule.getId(), criteria.getId());
+
         // Создаем сущность назначения
         MilestoneCriteriaAssignmentEntity assignment = createMilestoneCriteriaAssignmentRequestMapper.toEntity(request);
         assignment.setMilestoneRule(milestoneRule);
@@ -88,12 +98,17 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
         validateScale(milestoneRule, assignment);
 
         MilestoneCriteriaAssignmentEntity saved = milestoneCriteriaAssignmentRepository.save(assignment);
+        log.info("Назначение критерия успешно создано с id={}", saved.getId());
         return milestoneCriteriaAssignmentDtoMapper.toDto(saved);
     }
 
     private void validateScale(MilestoneRuleEntity milestoneRule, MilestoneCriteriaAssignmentEntity assignment) {
+        log.debug("Валидация шкалы для режима оценки={}, шкала={}, вес={}", 
+                milestoneRule.getAssessmentMode(), assignment.getScale(), assignment.getWeight());
+        
         switch (milestoneRule.getAssessmentMode()) {
             case PASS -> {
+                log.debug("Валидация режима PASS: шкала должна быть 1, количество критериев должно быть 1");
                 Preconditions.checkArgument(assignment.getScale().equals(1),
                     "Для режима прохождения (PASS) максимальный балл шкалы оценок равен 1");
                 Preconditions.checkArgument(assignment.getId() == null
@@ -101,11 +116,20 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
                         : milestoneRule.getCriteriaAssignments().size() == 1
                                 && milestoneRule.getCriteriaAssignments().iterator().next().getId().equals(assignment.getId()),
                         "Для режима прохождения (PASS) количество критериев должно быть 1");
+                log.debug("Валидация режима PASS прошла успешно");
             }
-            case SCORE -> Preconditions.checkArgument(assignment.getScale() != null && assignment.getScale().compareTo(1) > 0,
-                    "Для режима шкалы оценок (SCORE) шкала должна быть установлена и быть больше 1");
-            case PLACE -> Preconditions.checkArgument(assignment.getWeight().equals(BigDecimal.ONE),
-                    "Для режима распределения по местам коэффициент критерия должен быть равен 1");
+            case SCORE -> {
+                log.debug("Валидация режима SCORE: шкала должна быть больше 1");
+                Preconditions.checkArgument(assignment.getScale() != null && assignment.getScale().compareTo(1) > 0,
+                        "Для режима шкалы оценок (SCORE) шкала должна быть установлена и быть больше 1");
+                log.debug("Валидация режима SCORE прошла успешно");
+            }
+            case PLACE -> {
+                log.debug("Валидация режима PLACE: вес должен быть равен 1");
+                Preconditions.checkArgument(assignment.getWeight().equals(BigDecimal.ONE),
+                        "Для режима распределения по местам коэффициент критерия должен быть равен 1");
+                log.debug("Валидация режима PLACE прошла успешно");
+            }
         }
     }
 

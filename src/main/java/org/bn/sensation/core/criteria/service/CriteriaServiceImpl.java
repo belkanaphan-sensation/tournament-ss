@@ -19,7 +19,9 @@ import com.google.common.base.Preconditions;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CriteriaServiceImpl implements CriteriaService {
@@ -48,15 +50,19 @@ public class CriteriaServiceImpl implements CriteriaService {
     @Override
     @Transactional
     public CriteriaDto create(CriteriaRequest request) {
+        log.info("Создание критерия: название={}", request.getName());
+        
         Preconditions.checkArgument(StringUtils.hasText(request.getName()), "Название критерия не может быть пустым");
 
         // Проверяем уникальность названия
         if (criteriaRepository.findByName(request.getName()).isPresent()) {
+            log.warn("Попытка создания критерия с существующим названием: {}", request.getName());
             throw new IllegalArgumentException("Критерий с названием '" + request.getName() + "' уже существует");
         }
 
         CriteriaEntity criteria = criteriaRequestMapper.toEntity(request);
         CriteriaEntity saved = criteriaRepository.save(criteria);
+        log.info("Критерий успешно создан с id={}, название={}", saved.getId(), saved.getName());
         return criteriaDtoMapper.toDto(saved);
     }
 
@@ -94,15 +100,21 @@ public class CriteriaServiceImpl implements CriteriaService {
     @Override
     @Transactional
     public void deleteById(Long id) {
+        log.info("Удаление критерия с id={}", id);
+        
         CriteriaEntity criteria = criteriaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Критерий не найден с id: " + id));
 
+        log.debug("Найден критерий={} для удаления", criteria.getName());
+
         // Проверяем, используется ли критерий в этапах
         if (milestoneCriteriaAssignmentRepository.existsByCriteriaId(id)) {
+            log.warn("Нельзя удалить критерий={} - он используется в этапах", criteria.getName());
             throw new IllegalArgumentException("Нельзя удалить критерий, который используется в этапах");
         }
 
         criteriaRepository.deleteById(id);
+        log.info("Критерий={} успешно удален", criteria.getName());
     }
 
 }

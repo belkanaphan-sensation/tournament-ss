@@ -32,7 +32,9 @@ import com.google.common.base.Preconditions;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MilestoneServiceImpl implements MilestoneService {
@@ -158,11 +160,20 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     private MilestoneDto enrichMilestoneDtoWithStatistics(MilestoneEntity milestone) {
+        log.debug("Обогащение статистикой этапа={}", milestone.getId());
+        
         MilestoneDto dto = milestoneDtoMapper.toDto(milestone);
-        dto.setCompletedRoundsCount((int) milestone.getRounds().stream()
+        
+        int completedCount = (int) milestone.getRounds().stream()
                 .filter(round -> round.getState() == RoundState.COMPLETED)
-                .count());
-        dto.setTotalRoundsCount(milestone.getRounds().size());
+                .count();
+        int totalCount = milestone.getRounds().size();
+        
+        log.debug("Статистика раундов для этапа={}: завершено={}, всего={}", 
+                milestone.getId(), completedCount, totalCount);
+        
+        dto.setCompletedRoundsCount(completedCount);
+        dto.setTotalRoundsCount(totalCount);
 
         return dto;
     }
@@ -171,49 +182,72 @@ public class MilestoneServiceImpl implements MilestoneService {
      * Валидирует, что порядок последовательный (нельзя проставить порядок 5 если не существует этапов с порядками меньше)
      */
     private void validateOrderSequence(Long activityId, Integer newOrder, boolean create) {
+        log.debug("Валидация порядка этапа: активность={}, новый порядок={}, создание={}", 
+                activityId, newOrder, create);
+        
         Integer maxOrder = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(activityId).stream()
                 .map(MilestoneEntity::getMilestoneOrder)
                 .max(Integer::compareTo)
                 .orElse(-1);
 
         int maxNewOrder = create ? maxOrder + 1 : maxOrder;
+        
+        log.debug("Максимальный существующий порядок={}, максимальный новый порядок={}", 
+                maxOrder, maxNewOrder);
+        
         if (newOrder > maxNewOrder) {
+            log.warn("Недопустимый порядок этапа: запрошен={}, максимальный={}", newOrder, maxNewOrder);
             throw new IllegalArgumentException("Нельзя установить порядок " + newOrder +
                     ". Максимальный существующий порядок: " + maxOrder +
                     ". Можно установить порядок от 0 до " + maxNewOrder);
         }
+        
+        log.debug("Порядок этапа валиден");
     }
 
     /**
      * Пересчитывает порядок всех этапов активности при изменении порядка одного этапа
      */
     private void reorderMilestones(Long activityId, Long currentMilestoneId, Integer newOrder) {
+        log.debug("Пересчет порядка этапов: активность={}, текущий этап={}, новый порядок={}", 
+                activityId, currentMilestoneId, newOrder);
+        
         List<MilestoneEntity> milestones = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(activityId)
                 .stream()
                 .filter(m -> currentMilestoneId == null || !m.getId().equals(currentMilestoneId)) // Исключаем текущий этап (если указан)
                 .collect(Collectors.toList());
 
+        log.debug("Найдено {} этапов для пересчета порядка", milestones.size());
+
         for (int i = 0; i < milestones.size(); i++) {
             MilestoneEntity milestone = milestones.get(i);
+            Integer oldOrder = milestone.getMilestoneOrder();
             if (i >= newOrder) {
                 milestone.setMilestoneOrder(i + 1);
             } else {
                 milestone.setMilestoneOrder(i);
             }
+            log.debug("Этап={}: порядок изменен с {} на {}", milestone.getId(), oldOrder, milestone.getMilestoneOrder());
         }
         milestoneRepository.saveAll(milestones);
+        log.debug("Порядок этапов пересчитан и сохранен");
     }
 
     /**
      * Рассчитывает следующий порядковый номер для этапа в рамках активности
      */
     private Integer calculateNextOrder(Long activityId) {
-        return milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(activityId)
+        log.debug("Расчет следующего порядка для активности={}", activityId);
+        
+        Integer nextOrder = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(activityId)
                 .stream()
                 .map(MilestoneEntity::getMilestoneOrder)
                 .max(Integer::compareTo)
                 .map(max -> max + 1)
                 .orElse(0);
+        
+        log.debug("Следующий порядок для активности={}: {}", activityId, nextOrder);
+        return nextOrder;
     }
 
     @Override

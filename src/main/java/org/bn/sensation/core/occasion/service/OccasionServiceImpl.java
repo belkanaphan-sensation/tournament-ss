@@ -24,7 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OccasionServiceImpl implements OccasionService {
@@ -98,14 +100,24 @@ public class OccasionServiceImpl implements OccasionService {
      * Обогащает OccasionDto статистикой по активностям
      */
     private OccasionDto enrichOccasionDtoWithStatistics(OccasionEntity occasion) {
+        log.debug("Обогащение статистикой мероприятия={}", occasion.getId());
+        
         OccasionDto dto = occasionDtoMapper.toDto(occasion);
-        dto.setCompletedActivitiesCount((int) occasion.getActivities().stream()
+        
+        int completedCount = (int) occasion.getActivities().stream()
                 .filter(activity -> activity.getState() == ActivityState.COMPLETED)
-                .count());
-        dto.setActiveActivitiesCount((int) occasion.getActivities().stream()
+                .count();
+        int activeCount = (int) occasion.getActivities().stream()
                 .filter(activity -> activity.getState() == ActivityState.PLANNED || activity.getState() == ActivityState.IN_PROGRESS)
-                .count());
-        dto.setTotalActivitiesCount(occasion.getActivities().size());
+                .count();
+        int totalCount = occasion.getActivities().size();
+        
+        log.debug("Статистика активностей для мероприятия={}: завершено={}, активных={}, всего={}", 
+                occasion.getId(), completedCount, activeCount, totalCount);
+        
+        dto.setCompletedActivitiesCount(completedCount);
+        dto.setActiveActivitiesCount(activeCount);
+        dto.setTotalActivitiesCount(totalCount);
 
         return dto;
     }

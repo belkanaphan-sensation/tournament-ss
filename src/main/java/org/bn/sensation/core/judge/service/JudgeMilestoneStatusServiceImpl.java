@@ -24,7 +24,9 @@ import com.google.common.base.Preconditions;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class JudgeMilestoneStatusServiceImpl implements JudgeMilestoneStatusService {
@@ -48,18 +50,32 @@ public class JudgeMilestoneStatusServiceImpl implements JudgeMilestoneStatusServ
     @Override
     @Transactional
     public JudgeMilestoneStatusDto changeMilestoneStatus(Long milestoneId, JudgeMilestoneStatus judgeMilestoneStatus) {
+        log.info("Изменение статуса этапа судьи: этап={}, статус={}, пользователь={}", 
+                milestoneId, judgeMilestoneStatus, currentUser.getSecurityUser().getId());
+        
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
         Preconditions.checkArgument(judgeMilestoneStatus != null, "Статус не может быть null");
         MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId).orElseThrow(EntityNotFoundException::new);
         UserActivityAssignmentEntity activityUser = getActivityUser(milestoneId, milestone);
+        
+        log.debug("Найден судья={} для этапа={}, состояние этапа={}", 
+                activityUser.getId(), milestoneId, milestone.getState());
+        
         Preconditions.checkState(milestone.getState() == MilestoneState.IN_PROGRESS,
                 "Статус этапа %s. Не может быть принят или отменен судьей", milestone.getState());
 
-        if (!canChange(activityUser.getId(), milestone.getRounds().stream().map(RoundEntity::getId).distinct().toList(), judgeMilestoneStatus)) {
+        List<Long> roundIds = milestone.getRounds().stream().map(RoundEntity::getId).distinct().toList();
+        log.debug("Проверка готовности {} раундов для этапа={}", roundIds.size(), milestoneId);
+        
+        if (!canChange(activityUser.getId(), roundIds, judgeMilestoneStatus)) {
+            log.warn("Судья={} не может изменить статус этапа={} на {} - не все раунды готовы", 
+                    activityUser.getId(), milestoneId, judgeMilestoneStatus);
             throw new IllegalStateException("Не все результаты раундов готовы");
         }
 
-        return changeMilestoneStatus(milestone, activityUser, judgeMilestoneStatus);
+        JudgeMilestoneStatusDto result = changeMilestoneStatus(milestone, activityUser, judgeMilestoneStatus);
+        log.info("Статус этапа судьи успешно изменен: этап={}, статус={}", milestoneId, judgeMilestoneStatus);
+        return result;
     }
 
     @Override
@@ -75,10 +91,16 @@ public class JudgeMilestoneStatusServiceImpl implements JudgeMilestoneStatusServ
     @Override
     @Transactional(readOnly = true)
     public boolean allRoundsReady(Long milestoneId) {
+        log.debug("Проверка готовности всех раундов для этапа={}", milestoneId);
+        
         MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId).orElseThrow(EntityNotFoundException::new);
         UserActivityAssignmentEntity activityUser = getActivityUser(milestoneId, milestone);
 
-        return canChange(activityUser.getId(), milestone.getRounds().stream().map(RoundEntity::getId).distinct().toList(), JudgeMilestoneStatus.READY);
+        List<Long> roundIds = milestone.getRounds().stream().map(RoundEntity::getId).distinct().toList();
+        boolean allReady = canChange(activityUser.getId(), roundIds, JudgeMilestoneStatus.READY);
+        
+        log.debug("Все раунды готовы для этапа={}: {}", milestoneId, allReady);
+        return allReady;
     }
 
     private UserActivityAssignmentEntity getActivityUser(Long milestoneId, MilestoneEntity milestone) {
@@ -95,10 +117,19 @@ public class JudgeMilestoneStatusServiceImpl implements JudgeMilestoneStatusServ
     }
 
     private boolean canChange(Long activityUserId, List<Long> roundIds, JudgeMilestoneStatus judgeMilestoneStatus) {
+        log.debug("Проверка возможности изменения статуса: судья={}, раундов={}, статус={}", 
+                activityUserId, roundIds.size(), judgeMilestoneStatus);
+        
         if (judgeMilestoneStatus == JudgeMilestoneStatus.READY) {
             int readyRounds = judgeRoundStatusRepository.countByJudgeIdAndStatusAndRoundIdIn(activityUserId, JudgeRoundStatus.READY, roundIds);
-            return readyRounds == roundIds.size();
+            boolean canChange = readyRounds == roundIds.size();
+            
+            log.debug("Готовых раундов={}, всего раундов={}, может изменить={}", 
+                    readyRounds, roundIds.size(), canChange);
+            
+            return canChange;
         }
+        log.debug("Статус не READY, изменение разрешено");
         return true;
     }
 }
