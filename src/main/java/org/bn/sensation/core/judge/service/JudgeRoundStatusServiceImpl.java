@@ -126,16 +126,18 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
 
     private boolean canChange(JudgeRoundStatus judgeRoundStatus, UserActivityAssignmentEntity activityUser, RoundEntity round) {
         if (judgeRoundStatus == JudgeRoundStatus.READY) {
-            List<JudgeMilestoneResultEntity> results = judgeMilestoneResultRepository.findByActivityUserId(activityUser.getId());
+            List<JudgeMilestoneResultEntity> results = judgeMilestoneResultRepository.findByRoundIdAndActivityUserId(round.getId(), activityUser.getId());
             if (activityUser.getPartnerSide() == null) {
-                return round.getParticipants().size() == results.size();
+                return round.getParticipants().size() * round.getMilestone().getMilestoneRule().getCriteriaAssignments().size() == results.size();
             } else {
                 //TODO добавить смену сторон, если есть правило этапа на смену сторон судей
                 long participantsCount = round.getParticipants()
                         .stream()
                         .filter(p -> p.getPartnerSide() == activityUser.getPartnerSide())
                         .count();
-                int criteriaCount = round.getMilestone().getMilestoneRule().getCriteriaAssignments().size();
+                long criteriaCount = round.getMilestone().getMilestoneRule().getCriteriaAssignments().stream()
+                        .filter(ca -> ca.getPartnerSide() == null || ca.getPartnerSide() == activityUser.getPartnerSide())
+                        .count();
                 long resultsCount = results.stream()
                         .filter(prr -> prr.getParticipant().getPartnerSide() == activityUser.getPartnerSide())
                         .count();
