@@ -1,5 +1,6 @@
 package org.bn.sensation.core.round.service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -76,7 +77,7 @@ public class RoundServiceImpl implements RoundService {
     @Transactional
     public RoundDto create(CreateRoundRequest request) {
         // Проверяем существование этапа
-        MilestoneEntity milestone = milestoneRepository.findByIdWithActivity(request.getMilestoneId())
+        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(request.getMilestoneId())
                 .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + request.getMilestoneId()));
 
         // Создаем сущность раунда
@@ -86,6 +87,15 @@ public class RoundServiceImpl implements RoundService {
         addParticipants(request.getParticipantIds(), milestone, round);
 
         RoundEntity saved = roundRepository.save(round);
+        milestone.getActivity().getUserAssignments().stream().forEach(au -> {
+            if (au.getPosition().isJudge()) {
+                JudgeRoundStatusEntity judgeRoundStatus = new JudgeRoundStatusEntity();
+                judgeRoundStatus.setRound(saved);
+                judgeRoundStatus.setJudge(au);
+                judgeRoundStatus.setStatus(JudgeRoundStatus.NOT_READY);
+                judgeRoundStatusRepository.save(judgeRoundStatus);
+            }
+        });
         return roundDtoMapper.toDto(saved);
     }
 
@@ -147,6 +157,7 @@ public class RoundServiceImpl implements RoundService {
                 .stream()
                 .filter(round -> RoundState.LIFE_ROUND_STATES.contains(round.getState()))
                 .map(round -> roundWithJRStatusMapper.toDto(round, judgeRoundEntityMap.get(round.getId())))
+                .sorted(Comparator.comparing(RoundWithJRStatusDto::getId))
                 .toList();
     }
 

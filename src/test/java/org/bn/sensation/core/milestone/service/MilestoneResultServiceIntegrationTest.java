@@ -1,7 +1,6 @@
 package org.bn.sensation.core.milestone.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -48,7 +47,6 @@ import org.bn.sensation.core.user.entity.*;
 import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
 import org.bn.sensation.core.user.repository.UserRepository;
 import org.bn.sensation.security.CurrentUser;
-import org.bn.sensation.security.SecurityUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,7 +55,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 
@@ -462,7 +459,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         // Given - No judge results created
 
         // When & Then
-        assertThrows(IllegalStateException.class, () -> 
+        assertThrows(IllegalStateException.class, () ->
             milestoneResultService.calculateResults(testMilestone.getId()));
     }
 
@@ -472,21 +469,21 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         createJudgeResultsForOneJudge();
 
         // When & Then
-        assertThrows(IllegalStateException.class, () -> 
+        assertThrows(IllegalStateException.class, () ->
             milestoneResultService.calculateResults(testMilestone.getId()));
     }
 
     @Test
     void testCalculateResults_NullMilestoneId_ThrowsException() {
         // When & Then
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(IllegalArgumentException.class, () ->
             milestoneResultService.calculateResults(null));
     }
 
     @Test
     void testCalculateResults_NonExistentMilestone_ThrowsException() {
         // When & Then
-        assertThrows(Exception.class, () -> 
+        assertThrows(Exception.class, () ->
             milestoneResultService.calculateResults(999L));
     }
 

@@ -84,7 +84,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
 
     private List<MilestoneResultDto> calculate(MilestoneEntity milestone) {
         //Map<ParticipantId, Map<RoundId, List<JudgeMilestoneResultEntity>>>
-        Map<Long, Map<Long, List<JudgeMilestoneResultEntity>>> resultsMap = 
+        Map<Long, Map<Long, List<JudgeMilestoneResultEntity>>> resultsMap =
             judgeMilestoneResultRepository.findByMilestoneId(milestone.getId())
                 .stream()
                 .collect(Collectors.groupingBy(
@@ -111,18 +111,18 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         distributePlaces(groupedByScore, sortedScores, limit);
 
         List<MilestoneResultEntity> savedEntities = milestoneResultRepository.saveAll(resultEntities);
-        
+
         return savedEntities.stream()
             .map(milestoneResultDtoMapper::toDto)
             .toList();
     }
 
     private MilestoneResultEntity createMilestoneResult(
-            ParticipantEntity participant, 
-            MilestoneEntity milestone, 
+            ParticipantEntity participant,
+            MilestoneEntity milestone,
             RoundEntity round,
             Map<Long, Map<Long, List<JudgeMilestoneResultEntity>>> resultsMap) {
-        
+
         MilestoneResultEntity resultEntity = new MilestoneResultEntity();
         resultEntity.setParticipant(participant);
         resultEntity.setMilestone(milestone);
@@ -132,15 +132,15 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         List<JudgeMilestoneResultEntity> participantResults = resultsMap
             .getOrDefault(participant.getId(), Collections.emptyMap())
             .get(round.getId());
-        
+
         Preconditions.checkArgument(participantResults != null && !participantResults.isEmpty(),
             "Отсутствуют результаты для участника " + participant.getId());
-        
+
         double totalScore = participantResults.stream()
             .mapToDouble(pr -> pr.getMilestoneCriteria().getWeight()
                 .multiply(new BigDecimal(pr.getScore())).doubleValue())
             .sum();
-        
+
         resultEntity.setTotalScore(totalScore);
         return resultEntity;
     }
@@ -154,7 +154,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
 
     private Comparator<Double> getScoreComparator(MilestoneEntity milestone) {
         return milestone.getMilestoneRule().getAssessmentMode() != AssessmentMode.PLACE
-            ? Comparator.reverseOrder() 
+            ? Comparator.reverseOrder()
             : Comparator.naturalOrder();
     }
 
@@ -162,7 +162,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
             Map<Double, List<MilestoneResultEntity>> groupedByScore,
             List<Double> sortedScores,
             int limit) {
-        
+
         int remainingSlots = limit;
         for (Double score : sortedScores) {
             List<MilestoneResultEntity> entitiesWithScore = groupedByScore.get(score);

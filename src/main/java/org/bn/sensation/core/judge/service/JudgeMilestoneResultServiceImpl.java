@@ -92,12 +92,13 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         RoundEntity round = roundRepository.findByIdFullEntity(roundId)
                 .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + roundId));
 
-        validateResultsCount(roundId, requests, round);
 
         UserActivityAssignmentEntity activityUser = round.getMilestone().getActivity().getUserAssignments().stream()
                 .filter(ua -> ua.getUser().getId().equals(currentUser.getSecurityUser().getId()))
                 .findFirst()
                 .orElseThrow(EntityNotFoundException::new);
+
+        validateResultsCount(roundId, requests, round, activityUser.getPartnerSide());
 
         List<JudgeMilestoneResultDto> dtos = new ArrayList<>();
         if (requests != null && !requests.isEmpty()) {
@@ -118,10 +119,21 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         return dtos;
     }
 
-    private void validateResultsCount(Long roundId, List<JudgeMilestoneResultRoundRequest> requests, RoundEntity round) {
+    private void validateResultsCount(Long roundId, List<JudgeMilestoneResultRoundRequest> requests, RoundEntity round, PartnerSide judgePartnerSide) {
         List<JudgeMilestoneResultEntity> resultsByRound = judgeMilestoneResultRepository.findByRoundId(roundId);
         long toCreate = requests.stream().filter(request -> request.getId() == null).count();
-        int resultsTotalCount = round.getParticipants().size() * round.getMilestone().getMilestoneRule().getCriteriaAssignments().size();
+        long participantsCount = round.getParticipants().stream().filter(p -> {
+            if (judgePartnerSide != null) {
+                return p.getPartnerSide() == judgePartnerSide;
+            }
+            return true;
+        }).count();
+
+        long criteriaCount = round.getMilestone().getMilestoneRule().getCriteriaAssignments().stream()
+                .filter(ca -> ca.getPartnerSide() == null || ca.getPartnerSide() == judgePartnerSide)
+                .count();
+
+        long resultsTotalCount = participantsCount * criteriaCount;
         Preconditions.checkArgument(resultsByRound.size() + toCreate == resultsTotalCount, "Все участники раунда должны быть оценены");
     }
 

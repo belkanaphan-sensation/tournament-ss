@@ -1,22 +1,26 @@
 package org.bn.sensation.core.round.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
+import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
+import org.bn.sensation.core.judge.entity.JudgeRoundStatus;
+import org.bn.sensation.core.judge.entity.JudgeRoundStatusEntity;
+import org.bn.sensation.core.judge.repository.JudgeRoundStatusRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
@@ -29,13 +33,23 @@ import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
 import org.bn.sensation.core.round.service.dto.RoundDto;
+import org.bn.sensation.core.round.service.dto.RoundWithJRStatusDto;
 import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
+import org.bn.sensation.core.user.entity.*;
+import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
+import org.bn.sensation.core.user.repository.UserRepository;
+import org.bn.sensation.security.CurrentUser;
+import org.bn.sensation.security.SecurityUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,6 +79,18 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private OrganizationRepository organizationRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private UserActivityAssignmentRepository userActivityAssignmentRepository;
+
+    @Autowired
+    private JudgeRoundStatusRepository judgeRoundStatusRepository;
+
+    @Mock
+    private CurrentUser mockCurrentUser;
+
     private MilestoneEntity testMilestone;
     private MilestoneEntity testMilestone1;
     private ParticipantEntity testParticipant;
@@ -73,6 +99,10 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
     private OccasionEntity testOccasion;
     private OrganizationEntity testOrganization;
     private RoundEntity testRound;
+    private UserEntity testJudge;
+    private UserEntity testJudgeChief;
+    private UserActivityAssignmentEntity testJudgeAssignment;
+    private UserActivityAssignmentEntity testJudgeChiefAssignment;
 
     @BeforeEach
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -81,11 +111,14 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         cleanDatabase();
 
         // Clean up existing data
+        judgeRoundStatusRepository.deleteAll();
         roundRepository.deleteAll();
+        userActivityAssignmentRepository.deleteAll();
         participantRepository.deleteAll();
         milestoneRepository.deleteAll();
         activityRepository.deleteAll();
         occasionRepository.deleteAll();
+        userRepository.deleteAll();
         organizationRepository.deleteAll();
 
         // Create test organization
@@ -119,6 +152,59 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                         .build())
                 .occasion(testOccasion)
                 .build();
+        testActivity = activityRepository.save(testActivity);
+
+        // Create test users (judges)
+        testJudge = UserEntity.builder()
+                .username("testjudge")
+                .password("password")
+                .status(UserStatus.ACTIVE)
+                .person(Person.builder()
+                        .name("Test")
+                        .surname("Judge")
+                        .email("judge@example.com")
+                        .phoneNumber("+1234567891")
+                        .build())
+                .roles(Set.of(Role.USER))
+                .organizations(Set.of(testOrganization))
+                .build();
+        testJudge = userRepository.save(testJudge);
+
+        testJudgeChief = UserEntity.builder()
+                .username("testjudgechief")
+                .password("password")
+                .status(UserStatus.ACTIVE)
+                .person(Person.builder()
+                        .name("Test")
+                        .surname("JudgeChief")
+                        .email("judgechief@example.com")
+                        .phoneNumber("+1234567892")
+                        .build())
+                .roles(Set.of(Role.USER))
+                .organizations(Set.of(testOrganization))
+                .build();
+        testJudgeChief = userRepository.save(testJudgeChief);
+
+        // Create user activity assignments (judges)
+        testJudgeAssignment = UserActivityAssignmentEntity.builder()
+                .user(testJudge)
+                .activity(testActivity)
+                .position(UserActivityPosition.JUDGE)
+                .partnerSide(PartnerSide.LEADER)
+                .build();
+        testJudgeAssignment = userActivityAssignmentRepository.save(testJudgeAssignment);
+
+        testJudgeChiefAssignment = UserActivityAssignmentEntity.builder()
+                .user(testJudgeChief)
+                .activity(testActivity)
+                .position(UserActivityPosition.JUDGE_CHIEF)
+                .partnerSide(PartnerSide.LEADER)
+                .build();
+        testJudgeChiefAssignment = userActivityAssignmentRepository.save(testJudgeChiefAssignment);
+
+        // Add assignments to activity
+        testActivity.getUserAssignments().add(testJudgeAssignment);
+        testActivity.getUserAssignments().add(testJudgeChiefAssignment);
         testActivity = activityRepository.save(testActivity);
 
         // Create test milestones
@@ -198,6 +284,23 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(request.getName(), savedRound.get().getName());
         assertEquals(request.getDescription(), savedRound.get().getDescription());
         assertEquals(testMilestone.getId(), savedRound.get().getMilestone().getId());
+
+        // Verify that judge statuses were created for all judges
+        var judgeStatuses = judgeRoundStatusRepository.findByRoundId(result.getId());
+        assertEquals(2, judgeStatuses.size()); // Should have statuses for both judges
+
+        // Verify each judge has a status with NOT_READY
+        var judgeIds = judgeStatuses.stream()
+                .map(status -> status.getJudge().getId())
+                .collect(java.util.stream.Collectors.toSet());
+        assertTrue(judgeIds.contains(testJudgeAssignment.getId()));
+        assertTrue(judgeIds.contains(testJudgeChiefAssignment.getId()));
+
+        // Verify all statuses are NOT_READY
+        judgeStatuses.forEach(status -> {
+            assertEquals(JudgeRoundStatus.NOT_READY, status.getStatus());
+            assertEquals(result.getId(), status.getRound().getId());
+        });
     }
 
     @Test
@@ -356,5 +459,227 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Verify participants still exist (no cascade delete)
         assertTrue(participantRepository.existsById(testParticipant.getId()));
         assertTrue(milestoneRepository.existsById(testMilestone.getId()));
+    }
+
+    @Test
+    void testFindByMilestoneIdInLifeStates() {
+        // Given - Create additional rounds with different states
+        RoundEntity plannedRound = RoundEntity.builder()
+                .name("Planned Round")
+                .description("Planned Round Description")
+                .state(RoundState.PLANNED)
+                .milestone(testMilestone)
+                .participants(new HashSet<>(Set.of(testParticipant)))
+                .build();
+        plannedRound = roundRepository.save(plannedRound);
+
+        RoundEntity inProgressRound = RoundEntity.builder()
+                .name("In Progress Round")
+                .description("In Progress Round Description")
+                .state(RoundState.IN_PROGRESS)
+                .milestone(testMilestone)
+                .participants(new HashSet<>(Set.of(testParticipant)))
+                .build();
+        inProgressRound = roundRepository.save(inProgressRound);
+
+        RoundEntity readyRound = RoundEntity.builder()
+                .name("Ready Round")
+                .description("Ready Round Description")
+                .state(RoundState.READY)
+                .milestone(testMilestone)
+                .participants(new HashSet<>(Set.of(testParticipant)))
+                .build();
+        readyRound = roundRepository.save(readyRound);
+
+        RoundEntity completedRound = RoundEntity.builder()
+                .name("Completed Round")
+                .description("Completed Round Description")
+                .state(RoundState.COMPLETED)
+                .milestone(testMilestone)
+                .participants(new HashSet<>(Set.of(testParticipant)))
+                .build();
+        completedRound = roundRepository.save(completedRound);
+
+        // Add rounds to milestone
+        testMilestone.getRounds().add(plannedRound);
+        testMilestone.getRounds().add(inProgressRound);
+        testMilestone.getRounds().add(readyRound);
+        testMilestone.getRounds().add(completedRound);
+        milestoneRepository.save(testMilestone);
+
+        // Create judge round statuses for the rounds
+        JudgeRoundStatusEntity plannedStatus = JudgeRoundStatusEntity.builder()
+                .round(plannedRound)
+                .judge(testJudgeAssignment)
+                .status(JudgeRoundStatus.NOT_READY)
+                .build();
+        judgeRoundStatusRepository.save(plannedStatus);
+
+        JudgeRoundStatusEntity inProgressStatus = JudgeRoundStatusEntity.builder()
+                .round(inProgressRound)
+                .judge(testJudgeAssignment)
+                .status(JudgeRoundStatus.READY)
+                .build();
+        judgeRoundStatusRepository.save(inProgressStatus);
+
+        JudgeRoundStatusEntity readyStatus = JudgeRoundStatusEntity.builder()
+                .round(readyRound)
+                .judge(testJudgeAssignment)
+                .status(JudgeRoundStatus.READY)
+                .build();
+        judgeRoundStatusRepository.save(readyStatus);
+
+        JudgeRoundStatusEntity completedStatus = JudgeRoundStatusEntity.builder()
+                .round(completedRound)
+                .judge(testJudgeAssignment)
+                .status(JudgeRoundStatus.READY)
+                .build();
+        judgeRoundStatusRepository.save(completedStatus);
+
+        // Set up security context with judge user
+        SecurityUser securityUser = (SecurityUser) SecurityUser.fromUser(testJudge);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Mock CurrentUser to return the test judge
+        when(mockCurrentUser.getSecurityUser()).thenReturn(securityUser);
+
+        // Replace the CurrentUser in the service with our mock
+        ReflectionTestUtils.setField(roundService, "currentUser", mockCurrentUser);
+
+        // When
+        List<RoundWithJRStatusDto> result = roundService.findByMilestoneIdInLifeStates(testMilestone.getId());
+
+        // Then
+        assertNotNull(result);
+        assertEquals(4, result.size()); // Should return all life state rounds (PLANNED, IN_PROGRESS, READY, COMPLETED)
+
+        // Verify rounds are sorted by ID
+        for (int i = 1; i < result.size(); i++) {
+            assertTrue(result.get(i - 1).getId() <= result.get(i).getId());
+        }
+
+        // Verify each round has the correct judge status
+        Map<Long, RoundWithJRStatusDto> resultMap = result.stream()
+                .collect(Collectors.toMap(RoundWithJRStatusDto::getId, dto -> dto));
+
+        assertEquals(JudgeRoundStatus.NOT_READY, resultMap.get(plannedRound.getId()).getJudgeRoundStatus());
+        assertEquals(JudgeRoundStatus.READY, resultMap.get(inProgressRound.getId()).getJudgeRoundStatus());
+        assertEquals(JudgeRoundStatus.READY, resultMap.get(readyRound.getId()).getJudgeRoundStatus());
+        assertEquals(JudgeRoundStatus.READY, resultMap.get(completedRound.getId()).getJudgeRoundStatus());
+
+        // Verify round details
+        result.forEach(round -> {
+            assertNotNull(round.getName());
+            assertNotNull(round.getDescription());
+            assertNotNull(round.getState());
+            assertTrue(RoundState.LIFE_ROUND_STATES.contains(round.getState()));
+            assertEquals(testMilestone.getId(), round.getMilestone().getId());
+        });
+    }
+
+    @Test
+    void testFindByMilestoneIdInLifeStates_WithDraftRound_ExcludesDraft() {
+        // Given - Create a draft round (should be excluded)
+        RoundEntity draftRound = RoundEntity.builder()
+                .name("Draft Round")
+                .description("Draft Round Description")
+                .state(RoundState.DRAFT)
+                .milestone(testMilestone)
+                .participants(new HashSet<>(Set.of(testParticipant)))
+                .build();
+        draftRound = roundRepository.save(draftRound);
+
+        RoundEntity plannedRound = RoundEntity.builder()
+                .name("Planned Round")
+                .description("Planned Round Description")
+                .state(RoundState.PLANNED)
+                .milestone(testMilestone)
+                .participants(new HashSet<>(Set.of(testParticipant)))
+                .build();
+        plannedRound = roundRepository.save(plannedRound);
+
+        // Add rounds to milestone
+        testMilestone.getRounds().add(plannedRound);
+        milestoneRepository.save(testMilestone);
+
+        // Create judge round status for planned round only
+        JudgeRoundStatusEntity plannedStatus = JudgeRoundStatusEntity.builder()
+                .round(plannedRound)
+                .judge(testJudgeAssignment)
+                .status(JudgeRoundStatus.NOT_READY)
+                .build();
+        judgeRoundStatusRepository.save(plannedStatus);
+
+        // Set up security context with judge user
+        SecurityUser securityUser = (SecurityUser) SecurityUser.fromUser(testJudge);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Mock CurrentUser to return the test judge
+        when(mockCurrentUser.getSecurityUser()).thenReturn(securityUser);
+
+        // Replace the CurrentUser in the service with our mock
+        ReflectionTestUtils.setField(roundService, "currentUser", mockCurrentUser);
+
+        // When
+        var result = roundService.findByMilestoneIdInLifeStates(testMilestone.getId());
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size()); // Should only return the planned round, not the draft
+        assertEquals(plannedRound.getId(), result.get(0).getId());
+        assertEquals(RoundState.PLANNED, result.get(0).getState());
+    }
+
+    @Test
+    void testFindByMilestoneIdInLifeStates_NonExistentMilestone_ThrowsException() {
+        // Given
+        SecurityUser securityUser = (SecurityUser) SecurityUser.fromUser(testJudge);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        when(mockCurrentUser.getSecurityUser()).thenReturn(securityUser);
+        ReflectionTestUtils.setField(roundService, "currentUser", mockCurrentUser);
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            roundService.findByMilestoneIdInLifeStates(999L);
+        });
+    }
+
+    @Test
+    void testFindByMilestoneIdInLifeStates_UserNotAssignedToActivity_ThrowsException() {
+        // Given - Create a user not assigned to the activity
+        UserEntity otherUser = UserEntity.builder()
+                .username("otheruser")
+                .password("password")
+                .status(UserStatus.ACTIVE)
+                .person(Person.builder()
+                        .name("Other")
+                        .surname("User")
+                        .email("other@example.com")
+                        .phoneNumber("+1234567899")
+                        .build())
+                .roles(Set.of(Role.USER))
+                .organizations(Set.of(testOrganization))
+                .build();
+        otherUser = userRepository.save(otherUser);
+
+        SecurityUser securityUser = (SecurityUser) SecurityUser.fromUser(otherUser);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        when(mockCurrentUser.getSecurityUser()).thenReturn(securityUser);
+        ReflectionTestUtils.setField(roundService, "currentUser", mockCurrentUser);
+
+        // When & Then
+        assertThrows(EntityNotFoundException.class, () -> {
+            roundService.findByMilestoneIdInLifeStates(testMilestone.getId());
+        });
     }
 }
