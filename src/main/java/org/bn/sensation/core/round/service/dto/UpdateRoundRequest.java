@@ -28,10 +28,6 @@ public class UpdateRoundRequest extends EmptyDto {
     @Schema(description = "Название раунда", example = "Первый раунд")
     private String name;
 
-    @Size(max = 2000)
-    @Schema(description = "Описание раунда", example = "Квалификационный раунд")
-    private String description;
-
     @Schema(description = "Статус раунда", example = "DRAFT")
     private RoundState state;
 

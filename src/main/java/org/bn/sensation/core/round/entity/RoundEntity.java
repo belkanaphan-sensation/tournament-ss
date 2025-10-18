@@ -35,6 +35,9 @@ public class RoundEntity extends BaseEntity {
     @Column(name = "extra_round")
     private Boolean extraRound;
 
+    @Column(name = "round_order")
+    private Integer roundOrder;
+
     @ManyToMany(mappedBy = "rounds")
     @Builder.Default
     private Set<ParticipantEntity> participants = new HashSet<>();

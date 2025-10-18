@@ -27,9 +27,6 @@ public class RoundDto extends BaseDto {
     @Schema(description = "Название раунда", example = "Групповой этап")
     private String name;
 
-    @Schema(description = "Описание раунда", example = "Матчи по круговой системе")
-    private String description;
-
     @Schema(description = "Aктивность, к которому принадлежит этап")
     private EntityLinkDto activity;
 
@@ -44,4 +41,7 @@ public class RoundDto extends BaseDto {
 
     @Schema(description = "Дополнительный раунд", example = "true")
     private Boolean isExtraRound;
+
+    @Schema(description = "Порядок раунда в рамках этапа. Прямая последовательность. 0 - первый раунд", example = "1")
+    private Integer roundOrder;
 }

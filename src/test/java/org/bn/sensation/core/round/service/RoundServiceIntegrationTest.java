@@ -265,7 +265,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         CreateRoundRequest request = CreateRoundRequest.builder()
                 .name("New Round")
                 .state(RoundState.DRAFT)
-                .description("New Round Description")
                 .milestoneId(testMilestone.getId())
                 .build();
 
@@ -275,7 +274,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Then
         assertNotNull(result);
         assertEquals(request.getName(), result.getName());
-        assertEquals(request.getDescription(), result.getDescription());
         assertNotNull(result.getMilestone());
         assertEquals(testMilestone.getId(), result.getMilestone().getId());
 
@@ -308,7 +306,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         CreateRoundRequest request = CreateRoundRequest.builder()
                 .name("New Round")
-                .description("New Round Description")
                 .milestoneId(999L) // Non-existent milestone
                 .build();
 
@@ -323,7 +320,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         UpdateRoundRequest request = UpdateRoundRequest.builder()
                 .name("Updated Round")
-                .description("Updated Round Description")
                 .build();
 
         // When
@@ -333,7 +329,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result);
         assertEquals(testRound.getId(), result.getId());
         assertEquals(request.getName(), result.getName());
-        assertEquals(request.getDescription(), result.getDescription());
         assertNotNull(result.getMilestone());
         assertEquals(1, result.getParticipants().size());
 
@@ -565,7 +560,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Verify round details
         result.forEach(round -> {
             assertNotNull(round.getName());
-            assertNotNull(round.getDescription());
             assertNotNull(round.getState());
             assertTrue(RoundState.LIFE_ROUND_STATES.contains(round.getState()));
             assertEquals(testMilestone.getId(), round.getMilestone().getId());

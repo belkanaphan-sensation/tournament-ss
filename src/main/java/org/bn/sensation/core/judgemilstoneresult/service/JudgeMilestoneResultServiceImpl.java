@@ -108,7 +108,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         UserActivityAssignmentEntity activityUser = round.getMilestone().getActivity().getUserAssignments().stream()
                 .filter(ua -> ua.getUser().getId().equals(currentUser.getSecurityUser().getId()))
                 .findFirst()
-                .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(() -> new EntityNotFoundException("Судья не найден с user id: " + currentUser.getSecurityUser().getId()));
 
         log.debug("Найден судья={} для раунда={}, сторона={}",
                 activityUser.getId(), roundId, activityUser.getPartnerSide());

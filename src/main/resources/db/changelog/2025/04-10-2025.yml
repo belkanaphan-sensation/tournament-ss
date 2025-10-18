@@ -17,7 +17,6 @@ databaseChangeLog:
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 modified_by VARCHAR(255),
-                version BIGINT NOT NULL DEFAULT 0,
                 FOREIGN KEY (judge_id) REFERENCES user_activity_assignment(id) ON DELETE CASCADE,
                 FOREIGN KEY (round_id) REFERENCES round(id) ON DELETE CASCADE,
                 UNIQUE(judge_id, round_id)

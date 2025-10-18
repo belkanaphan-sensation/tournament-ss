@@ -1,9 +1,6 @@
 package org.bn.sensation.core.round.service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -12,8 +9,8 @@ import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.common.statemachine.event.RoundEvent;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
-import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
+import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
@@ -88,6 +85,7 @@ public class RoundServiceImpl implements RoundService {
         RoundEntity round = createRoundRequestMapper.toEntity(request);
         round.setMilestone(milestone);
 
+        round.setRoundOrder(roundRepository.getLastRoundOrder(milestone.getId()).orElse(0) + 1);
         addParticipants(request.getParticipantIds(), milestone, round);
 
         RoundEntity saved = roundRepository.save(round);
@@ -132,10 +130,16 @@ public class RoundServiceImpl implements RoundService {
     @Override
     @Transactional
     public void deleteById(Long id) {
-        if (!roundRepository.existsById(id)) {
-            throw new EntityNotFoundException("Раунд не найден с id: " + id);
-        }
+        Preconditions.checkArgument(id != null, "ID раунда не может быть null");
+        RoundEntity round = roundRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + id));
+        Integer roundOrder = round.getRoundOrder();
+        Set<RoundEntity> reodered = roundRepository.findByMilestoneIdAndRoundOrder(round.getMilestone().getId(), roundOrder)
+                .stream().sorted(Comparator.comparing(RoundEntity::getRoundOrder))
+                .peek(r -> r.setRoundOrder(r.getRoundOrder() - 1))
+                .collect(Collectors.toSet());
         roundRepository.deleteById(id);
+        roundRepository.saveAll(reodered);
     }
 
     @Override
@@ -143,6 +147,7 @@ public class RoundServiceImpl implements RoundService {
     public List<RoundDto> findByMilestoneId(Long id) {
         Preconditions.checkArgument(id != null, "ID этапа не может быть null");
         return roundRepository.findByMilestoneId(id).stream()
+                .sorted(Comparator.comparing(RoundEntity::getRoundOrder))
                 .map(roundDtoMapper::toDto)
                 .toList();
     }
@@ -184,7 +189,7 @@ public class RoundServiceImpl implements RoundService {
                     return isLifeState;
                 })
                 .map(round -> roundWithJRStatusMapper.toDto(round, judgeRoundEntityMap.get(round.getId())))
-                .sorted(Comparator.comparing(RoundWithJRStatusDto::getId))
+                .sorted(Comparator.comparing(RoundWithJRStatusDto::getRoundOrder))
                 .toList();
 
         log.info("Найдено {} раундов в жизненных состояниях для этапа={}", result.size(), milestoneId);

@@ -31,10 +31,6 @@ public class CreateRoundRequest extends EmptyDto {
     @NotBlank
     private String name;
 
-    @Size(max = 2000)
-    @Schema(description = "Описание раунда", example = "Квалификационный раунд")
-    private String description;
-
     @Schema(description = "ID этапа, частью которой является раунд")
     @NotNull
     private Long milestoneId;
