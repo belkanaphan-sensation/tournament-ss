@@ -1,4 +1,4 @@
-package org.bn.sensation.core.criteria.service;
+package org.bn.sensation.core.milestonecriteria.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,7 +19,6 @@ import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 import org.bn.sensation.core.milestonecriteria.entity.MilestoneCriteriaAssignmentEntity;
 import org.bn.sensation.core.criteria.repository.CriteriaRepository;
 import org.bn.sensation.core.milestonecriteria.repository.MilestoneCriteriaAssignmentRepository;
-import org.bn.sensation.core.milestonecriteria.service.MilestoneCriteriaAssignmentService;
 import org.bn.sensation.core.milestonecriteria.service.dto.CreateMilestoneCriteriaAssignmentRequest;
 import org.bn.sensation.core.milestonecriteria.service.dto.MilestoneCriteriaAssignmentDto;
 import org.bn.sensation.core.milestonecriteria.service.dto.UpdateMilestoneCriteriaAssignmentRequest;

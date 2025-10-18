@@ -70,7 +70,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void changePassword(ChangePasswordRequest request, UserDetails userDetails) {
         log.info("Смена пароля для пользователя={}", userDetails.getUsername());
-        
+
         if (!passwordEncoder.matches(request.currentPassword(), userDetails.getPassword())) {
             log.warn("Неверный текущий пароль для пользователя={}", userDetails.getUsername());
             throw new IllegalArgumentException("Неверный пароль");
@@ -96,7 +96,7 @@ public class UserServiceImpl implements UserService {
     @Async
     public void sendEmail(ForgotPasswordRequest request) {
         log.info("Запрос восстановления пароля: username={}, email={}", request.username(), request.email());
-        
+
         if ((request.username() == null || request.username().isBlank())
                 && (request.email() == null || request.email().isBlank())) {
             log.warn("Не указаны имя пользователя или email для восстановления пароля");
@@ -132,7 +132,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto register(RegistrationRequest request) {
         log.info("Регистрация нового пользователя: username={}, email={}", request.username(), request.email());
-        
+
         userRepository.findByUsername(request.username())
                 .ifPresent(u -> {
                     log.warn("Попытка регистрации с занятым username={}", request.username());
@@ -179,9 +179,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto create(CreateUserRequest request) {
-        log.info("Создание пользователя: username={}, email={}, роли={}", 
+        log.info("Создание пользователя: username={}, email={}, роли={}",
                 request.getUsername(), request.getEmail(), request.getRoles());
-        
+
         userRepository.findByUsername(request.getUsername())
                 .ifPresent(u -> {
                     log.warn("Попытка создания пользователя с занятым username={}", request.getUsername());

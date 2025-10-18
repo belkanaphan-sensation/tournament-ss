@@ -67,22 +67,22 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
     @Transactional
     public List<MilestoneResultDto> calculateResults(Long milestoneId) {
         log.info("Расчет результатов для этапа={}", milestoneId);
-        
+
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
         MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId)
                 .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
-        
+
         Map<Long, JudgeMilestoneStatusEntity> judgeResults = judgeMilestoneStatusRepository.findByMilestoneId(milestoneId)
                 .stream()
                 .collect(Collectors.toMap(jm -> jm.getJudge().getId(), Function.identity()));
-        
+
         log.debug("Найдено {} результатов судей для этапа={}", judgeResults.size(), milestoneId);
-        
+
         Preconditions.checkState(milestone.getActivity().getUserAssignments().stream()
                         .allMatch(ua -> judgeResults.get(ua.getId()) != null
                                 && judgeResults.get(ua.getId()).getStatus() == JudgeMilestoneStatus.READY),
                 "Для получения результатов этапа все судьи должны завершить этап");
-        
+
         if (milestone.getResults().isEmpty()) {
             log.info("Результаты этапа отсутствуют, начинаем расчет для этапа={}", milestoneId);
             return calculate(milestone);
@@ -94,9 +94,9 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
     }
 
     private List<MilestoneResultDto> calculate(MilestoneEntity milestone) {
-        log.info("Начинаем расчет результатов для этапа={}, режим оценки={}", 
+        log.info("Начинаем расчет результатов для этапа={}, режим оценки={}",
                 milestone.getId(), milestone.getMilestoneRule().getAssessmentMode());
-        
+
         //Map<ParticipantId, Map<RoundId, List<JudgeMilestoneResultEntity>>>
         Map<Long, Map<Long, List<JudgeMilestoneResultEntity>>> resultsMap =
             judgeMilestoneResultRepository.findByMilestoneId(milestone.getId())
@@ -162,14 +162,14 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         Preconditions.checkArgument(participantResults != null && !participantResults.isEmpty(),
             "Отсутствуют результаты для участника " + participant.getId());
 
-        log.debug("Найдено {} результатов судей для участника={} в раунде={}", 
+        log.debug("Найдено {} результатов судей для участника={} в раунде={}",
                 participantResults.size(), participant.getId(), round.getId());
 
         double totalScore = participantResults.stream()
             .mapToDouble(pr -> {
                 double weightedScore = pr.getMilestoneCriteria().getWeight()
                     .multiply(new BigDecimal(pr.getScore())).doubleValue();
-                log.debug("Расчет взвешенной оценки: критерий={}, вес={}, оценка={}, результат={}", 
+                log.debug("Расчет взвешенной оценки: критерий={}, вес={}, оценка={}, результат={}",
                         pr.getMilestoneCriteria().getCriteria().getName(),
                         pr.getMilestoneCriteria().getWeight(),
                         pr.getScore(),
@@ -206,9 +206,9 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         int remainingSlots = limit;
         for (Double score : sortedScores) {
             List<MilestoneResultEntity> entitiesWithScore = groupedByScore.get(score);
-            log.debug("Обработка оценки={}, участников с этой оценкой={}, оставшихся мест={}", 
+            log.debug("Обработка оценки={}, участников с этой оценкой={}, оставшихся мест={}",
                     score, entitiesWithScore.size(), remainingSlots);
-            
+
             if (entitiesWithScore.size() <= remainingSlots) {
                 log.debug("Все участники с оценкой={} проходят в следующий этап", score);
                 entitiesWithScore.forEach(entity -> {
@@ -225,7 +225,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
                 break;
             }
         }
-        
+
         log.debug("Распределение мест завершено, оставшихся мест: {}", remainingSlots);
     }
 

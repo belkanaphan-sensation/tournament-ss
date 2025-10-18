@@ -22,7 +22,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
   @Transactional(readOnly = true)
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     log.debug("Загрузка пользователя по имени: {}", username);
-    
+
     UserEntity user =
         userRepository
             .findByUsername(username)
@@ -36,7 +36,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     return new UsernameNotFoundException(
                         String.format("User %s doesn't exists", username));
                 });
-    
+
     log.debug("Пользователь найден: id={}, username={}", user.getId(), user.getUsername());
     return SecurityUser.fromUser(user);
   }

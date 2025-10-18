@@ -136,9 +136,9 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     @Transactional(readOnly = true)
     public List<ParticipantDto> getByRoundByRoundIdForCurrentUser(Long roundId) {
-        log.info("Получение участников раунда={} для текущего пользователя={}", 
+        log.info("Получение участников раунда={} для текущего пользователя={}",
                 roundId, currentUser.getSecurityUser().getId());
-        
+
         Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
         RoundEntity round = roundRepository.findByIdWithUserAssignments(roundId)
                 .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + roundId));
@@ -149,24 +149,24 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .stream()
                 .filter(uaa -> uaa.getUser().getId().equals(userId))
                 .findFirst().orElseThrow(EntityNotFoundException::new);
-        
-        log.debug("Найдено назначение пользователя={} для раунда={}, сторона={}", 
+
+        log.debug("Найдено назначение пользователя={} для раунда={}, сторона={}",
                 userId, roundId, activityAssignment.getPartnerSide());
-        
+
         List<ParticipantEntity> participants = participantRepository.findByRoundId(roundId).stream()
                 .filter(p -> {
                     if (activityAssignment.getPartnerSide() != null) {
                         boolean matches = p.getPartnerSide() == activityAssignment.getPartnerSide();
-                        log.debug("Участник={} со стороной={} соответствует стороне судьи={}: {}", 
+                        log.debug("Участник={} со стороной={} соответствует стороне судьи={}: {}",
                                 p.getId(), p.getPartnerSide(), activityAssignment.getPartnerSide(), matches);
                         return matches;
                     }
                     return true;
                 })
                 .sorted(Comparator.comparing(p -> p.getNumber())).toList();
-        
+
         log.debug("Найдено {} участников для раунда={} после фильтрации", participants.size(), roundId);
-        
+
         return participants.stream()
                 .map(this::enrichParticipantDto)
                 .toList();
@@ -214,16 +214,16 @@ public class ParticipantServiceImpl implements ParticipantService {
      */
     private ParticipantDto enrichParticipantDto(ParticipantEntity participant) {
         log.debug("Обогащение данных участника={}", participant.getId());
-        
+
         ParticipantDto dto = participantDtoMapper.toDto(participant);
 
         Set<EntityLinkDto> activities = participant.getRounds().stream()
                 .map(RoundEntity::getMilestone)
                 .map(MilestoneEntity::getActivity)
                 .map(entityLinkMapper::toEntityLinkDto).collect(Collectors.toSet());
-        
+
         log.debug("Найдено {} активностей для участника={}", activities.size(), participant.getId());
-        
+
         Preconditions.checkArgument(activities.size() == 1, "Неконсистентное состояние, " +
                 "участник находится в нескольких активностях: " + activities);
         // Устанавливаем активность из раундов
@@ -234,7 +234,7 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .map(RoundEntity::getMilestone)
                 .map(entityLinkMapper::toEntityLinkDto)
                 .collect(Collectors.toSet());
-        
+
         log.debug("Найдено {} этапов для участника={}", milestones.size(), participant.getId());
         dto.setMilestones(milestones);
 

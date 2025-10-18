@@ -101,9 +101,9 @@ public class OccasionServiceImpl implements OccasionService {
      */
     private OccasionDto enrichOccasionDtoWithStatistics(OccasionEntity occasion) {
         log.debug("Обогащение статистикой мероприятия={}", occasion.getId());
-        
+
         OccasionDto dto = occasionDtoMapper.toDto(occasion);
-        
+
         int completedCount = (int) occasion.getActivities().stream()
                 .filter(activity -> activity.getState() == ActivityState.COMPLETED)
                 .count();
@@ -111,10 +111,10 @@ public class OccasionServiceImpl implements OccasionService {
                 .filter(activity -> activity.getState() == ActivityState.PLANNED || activity.getState() == ActivityState.IN_PROGRESS)
                 .count();
         int totalCount = occasion.getActivities().size();
-        
-        log.debug("Статистика активностей для мероприятия={}: завершено={}, активных={}, всего={}", 
+
+        log.debug("Статистика активностей для мероприятия={}: завершено={}, активных={}, всего={}",
                 occasion.getId(), completedCount, activeCount, totalCount);
-        
+
         dto.setCompletedActivitiesCount(completedCount);
         dto.setActiveActivitiesCount(activeCount);
         dto.setTotalActivitiesCount(totalCount);

@@ -67,15 +67,15 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
     @Override
     @Transactional
     public MilestoneCriteriaAssignmentDto create(CreateMilestoneCriteriaAssignmentRequest request) {
-        log.info("Создание назначения критерия: правило этапа={}, критерий={}", 
+        log.info("Создание назначения критерия: правило этапа={}, критерий={}",
                 request.getMilestoneRuleId(), request.getCriteriaId());
-        
+
         Preconditions.checkArgument(request.getMilestoneRuleId() != null, "Milestone rule ID не может быть null");
         Preconditions.checkArgument(request.getCriteriaId() != null, "Criteria ID не может быть null");
 
         // Проверяем, что назначение еще не существует
         if (milestoneCriteriaAssignmentRepository.existsByMilestoneRuleIdAndCriteriaId(request.getMilestoneRuleId(), request.getCriteriaId())) {
-            log.warn("Попытка создания дублирующего назначения: правило этапа={}, критерий={}", 
+            log.warn("Попытка создания дублирующего назначения: правило этапа={}, критерий={}",
                     request.getMilestoneRuleId(), request.getCriteriaId());
             throw new IllegalArgumentException("Критерий уже назначен на этот этап");
         }
@@ -88,7 +88,7 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
         CriteriaEntity criteria = criteriaRepository.findById(request.getCriteriaId())
                 .orElseThrow(() -> new EntityNotFoundException("Критерий не найден с id: " + request.getCriteriaId()));
 
-        log.debug("Найдены правило этапа={} и критерий={} для создания назначения", 
+        log.debug("Найдены правило этапа={} и критерий={} для создания назначения",
                 milestoneRule.getId(), criteria.getId());
 
         // Создаем сущность назначения
@@ -103,9 +103,9 @@ public class MilestoneCriteriaAssignmentServiceImpl implements MilestoneCriteria
     }
 
     private void validateScale(MilestoneRuleEntity milestoneRule, MilestoneCriteriaAssignmentEntity assignment) {
-        log.debug("Валидация шкалы для режима оценки={}, шкала={}, вес={}", 
+        log.debug("Валидация шкалы для режима оценки={}, шкала={}, вес={}",
                 milestoneRule.getAssessmentMode(), assignment.getScale(), assignment.getWeight());
-        
+
         switch (milestoneRule.getAssessmentMode()) {
             case PASS -> {
                 log.debug("Валидация режима PASS: шкала должна быть 1, количество критериев должно быть 1");

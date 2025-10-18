@@ -1,4 +1,4 @@
-package org.bn.sensation.core.judge.service;
+package org.bn.sensation.core.judgeroundstatus.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,7 +17,6 @@ import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
-import org.bn.sensation.core.judgeroundstatus.service.JudgeRoundStatusService;
 import org.bn.sensation.core.judgeroundstatus.service.dto.JudgeRoundStatusDto;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
@@ -164,7 +163,6 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
         // Create test round
         testRound = RoundEntity.builder()
                 .name("Test Round")
-                .description("Test Round Description")
                 .state(RoundState.IN_PROGRESS)
                 .milestone(testMilestone)
                 .build();
@@ -395,7 +393,6 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
         // Create round in DRAFT state
         final RoundEntity draftRound = RoundEntity.builder()
                 .name("Draft Round")
-                .description("Draft Round Description")
                 .state(RoundState.DRAFT)
                 .milestone(testMilestone)
                 .build();

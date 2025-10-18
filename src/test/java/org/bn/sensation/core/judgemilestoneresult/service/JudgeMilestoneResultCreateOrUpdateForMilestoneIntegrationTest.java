@@ -1,4 +1,4 @@
-package org.bn.sensation.core.judge.service;
+package org.bn.sensation.core.judgemilestoneresult.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -222,7 +222,6 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
         // Create test round
         testRound = RoundEntity.builder()
                 .name("Test Round")
-                .description("Test Round Description")
                 .state(RoundState.IN_PROGRESS)
                 .milestone(testMilestone)
                 .build();

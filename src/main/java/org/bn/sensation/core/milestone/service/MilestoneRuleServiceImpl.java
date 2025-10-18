@@ -54,9 +54,9 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
     @Override
     @Transactional
     public MilestoneRuleDto create(CreateMilestoneRuleRequest request) {
-        log.info("Создание правила этапа: этап={}, режим оценки={}", 
+        log.info("Создание правила этапа: этап={}, режим оценки={}",
                 request.getMilestoneId(), request.getAssessmentMode());
-        
+
         Preconditions.checkArgument(request.getMilestoneId() != null, "Milestone ID не может быть null");
 
         // Валидация roundParticipantLimit
@@ -133,16 +133,16 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
     }
 
     private void validateRoundParticipantLimit(Integer participantLimit, Integer roundParticipantLimit) {
-        log.debug("Валидация лимитов участников: лимит этапа={}, лимит раунда={}", 
+        log.debug("Валидация лимитов участников: лимит этапа={}, лимит раунда={}",
                 participantLimit, roundParticipantLimit);
-        
+
         if (participantLimit != null && roundParticipantLimit != null &&
             roundParticipantLimit > participantLimit) {
-            log.warn("Недопустимые лимиты: лимит раунда={} больше лимита этапа={}", 
+            log.warn("Недопустимые лимиты: лимит раунда={} больше лимита этапа={}",
                     roundParticipantLimit, participantLimit);
             throw new IllegalArgumentException("roundParticipantLimit должен быть меньше или равен participantLimit");
         }
-        
+
         log.debug("Валидация лимитов участников прошла успешно");
     }
 }

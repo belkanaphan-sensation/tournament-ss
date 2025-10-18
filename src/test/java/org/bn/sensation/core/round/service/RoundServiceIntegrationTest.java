@@ -253,7 +253,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         testRound = RoundEntity.builder()
                 .name("Test Round")
                 .state(RoundState.DRAFT)
-                .description("Test Round Description")
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
                 .build();
@@ -284,7 +283,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         Optional<RoundEntity> savedRound = roundRepository.findById(result.getId());
         assertTrue(savedRound.isPresent());
         assertEquals(request.getName(), savedRound.get().getName());
-        assertEquals(request.getDescription(), savedRound.get().getDescription());
         assertEquals(testMilestone.getId(), savedRound.get().getMilestone().getId());
 
         // Verify that judge statuses were created for all judges
@@ -343,7 +341,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         Optional<RoundEntity> updatedRound = roundRepository.findById(testRound.getId());
         assertTrue(updatedRound.isPresent());
         assertEquals(request.getName(), updatedRound.get().getName());
-        assertEquals(request.getDescription(), updatedRound.get().getDescription());
         assertEquals(1, updatedRound.get().getParticipants().size());
         assertTrue(updatedRound.get().getParticipants().contains(testParticipant));
     }
@@ -379,7 +376,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Create additional rounds
         RoundEntity round2 = RoundEntity.builder()
                 .name("Round 2")
-                .description("Round 2 Description")
                 .state(RoundState.DRAFT)
                 .milestone(testMilestone)
                 .build();
@@ -387,7 +383,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         RoundEntity round3 = RoundEntity.builder()
                 .name("Round 3")
-                .description("Round 3 Description")
                 .state(RoundState.DRAFT)
                 .milestone(testMilestone1)
                 .build();
@@ -468,7 +463,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Given - Create additional rounds with different states
         RoundEntity plannedRound = RoundEntity.builder()
                 .name("Planned Round")
-                .description("Planned Round Description")
                 .state(RoundState.PLANNED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
@@ -477,7 +471,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         RoundEntity inProgressRound = RoundEntity.builder()
                 .name("In Progress Round")
-                .description("In Progress Round Description")
                 .state(RoundState.IN_PROGRESS)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
@@ -486,7 +479,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         RoundEntity readyRound = RoundEntity.builder()
                 .name("Ready Round")
-                .description("Ready Round Description")
                 .state(RoundState.READY)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
@@ -495,7 +487,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         RoundEntity completedRound = RoundEntity.builder()
                 .name("Completed Round")
-                .description("Completed Round Description")
                 .state(RoundState.COMPLETED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
@@ -586,7 +577,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Given - Create a draft round (should be excluded)
         RoundEntity draftRound = RoundEntity.builder()
                 .name("Draft Round")
-                .description("Draft Round Description")
                 .state(RoundState.DRAFT)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
@@ -595,7 +585,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         RoundEntity plannedRound = RoundEntity.builder()
                 .name("Planned Round")
-                .description("Planned Round Description")
                 .state(RoundState.PLANNED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))

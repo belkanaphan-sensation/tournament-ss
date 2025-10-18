@@ -465,7 +465,6 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         return transactionTemplate.execute(status1 -> {
             RoundEntity round = RoundEntity.builder()
                     .name(name)
-                    .description("Test Description")
                     .state(state)
                     .milestone(milestone)
                     .build();

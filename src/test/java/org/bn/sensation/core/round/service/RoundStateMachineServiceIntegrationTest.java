@@ -166,7 +166,6 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         testRound = RoundEntity.builder()
                 .name("Test Round")
                 .state(RoundState.DRAFT)
-                .description("Test Round Description")
                 .milestone(testMilestone)
                 .participants(new HashSet<>())
                 .build();

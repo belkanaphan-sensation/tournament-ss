@@ -1,4 +1,4 @@
-package org.bn.sensation.core.milestone.service;
+package org.bn.sensation.core.milestoneresult.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,7 +34,6 @@ import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
 import org.bn.sensation.core.milestoneresult.entity.PassStatus;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.repository.MilestoneRuleRepository;
-import org.bn.sensation.core.milestoneresult.service.MilestoneResultService;
 import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
@@ -250,7 +249,6 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         // Create test round
         testRound = RoundEntity.builder()
                 .name("Test Round")
-                .description("Test Round Description")
                 .state(RoundState.IN_PROGRESS)
                 .milestone(testMilestone)
                 .participants(new HashSet<>())

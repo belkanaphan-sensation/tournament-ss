@@ -73,14 +73,14 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional(readOnly = true)
     public List<ActivityDto> findByOccasionIdInLifeStatesForCurrentUser(Long id) {
-        log.info("Поиск активностей в жизненных состояниях для мероприятия={}, пользователь={}", 
+        log.info("Поиск активностей в жизненных состояниях для мероприятия={}, пользователь={}",
                 id, currentUser.getSecurityUser().getId());
-        
+
         Preconditions.checkArgument(id != null, "ID мероприятия не может быть null");
         List<ActivityDto> result = activityRepository.findByOccasionIdAndUserIdAndStateIn(id, currentUser.getSecurityUser().getId(), ActivityState.LIFE_ACTIVITY_STATES).stream()
                 .map(this::enrichActivityDtoWithStatistics)
                 .toList();
-        
+
         log.debug("Найдено {} активностей в жизненных состояниях для мероприятия={}", result.size(), id);
         return result;
     }
@@ -96,7 +96,7 @@ public class ActivityServiceImpl implements ActivityService {
     @Transactional
     public ActivityDto create(CreateActivityRequest request) {
         log.info("Создание активности: название={}, мероприятие={}", request.getName(), request.getOccasionId());
-        
+
         // Проверяем существование события
         OccasionEntity occasion = occasionRepository.findById(request.getOccasionId())
                 .orElseThrow(() -> new EntityNotFoundException("Событие не найдено с id: " + request.getOccasionId()));
@@ -163,18 +163,18 @@ public class ActivityServiceImpl implements ActivityService {
      */
     private ActivityDto enrichActivityDtoWithStatistics(ActivityEntity activity) {
         log.debug("Обогащение статистикой активности={}", activity.getId());
-        
+
         ActivityDto dto = activityDtoMapper.toDto(activity);
-        
+
         int completedCount = (int) activity.getMilestones()
                 .stream()
                 .filter(ms -> ms.getState() == MilestoneState.COMPLETED)
                 .count();
         int totalCount = activity.getMilestones().size();
-        
-        log.debug("Статистика этапов для активности={}: завершено={}, всего={}", 
+
+        log.debug("Статистика этапов для активности={}: завершено={}, всего={}",
                 activity.getId(), completedCount, totalCount);
-        
+
         dto.setCompletedMilestonesCount(completedCount);
         dto.setTotalMilestonesCount(totalCount);
         return dto;

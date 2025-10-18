@@ -14,7 +14,6 @@ public interface RoundWithJRStatusMapper {
 
     @Mapping(target = "id", source = "roundEntity.id")
     @Mapping(target = "name", source = "roundEntity.name")
-    @Mapping(target = "description", source = "roundEntity.description")
     @Mapping(target = "activity", source = "roundEntity.milestone.activity")
     @Mapping(target = "milestone", source = "roundEntity.milestone")
     @Mapping(target = "participants", source = "roundEntity.participants")

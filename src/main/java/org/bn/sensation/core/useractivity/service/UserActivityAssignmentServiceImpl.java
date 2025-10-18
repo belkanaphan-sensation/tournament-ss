@@ -59,16 +59,16 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
     @Override
     @Transactional
     public UserActivityAssignmentDto create(CreateUserActivityAssignmentRequest request) {
-        log.info("Создание назначения пользователя: пользователь={}, активность={}, роль={}", 
+        log.info("Создание назначения пользователя: пользователь={}, активность={}, роль={}",
                 request.getUserId(), request.getActivityId(), request.getPosition());
-        
+
         Preconditions.checkArgument(request.getUserId() != null, "User ID не может быть null");
         Preconditions.checkArgument(request.getActivityId() != null, "Activity ID не может быть null");
         Preconditions.checkArgument(request.getPosition() != null, "Role не может быть null");
 
         // Проверяем, что назначение еще не существует
         if (userActivityAssignmentRepository.existsByUserIdAndActivityId(request.getUserId(), request.getActivityId())) {
-            log.warn("Попытка создания дублирующего назначения: пользователь={}, активность={}", 
+            log.warn("Попытка создания дублирующего назначения: пользователь={}, активность={}",
                     request.getUserId(), request.getActivityId());
             throw new IllegalArgumentException("Пользователь уже назначен на эту активность");
         }
@@ -81,7 +81,7 @@ public class UserActivityAssignmentServiceImpl implements UserActivityAssignment
         ActivityEntity activity = activityRepository.findById(request.getActivityId())
                 .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + request.getActivityId()));
 
-        log.debug("Найдены пользователь={} и активность={} для создания назначения", 
+        log.debug("Найдены пользователь={} и активность={} для создания назначения",
                 user.getId(), activity.getId());
 
         // Бизнес-правило: только один главный судья на активность

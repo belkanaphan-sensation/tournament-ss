@@ -51,7 +51,7 @@ public class CriteriaServiceImpl implements CriteriaService {
     @Transactional
     public CriteriaDto create(CriteriaRequest request) {
         log.info("Создание критерия: название={}", request.getName());
-        
+
         Preconditions.checkArgument(StringUtils.hasText(request.getName()), "Название критерия не может быть пустым");
 
         // Проверяем уникальность названия
@@ -101,7 +101,7 @@ public class CriteriaServiceImpl implements CriteriaService {
     @Transactional
     public void deleteById(Long id) {
         log.info("Удаление критерия с id={}", id);
-        
+
         CriteriaEntity criteria = criteriaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Критерий не найден с id: " + id));
 
