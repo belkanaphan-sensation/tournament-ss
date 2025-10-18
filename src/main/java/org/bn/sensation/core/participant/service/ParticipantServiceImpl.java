@@ -25,7 +25,7 @@ import org.bn.sensation.core.participant.service.mapper.RoundParticipantsDtoMapp
 import org.bn.sensation.core.participant.service.mapper.UpdateParticipantRequestMapper;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
+import org.bn.sensation.core.useractivity.entity.UserActivityAssignmentEntity;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

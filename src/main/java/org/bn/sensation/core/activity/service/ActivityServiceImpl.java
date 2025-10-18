@@ -19,7 +19,7 @@ import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
-import org.bn.sensation.core.user.repository.UserActivityAssignmentRepository;
+import org.bn.sensation.core.useractivity.repository.UserActivityAssignmentRepository;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

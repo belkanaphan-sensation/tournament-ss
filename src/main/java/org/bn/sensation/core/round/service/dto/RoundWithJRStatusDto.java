@@ -1,6 +1,6 @@
 package org.bn.sensation.core.round.service.dto;
 
-import org.bn.sensation.core.judge.entity.JudgeRoundStatus;
+import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

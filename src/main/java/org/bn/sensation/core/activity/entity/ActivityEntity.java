@@ -9,7 +9,7 @@ import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
-import org.bn.sensation.core.user.entity.UserActivityAssignmentEntity;
+import org.bn.sensation.core.useractivity.entity.UserActivityAssignmentEntity;
 
 import jakarta.persistence.*;
 import lombok.*;

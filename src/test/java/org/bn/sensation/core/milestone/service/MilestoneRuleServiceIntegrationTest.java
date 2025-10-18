@@ -15,7 +15,7 @@ import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.criteria.entity.CriteriaEntity;
 import org.bn.sensation.core.criteria.repository.CriteriaRepository;
-import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
+import org.bn.sensation.core.milestonecriteria.repository.MilestoneCriteriaAssignmentRepository;
 import org.bn.sensation.core.milestone.entity.AssessmentMode;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;

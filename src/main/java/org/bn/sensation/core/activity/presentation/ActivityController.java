@@ -5,7 +5,7 @@ import java.util.List;
 import org.bn.sensation.core.activity.service.ActivityService;
 import org.bn.sensation.core.activity.service.ActivityStateMachineService;
 import org.bn.sensation.core.activity.service.dto.ActivityDto;
-import org.bn.sensation.core.activity.service.dto.ActivityResultDto;
+import org.bn.sensation.core.activityresult.service.dto.ActivityResultDto;
 import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.common.dto.EntityLinkDto;

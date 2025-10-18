@@ -2,7 +2,7 @@ package org.bn.sensation.core.round.service.mapper;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.mapper.EntityLinkMapper;
-import org.bn.sensation.core.judge.entity.JudgeRoundStatusEntity;
+import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.service.dto.RoundWithJRStatusDto;
 import org.mapstruct.Mapper;

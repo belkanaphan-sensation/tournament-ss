@@ -8,7 +8,7 @@ import org.bn.sensation.core.criteria.service.dto.CriteriaRequest;
 import org.bn.sensation.core.criteria.service.dto.CriteriaDto;
 import org.bn.sensation.core.criteria.service.mapper.CriteriaDtoMapper;
 import org.bn.sensation.core.criteria.service.mapper.CriteriaRequestMapper;
-import org.bn.sensation.core.criteria.repository.MilestoneCriteriaAssignmentRepository;
+import org.bn.sensation.core.milestonecriteria.repository.MilestoneCriteriaAssignmentRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
