@@ -194,9 +194,59 @@ databaseChangeLog:
               -- Этап 3: 2 раунда
               ('Раунд 1', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Финал'), false, 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
 
-  # Test data for rounds_participants_association with progressive selection
+  # Test data for milestones_participants_association with progressive selection
   - changeSet:
       id: 2025-10-08-14
+      author: system
+      context: test_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO milestones_participants_association (participant_id, milestone_id) VALUES
+              -- Раунд 1.1: 5 пар
+              ((SELECT id FROM participant WHERE number = '001-L'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '002-L'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '003-L'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '004-L'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '005-L'), (select id from milestone where name = 'Отборочный')),
+
+              ((SELECT id FROM participant WHERE number = '001-F'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '002-F'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '003-F'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '004-F'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '005-F'), (select id from milestone where name = 'Отборочный')),
+              
+              -- Раунд 2: 5 пар на оценку и 2 парнерши с ассистентами
+              ((SELECT id FROM participant WHERE number = '006-L'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '007-L'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '008-L'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '009-L'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '010-L'), (select id from milestone where name = 'Отборочный')),
+              
+              ((SELECT id FROM participant WHERE number = '006-F'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '007-F'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '008-F'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '009-F'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '010-F'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '011-F'), (select id from milestone where name = 'Отборочный')),
+              ((SELECT id FROM participant WHERE number = '012-F'), (select id from milestone where name = 'Отборочный')),
+
+              ((SELECT id FROM participant WHERE number = '001-L'), (select id from milestone where name = 'Финал')),
+              ((SELECT id FROM participant WHERE number = '002-L'), (select id from milestone where name = 'Финал')),
+              ((SELECT id FROM participant WHERE number = '003-L'), (select id from milestone where name = 'Финал')),
+              ((SELECT id FROM participant WHERE number = '004-L'), (select id from milestone where name = 'Финал')),
+              ((SELECT id FROM participant WHERE number = '005-L'), (select id from milestone where name = 'Финал')),
+
+              ((SELECT id FROM participant WHERE number = '001-F'), (select id from milestone where name = 'Финал')),
+              ((SELECT id FROM participant WHERE number = '002-F'), (select id from milestone where name = 'Финал')),
+              ((SELECT id FROM participant WHERE number = '003-F'), (select id from milestone where name = 'Финал')),
+              ((SELECT id FROM participant WHERE number = '004-F'), (select id from milestone where name = 'Финал')),
+              ((SELECT id FROM participant WHERE number = '005-F'), (select id from milestone where name = 'Финал'));
+
+
+  # Test data for rounds_participants_association with progressive selection
+  - changeSet:
+      id: 2025-10-08-15
       author: system
       context: test_data
       changes:
@@ -245,7 +295,7 @@ databaseChangeLog:
 
   # Test data for user_activity_assignment (judges for school activity)
   - changeSet:
-      id: 2025-10-08-15
+      id: 2025-10-08-16
       author: system
       context: test_data
       changes:
@@ -262,7 +312,7 @@ databaseChangeLog:
 
   # Test data for users_organizations_association (judges to organization)
   - changeSet:
-      id: 2025-10-08-16
+      id: 2025-10-08-17
       author: system
       context: test_data
       changes:
@@ -276,7 +326,7 @@ databaseChangeLog:
 
     # Test data for judge_round_status
   - changeSet:
-      id: 2025-10-08-17
+      id: 2025-10-08-18
       author: system
       context: test_data
       changes:

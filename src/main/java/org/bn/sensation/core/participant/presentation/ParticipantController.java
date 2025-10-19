@@ -102,4 +102,20 @@ public class ParticipantController {
         ParticipantDto updated = participantService.removeParticipantFromRound(participantId, roundId);
         return ResponseEntity.ok(updated);
     }
+
+    @Operation(summary = "Привязать участника к этапу")
+    @PostMapping("/{participantId}/milestones/{milestoneId}")
+    public ResponseEntity<ParticipantDto> addParticipantToMilestone(@PathVariable Long participantId,
+                                                                @PathVariable Long milestoneId) {
+        ParticipantDto updated = participantService.assignParticipantToMilestone(participantId, milestoneId);
+        return ResponseEntity.ok(updated);
+    }
+
+    @Operation(summary = "Отвязать участника от этапа")
+    @DeleteMapping("/{participantId}/milestones/{milestoneId}")
+    public ResponseEntity<ParticipantDto> removeParticipantFromMilestone(@PathVariable Long participantId,
+                                                                     @PathVariable Long milestoneId) {
+        ParticipantDto updated = participantService.removeParticipantFromMilestone(participantId, milestoneId);
+        return ResponseEntity.ok(updated);
+    }
 }

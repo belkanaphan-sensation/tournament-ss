@@ -15,5 +15,6 @@ public interface ParticipantDtoMapper extends BaseDtoMapper<ParticipantEntity, P
 
     @Override
     @Mapping(target = "rounds", source = "rounds")
+    @Mapping(target = "milestones", source = "milestones")
     ParticipantDto toDto(ParticipantEntity entity);
 }

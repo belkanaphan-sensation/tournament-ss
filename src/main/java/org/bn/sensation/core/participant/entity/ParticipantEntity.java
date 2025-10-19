@@ -7,6 +7,7 @@ import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.Person;
+import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.round.entity.RoundEntity;
 
 import jakarta.persistence.*;
@@ -45,4 +46,11 @@ public class ParticipantEntity extends BaseEntity {
     @Builder.Default
     private Set<RoundEntity> rounds = new HashSet<>();
 
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "milestones_participants_association",
+            joinColumns = @JoinColumn(name = "participant_id"),
+            inverseJoinColumns = @JoinColumn(name = "milestone_id"))
+    @Builder.Default
+    private Set<MilestoneEntity> milestones = new HashSet<>();
 }

@@ -39,3 +39,23 @@ databaseChangeLog:
         - sql:
             sql: |
               DROP TABLE IF EXISTS rounds_participants_association;
+  # Create milestones_participants_association
+  - changeSet:
+      id: 2025-09-07-3
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS milestones_participants_association (
+                participant_id BIGINT NOT NULL,
+                milestone_id BIGINT NOT NULL,
+                PRIMARY KEY (participant_id, milestone_id),
+                FOREIGN KEY (participant_id) REFERENCES participant(id) ON DELETE CASCADE,
+                FOREIGN KEY (milestone_id) REFERENCES milestone(id) ON DELETE CASCADE
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS milestones_participants_association;

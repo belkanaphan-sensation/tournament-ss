@@ -19,6 +19,10 @@ public interface ParticipantService extends BaseCrudService<
 
     ParticipantDto removeParticipantFromRound(Long participantId, Long roundId);
 
+    ParticipantDto assignParticipantToMilestone(Long participantId, Long milestoneId);
+
+    ParticipantDto removeParticipantFromMilestone(Long participantId, Long milestoneId);
+
     List<ParticipantDto> findByRoundId(Long roundId);
 
     List<ParticipantDto> getByRoundByRoundIdForCurrentUser(Long roundId);

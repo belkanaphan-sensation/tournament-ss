@@ -134,12 +134,12 @@ public class RoundServiceImpl implements RoundService {
         RoundEntity round = roundRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + id));
         Integer roundOrder = round.getRoundOrder();
-        Set<RoundEntity> reodered = roundRepository.findByMilestoneIdAndRoundOrder(round.getMilestone().getId(), roundOrder)
+        Set<RoundEntity> reordered = roundRepository.findByMilestoneIdAndRoundOrder(round.getMilestone().getId(), roundOrder)
                 .stream().sorted(Comparator.comparing(RoundEntity::getRoundOrder))
                 .peek(r -> r.setRoundOrder(r.getRoundOrder() - 1))
                 .collect(Collectors.toSet());
         roundRepository.deleteById(id);
-        roundRepository.saveAll(reodered);
+        roundRepository.saveAll(reordered);
     }
 
     @Override
