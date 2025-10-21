@@ -28,40 +28,56 @@ public class ActivityStateMachineConfig extends EnumStateMachineConfigurerAdapte
     @Override
     public void configure(StateMachineConfigurationConfigurer<ActivityState, ActivityEvent> config) throws Exception {
         config
-            .withConfiguration()
-            .autoStartup(false)
-            .listener(activityStateMachineListener);
+                .withConfiguration()
+                .autoStartup(false)
+                .listener(activityStateMachineListener);
     }
 
     @Override
     public void configure(StateMachineStateConfigurer<ActivityState, ActivityEvent> states) throws Exception {
         states
-            .withStates()
-            .initial(ActivityState.DRAFT)
-            .states(EnumSet.allOf(ActivityState.class));
+                .withStates()
+                .initial(ActivityState.DRAFT)
+                .states(EnumSet.allOf(ActivityState.class));
     }
 
     @Override
     public void configure(StateMachineTransitionConfigurer<ActivityState, ActivityEvent> transitions) throws Exception {
         transitions
-            // DRAFT -> PLANNED
-            .withExternal()
+                // DRAFT -> PLANNED
+                .withExternal()
                 .source(ActivityState.DRAFT)
                 .target(ActivityState.PLANNED)
                 .event(ActivityEvent.PLAN)
                 .guard(activityGuard)
                 .action(activityAction)
                 .and()
-            // PLANNED -> IN_PROGRESS
-            .withExternal()
+                // PLANNED -> DRAFT
+                .withExternal()
                 .source(ActivityState.PLANNED)
+                .target(ActivityState.DRAFT)
+                .event(ActivityEvent.DRAFT)
+                .guard(activityGuard)
+                .action(activityAction)
+                .and()
+                // PLANNED -> REGISTRATION_CLOSED
+                .withExternal()
+                .source(ActivityState.PLANNED)
+                .target(ActivityState.REGISTRATION_CLOSED)
+                .event(ActivityEvent.CLOSE_REGISTRATION)
+                .guard(activityGuard)
+                .action(activityAction)
+                .and()
+                // REGISTRATION_CLOSED -> IN_PROGRESS
+                .withExternal()
+                .source(ActivityState.REGISTRATION_CLOSED)
                 .target(ActivityState.IN_PROGRESS)
                 .event(ActivityEvent.START)
                 .guard(activityGuard)
                 .action(activityAction)
                 .and()
-            // IN_PROGRESS -> COMPLETED
-            .withExternal()
+                // IN_PROGRESS -> COMPLETED
+                .withExternal()
                 .source(ActivityState.IN_PROGRESS)
                 .target(ActivityState.COMPLETED)
                 .event(ActivityEvent.COMPLETE)
