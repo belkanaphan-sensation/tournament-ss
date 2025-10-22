@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import jakarta.persistence.EntityNotFoundException;
+
 public interface ParticipantRepository extends BaseRepository<ParticipantEntity> {
 
     @EntityGraph(attributePaths = {"activity", "rounds", "milestones"})
@@ -33,11 +35,15 @@ public interface ParticipantRepository extends BaseRepository<ParticipantEntity>
     @Query("SELECT p FROM ParticipantEntity p WHERE p.id IN :ids")
     List<ParticipantEntity> findAllByIdWithActivity(@Param("ids") List<Long> ids);
 
-    @EntityGraph(attributePaths = {"activity"})
-    @Query("SELECT p FROM ParticipantEntity p WHERE p.id = :id")
-    Optional<ParticipantEntity> findByIdWithActivity(@Param("id") Long id);
-
     @EntityGraph(attributePaths = {"activity", "rounds", "milestones"})
     @Query("SELECT p FROM ParticipantEntity p WHERE p.id = :id")
-    Optional<ParticipantEntity> findByIdFullEntity(@Param("id") Long id);
+    Optional<ParticipantEntity> findByIdFull(@Param("id") Long id);
+
+    default ParticipantEntity getByIdFullOrThrow(Long id) {
+        return findByIdFull(id).orElseThrow(() -> new EntityNotFoundException("Участник не найден: " + id));
+    }
+
+    default ParticipantEntity getByIdOrThrow(Long id) {
+        return findById(id).orElseThrow(() -> new EntityNotFoundException("Участник не найден: " + id));
+    }
 }

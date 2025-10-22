@@ -10,13 +10,19 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import jakarta.persistence.EntityNotFoundException;
+
 public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
 
     List<MilestoneEntity> findByActivityIdOrderByMilestoneOrderAsc(Long activityId);
 
     @EntityGraph(attributePaths = {"activity.userAssignments.user", "rounds.participants", "milestoneRule", "results"})
     @Query("SELECT m FROM MilestoneEntity m WHERE m.id = :id")
-    Optional<MilestoneEntity> findByIdFullEntity(@Param("id") Long id);
+    Optional<MilestoneEntity> findByIdFull(@Param("id") Long id);
+
+    default MilestoneEntity getByIdFullOrThrow(Long id) {
+        return findByIdFull(id).orElseThrow(() -> new EntityNotFoundException("Этап не найден: " + id));
+    }
 
     @EntityGraph(attributePaths = {"activity", "milestoneRule"})
     @Query("SELECT m FROM MilestoneEntity m WHERE m.activity.id = :activityId AND m.state IN :states")
@@ -26,4 +32,8 @@ public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
             "WHERE m.milestoneOrder = :milestoneOrder " +
             "AND m.activity.id = :activityId")
     Integer getParticipantLimitForNextMilestone(Long activityId, Integer milestoneOrder);
+
+    default MilestoneEntity getByIdOrThrow(Long id) {
+        return findById(id).orElseThrow(() -> new EntityNotFoundException("Этап не найден: " + id));
+    }
 }

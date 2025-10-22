@@ -5,7 +5,6 @@ import org.bn.sensation.core.common.mapper.EntityLinkMapper;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.service.dto.ParticipantDto;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 @Mapper(config = BaseDtoMapper.class, uses = {EntityLinkMapper.class})
 public interface ParticipantDtoMapper extends BaseDtoMapper<ParticipantEntity, ParticipantDto> {
@@ -14,7 +13,5 @@ public interface ParticipantDtoMapper extends BaseDtoMapper<ParticipantEntity, P
     ParticipantEntity toEntity(ParticipantDto dto);
 
     @Override
-    @Mapping(target = "rounds", source = "rounds")
-    @Mapping(target = "milestones", source = "milestones")
     ParticipantDto toDto(ParticipantEntity entity);
 }

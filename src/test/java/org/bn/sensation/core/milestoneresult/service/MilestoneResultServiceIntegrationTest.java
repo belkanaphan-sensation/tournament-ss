@@ -12,6 +12,7 @@ import java.util.Set;
 import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
+import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.Person;
@@ -19,10 +20,10 @@ import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
-import org.bn.sensation.core.criteria.entity.CriteriaEntity;
-import org.bn.sensation.core.milestonecriteria.entity.MilestoneCriteriaAssignmentEntity;
-import org.bn.sensation.core.criteria.repository.CriteriaRepository;
-import org.bn.sensation.core.milestonecriteria.repository.MilestoneCriteriaAssignmentRepository;
+import org.bn.sensation.core.criterion.entity.CriterionEntity;
+import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
+import org.bn.sensation.core.criterion.repository.CriterionRepository;
+import org.bn.sensation.core.milestonecriterion.repository.MilestoneCriterionRepository;
 import org.bn.sensation.core.judgemilstoneresult.entity.JudgeMilestoneResultEntity;
 import org.bn.sensation.core.judgemilestonestatus.entity.JudgeMilestoneStatus;
 import org.bn.sensation.core.judgemilestonestatus.entity.JudgeMilestoneStatusEntity;
@@ -44,10 +45,9 @@ import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.core.user.entity.*;
-import org.bn.sensation.core.useractivity.repository.UserActivityAssignmentRepository;
+import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.core.user.repository.UserRepository;
-import org.bn.sensation.core.useractivity.entity.UserActivityAssignmentEntity;
-import org.bn.sensation.core.useractivity.entity.UserActivityPosition;
+import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
 import org.bn.sensation.security.CurrentUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,7 +84,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
-    private UserActivityAssignmentRepository userActivityAssignmentRepository;
+    private ActivityUserRepository activityUserRepository;
 
     @Autowired
     private ActivityRepository activityRepository;
@@ -96,10 +96,10 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
     private OrganizationRepository organizationRepository;
 
     @Autowired
-    private CriteriaRepository criteriaRepository;
+    private CriterionRepository criterionRepository;
 
     @Autowired
-    private MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
+    private MilestoneCriterionRepository milestoneCriterionRepository;
 
     @Autowired
     private JudgeMilestoneResultRepository judgeMilestoneResultRepository;
@@ -122,13 +122,13 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
     private ParticipantEntity testParticipant1;
     private ParticipantEntity testParticipant2;
     private ParticipantEntity testParticipant3;
-    private CriteriaEntity testCriteria1;
-    private CriteriaEntity testCriteria2;
+    private CriterionEntity testCriteria1;
+    private CriterionEntity testCriteria2;
     private MilestoneRuleEntity testMilestoneRule;
-    private MilestoneCriteriaAssignmentEntity testMilestoneCriteria1;
-    private MilestoneCriteriaAssignmentEntity testMilestoneCriteria2;
-    private UserActivityAssignmentEntity testJudgeAssignment1;
-    private UserActivityAssignmentEntity testJudgeAssignment2;
+    private MilestoneCriterionEntity testMilestoneCriteria1;
+    private MilestoneCriterionEntity testMilestoneCriteria2;
+    private ActivityUserEntity testJudgeAssignment1;
+    private ActivityUserEntity testJudgeAssignment2;
 
     @BeforeEach
     void setUp() {
@@ -199,21 +199,21 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         testJudge2 = userRepository.save(testJudge2);
 
         // Create test judge assignments
-        testJudgeAssignment1 = UserActivityAssignmentEntity.builder()
+        testJudgeAssignment1 = ActivityUserEntity.builder()
                 .user(testJudge1)
                 .activity(testActivity)
                 .position(UserActivityPosition.JUDGE)
                 .partnerSide(PartnerSide.LEADER)
                 .build();
-        testJudgeAssignment1 = userActivityAssignmentRepository.save(testJudgeAssignment1);
+        testJudgeAssignment1 = activityUserRepository.save(testJudgeAssignment1);
 
-        testJudgeAssignment2 = UserActivityAssignmentEntity.builder()
+        testJudgeAssignment2 = ActivityUserEntity.builder()
                 .user(testJudge2)
                 .activity(testActivity)
                 .position(UserActivityPosition.JUDGE)
                 .partnerSide(PartnerSide.LEADER)
                 .build();
-        testJudgeAssignment2 = userActivityAssignmentRepository.save(testJudgeAssignment2);
+        testJudgeAssignment2 = activityUserRepository.save(testJudgeAssignment2);
 
         // Add judge assignments to activity
         testActivity.getUserAssignments().add(testJudgeAssignment1);
@@ -238,7 +238,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
                 .participantLimit(10)
                 .roundParticipantLimit(10)
                 .milestone(testMilestone)
-                .criteriaAssignments(new HashSet<>())
+                .milestoneCriteria(new HashSet<>())
                 .build();
         testMilestoneRule = milestoneRuleRepository.save(testMilestoneRule);
 
@@ -253,6 +253,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
                 .milestone(testMilestone)
                 .participants(new HashSet<>())
                 .extraRound(false)
+                .roundOrder(0)
                 .build();
         testRound = roundRepository.save(testRound);
 
@@ -358,38 +359,38 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         participantRepository.save(testParticipant3);
 
         // Create test criteria
-        testCriteria1 = CriteriaEntity.builder()
+        testCriteria1 = CriterionEntity.builder()
                 .name("Test Criteria 1")
                 .build();
-        testCriteria1 = criteriaRepository.save(testCriteria1);
+        testCriteria1 = criterionRepository.save(testCriteria1);
 
-        testCriteria2 = CriteriaEntity.builder()
+        testCriteria2 = CriterionEntity.builder()
                 .name("Test Criteria 2")
                 .build();
-        testCriteria2 = criteriaRepository.save(testCriteria2);
+        testCriteria2 = criterionRepository.save(testCriteria2);
 
         // Create test milestone criteria assignments
-        testMilestoneCriteria1 = MilestoneCriteriaAssignmentEntity.builder()
+        testMilestoneCriteria1 = MilestoneCriterionEntity.builder()
                 .milestoneRule(testMilestoneRule)
-                .criteria(testCriteria1)
+                .criterion(testCriteria1)
                 .partnerSide(PartnerSide.LEADER)
                 .weight(BigDecimal.valueOf(0.6))
                 .scale(10)
                 .build();
-        testMilestoneCriteria1 = milestoneCriteriaAssignmentRepository.save(testMilestoneCriteria1);
+        testMilestoneCriteria1 = milestoneCriterionRepository.save(testMilestoneCriteria1);
 
-        testMilestoneCriteria2 = MilestoneCriteriaAssignmentEntity.builder()
+        testMilestoneCriteria2 = MilestoneCriterionEntity.builder()
                 .milestoneRule(testMilestoneRule)
-                .criteria(testCriteria2)
+                .criterion(testCriteria2)
                 .partnerSide(PartnerSide.LEADER)
                 .weight(BigDecimal.valueOf(0.4))
                 .scale(10)
                 .build();
-        testMilestoneCriteria2 = milestoneCriteriaAssignmentRepository.save(testMilestoneCriteria2);
+        testMilestoneCriteria2 = milestoneCriterionRepository.save(testMilestoneCriteria2);
 
         // Add criteria assignments to milestone rule
-        testMilestoneRule.getCriteriaAssignments().add(testMilestoneCriteria1);
-        testMilestoneRule.getCriteriaAssignments().add(testMilestoneCriteria2);
+        testMilestoneRule.getMilestoneCriteria().add(testMilestoneCriteria1);
+        testMilestoneRule.getMilestoneCriteria().add(testMilestoneCriteria2);
         milestoneRuleRepository.save(testMilestoneRule);
 
         // No need to setup current user for MilestoneResultService
@@ -508,7 +509,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result1_1 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant1)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria1)
+                .milestoneCriterion(testMilestoneCriteria1)
                 .activityUser(testJudgeAssignment1)
                 .score(9)
                 .isFavorite(true)
@@ -518,7 +519,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result1_2 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant1)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria2)
+                .milestoneCriterion(testMilestoneCriteria2)
                 .activityUser(testJudgeAssignment1)
                 .score(8)
                 .isFavorite(false)
@@ -528,7 +529,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result1_3 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant1)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria1)
+                .milestoneCriterion(testMilestoneCriteria1)
                 .activityUser(testJudgeAssignment2)
                 .score(9)
                 .isFavorite(true)
@@ -538,7 +539,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result1_4 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant1)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria2)
+                .milestoneCriterion(testMilestoneCriteria2)
                 .activityUser(testJudgeAssignment2)
                 .score(8)
                 .isFavorite(false)
@@ -549,7 +550,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result2_1 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant2)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria1)
+                .milestoneCriterion(testMilestoneCriteria1)
                 .activityUser(testJudgeAssignment1)
                 .score(7)
                 .isFavorite(false)
@@ -559,7 +560,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result2_2 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant2)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria2)
+                .milestoneCriterion(testMilestoneCriteria2)
                 .activityUser(testJudgeAssignment1)
                 .score(6)
                 .isFavorite(false)
@@ -569,7 +570,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result2_3 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant2)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria1)
+                .milestoneCriterion(testMilestoneCriteria1)
                 .activityUser(testJudgeAssignment2)
                 .score(7)
                 .isFavorite(false)
@@ -579,7 +580,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result2_4 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant2)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria2)
+                .milestoneCriterion(testMilestoneCriteria2)
                 .activityUser(testJudgeAssignment2)
                 .score(6)
                 .isFavorite(false)
@@ -590,7 +591,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result3_1 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant3)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria1)
+                .milestoneCriterion(testMilestoneCriteria1)
                 .activityUser(testJudgeAssignment1)
                 .score(5)
                 .isFavorite(false)
@@ -600,7 +601,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result3_2 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant3)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria2)
+                .milestoneCriterion(testMilestoneCriteria2)
                 .activityUser(testJudgeAssignment1)
                 .score(4)
                 .isFavorite(false)
@@ -610,7 +611,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result3_3 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant3)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria1)
+                .milestoneCriterion(testMilestoneCriteria1)
                 .activityUser(testJudgeAssignment2)
                 .score(5)
                 .isFavorite(false)
@@ -620,7 +621,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result3_4 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant3)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria2)
+                .milestoneCriterion(testMilestoneCriteria2)
                 .activityUser(testJudgeAssignment2)
                 .score(4)
                 .isFavorite(false)
@@ -649,7 +650,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result1_1 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant1)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria1)
+                .milestoneCriterion(testMilestoneCriteria1)
                 .activityUser(testJudgeAssignment1)
                 .score(8)
                 .isFavorite(false)
@@ -659,7 +660,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result1_2 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant1)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria2)
+                .milestoneCriterion(testMilestoneCriteria2)
                 .activityUser(testJudgeAssignment1)
                 .score(7)
                 .isFavorite(false)
@@ -669,7 +670,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result1_3 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant1)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria1)
+                .milestoneCriterion(testMilestoneCriteria1)
                 .activityUser(testJudgeAssignment2)
                 .score(8)
                 .isFavorite(false)
@@ -679,7 +680,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result1_4 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant1)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria2)
+                .milestoneCriterion(testMilestoneCriteria2)
                 .activityUser(testJudgeAssignment2)
                 .score(7)
                 .isFavorite(false)
@@ -690,7 +691,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result2_1 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant2)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria1)
+                .milestoneCriterion(testMilestoneCriteria1)
                 .activityUser(testJudgeAssignment1)
                 .score(8)
                 .isFavorite(false)
@@ -700,7 +701,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result2_2 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant2)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria2)
+                .milestoneCriterion(testMilestoneCriteria2)
                 .activityUser(testJudgeAssignment1)
                 .score(7)
                 .isFavorite(false)
@@ -710,7 +711,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result2_3 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant2)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria1)
+                .milestoneCriterion(testMilestoneCriteria1)
                 .activityUser(testJudgeAssignment2)
                 .score(8)
                 .isFavorite(false)
@@ -720,7 +721,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result2_4 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant2)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria2)
+                .milestoneCriterion(testMilestoneCriteria2)
                 .activityUser(testJudgeAssignment2)
                 .score(7)
                 .isFavorite(false)
@@ -731,7 +732,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result3_1 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant3)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria1)
+                .milestoneCriterion(testMilestoneCriteria1)
                 .activityUser(testJudgeAssignment1)
                 .score(8)
                 .isFavorite(false)
@@ -741,7 +742,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result3_2 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant3)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria2)
+                .milestoneCriterion(testMilestoneCriteria2)
                 .activityUser(testJudgeAssignment1)
                 .score(7)
                 .isFavorite(false)
@@ -751,7 +752,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result3_3 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant3)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria1)
+                .milestoneCriterion(testMilestoneCriteria1)
                 .activityUser(testJudgeAssignment2)
                 .score(8)
                 .isFavorite(false)
@@ -761,7 +762,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result3_4 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant3)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria2)
+                .milestoneCriterion(testMilestoneCriteria2)
                 .activityUser(testJudgeAssignment2)
                 .score(7)
                 .isFavorite(false)
@@ -782,7 +783,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result1_1 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant1)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria1)
+                .milestoneCriterion(testMilestoneCriteria1)
                 .activityUser(testJudgeAssignment1)
                 .score(9)
                 .isFavorite(true)
@@ -792,7 +793,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         JudgeMilestoneResultEntity result1_2 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant1)
                 .round(testRound)
-                .milestoneCriteria(testMilestoneCriteria2)
+                .milestoneCriterion(testMilestoneCriteria2)
                 .activityUser(testJudgeAssignment1)
                 .score(8)
                 .isFavorite(false)

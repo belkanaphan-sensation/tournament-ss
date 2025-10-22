@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
-import org.bn.sensation.core.milestonecriteria.entity.MilestoneCriteriaAssignmentEntity;
+import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
 
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -43,5 +43,5 @@ public class MilestoneRuleEntity extends BaseEntity {
             cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
             orphanRemoval = true)
     @Builder.Default
-    private Set<MilestoneCriteriaAssignmentEntity> criteriaAssignments = new HashSet<>();
+    private Set<MilestoneCriterionEntity> milestoneCriteria = new HashSet<>();
 }

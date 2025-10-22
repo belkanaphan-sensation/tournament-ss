@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.common.statemachine.event.RoundEvent;
@@ -26,7 +27,7 @@ import org.bn.sensation.core.round.service.mapper.CreateRoundRequestMapper;
 import org.bn.sensation.core.round.service.mapper.RoundDtoMapper;
 import org.bn.sensation.core.round.service.mapper.RoundWithJRStatusMapper;
 import org.bn.sensation.core.round.service.mapper.UpdateRoundRequestMapper;
-import org.bn.sensation.core.useractivity.entity.UserActivityAssignmentEntity;
+import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -76,8 +77,7 @@ public class RoundServiceImpl implements RoundService {
         log.info("Создание раунда: название={}, этап={}", request.getName(), request.getMilestoneId());
 
         // Проверяем существование этапа
-        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(request.getMilestoneId())
-                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + request.getMilestoneId()));
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(request.getMilestoneId());
 
         log.debug("Найден этап={} для создания раунда", milestone.getId());
 
@@ -93,7 +93,7 @@ public class RoundServiceImpl implements RoundService {
 
         // Создаем статусы для судей
         int judgeStatusCount = 0;
-        for (UserActivityAssignmentEntity au : milestone.getActivity().getUserAssignments()) {
+        for (ActivityUserEntity au : milestone.getActivity().getUserAssignments()) {
             if (au.getPosition().isJudge()) {
                 JudgeRoundStatusEntity judgeRoundStatus = new JudgeRoundStatusEntity();
                 judgeRoundStatus.setRound(saved);
@@ -112,13 +112,10 @@ public class RoundServiceImpl implements RoundService {
     @Override
     @Transactional
     public RoundDto update(Long id, UpdateRoundRequest request) {
-        RoundEntity round = roundRepository.findByIdWithActivity(id)
-                .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + id));
-
+        RoundEntity round = roundRepository.getByIdOrThrow(id);
         if (request.getName() != null) {
             Preconditions.checkArgument(!request.getName().trim().isEmpty(), "Название раунда не может быть пустым");
         }
-
         updateRoundRequestMapper.updateRoundFromRequest(request, round);
 
         addParticipants(request.getParticipantIds(), round.getMilestone(), round);
@@ -159,18 +156,15 @@ public class RoundServiceImpl implements RoundService {
                 milestoneId, currentUser.getSecurityUser().getId());
 
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
-        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId)
-                .orElseThrow(EntityNotFoundException::new);
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
 
-        UserActivityAssignmentEntity judge = milestone.getActivity().getUserAssignments()
-                .stream()
-                .filter(ua ->
+        Long userId = currentUser.getSecurityUser().getId();
+        ActivityUserEntity judge = ActivityUserUtil.getFromActivity(
+                milestone.getActivity(), userId, ua ->
                         ua.getUser()
                                 .getId()
                                 .equals(currentUser.getSecurityUser().getId())
-                                && ua.getPosition().isJudge())
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("Юзер с id %s не привязан к этапу с id: %s".formatted(currentUser.getSecurityUser().getId(), milestoneId)));
+                                && ua.getPosition().isJudge());
 
         log.debug("Найден судья={} для этапа={}", judge.getId(), milestoneId);
 

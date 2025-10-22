@@ -69,8 +69,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         log.info("Расчет результатов для этапа={}", milestoneId);
 
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
-        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId)
-                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
 
         Map<Long, JudgeMilestoneStatusEntity> judgeResults = judgeMilestoneStatusRepository.findByMilestoneId(milestoneId)
                 .stream()
@@ -167,11 +166,11 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
 
         double totalScore = participantResults.stream()
             .mapToDouble(pr -> {
-                double weightedScore = pr.getMilestoneCriteria().getWeight()
+                double weightedScore = pr.getMilestoneCriterion().getWeight()
                     .multiply(new BigDecimal(pr.getScore())).doubleValue();
                 log.debug("Расчет взвешенной оценки: критерий={}, вес={}, оценка={}, результат={}",
-                        pr.getMilestoneCriteria().getCriteria().getName(),
-                        pr.getMilestoneCriteria().getWeight(),
+                        pr.getMilestoneCriterion().getCriterion().getName(),
+                        pr.getMilestoneCriterion().getWeight(),
                         pr.getScore(),
                         weightedScore);
                 return weightedScore;
@@ -249,11 +248,9 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         Preconditions.checkArgument(request.getParticipantId() != null, "Participant ID не может быть null");
 //        Preconditions.checkArgument(request.getRoundId() != null, "Round ID не может быть null");
 
-        MilestoneEntity milestone = milestoneRepository.findById(request.getMilestoneId())
-                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + request.getMilestoneId()));
+        MilestoneEntity milestone = milestoneRepository.getByIdOrThrow(request.getMilestoneId());
 
-        ParticipantEntity participant = participantRepository.findById(request.getParticipantId())
-                .orElseThrow(() -> new EntityNotFoundException("Участник не найден с id: " + request.getParticipantId()));
+        ParticipantEntity participant = participantRepository.getByIdOrThrow(request.getParticipantId());
 
 //        RoundEntity round = roundRepository.findById(request.getRoundId())
 //                .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + request.getRoundId()));
@@ -272,8 +269,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
     public MilestoneResultDto update(Long id, UpdateMilestoneResultRequest request) {
         Preconditions.checkArgument(id != null, "ID результата не может быть null");
 
-        MilestoneResultEntity result = milestoneResultRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Результат этапа не найден с id: " + id));
+        MilestoneResultEntity result = milestoneResultRepository.getByIdOrThrow(id);
 
         updateMilestoneResultRequestMapper.updateMilestoneResultFromRequest(request, result);
 

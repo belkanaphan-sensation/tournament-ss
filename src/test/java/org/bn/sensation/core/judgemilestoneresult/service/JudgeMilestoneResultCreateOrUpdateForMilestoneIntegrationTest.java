@@ -10,6 +10,9 @@ import java.util.Set;
 import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
+import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
+import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
+import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.Person;
@@ -17,30 +20,29 @@ import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
-import org.bn.sensation.core.criteria.entity.CriteriaEntity;
+import org.bn.sensation.core.criterion.entity.CriterionEntity;
+import org.bn.sensation.core.criterion.repository.CriterionRepository;
 import org.bn.sensation.core.judgemilstoneresult.service.JudgeMilestoneResultService;
-import org.bn.sensation.core.milestonecriteria.entity.MilestoneCriteriaAssignmentEntity;
-import org.bn.sensation.core.criteria.repository.CriteriaRepository;
-import org.bn.sensation.core.milestonecriteria.repository.MilestoneCriteriaAssignmentRepository;
+import org.bn.sensation.core.judgemilstoneresult.service.dto.JudgeMilestoneResultDto;
+import org.bn.sensation.core.judgemilstoneresult.service.dto.JudgeMilestoneResultMilestoneRequest;
+import org.bn.sensation.core.judgemilstoneresult.service.dto.JudgeMilestoneResultRoundRequest;
 import org.bn.sensation.core.milestone.entity.AssessmentMode;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.repository.MilestoneRuleRepository;
-import org.bn.sensation.core.judgemilstoneresult.service.dto.JudgeMilestoneResultDto;
-import org.bn.sensation.core.judgemilstoneresult.service.dto.JudgeMilestoneResultMilestoneRequest;
-import org.bn.sensation.core.judgemilstoneresult.service.dto.JudgeMilestoneResultRoundRequest;
+import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
+import org.bn.sensation.core.milestonecriterion.repository.MilestoneCriterionRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.user.entity.*;
-import org.bn.sensation.core.useractivity.repository.UserActivityAssignmentRepository;
+import org.bn.sensation.core.user.entity.Role;
+import org.bn.sensation.core.user.entity.UserEntity;
+import org.bn.sensation.core.user.entity.UserStatus;
 import org.bn.sensation.core.user.repository.UserRepository;
-import org.bn.sensation.core.useractivity.entity.UserActivityAssignmentEntity;
-import org.bn.sensation.core.useractivity.entity.UserActivityPosition;
 import org.bn.sensation.security.CurrentUser;
 import org.bn.sensation.security.SecurityUser;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,13 +53,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @Transactional
 @ExtendWith(MockitoExtension.class)
@@ -77,7 +78,7 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
     private UserRepository userRepository;
 
     @Autowired
-    private UserActivityAssignmentRepository userActivityAssignmentRepository;
+    private ActivityUserRepository activityUserRepository;
 
     @Autowired
     private MilestoneRepository milestoneRepository;
@@ -86,10 +87,10 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
     private MilestoneRuleRepository milestoneRuleRepository;
 
     @Autowired
-    private CriteriaRepository criteriaRepository;
+    private CriterionRepository criterionRepository;
 
     @Autowired
-    private MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
+    private MilestoneCriterionRepository milestoneCriterionRepository;
 
     @Autowired
     private ParticipantRepository participantRepository;
@@ -107,11 +108,11 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
     private OccasionEntity testOccasion;
     private ActivityEntity testActivity;
     private UserEntity testJudge;
-    private UserActivityAssignmentEntity testJudgeAssignment;
+    private ActivityUserEntity testJudgeAssignment;
     private MilestoneEntity testMilestone;
     private MilestoneRuleEntity testMilestoneRule;
-    private CriteriaEntity testCriteria;
-    private MilestoneCriteriaAssignmentEntity testMilestoneCriteria;
+    private CriterionEntity testCriteria;
+    private MilestoneCriterionEntity testMilestoneCriteria;
     private ParticipantEntity testParticipant;
     private RoundEntity testRound;
 
@@ -126,11 +127,11 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
                             judgeMilestoneResultService.deleteById(result.getId()));
             roundRepository.deleteAll();
             participantRepository.deleteAll();
-            milestoneCriteriaAssignmentRepository.deleteAll();
-            criteriaRepository.deleteAll();
+            milestoneCriterionRepository.deleteAll();
+            criterionRepository.deleteAll();
             milestoneRuleRepository.deleteAll();
             milestoneRepository.deleteAll();
-            userActivityAssignmentRepository.deleteAll();
+            activityUserRepository.deleteAll();
             userRepository.deleteAll();
             activityRepository.deleteAll();
             occasionRepository.deleteAll();
@@ -179,13 +180,13 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
         testJudge = userRepository.save(testJudge);
 
         // Create test judge assignment BEFORE creating milestone
-        testJudgeAssignment = UserActivityAssignmentEntity.builder()
+        testJudgeAssignment = ActivityUserEntity.builder()
                 .user(testJudge)
                 .activity(testActivity)
                 .position(UserActivityPosition.JUDGE)
                 .partnerSide(PartnerSide.LEADER)
                 .build();
-        testJudgeAssignment = userActivityAssignmentRepository.save(testJudgeAssignment);
+        testJudgeAssignment = activityUserRepository.save(testJudgeAssignment);
 
         testActivity.getUserAssignments().add(testJudgeAssignment);
         activityRepository.save(testActivity);
@@ -201,10 +202,10 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
         testMilestone = milestoneRepository.save(testMilestone);
 
         // Create test criteria
-        testCriteria = CriteriaEntity.builder()
+        testCriteria = CriterionEntity.builder()
                 .name("Test Criteria")
                 .build();
-        testCriteria = criteriaRepository.save(testCriteria);
+        testCriteria = criterionRepository.save(testCriteria);
 
         // Create test participant
         testParticipant = ParticipantEntity.builder()
@@ -224,6 +225,7 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
                 .name("Test Round")
                 .state(RoundState.IN_PROGRESS)
                 .milestone(testMilestone)
+                .roundOrder(0)
                 .build();
         testRound.getParticipants().add(testParticipant);
         testRound = roundRepository.save(testRound);
@@ -259,12 +261,12 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
         testMilestone = milestoneRepository.save(testMilestone);
 
         // Create test milestone criteria assignment
-        testMilestoneCriteria = MilestoneCriteriaAssignmentEntity.builder()
+        testMilestoneCriteria = MilestoneCriterionEntity.builder()
                 .milestoneRule(testMilestoneRule)
-                .criteria(testCriteria)
+                .criterion(testCriteria)
                 .scale(10)
                 .build();
-        testMilestoneCriteria = milestoneCriteriaAssignmentRepository.save(testMilestoneCriteria);
+        testMilestoneCriteria = milestoneCriterionRepository.save(testMilestoneCriteria);
     }
 
     @Test
@@ -276,7 +278,7 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
         JudgeMilestoneResultRoundRequest createRequest = JudgeMilestoneResultRoundRequest.builder()
                 .participantId(testParticipant.getId())
                 .roundId(testRound.getId())
-                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .milestoneCriterionId(testMilestoneCriteria.getId())
                 .score(8)
                 .isFavorite(true)
                 .build();
@@ -316,7 +318,7 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
         JudgeMilestoneResultRoundRequest createRequest = JudgeMilestoneResultRoundRequest.builder()
                 .participantId(testParticipant.getId())
                 .roundId(testRound.getId())
-                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .milestoneCriterionId(testMilestoneCriteria.getId())
                 .score(8)
                 .isFavorite(true)
                 .build();
@@ -346,7 +348,7 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
         JudgeMilestoneResultRoundRequest createRequest = JudgeMilestoneResultRoundRequest.builder()
                 .participantId(testParticipant.getId())
                 .roundId(testRound.getId())
-                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .milestoneCriterionId(testMilestoneCriteria.getId())
                 .score(0)
                 .isFavorite(false)
                 .build();
@@ -386,7 +388,7 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
         JudgeMilestoneResultRoundRequest createRequest = JudgeMilestoneResultRoundRequest.builder()
                 .participantId(testParticipant.getId())
                 .roundId(testRound.getId())
-                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .milestoneCriterionId(testMilestoneCriteria.getId())
                 .score(0)
                 .isFavorite(false)
                 .build();
@@ -416,7 +418,7 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
         JudgeMilestoneResultRoundRequest createRequest = JudgeMilestoneResultRoundRequest.builder()
                 .participantId(testParticipant.getId())
                 .roundId(testRound.getId())
-                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .milestoneCriterionId(testMilestoneCriteria.getId())
                 .score(1)
                 .isFavorite(false)
                 .build();
@@ -456,7 +458,7 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
         JudgeMilestoneResultRoundRequest createRequest = JudgeMilestoneResultRoundRequest.builder()
                 .participantId(testParticipant.getId())
                 .roundId(testRound.getId())
-                .milestoneCriteriaId(testMilestoneCriteria.getId())
+                .milestoneCriterionId(testMilestoneCriteria.getId())
                 .score(1)
                 .isFavorite(false)
                 .build();
@@ -492,7 +494,7 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
         List<JudgeMilestoneResultMilestoneRequest> requests = List.of(updateRequest);
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () ->
+        assertThrows(JpaObjectRetrievalFailureException.class, () ->
                 judgeMilestoneResultService.createOrUpdateForMilestone(999L, requests));
     }
 

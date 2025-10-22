@@ -13,9 +13,8 @@ import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.OccasionState;
-import org.bn.sensation.core.criteria.entity.CriteriaEntity;
-import org.bn.sensation.core.criteria.repository.CriteriaRepository;
-import org.bn.sensation.core.milestonecriteria.repository.MilestoneCriteriaAssignmentRepository;
+import org.bn.sensation.core.criterion.entity.CriterionEntity;
+import org.bn.sensation.core.criterion.repository.CriterionRepository;
 import org.bn.sensation.core.milestone.entity.AssessmentMode;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
@@ -24,6 +23,7 @@ import org.bn.sensation.core.milestone.repository.MilestoneRuleRepository;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRuleRequest;
 import org.bn.sensation.core.milestone.service.dto.MilestoneRuleDto;
 import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRuleRequest;
+import org.bn.sensation.core.milestonecriterion.repository.MilestoneCriterionRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
@@ -37,10 +37,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @Transactional
 class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
@@ -67,10 +66,10 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
-    private CriteriaRepository criteriaRepository;
+    private CriterionRepository criterionRepository;
 
     @Autowired
-    private MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
+    private MilestoneCriterionRepository milestoneCriterionRepository;
 
     @Autowired
     private TransactionTemplate transactionTemplate;
@@ -80,7 +79,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
     private OccasionEntity testOccasion;
     private ActivityEntity testActivity;
     private MilestoneEntity testMilestone;
-    private CriteriaEntity testCriteria;
+    private CriterionEntity testCriteria;
 
     @BeforeEach
 //    @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -91,13 +90,13 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
         // Очистка данных в отдельной транзакции
         transactionTemplate.execute(status -> {
             // Сначала удаляем данные с внешними ключами
-            milestoneCriteriaAssignmentRepository.deleteAll();
+            milestoneCriterionRepository.deleteAll();
             milestoneRuleRepository.deleteAll();
             milestoneRepository.deleteAll();
             activityRepository.deleteAll();
             occasionRepository.deleteAll();
             organizationRepository.deleteAll();
-            criteriaRepository.deleteAll();
+            criterionRepository.deleteAll();
             userRepository.deleteAll();
             return null;
         });
@@ -161,10 +160,10 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
         testMilestone = milestoneRepository.save(testMilestone);
 
         // Создаем тестовый критерий
-        testCriteria = CriteriaEntity.builder()
+        testCriteria = CriterionEntity.builder()
                 .name("Прохождение")
                 .build();
-        testCriteria = criteriaRepository.save(testCriteria);
+        testCriteria = criterionRepository.save(testCriteria);
             return null;
         });
     }
@@ -206,7 +205,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
             milestoneRuleService.create(request);
         });
     }
@@ -346,7 +345,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testFindByMilestoneId_NotFound() {
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
             milestoneRuleService.findByMilestoneId(testMilestone.getId());
         });
     }
@@ -418,7 +417,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
             milestoneRuleService.update(999L, updateRequest);
         });
     }
@@ -457,7 +456,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testDeleteById_NotFound() {
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
             milestoneRuleService.deleteById(999L);
         });
     }

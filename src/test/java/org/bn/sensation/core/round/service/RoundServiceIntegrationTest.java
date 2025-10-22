@@ -36,10 +36,10 @@ import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.bn.sensation.core.round.service.dto.RoundWithJRStatusDto;
 import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
 import org.bn.sensation.core.user.entity.*;
-import org.bn.sensation.core.useractivity.repository.UserActivityAssignmentRepository;
+import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.core.user.repository.UserRepository;
-import org.bn.sensation.core.useractivity.entity.UserActivityAssignmentEntity;
-import org.bn.sensation.core.useractivity.entity.UserActivityPosition;
+import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
+import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
 import org.bn.sensation.security.CurrentUser;
 import org.bn.sensation.security.SecurityUser;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -85,7 +86,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
-    private UserActivityAssignmentRepository userActivityAssignmentRepository;
+    private ActivityUserRepository activityUserRepository;
 
     @Autowired
     private JudgeRoundStatusRepository judgeRoundStatusRepository;
@@ -103,8 +104,8 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
     private RoundEntity testRound;
     private UserEntity testJudge;
     private UserEntity testJudgeChief;
-    private UserActivityAssignmentEntity testJudgeAssignment;
-    private UserActivityAssignmentEntity testJudgeChiefAssignment;
+    private ActivityUserEntity testJudgeAssignment;
+    private ActivityUserEntity testJudgeChiefAssignment;
 
     @BeforeEach
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -115,7 +116,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Clean up existing data
         judgeRoundStatusRepository.deleteAll();
         roundRepository.deleteAll();
-        userActivityAssignmentRepository.deleteAll();
+        activityUserRepository.deleteAll();
         participantRepository.deleteAll();
         milestoneRepository.deleteAll();
         activityRepository.deleteAll();
@@ -188,21 +189,21 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         testJudgeChief = userRepository.save(testJudgeChief);
 
         // Create user activity assignments (judges)
-        testJudgeAssignment = UserActivityAssignmentEntity.builder()
+        testJudgeAssignment = ActivityUserEntity.builder()
                 .user(testJudge)
                 .activity(testActivity)
                 .position(UserActivityPosition.JUDGE)
                 .partnerSide(PartnerSide.LEADER)
                 .build();
-        testJudgeAssignment = userActivityAssignmentRepository.save(testJudgeAssignment);
+        testJudgeAssignment = activityUserRepository.save(testJudgeAssignment);
 
-        testJudgeChiefAssignment = UserActivityAssignmentEntity.builder()
+        testJudgeChiefAssignment = ActivityUserEntity.builder()
                 .user(testJudgeChief)
                 .activity(testActivity)
                 .position(UserActivityPosition.JUDGE_CHIEF)
                 .partnerSide(PartnerSide.LEADER)
                 .build();
-        testJudgeChiefAssignment = userActivityAssignmentRepository.save(testJudgeChiefAssignment);
+        testJudgeChiefAssignment = activityUserRepository.save(testJudgeChiefAssignment);
 
         // Add assignments to activity
         testActivity.getUserAssignments().add(testJudgeAssignment);
@@ -255,6 +256,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .state(RoundState.DRAFT)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
+                .roundOrder(0)
                 .build();
         testRound = roundRepository.save(testRound);
     }
@@ -310,7 +312,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
             roundService.create(request);
         });
     }
@@ -348,7 +350,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
             roundService.update(999L, request);
         });
     }
@@ -373,6 +375,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Round 2")
                 .state(RoundState.DRAFT)
                 .milestone(testMilestone)
+                .roundOrder(1)
                 .build();
         roundRepository.save(round2);
 
@@ -380,6 +383,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Round 3")
                 .state(RoundState.DRAFT)
                 .milestone(testMilestone1)
+                .roundOrder(0)
                 .build();
         roundRepository.save(round3);
 
@@ -461,6 +465,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .state(RoundState.PLANNED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
+                .roundOrder(0)
                 .build();
         plannedRound = roundRepository.save(plannedRound);
 
@@ -469,6 +474,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .state(RoundState.IN_PROGRESS)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
+                .roundOrder(1)
                 .build();
         inProgressRound = roundRepository.save(inProgressRound);
 
@@ -477,6 +483,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .state(RoundState.READY)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
+                .roundOrder(2)
                 .build();
         readyRound = roundRepository.save(readyRound);
 
@@ -485,6 +492,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .state(RoundState.COMPLETED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
+                .roundOrder(3)
                 .build();
         completedRound = roundRepository.save(completedRound);
 
@@ -574,6 +582,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .state(RoundState.DRAFT)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
+                .roundOrder(0)
                 .build();
         draftRound = roundRepository.save(draftRound);
 
@@ -582,6 +591,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .state(RoundState.PLANNED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
+                .roundOrder(1)
                 .build();
         plannedRound = roundRepository.save(plannedRound);
 
@@ -631,7 +641,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         ReflectionTestUtils.setField(roundService, "currentUser", mockCurrentUser);
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
             roundService.findByMilestoneIdInLifeStates(999L);
         });
     }
@@ -663,7 +673,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         ReflectionTestUtils.setField(roundService, "currentUser", mockCurrentUser);
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             roundService.findByMilestoneIdInLifeStates(testMilestone.getId());
         });
     }

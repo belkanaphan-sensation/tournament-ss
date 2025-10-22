@@ -2,11 +2,10 @@ package org.bn.sensation.core.participant.service;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
+import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
@@ -23,7 +22,7 @@ import org.bn.sensation.core.participant.service.mapper.RoundParticipantsDtoMapp
 import org.bn.sensation.core.participant.service.mapper.UpdateParticipantRequestMapper;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.useractivity.entity.UserActivityAssignmentEntity;
+import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -78,26 +77,24 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     @Transactional
     public ParticipantDto create(CreateParticipantRequest request) {
-        ActivityEntity activity = activityRepository.findById(request.getActivityId())
-                .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + request.getActivityId()));
+        ActivityEntity activity = activityRepository.getByIdOrThrow(request.getActivityId());
 
         ParticipantEntity participant = createParticipantRequestMapper.toEntity(request);
         participant.setActivity(activity);
 
         ParticipantEntity saved = participantRepository.save(participant);
-        return participantDtoMapper.toDto(saved);
+        return participantDtoMapper.toDto(participantRepository.getByIdFullOrThrow(saved.getId()));
     }
 
     @Override
     @Transactional
     public ParticipantDto update(Long id, UpdateParticipantRequest request) {
-        ParticipantEntity participant =  participantRepository.findByIdFullEntity(id)
-                .orElseThrow(() -> new EntityNotFoundException("Участник не найден с id: " + id));
+        ParticipantEntity participant = participantRepository.getByIdOrThrow(id);
 
         updateParticipantRequestMapper.updateParticipantFromRequest(request, participant);
 
-        ParticipantEntity saved = participantRepository.save(participant);
-        return participantDtoMapper.toDto(saved);
+        participantRepository.save(participant);
+        return participantDtoMapper.toDto(participantRepository.getByIdFullOrThrow(id));
     }
 
     @Override
@@ -112,65 +109,53 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     @Transactional
     public ParticipantDto assignParticipantToRound(Long participantId, Long roundId) {
-        ParticipantEntity participant = participantRepository.findByIdWithActivity(participantId)
-                .orElseThrow(() -> new EntityNotFoundException("Участник не найден с id: " + participantId));
-        RoundEntity round = roundRepository.findByIdWithActivity(roundId)
-                .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + roundId));
+        ParticipantEntity participant = participantRepository.getByIdFullOrThrow(participantId);
+        RoundEntity round = roundRepository.getByIdOrThrow(roundId);
         Preconditions.checkArgument(participant.getActivity().getId().equals(round.getMilestone().getActivity().getId()),
                 "Участник %s не может быть привязан к раунду %s, т.к. раунд находится в другой активности", participantId, roundId);
 
-        Set<Long> milestoneIds = participant.getMilestones().stream().map(MilestoneEntity::getId).collect(Collectors.toSet());
-        Preconditions.checkArgument(milestoneIds.contains(round.getMilestone().getId()),
-                "Участник %s не может быть привязан к раунду %s, т.к. он не привязан к этапу раунда", participantId, roundId);
-
         //TODO проверить стейты в которых может происходить привязка и отвязка
         participant.getRounds().add(round);
-        ParticipantEntity saved = participantRepository.save(participant);
-        return participantDtoMapper.toDto(saved);
+        participantRepository.save(participant);
+        return participantDtoMapper.toDto(participant);
     }
 
     @Override
     @Transactional
     public ParticipantDto removeParticipantFromRound(Long participantId, Long roundId) {
-        ParticipantEntity participant = participantRepository.findById(participantId)
-                .orElseThrow(() -> new EntityNotFoundException("Участник не найден с id: " + participantId));
-        RoundEntity round =roundRepository.findById(roundId)
-                .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + roundId));
+        ParticipantEntity participant = participantRepository.getByIdOrThrow(participantId);
+        RoundEntity round = roundRepository.getByIdOrThrow(roundId);
 
         //TODO проверить стейты в которых может происходить привязка и отвязка
         participant.getRounds().remove(round);
-        ParticipantEntity saved = participantRepository.save(participant);
-        return participantDtoMapper.toDto(saved);
+        participantRepository.save(participant);
+        return participantDtoMapper.toDto(participant);
     }
 
     @Override
     @Transactional
     public ParticipantDto assignParticipantToMilestone(Long participantId, Long milestoneId) {
-        ParticipantEntity participant = participantRepository.findByIdWithActivity(participantId)
-                .orElseThrow(() -> new EntityNotFoundException("Участник не найден с id: " + participantId));
-        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId)
-                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
+        ParticipantEntity participant = participantRepository.getByIdFullOrThrow(participantId);
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
         Preconditions.checkArgument(participant.getActivity().getId().equals(milestone.getActivity().getId()),
                 "Участник %s не может быть привязан к этапу %s, т.к. этап находится в другой активности", participantId, milestoneId);
 
         //TODO проверить стейты в которых может происходить привязка и отвязка
         participant.getMilestones().add(milestone);
-        ParticipantEntity saved = participantRepository.save(participant);
-        return participantDtoMapper.toDto(saved);
+        participantRepository.save(participant);
+        return participantDtoMapper.toDto(participant);
     }
 
     @Override
     @Transactional
     public ParticipantDto removeParticipantFromMilestone(Long participantId, Long milestoneId) {
-        ParticipantEntity participant = participantRepository.findById(participantId)
-                .orElseThrow(() -> new EntityNotFoundException("Участник не найден с id: " + participantId));
-        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId)
-                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
+        ParticipantEntity participant = participantRepository.getByIdOrThrow(participantId);
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
 
         //TODO проверить стейты в которых может происходить привязка и отвязка
         participant.getMilestones().remove(milestone);
-        ParticipantEntity saved = participantRepository.save(participant);
-        return participantDtoMapper.toDto(saved);
+        participantRepository.save(participant);
+        return participantDtoMapper.toDto(participant);
     }
 
     @Override
@@ -180,25 +165,20 @@ public class ParticipantServiceImpl implements ParticipantService {
                 roundId, currentUser.getSecurityUser().getId());
 
         Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
-        RoundEntity round = roundRepository.findByIdWithUserAssignments(roundId)
-                .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + roundId));
+        RoundEntity round = roundRepository.getByIdWithUserOrThrow(roundId);
         Long userId = currentUser.getSecurityUser().getId();
-        UserActivityAssignmentEntity activityAssignment = round.getMilestone()
-                .getActivity()
-                .getUserAssignments()
-                .stream()
-                .filter(uaa -> uaa.getUser().getId().equals(userId))
-                .findFirst().orElseThrow(EntityNotFoundException::new);
+        ActivityUserEntity activityUser = ActivityUserUtil.getFromActivity(
+                round.getMilestone().getActivity(), userId, uaa -> uaa.getUser().getId().equals(userId));
 
         log.debug("Найдено назначение пользователя={} для раунда={}, сторона={}",
-                userId, roundId, activityAssignment.getPartnerSide());
+                userId, roundId, activityUser.getPartnerSide());
 
         List<ParticipantEntity> participants = participantRepository.findByRoundId(roundId).stream()
                 .filter(p -> {
-                    if (activityAssignment.getPartnerSide() != null) {
-                        boolean matches = p.getPartnerSide() == activityAssignment.getPartnerSide();
+                    if (activityUser.getPartnerSide() != null) {
+                        boolean matches = p.getPartnerSide() == activityUser.getPartnerSide();
                         log.debug("Участник={} со стороной={} соответствует стороне судьи={}: {}",
-                                p.getId(), p.getPartnerSide(), activityAssignment.getPartnerSide(), matches);
+                                p.getId(), p.getPartnerSide(), activityUser.getPartnerSide(), matches);
                         return matches;
                     }
                     return true;
@@ -215,22 +195,19 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     public List<RoundParticipantsDto> getByRoundByMilestoneIdForCurrentUser(Long milestoneId) {
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
-        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId)
-                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
         Long userId = currentUser.getSecurityUser().getId();
-        UserActivityAssignmentEntity activityAssignment = milestone.getActivity()
-                .getUserAssignments()
-                .stream()
-                .filter(uaa -> uaa.getUser().getId().equals(userId))
-                .findFirst().orElseThrow(EntityNotFoundException::new);
+        ActivityUserEntity activityUser = ActivityUserUtil.getFromActivity(
+                milestone.getActivity(), userId, uaa -> uaa.getUser().getId().equals(userId));
+
         return milestone.getRounds()
                 .stream()
                 .sorted(Comparator.comparing(RoundEntity::getRoundOrder))
                 .map(re -> {
                     List<ParticipantEntity> participants = re.getParticipants().stream()
                             .filter(p -> {
-                                if (activityAssignment.getPartnerSide() != null) {
-                                    return p.getPartnerSide() == activityAssignment.getPartnerSide();
+                                if (activityUser.getPartnerSide() != null) {
+                                    return p.getPartnerSide() == activityUser.getPartnerSide();
                                 }
                                 return true;
                             })

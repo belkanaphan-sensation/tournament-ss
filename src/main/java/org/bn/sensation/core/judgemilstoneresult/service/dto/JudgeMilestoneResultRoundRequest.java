@@ -27,7 +27,7 @@ public class JudgeMilestoneResultRoundRequest extends BaseDto {
     private Long roundId;
 
     @Schema(description = "Критерий, сформированный для данного этапа. При апдейте игнорируется, т.к. не может быть изменен")
-    private Long milestoneCriteriaId;
+    private Long milestoneCriterionId;
 
     @Schema(description = "Значение оценки для данного участника данным судьей по данному критерию", example = "5")
     private Integer score;

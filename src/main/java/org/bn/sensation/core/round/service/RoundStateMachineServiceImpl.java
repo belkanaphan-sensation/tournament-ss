@@ -12,7 +12,6 @@ import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -32,8 +31,7 @@ public class RoundStateMachineServiceImpl implements RoundStateMachineService {
         RoundStateMachineListener.setRoundId(roundId);
 
         try {
-            RoundEntity round = roundRepository.findByIdWithUserAssignments(roundId)
-                    .orElseThrow(() -> new EntityNotFoundException("Round not found"));
+            RoundEntity round = roundRepository.getByIdFullOrThrow(roundId);
 
             log.info("🎯 [ROUND_EVENT_START] Round ID: {} | Event: {} | Current State: {}",
                 roundId, event, round.getState());

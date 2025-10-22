@@ -15,6 +15,9 @@ import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.activity.service.dto.ActivityDto;
 import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
+import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
+import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
+import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.statemachine.state.ActivityState;
@@ -26,11 +29,10 @@ import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.organization.repository.OrganizationRepository;
-import org.bn.sensation.core.user.entity.*;
-import org.bn.sensation.core.useractivity.repository.UserActivityAssignmentRepository;
+import org.bn.sensation.core.user.entity.Role;
+import org.bn.sensation.core.user.entity.UserEntity;
+import org.bn.sensation.core.user.entity.UserStatus;
 import org.bn.sensation.core.user.repository.UserRepository;
-import org.bn.sensation.core.useractivity.entity.UserActivityAssignmentEntity;
-import org.bn.sensation.core.useractivity.entity.UserActivityPosition;
 import org.bn.sensation.security.CurrentUser;
 import org.bn.sensation.security.SecurityUser;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
@@ -69,7 +72,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
-    private UserActivityAssignmentRepository userActivityAssignmentRepository;
+    private ActivityUserRepository activityUserRepository;
 
     @Autowired
     private PlatformTransactionManager transactionManager;
@@ -93,7 +96,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         cleanDatabase();
 
         // Очистка данных
-        userActivityAssignmentRepository.deleteAll();
+        activityUserRepository.deleteAll();
         activityRepository.deleteAll();
         occasionRepository.deleteAll();
         organizationRepository.deleteAll();
@@ -196,7 +199,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> activityService.create(request));
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> activityService.create(request));
     }
 
     @Test
@@ -305,7 +308,7 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> activityService.update(999L, request));
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> activityService.update(999L, request));
     }
 
     @Test
@@ -521,12 +524,12 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
             activity = activityRepository.save(activity);
 
             // Создаем назначение пользователя на активность через связь
-            UserActivityAssignmentEntity assignment = UserActivityAssignmentEntity.builder()
+            ActivityUserEntity assignment = ActivityUserEntity.builder()
                     .user(testUser)
                     .activity(activity)
                     .position(UserActivityPosition.PARTICIPANT)
                     .build();
-            assignment = userActivityAssignmentRepository.save(assignment);
+            assignment = activityUserRepository.save(assignment);
 
             return activity;
         });
@@ -663,12 +666,12 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
             activity = activityRepository.save(activity);
 
             // Создаем назначение пользователя на активность через связь
-            UserActivityAssignmentEntity assignment = UserActivityAssignmentEntity.builder()
+            ActivityUserEntity assignment = ActivityUserEntity.builder()
                     .user(testUser)
                     .activity(activity)
                     .position(UserActivityPosition.PARTICIPANT)
                     .build();
-            assignment = userActivityAssignmentRepository.save(assignment);
+            assignment = activityUserRepository.save(assignment);
 
             return activity;
         });
@@ -688,12 +691,12 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
             activity = activityRepository.save(activity);
 
             // Создаем назначение пользователя на активность через связь
-            UserActivityAssignmentEntity assignment = UserActivityAssignmentEntity.builder()
+            ActivityUserEntity assignment = ActivityUserEntity.builder()
                     .user(testUser)
                     .activity(activity)
                     .position(UserActivityPosition.PARTICIPANT)
                     .build();
-            assignment = userActivityAssignmentRepository.save(assignment);
+            assignment = activityUserRepository.save(assignment);
 
             return activity;
         });

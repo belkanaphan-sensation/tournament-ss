@@ -12,6 +12,7 @@ import java.util.Set;
 import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
+import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.statemachine.event.RoundEvent;
@@ -28,13 +29,12 @@ import org.bn.sensation.core.organization.repository.OrganizationRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.core.user.entity.*;
-import org.bn.sensation.core.useractivity.repository.UserActivityAssignmentRepository;
+import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.core.user.repository.UserRepository;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
-import org.bn.sensation.core.useractivity.entity.UserActivityAssignmentEntity;
-import org.bn.sensation.core.useractivity.entity.UserActivityPosition;
+import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
 import org.bn.sensation.security.CurrentUser;
 import org.bn.sensation.security.SecurityUser;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,7 +72,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
-    private UserActivityAssignmentRepository userActivityAssignmentRepository;
+    private ActivityUserRepository activityUserRepository;
 
     @Autowired
     private JudgeRoundStatusRepository judgeRoundStatusRepository;
@@ -103,7 +103,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         occasionRepository.deleteAll();
         organizationRepository.deleteAll();
         userRepository.deleteAll();
-        userActivityAssignmentRepository.deleteAll();
+        activityUserRepository.deleteAll();
 
         // Create test organization
         testOrganization = OrganizationEntity.builder()
@@ -153,12 +153,12 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         regularUser = createUser("user", Role.USER);
 
         // Create user activity assignment for judge
-        UserActivityAssignmentEntity judgeAssignment = UserActivityAssignmentEntity.builder()
+        ActivityUserEntity judgeAssignment = ActivityUserEntity.builder()
                 .user(judgeUser)
                 .activity(testActivity)
                 .position(UserActivityPosition.JUDGE)
                 .build();
-        userActivityAssignmentRepository.save(judgeAssignment);
+        activityUserRepository.save(judgeAssignment);
 
         testActivity.getUserAssignments().add(judgeAssignment);
 
@@ -168,6 +168,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
                 .state(RoundState.DRAFT)
                 .milestone(testMilestone)
                 .participants(new HashSet<>())
+                .roundOrder(0)
                 .build();
         testRound = roundRepository.save(testRound);
     }
@@ -306,7 +307,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
 
         // Create judge round acceptance
-        UserActivityAssignmentEntity judgeAssignment = testActivity.getUserAssignments().stream()
+        ActivityUserEntity judgeAssignment = testActivity.getUserAssignments().stream()
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -340,7 +341,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
 
         // Create judge round acceptance
-        UserActivityAssignmentEntity judgeAssignment = testActivity.getUserAssignments().stream()
+        ActivityUserEntity judgeAssignment = testActivity.getUserAssignments().stream()
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -411,7 +412,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
 
         // Create judge round acceptance
-        UserActivityAssignmentEntity judgeAssignment = testActivity.getUserAssignments().stream()
+        ActivityUserEntity judgeAssignment = testActivity.getUserAssignments().stream()
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -466,7 +467,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(RoundState.IN_PROGRESS, inProgressRound.getState());
 
         // Create judge round acceptance before completing
-        UserActivityAssignmentEntity judgeAssignment = testActivity.getUserAssignments().stream()
+        ActivityUserEntity judgeAssignment = testActivity.getUserAssignments().stream()
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -502,7 +503,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(RoundState.IN_PROGRESS, inProgressRound.getState());
 
         // Create judge round acceptance before completing
-        UserActivityAssignmentEntity judgeAssignment = testActivity.getUserAssignments().stream()
+        ActivityUserEntity judgeAssignment = testActivity.getUserAssignments().stream()
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();

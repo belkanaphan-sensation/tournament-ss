@@ -1,13 +1,13 @@
 package org.bn.sensation;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * Утилитный класс для очистки базы данных между тестами.
@@ -41,6 +41,6 @@ public class TestDatabaseCleaner {
         // Сбрасываем последовательности
         jdbcTemplate.execute("SELECT setval(pg_get_serial_sequence('users', 'id'), 1, false);");
         jdbcTemplate.execute("SELECT setval(pg_get_serial_sequence('activity', 'id'), 1, false);");
-        jdbcTemplate.execute("SELECT setval(pg_get_serial_sequence('user_activity_assignment', 'id'), 1, false);");
+        jdbcTemplate.execute("SELECT setval(pg_get_serial_sequence('activity_user', 'id'), 1, false);");
     }
 }

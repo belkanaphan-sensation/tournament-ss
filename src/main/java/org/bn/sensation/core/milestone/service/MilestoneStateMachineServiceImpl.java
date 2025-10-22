@@ -12,7 +12,6 @@ import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -32,8 +31,7 @@ public class MilestoneStateMachineServiceImpl implements MilestoneStateMachineSe
         MilestoneStateMachineListener.setMilestoneId(milestoneId);
 
         try {
-            MilestoneEntity milestone =  milestoneRepository.findByIdFullEntity(milestoneId)
-                    .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
+            MilestoneEntity milestone =  milestoneRepository.getByIdFullOrThrow(milestoneId);
 
             log.info("🎯 [MILESTONE_EVENT_START] Milestone ID: {} | Event: {} | Current State: {}",
                 milestoneId, event, milestone.getState());

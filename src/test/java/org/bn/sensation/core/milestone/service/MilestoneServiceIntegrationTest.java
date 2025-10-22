@@ -16,15 +16,15 @@ import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
-import org.bn.sensation.core.criteria.entity.CriteriaEntity;
-import org.bn.sensation.core.criteria.repository.CriteriaRepository;
-import org.bn.sensation.core.milestonecriteria.repository.MilestoneCriteriaAssignmentRepository;
+import org.bn.sensation.core.criterion.entity.CriterionEntity;
+import org.bn.sensation.core.criterion.repository.CriterionRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.repository.MilestoneRuleRepository;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
 import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
+import org.bn.sensation.core.milestonecriterion.repository.MilestoneCriterionRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -69,10 +70,10 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
-    private CriteriaRepository criteriaRepository;
+    private CriterionRepository criterionRepository;
 
     @Autowired
-    private MilestoneCriteriaAssignmentRepository milestoneCriteriaAssignmentRepository;
+    private MilestoneCriterionRepository milestoneCriterionRepository;
 
     @Autowired
     private MilestoneRuleRepository milestoneRuleRepository;
@@ -86,7 +87,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     private ActivityEntity testActivity;
     private OrganizationEntity testOrganization;
     private UserEntity testUser;
-    private CriteriaEntity testCriteria;
+    private CriterionEntity testCriterion;
 
     @BeforeEach
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -96,10 +97,10 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Очистка данных в отдельной транзакции
         transactionTemplate.execute(status -> {
-            milestoneCriteriaAssignmentRepository.deleteAll();
+            milestoneCriterionRepository.deleteAll();
             milestoneRuleRepository.deleteAll();
             milestoneRepository.deleteAll();
-            criteriaRepository.deleteAll();
+            criterionRepository.deleteAll();
             activityRepository.deleteAll();
             occasionRepository.deleteAll();
             organizationRepository.deleteAll();
@@ -168,10 +169,10 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
             testActivity = activityRepository.save(testActivity);
 
             // Создание тестового критерия
-            testCriteria = CriteriaEntity.builder()
+            testCriterion = CriterionEntity.builder()
                     .name("Прохождение")
                     .build();
-            testCriteria = criteriaRepository.save(testCriteria);
+            testCriterion = criterionRepository.save(testCriterion);
 
             return null;
         });
@@ -327,7 +328,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
             milestoneService.update(999L, request);
         });
     }
@@ -467,6 +468,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                     .name(name)
                     .state(state)
                     .milestone(milestone)
+                    .roundOrder(0)
                     .build();
             return roundRepository.save(round);
         });

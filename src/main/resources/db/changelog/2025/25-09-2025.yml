@@ -68,7 +68,7 @@ databaseChangeLog:
                 is_candidate BOOLEAN DEFAULT FALSE,
                 participant_id BIGINT NOT NULL,
                 round_id BIGINT NOT NULL,
-                milestone_criteria_id BIGINT NOT NULL,
+                milestone_criterion_id BIGINT NOT NULL,
                 activity_user_id BIGINT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 created_by VARCHAR(255),
@@ -76,8 +76,8 @@ databaseChangeLog:
                 modified_by VARCHAR(255),
                 FOREIGN KEY (participant_id) REFERENCES participant(id) ON DELETE CASCADE,
                 FOREIGN KEY (round_id) REFERENCES round(id) ON DELETE CASCADE,
-                FOREIGN KEY (milestone_criteria_id) REFERENCES milestone_criteria_assignment(id) ON DELETE CASCADE,
-                FOREIGN KEY (activity_user_id) REFERENCES user_activity_assignment(id) ON DELETE CASCADE
+                FOREIGN KEY (milestone_criterion_id) REFERENCES milestone_criterion(id) ON DELETE CASCADE,
+                FOREIGN KEY (activity_user_id) REFERENCES activity_user(id) ON DELETE CASCADE
               );
       rollback:
         - sql:

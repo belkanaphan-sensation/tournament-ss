@@ -13,6 +13,7 @@ import java.util.Set;
 import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
+import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.Person;
@@ -34,11 +35,10 @@ import org.bn.sensation.core.participant.service.dto.RoundParticipantsDto;
 import org.bn.sensation.core.participant.service.dto.UpdateParticipantRequest;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.useractivity.entity.UserActivityAssignmentEntity;
-import org.bn.sensation.core.useractivity.entity.UserActivityPosition;
+import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
 import org.bn.sensation.core.user.entity.UserEntity;
 import org.bn.sensation.core.user.entity.UserStatus;
-import org.bn.sensation.core.useractivity.repository.UserActivityAssignmentRepository;
+import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.core.user.repository.UserRepository;
 import org.bn.sensation.security.CurrentUser;
 import org.bn.sensation.security.SecurityUser;
@@ -48,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,7 +83,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
-    private UserActivityAssignmentRepository userActivityAssignmentRepository;
+    private ActivityUserRepository activityUserRepository;
 
     @MockitoBean
     private CurrentUser currentUser;
@@ -95,7 +96,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     private MilestoneEntity testMilestone;
     private ParticipantEntity testParticipant;
     private UserEntity testUser;
-    private UserActivityAssignmentEntity userAssignment;
+    private ActivityUserEntity userAssignment;
 
     @BeforeEach
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -104,7 +105,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         cleanDatabase();
 
         // Clean up existing data
-        userActivityAssignmentRepository.deleteAll();
+        activityUserRepository.deleteAll();
         participantRepository.deleteAll();
         roundRepository.deleteAll();
         milestoneRepository.deleteAll();
@@ -160,6 +161,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Round")
                 .state(RoundState.DRAFT)
                 .milestone(testMilestone)
+                .roundOrder(0)
                 .build();
         testRound = roundRepository.save(testRound);
 
@@ -167,6 +169,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Round 1")
                 .state(RoundState.DRAFT)
                 .milestone(testMilestone)
+                .roundOrder(1)
                 .build();
         testRound1 = roundRepository.save(testRound1);
 
@@ -182,6 +185,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .partnerSide(PartnerSide.LEADER)
                 .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
+                .milestones(new HashSet<>(Set.of(testMilestone)))
                 .build();
         testParticipant = participantRepository.save(testParticipant);
 
@@ -201,13 +205,13 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         testUser = userRepository.save(testUser);
 
         // Create user activity assignment
-        userAssignment = UserActivityAssignmentEntity.builder()
+        userAssignment = ActivityUserEntity.builder()
                 .user(testUser)
                 .activity(testActivity)
                 .position(UserActivityPosition.JUDGE)
                 .partnerSide(PartnerSide.LEADER)
                 .build();
-        userActivityAssignmentRepository.save(userAssignment);
+        activityUserRepository.save(userAssignment);
 
         // Refresh the activity to ensure the assignment is loaded
         testActivity = activityRepository.findById(testActivity.getId()).orElseThrow();
@@ -307,7 +311,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
             participantService.update(999L, request);
         });
     }
@@ -415,7 +419,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testAssignParticipantToRoundWithNonExistentParticipant() {
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
             participantService.assignParticipantToRound(999L, testRound.getId());
         });
     }
@@ -423,7 +427,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testAssignParticipantToRoundWithNonExistentRound() {
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
             participantService.assignParticipantToRound(testParticipant.getId(), 999L);
         });
     }
@@ -890,10 +894,10 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testGetByRoundByRoundIdForCurrentUser_WithoutPartnerSide() {
         // Given - Update user assignment to have null partnerSide
-        UserActivityAssignmentEntity userAssignment = userActivityAssignmentRepository
+        ActivityUserEntity userAssignment = activityUserRepository
                 .findByUserIdAndActivityId(testUser.getId(), testActivity.getId()).orElseThrow();
         userAssignment.setPartnerSide(null);
-        userActivityAssignmentRepository.save(userAssignment);
+        activityUserRepository.save(userAssignment);
         testActivity.getUserAssignments().add(userAssignment);
         activityRepository.save(testActivity);
 
@@ -926,7 +930,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testGetByRoundByRoundIdForCurrentUser_RoundNotFound() {
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
             participantService.getByRoundByRoundIdForCurrentUser(999L);
         });
     }
@@ -954,7 +958,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         when(currentUser.getSecurityUser()).thenReturn(mockSecurityUser);
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             participantService.getByRoundByRoundIdForCurrentUser(testRound.getId());
         });
     }
@@ -1003,10 +1007,10 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         roundRepository.save(testRound);
 
         // Update user assignment to FOLLOWER
-        UserActivityAssignmentEntity userAssignment = userActivityAssignmentRepository
+        ActivityUserEntity userAssignment = activityUserRepository
                 .findByUserIdAndActivityId(testUser.getId(), testActivity.getId()).orElseThrow();
         userAssignment.setPartnerSide(PartnerSide.FOLLOWER);
-        userActivityAssignmentRepository.save(userAssignment);
+        activityUserRepository.save(userAssignment);
 
         testActivity.getUserAssignments().add(userAssignment);
         activityRepository.save(testActivity);
@@ -1111,7 +1115,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     void testGetByRoundByMilestoneIdForCurrentUser_WithoutPartnerSide() {
         // Given - Remove partnerSide from user assignment
         userAssignment.setPartnerSide(null);
-        userActivityAssignmentRepository.save(userAssignment);
+        activityUserRepository.save(userAssignment);
         testActivity.getUserAssignments().add(userAssignment);
         activityRepository.save(testActivity);
 
@@ -1203,7 +1207,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         Long nonExistentMilestoneId = 999L;
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () ->
+        assertThrows(JpaObjectRetrievalFailureException.class, () ->
             participantService.getByRoundByMilestoneIdForCurrentUser(nonExistentMilestoneId));
     }
 
@@ -1230,7 +1234,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         when(currentUser.getSecurityUser()).thenReturn(mockSecurityUser);
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () ->
+        assertThrows(IllegalArgumentException.class, () ->
             participantService.getByRoundByMilestoneIdForCurrentUser(testMilestone.getId()));
     }
 

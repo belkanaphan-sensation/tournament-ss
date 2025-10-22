@@ -2,8 +2,8 @@ package org.bn.sensation.core.common.mapper;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.bn.sensation.core.criteria.entity.CriteriaEntity;
-import org.bn.sensation.core.milestonecriteria.entity.MilestoneCriteriaAssignmentEntity;
+import org.bn.sensation.core.criterion.entity.CriterionEntity;
+import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
@@ -11,7 +11,7 @@ import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.round.entity.RoundEntity;
-import org.bn.sensation.core.useractivity.entity.UserActivityAssignmentEntity;
+import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
 import org.bn.sensation.core.user.entity.UserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -49,15 +49,15 @@ public interface EntityLinkMapper {
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "value", source = "name")
-    EntityLinkDto toEntityLinkDto(CriteriaEntity entity);
+    EntityLinkDto toEntityLinkDto(CriterionEntity entity);
 
     @Mapping(target = "id", source = "id")
-    @Mapping(target = "value", source = "criteria.name")
-    EntityLinkDto toEntityLinkDto(MilestoneCriteriaAssignmentEntity entity);
+    @Mapping(target = "value", source = "criterion.name")
+    EntityLinkDto toEntityLinkDto(MilestoneCriterionEntity entity);
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "value", source = "user.username")
-    EntityLinkDto toEntityLinkDto(UserActivityAssignmentEntity entity);
+    EntityLinkDto toEntityLinkDto(ActivityUserEntity entity);
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "value", source = "assessmentMode")

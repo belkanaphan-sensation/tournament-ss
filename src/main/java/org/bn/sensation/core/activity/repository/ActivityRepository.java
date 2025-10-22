@@ -8,6 +8,8 @@ import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 
+import jakarta.persistence.EntityNotFoundException;
+
 public interface ActivityRepository extends BaseRepository<ActivityEntity> {
 
     List<ActivityEntity> findByOccasionId(Long occasionId);
@@ -16,11 +18,14 @@ public interface ActivityRepository extends BaseRepository<ActivityEntity> {
     @Query("""
             SELECT DISTINCT a
             FROM ActivityEntity a
-            JOIN UserActivityAssignmentEntity uaa ON uaa.activity.id = a.id
+            JOIN ActivityUserEntity au ON au.activity.id = a.id
             WHERE a.occasion.id = :occasionId
-              AND uaa.user.id = :userId
+              AND au.user.id = :userId
               AND a.state IN :states
             """)
     List<ActivityEntity> findByOccasionIdAndUserIdAndStateIn(Long occasionId, Long userId, List<ActivityState> states);
 
+    default ActivityEntity getByIdOrThrow(Long id) {
+        return findById(id).orElseThrow(() -> new EntityNotFoundException("Активность не найдена: " + id));
+    }
 }

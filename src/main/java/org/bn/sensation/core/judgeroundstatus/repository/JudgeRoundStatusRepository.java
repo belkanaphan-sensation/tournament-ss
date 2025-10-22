@@ -28,6 +28,6 @@ public interface JudgeRoundStatusRepository extends BaseRepository<JudgeRoundSta
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @EntityGraph(attributePaths = {"round"})
-    @Query("SELECT jr FROM JudgeRoundStatusEntity jr WHERE jr.round.milestone.id = :milestoneId and jr.judge.id = :judgeId")
+    @Query("SELECT DISTINCT jr FROM JudgeRoundStatusEntity jr WHERE jr.round.milestone.id = :milestoneId and jr.judge.id = :judgeId")
     List<JudgeRoundStatusEntity> findByMilestoneIdAndJudgeId(Long milestoneId, Long judgeId);
 }

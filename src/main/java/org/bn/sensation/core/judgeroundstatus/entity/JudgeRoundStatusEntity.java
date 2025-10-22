@@ -2,7 +2,7 @@ package org.bn.sensation.core.judgeroundstatus.entity;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.round.entity.RoundEntity;
-import org.bn.sensation.core.useractivity.entity.UserActivityAssignmentEntity;
+import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -22,7 +22,7 @@ public class JudgeRoundStatusEntity extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "judge_id")
-    private UserActivityAssignmentEntity judge;
+    private ActivityUserEntity judge;
 
     @ManyToOne
     @JoinColumn(name = "round_id")

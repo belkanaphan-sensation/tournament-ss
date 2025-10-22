@@ -19,7 +19,7 @@ import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
-import org.bn.sensation.core.useractivity.repository.UserActivityAssignmentRepository;
+import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,7 +42,7 @@ public class ActivityServiceImpl implements ActivityService {
     private final CreateActivityRequestMapper createActivityRequestMapper;
     private final UpdateActivityRequestMapper updateActivityRequestMapper;
     private final OccasionRepository occasionRepository;
-    private final UserActivityAssignmentRepository userActivityAssignmentRepository;
+    private final ActivityUserRepository activityUserRepository;
     private final CurrentUser currentUser;
 
     @Override
@@ -77,7 +77,8 @@ public class ActivityServiceImpl implements ActivityService {
                 id, currentUser.getSecurityUser().getId());
 
         Preconditions.checkArgument(id != null, "ID мероприятия не может быть null");
-        List<ActivityDto> result = activityRepository.findByOccasionIdAndUserIdAndStateIn(id, currentUser.getSecurityUser().getId(), ActivityState.LIFE_ACTIVITY_STATES).stream()
+        List<ActivityDto> result = activityRepository.findByOccasionIdAndUserIdAndStateIn(
+                id, currentUser.getSecurityUser().getId(), ActivityState.LIFE_ACTIVITY_STATES).stream()
                 .map(this::enrichActivityDtoWithStatistics)
                 .toList();
 
@@ -96,14 +97,9 @@ public class ActivityServiceImpl implements ActivityService {
     @Transactional
     public ActivityDto create(CreateActivityRequest request) {
         log.info("Создание активности: название={}, мероприятие={}", request.getName(), request.getOccasionId());
-
-        // Проверяем существование события
-        OccasionEntity occasion = occasionRepository.findById(request.getOccasionId())
-                .orElseThrow(() -> new EntityNotFoundException("Событие не найдено с id: " + request.getOccasionId()));
+        OccasionEntity occasion = occasionRepository.getByIdOrThrow(request.getOccasionId());
 
         log.debug("Найдено мероприятие={} для создания активности", occasion.getId());
-
-        // Создаем сущность активности
         ActivityEntity activity = createActivityRequestMapper.toEntity(request);
         activity.setOccasion(occasion);
 
@@ -117,8 +113,7 @@ public class ActivityServiceImpl implements ActivityService {
     public ActivityDto update(Long id, UpdateActivityRequest request) {
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
 
-        ActivityEntity activity = activityRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + id));
+        ActivityEntity activity = activityRepository.getByIdOrThrow(id);
 
         // Обновляем поля активности
         updateActivityRequestMapper.updateActivityFromRequest(request, activity);
@@ -152,7 +147,7 @@ public class ActivityServiceImpl implements ActivityService {
         }
 
         // Сначала удаляем все связанные назначения пользователей
-        userActivityAssignmentRepository.deleteByActivityId(id);
+        activityUserRepository.deleteByActivityId(id);
 
         // Затем удаляем саму активность
         activityRepository.deleteById(id);
@@ -198,6 +193,7 @@ public class ActivityServiceImpl implements ActivityService {
             case DRAFT -> event == ActivityEvent.PLAN ? ActivityState.PLANNED : currentState;
             case PLANNED, COMPLETED -> event == ActivityEvent.START ? ActivityState.IN_PROGRESS : currentState;
             case IN_PROGRESS -> event == ActivityEvent.COMPLETE ? ActivityState.COMPLETED : currentState;
+            default -> currentState;
         };
     }
 

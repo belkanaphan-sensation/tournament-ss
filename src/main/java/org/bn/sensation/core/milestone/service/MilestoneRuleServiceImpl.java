@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Preconditions;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,8 +61,7 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
         // Валидация roundParticipantLimit
         validateRoundParticipantLimit(request.getParticipantLimit(), request.getRoundParticipantLimit());
 
-        MilestoneEntity milestone = milestoneRepository.findById(request.getMilestoneId())
-                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + request.getMilestoneId()));
+        MilestoneEntity milestone = milestoneRepository.getByIdOrThrow(request.getMilestoneId());
 
         if (milestone.getMilestoneRule() != null) {
             log.warn("Попытка создания правила для этапа={}, у которого уже есть правило", milestone.getId());
@@ -89,8 +87,7 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
     public MilestoneRuleDto update(Long id, UpdateMilestoneRuleRequest request) {
         Preconditions.checkArgument(id != null, "ID правила не может быть null");
 
-        MilestoneRuleEntity rule = milestoneRuleRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Правило не найдено с id: " + id));
+        MilestoneRuleEntity rule = milestoneRuleRepository.getByIdOrThrow(id);
 
         Integer participantLimit = request.getParticipantLimit() != null ?
             request.getParticipantLimit() : rule.getParticipantLimit();
@@ -109,8 +106,7 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
     @Transactional
     public void deleteById(Long id) {
         Preconditions.checkArgument(id != null, "ID правила не может быть null");
-        MilestoneRuleEntity rule = milestoneRuleRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Правило не найдено с id: " + id));
+        MilestoneRuleEntity rule = milestoneRuleRepository.getByIdOrThrow(id);
 
         // Разрываем связь, чтобы Hibernate не блокировал удаление
         MilestoneEntity milestone = rule.getMilestone();
@@ -126,8 +122,7 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
     public MilestoneRuleDto findByMilestoneId(Long milestoneId) {
         Preconditions.checkArgument(milestoneId != null, "Milestone ID не может быть null");
 
-        MilestoneRuleEntity rule = milestoneRuleRepository.findByMilestoneId(milestoneId)
-                .orElseThrow(() -> new EntityNotFoundException("Правило не найдено для этапа с id: " + milestoneId));
+        MilestoneRuleEntity rule = milestoneRuleRepository.getByMilestoneIdOrThrow(milestoneId);
 
         return milestoneRuleDtoMapper.toDto(rule);
     }

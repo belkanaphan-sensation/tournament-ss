@@ -2,27 +2,27 @@ package org.bn.sensation.core.judgemilestonestatus.service;
 
 import java.util.List;
 
+import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
-import org.bn.sensation.core.judgemilestonestatus.entity.JudgeMilestoneStatusEntity;
 import org.bn.sensation.core.judgemilestonestatus.entity.JudgeMilestoneStatus;
+import org.bn.sensation.core.judgemilestonestatus.entity.JudgeMilestoneStatusEntity;
 import org.bn.sensation.core.judgemilestonestatus.repository.JudgeMilestoneStatusRepository;
 import org.bn.sensation.core.judgemilestonestatus.service.dto.JudgeMilestoneStatusDto;
-import org.bn.sensation.core.milestone.entity.MilestoneEntity;
-import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.judgemilestonestatus.service.mapper.JudgeMilestoneStatusDtoMapper;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
-import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
-import org.bn.sensation.core.useractivity.entity.UserActivityAssignmentEntity;
+import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.bn.sensation.core.round.entity.RoundEntity;
+import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Preconditions;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,8 +55,8 @@ public class JudgeMilestoneStatusServiceImpl implements JudgeMilestoneStatusServ
 
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
         Preconditions.checkArgument(judgeMilestoneStatus != null, "Статус не может быть null");
-        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId).orElseThrow(EntityNotFoundException::new);
-        UserActivityAssignmentEntity activityUser = getActivityUser(milestoneId, milestone);
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
+        ActivityUserEntity activityUser = getActivityUser(milestone);
 
         log.debug("Найден судья={} для этапа={}, состояние этапа={}",
                 activityUser.getId(), milestoneId, milestone.getState());
@@ -80,7 +80,7 @@ public class JudgeMilestoneStatusServiceImpl implements JudgeMilestoneStatusServ
 
     @Override
     @Transactional
-    public JudgeMilestoneStatusDto changeMilestoneStatus(MilestoneEntity milestone, UserActivityAssignmentEntity activityUser, JudgeMilestoneStatus judgeMilestoneStatus) {
+    public JudgeMilestoneStatusDto changeMilestoneStatus(MilestoneEntity milestone, ActivityUserEntity activityUser, JudgeMilestoneStatus judgeMilestoneStatus) {
         JudgeMilestoneStatusEntity judgeMilestoneStatusEntity = judgeMilestoneStatusRepository.findByMilestoneIdAndJudgeId(milestone.getId(), activityUser.getId())
                 .orElse(JudgeMilestoneStatusEntity.builder().milestone(milestone).judge(activityUser).build());
         judgeMilestoneStatusEntity.setStatus(judgeMilestoneStatus);
@@ -93,8 +93,8 @@ public class JudgeMilestoneStatusServiceImpl implements JudgeMilestoneStatusServ
     public boolean allRoundsReady(Long milestoneId) {
         log.debug("Проверка готовности всех раундов для этапа={}", milestoneId);
 
-        MilestoneEntity milestone = milestoneRepository.findByIdFullEntity(milestoneId).orElseThrow(EntityNotFoundException::new);
-        UserActivityAssignmentEntity activityUser = getActivityUser(milestoneId, milestone);
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
+        ActivityUserEntity activityUser = getActivityUser(milestone);
 
         List<Long> roundIds = milestone.getRounds().stream().map(RoundEntity::getId).distinct().toList();
         boolean allReady = canChange(activityUser.getId(), roundIds, JudgeMilestoneStatus.READY);
@@ -103,16 +103,14 @@ public class JudgeMilestoneStatusServiceImpl implements JudgeMilestoneStatusServ
         return allReady;
     }
 
-    private UserActivityAssignmentEntity getActivityUser(Long milestoneId, MilestoneEntity milestone) {
-        UserActivityAssignmentEntity activityUser = milestone.getActivity().getUserAssignments()
-                .stream()
-                .filter(ua ->
+    private ActivityUserEntity getActivityUser(MilestoneEntity milestone) {
+        Long userId = currentUser.getSecurityUser().getId();
+        ActivityUserEntity activityUser = ActivityUserUtil.getFromActivity(
+                milestone.getActivity(), userId, ua ->
                         ua.getUser()
                                 .getId()
                                 .equals(currentUser.getSecurityUser().getId())
-                                && ua.getPosition().isJudge())
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("Юзер с id %s не привязан к этапу с id: %s".formatted(currentUser.getSecurityUser().getId(), milestoneId)));
+                                && ua.getPosition().isJudge());
         return activityUser;
     }
 

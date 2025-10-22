@@ -28,7 +28,7 @@ public class JudgeMilestoneResultDto extends BaseDto {
     private EntityLinkDto round;
 
     @Schema(description = "Критерий, сформированный для данного этапа")
-    private EntityLinkDto milestoneCriteria;
+    private EntityLinkDto milestoneCriterion;
 
     @Schema(description = "Судья")
     private EntityLinkDto activityUser;

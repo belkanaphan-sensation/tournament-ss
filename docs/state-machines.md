@@ -39,5 +39,3 @@
 | SUMMARIZING | COMPLETE       | COMPLETED   | Финализация этапа                                                              |
 | PENDING     | PLAN           | PLANNED     | (Возможно не нужен) Возврат к планированию                                     |
 | IN_PROGRESS | PREPARE_ROUNDS | PENDING     | (Возможно не нужен) Возврат к подготовке раундов                               |
-
-

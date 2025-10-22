@@ -1,5 +1,5 @@
 databaseChangeLog:
-  # Create user_activity_assignment table
+  # Create activity_user table
   - changeSet:
       id: 2025-09-15-1
       author: belkanaphan
@@ -8,7 +8,7 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              CREATE TABLE IF NOT EXISTS user_activity_assignment (
+              CREATE TABLE IF NOT EXISTS activity_user (
                 id BIGSERIAL PRIMARY KEY,
                 user_id BIGINT NOT NULL,
                 activity_id BIGINT NOT NULL,
@@ -25,9 +25,9 @@ databaseChangeLog:
       rollback:
         - sql:
             sql: |
-              DROP TABLE IF EXISTS user_activity_assignment;
+              DROP TABLE IF EXISTS activity_user;
 
-  # Create criteria table
+  # Create criterion table
   - changeSet:
       id: 2025-09-15-2
       author: belkanaphan
@@ -36,7 +36,7 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              CREATE TABLE IF NOT EXISTS criteria (
+              CREATE TABLE IF NOT EXISTS criterion (
                 id BIGSERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -47,9 +47,9 @@ databaseChangeLog:
       rollback:
         - sql:
             sql: |
-              DROP TABLE IF EXISTS criteria;
+              DROP TABLE IF EXISTS criterion;
 
-  # Create milestone_criteria_assignment table
+  # Create milestone_criterion table
   - changeSet:
       id: 2025-09-15-3
       author: belkanaphan
@@ -58,10 +58,10 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              CREATE TABLE IF NOT EXISTS milestone_criteria_assignment (
+              CREATE TABLE IF NOT EXISTS milestone_criterion (
                 id BIGSERIAL PRIMARY KEY,
                 milestone_rule_id BIGINT NOT NULL,
-                criteria_id BIGINT NOT NULL,
+                criterion_id BIGINT NOT NULL,
                 partner_side VARCHAR(20),
                 weight DECIMAL(10,2) NOT NULL DEFAULT 1.0,
                 scale INTEGER,
@@ -71,10 +71,10 @@ databaseChangeLog:
                 modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 modified_by VARCHAR(255),
                 FOREIGN KEY (milestone_rule_id) REFERENCES milestone_rule(id) ON DELETE CASCADE,
-                FOREIGN KEY (criteria_id) REFERENCES criteria(id) ON DELETE CASCADE,
-                UNIQUE (milestone_rule_id, criteria_id, partner_side)
+                FOREIGN KEY (criterion_id) REFERENCES criterion(id) ON DELETE CASCADE,
+                UNIQUE (milestone_rule_id, criterion_id, partner_side)
               );
       rollback:
         - sql:
             sql: |
-              DROP TABLE IF EXISTS milestone_criteria_assignment;
+              DROP TABLE IF EXISTS milestone_criterion;

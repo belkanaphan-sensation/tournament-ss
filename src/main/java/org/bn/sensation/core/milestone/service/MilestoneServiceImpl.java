@@ -60,8 +60,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     public void completeMilestone(Long milestoneId) {
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
-        MilestoneEntity milestone = milestoneRepository.findById(milestoneId)
-                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + milestoneId));
+        MilestoneEntity milestone = milestoneRepository.getByIdOrThrow(milestoneId);
         milestone.getRounds().forEach(round -> roundStateMachineService.sendEvent(round.getId(), RoundEvent.COMPLETE));
 //        milestoneStateMachineService.sendEvent(milestoneId, MilestoneEvent.COMPLETE);
     }
@@ -113,8 +112,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     @Transactional
     public MilestoneDto update(Long id, UpdateMilestoneRequest request) {
-        MilestoneEntity milestone = milestoneRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Этап не найден с id: " + id));
+        MilestoneEntity milestone = milestoneRepository.getByIdOrThrow(id);
 
         Integer oldOrder = milestone.getMilestoneOrder();
 
@@ -297,6 +295,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                 default -> currentState;
             };
             case COMPLETED -> event == MilestoneEvent.START ? MilestoneState.IN_PROGRESS : currentState;
+            default -> currentState;
         };
     }
 

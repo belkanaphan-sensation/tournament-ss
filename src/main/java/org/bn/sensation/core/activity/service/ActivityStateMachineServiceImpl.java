@@ -12,7 +12,6 @@ import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -95,7 +94,6 @@ public class ActivityStateMachineServiceImpl implements ActivityStateMachineServ
 
     private ActivityEntity findActivityById(Long activityId) {
         // TODO: Implement entity retrieval logic
-        return activityRepository.findById(activityId)
-                .orElseThrow(() -> new EntityNotFoundException("Activity not found"));
+        return activityRepository.getByIdOrThrow(activityId);
     }
 }

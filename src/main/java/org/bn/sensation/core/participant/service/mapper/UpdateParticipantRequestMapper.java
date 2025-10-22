@@ -15,6 +15,8 @@ public interface UpdateParticipantRequestMapper extends BaseDtoMapper<Participan
     @Mapping(target = "person.email", source = "email")
     @Mapping(target = "person.phoneNumber", source = "phoneNumber")
     @Mapping(target = "rounds", ignore = true)
+    @Mapping(target = "milestones", ignore = true)
+    @Mapping(target = "activity", ignore = true)
     void updateParticipantFromRequest(UpdateParticipantRequest request, @MappingTarget ParticipantEntity entity);
 
 }

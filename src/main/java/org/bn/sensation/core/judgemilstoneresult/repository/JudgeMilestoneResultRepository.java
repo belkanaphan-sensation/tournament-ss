@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import jakarta.persistence.EntityNotFoundException;
+
 public interface JudgeMilestoneResultRepository extends BaseRepository<JudgeMilestoneResultEntity> {
 
     @EntityGraph(attributePaths = {"activityUser.user"})
@@ -19,7 +21,11 @@ public interface JudgeMilestoneResultRepository extends BaseRepository<JudgeMile
             """)
     Optional<JudgeMilestoneResultEntity> findByIdWithUser(Long id);
 
-    @EntityGraph(attributePaths = {"participant", "round", "milestoneCriteria", "activityUser"})
+    default JudgeMilestoneResultEntity getByIdWithUserOrThrow(Long id) {
+        return findByIdWithUser(id).orElseThrow(() -> new EntityNotFoundException("Результат раунда не найден: " + id));
+    }
+
+    @EntityGraph(attributePaths = {"participant", "round", "milestoneCriterion", "activityUser"})
     @Query("""
             SELECT DISTINCT jm
             FROM JudgeMilestoneResultEntity jm
@@ -27,7 +33,7 @@ public interface JudgeMilestoneResultRepository extends BaseRepository<JudgeMile
             """)
     List<JudgeMilestoneResultEntity> findByRoundId(Long roundId);
 
-    @EntityGraph(attributePaths = {"participant", "round", "milestoneCriteria", "activityUser"})
+    @EntityGraph(attributePaths = {"participant", "round", "milestoneCriterion", "activityUser"})
     @Query("""
             SELECT DISTINCT jm
             FROM JudgeMilestoneResultEntity jm
@@ -36,7 +42,7 @@ public interface JudgeMilestoneResultRepository extends BaseRepository<JudgeMile
             """)
     List<JudgeMilestoneResultEntity> findByRoundIdAndActivityUserId(Long roundId, Long activityUserId);
 
-    @EntityGraph(attributePaths = {"participant", "round", "milestoneCriteria", "activityUser"})
+    @EntityGraph(attributePaths = {"participant", "round", "milestoneCriterion", "activityUser"})
     @Query("""
             SELECT DISTINCT jm
             FROM JudgeMilestoneResultEntity jm
@@ -44,7 +50,7 @@ public interface JudgeMilestoneResultRepository extends BaseRepository<JudgeMile
             """)
     List<JudgeMilestoneResultEntity> findByParticipantId(Long participantId);
 
-    @EntityGraph(attributePaths = {"participant.activity", "round", "milestoneCriteria", "activityUser"})
+    @EntityGraph(attributePaths = {"participant.activity", "round", "milestoneCriterion", "activityUser"})
     @Query("""
             SELECT DISTINCT jm
             FROM JudgeMilestoneResultEntity jm
@@ -52,7 +58,7 @@ public interface JudgeMilestoneResultRepository extends BaseRepository<JudgeMile
             """)
     List<JudgeMilestoneResultEntity> findByActivityUserId(Long activityUserId);
 
-    @EntityGraph(attributePaths = {"participant", "round", "milestoneCriteria", "activityUser"})
+    @EntityGraph(attributePaths = {"participant", "round", "milestoneCriterion", "activityUser"})
     @Query("""
             SELECT DISTINCT jm
             FROM JudgeMilestoneResultEntity jm
@@ -60,7 +66,7 @@ public interface JudgeMilestoneResultRepository extends BaseRepository<JudgeMile
             """)
     List<JudgeMilestoneResultEntity> findByMilestoneId(@Param("milestoneId") Long milestoneId);
 
-    @EntityGraph(attributePaths = {"participant", "round", "milestoneCriteria", "activityUser"})
+    @EntityGraph(attributePaths = {"participant", "round", "milestoneCriterion", "activityUser"})
     @Query("""
             SELECT DISTINCT jm
             FROM JudgeMilestoneResultEntity jm
@@ -69,14 +75,14 @@ public interface JudgeMilestoneResultRepository extends BaseRepository<JudgeMile
             """)
     List<JudgeMilestoneResultEntity> findByMilestoneIdAndActivityUserId(Long milestoneId, Long activityUserId);
 
-    @EntityGraph(attributePaths = {"milestoneCriteria"})
+    @EntityGraph(attributePaths = {"milestoneCriterion"})
     @Query("""
-            SELECT jm
+            SELECT DISTINCT jm
             FROM JudgeMilestoneResultEntity jm
             WHERE jm.id in :ids
             """)
     List<JudgeMilestoneResultEntity> findByIdsIn(@Param("ids") List<Long> ids);
 
-    boolean existsByRoundIdAndParticipantIdAndActivityUserIdAndMilestoneCriteriaId(
-            Long roundId, Long participantId, Long activityUserId, Long milestoneCriteriaId);
+    boolean existsByRoundIdAndParticipantIdAndActivityUserIdAndMilestoneCriterionId(
+            Long roundId, Long participantId, Long activityUserId, Long milestoneCriterionId);
 }

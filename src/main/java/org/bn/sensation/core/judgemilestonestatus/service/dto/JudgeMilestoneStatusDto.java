@@ -22,7 +22,7 @@ import lombok.experimental.SuperBuilder;
 @Schema(description = "Статус этапа по судьям")
 public class JudgeMilestoneStatusDto extends BaseDto {
 
-    @Schema(description = "Судья. Юзер привязанный к активности (UserActivityAssignmentEntity)")
+    @Schema(description = "Судья. Юзер привязанный к активности")
     private EntityLinkDto judge;
 
     @Schema(description = "Этап")

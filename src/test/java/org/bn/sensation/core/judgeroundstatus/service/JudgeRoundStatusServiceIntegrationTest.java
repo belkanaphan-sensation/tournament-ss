@@ -8,39 +8,48 @@ import java.util.Set;
 import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
+import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
+import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
+import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
-import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
+import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
 import org.bn.sensation.core.judgeroundstatus.service.dto.JudgeRoundStatusDto;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
+import org.bn.sensation.core.milestone.repository.MilestoneRuleRepository;
+import org.bn.sensation.core.milestone.entity.AssessmentMode;
+import org.bn.sensation.core.criterion.entity.CriterionEntity;
+import org.bn.sensation.core.criterion.repository.CriterionRepository;
+import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
+import org.bn.sensation.core.milestonecriterion.repository.MilestoneCriterionRepository;
+import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.organization.repository.OrganizationRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.user.entity.*;
-import org.bn.sensation.core.useractivity.repository.UserActivityAssignmentRepository;
+import org.bn.sensation.core.user.entity.Role;
+import org.bn.sensation.core.user.entity.UserEntity;
+import org.bn.sensation.core.user.entity.UserStatus;
 import org.bn.sensation.core.user.repository.UserRepository;
-import org.bn.sensation.core.useractivity.entity.UserActivityAssignmentEntity;
-import org.bn.sensation.core.useractivity.entity.UserActivityPosition;
 import org.bn.sensation.security.CurrentUser;
 import org.bn.sensation.security.SecurityUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @Transactional
 class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
@@ -58,13 +67,22 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
-    private UserActivityAssignmentRepository userActivityAssignmentRepository;
+    private ActivityUserRepository activityUserRepository;
 
     @Autowired
     private ActivityRepository activityRepository;
 
     @Autowired
     private MilestoneRepository milestoneRepository;
+
+    @Autowired
+    private MilestoneRuleRepository milestoneRuleRepository;
+
+    @Autowired
+    private CriterionRepository criterionRepository;
+
+    @Autowired
+    private MilestoneCriterionRepository milestoneCriterionRepository;
 
     @Autowired
     private OccasionRepository occasionRepository;
@@ -81,8 +99,11 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
     private UserEntity testRegularUser;
     private ActivityEntity testActivity;
     private MilestoneEntity testMilestone;
+    private MilestoneRuleEntity testMilestoneRule;
+    private CriterionEntity testCriterion;
+    private MilestoneCriterionEntity testMilestoneCriterion;
     private RoundEntity testRound;
-    private UserActivityAssignmentEntity judgeAssignment;
+    private ActivityUserEntity judgeAssignment;
     private OrganizationEntity testOrganization;
     private OccasionEntity testOccasion;
 
@@ -91,7 +112,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
         // Clean database
         cleanDatabase();
         judgeRoundStatusRepository.deleteAll();
-        userActivityAssignmentRepository.deleteAll();
+        activityUserRepository.deleteAll();
         roundRepository.deleteAll();
         milestoneRepository.deleteAll();
         activityRepository.deleteAll();
@@ -143,18 +164,46 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
         testMilestone = milestoneRepository.save(testMilestone);
 
+        // Create test milestone rule
+        testMilestoneRule = MilestoneRuleEntity.builder()
+                .milestone(testMilestone)
+                .assessmentMode(AssessmentMode.SCORE)
+                .participantLimit(10)
+                .roundParticipantLimit(5)
+                .strictPassMode(false)
+                .build();
+        testMilestoneRule = milestoneRuleRepository.save(testMilestoneRule);
+
+        // Create test criterion
+        testCriterion = CriterionEntity.builder()
+                .name("Test Criterion")
+                .build();
+        testCriterion = criterionRepository.save(testCriterion);
+
+        // Create milestone criterion
+        testMilestoneCriterion = MilestoneCriterionEntity.builder()
+                .milestoneRule(testMilestoneRule)
+                .criterion(testCriterion)
+                .partnerSide(PartnerSide.LEADER)
+                .build();
+        testMilestoneCriterion = milestoneCriterionRepository.save(testMilestoneCriterion);
+
+        // Link milestone with rule
+        testMilestone.setMilestoneRule(testMilestoneRule);
+        testMilestone = milestoneRepository.save(testMilestone);
+
         // Create test users
         testJudge = createUser("judge", Role.USER);
         testAdmin = createUser("admin", Role.ADMIN);
         testRegularUser = createUser("user", Role.USER);
 
         // Create judge assignment
-        judgeAssignment = UserActivityAssignmentEntity.builder()
+        judgeAssignment = ActivityUserEntity.builder()
                 .user(testJudge)
                 .activity(testActivity)
                 .position(UserActivityPosition.JUDGE)
                 .build();
-        judgeAssignment = userActivityAssignmentRepository.save(judgeAssignment);
+        judgeAssignment = activityUserRepository.save(judgeAssignment);
 
         // Add assignment to activity's userAssignments collection
         testActivity.getUserAssignments().add(judgeAssignment);
@@ -165,6 +214,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Round")
                 .state(RoundState.IN_PROGRESS)
                 .milestone(testMilestone)
+                .roundOrder(0)
                 .build();
         testRound = roundRepository.save(testRound);
     }
@@ -270,7 +320,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
         mockCurrentUser(testRegularUser);
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
         });
     }
@@ -281,7 +331,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
         mockCurrentUser(testAdmin);
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
         });
     }
@@ -293,7 +343,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
         Long nonExistentRoundId = 999L;
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
             judgeRoundStatusService.changeJudgeRoundStatus(nonExistentRoundId, JudgeRoundStatus.READY);
         });
     }
@@ -325,12 +375,12 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         // Create second judge
         UserEntity secondJudge = createUser("judge2", Role.USER);
-        UserActivityAssignmentEntity secondJudgeAssignment = UserActivityAssignmentEntity.builder()
+        ActivityUserEntity secondJudgeAssignment = ActivityUserEntity.builder()
                 .user(secondJudge)
                 .activity(testActivity)
                 .position(UserActivityPosition.JUDGE)
                 .build();
-        secondJudgeAssignment = userActivityAssignmentRepository.save(secondJudgeAssignment);
+        secondJudgeAssignment = activityUserRepository.save(secondJudgeAssignment);
 
         // Add second assignment to activity's userAssignments collection
         testActivity.getUserAssignments().add(secondJudgeAssignment);
@@ -395,6 +445,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Draft Round")
                 .state(RoundState.DRAFT)
                 .milestone(testMilestone)
+                .roundOrder(0)
                 .build();
         roundRepository.save(draftRound);
 
