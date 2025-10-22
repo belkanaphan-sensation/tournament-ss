@@ -221,7 +221,7 @@ public class RoundServiceImpl implements RoundService {
                 log.debug("Старт раунда разрешен");
                 yield true;
             }
-            case CONFIRM -> {
+            case MARK_READY -> {
                 log.debug("Проверка возможности подтверждения раунда={}", round.getId());
 
                 if (round.getMilestone().getState() != MilestoneState.IN_PROGRESS) {
@@ -264,7 +264,7 @@ public class RoundServiceImpl implements RoundService {
             };
             case IN_PROGRESS -> switch (event) {
                 case PLAN -> RoundState.PLANNED;
-                case CONFIRM -> RoundState.READY;
+                case MARK_READY -> RoundState.READY;
                 default -> currentState;
             };
             case READY -> switch (event) {

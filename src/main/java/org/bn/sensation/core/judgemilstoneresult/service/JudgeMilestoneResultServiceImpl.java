@@ -132,7 +132,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
             log.info("Изменение статуса раунда судьи на READY для судьи={}, раунда={}",
                     activityUser.getId(), roundId);
             judgeRoundStatusService.changeJudgeRoundStatusIfPossible(activityUser.getId(), roundId, JudgeRoundStatus.READY);
-            roundStateMachineService.sendEvent(roundId, RoundEvent.CONFIRM);
+            roundStateMachineService.sendEvent(roundId, RoundEvent.MARK_READY);
         }
 
         if (judgeMilestoneStatusService.allRoundsReady(round.getMilestone().getId())) {

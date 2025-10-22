@@ -44,6 +44,10 @@ public class MilestoneStateMachineConfig extends EnumStateMachineConfigurerAdapt
     @Override
     public void configure(StateMachineTransitionConfigurer<MilestoneState, MilestoneEvent> transitions) throws Exception {
         transitions
+                // Настроили все правила. Участники могут быть добавлены или нет,
+                // если это этап, зависящий от предыдущего
+                // тут должно происходит создание раундов в статусе DRAFT
+                // с автоматическим первичным распределением участников
                 // DRAFT -> PLANNED
                 .withExternal()
                 .source(MilestoneState.DRAFT)
@@ -51,6 +55,7 @@ public class MilestoneStateMachineConfig extends EnumStateMachineConfigurerAdapt
                 .event(MilestoneEvent.PLAN)
                 .action(milestoneAction)
                 .and()
+                // Если нужно поменять правила
                 // PLANNED -> DRAFT
                 .withExternal()
                 .source(MilestoneState.PLANNED)
@@ -58,32 +63,70 @@ public class MilestoneStateMachineConfig extends EnumStateMachineConfigurerAdapt
                 .event(MilestoneEvent.DRAFT)
                 .action(milestoneAction)
                 .and()
-                // PLANNED -> IN_PROGRESS
+                // Настроены все правила.
+                // Участники добавлены в этап, но не распределены по раундам.
+                // Когда произошло автоматическое распределение по раундам,
+                // и админ проверил и добавил/удалил кого надо
+                // PLANNED -> PENDING
                 .withExternal()
                 .source(MilestoneState.PLANNED)
+                .target(MilestoneState.PENDING)
+                .event(MilestoneEvent.PREPARE_ROUNDS)
+                .action(milestoneAction)
+                .and()
+                // Админ проверил всех участников раунда, согласовал их и стартует этап.
+                // Тут уже предполагается, что все раунды сформированы правильно,
+                // но их редактирование возможно на случай, если что-то пошло не так,
+                // например, кто-то выбыл с травмой и нужно добавить другого
+                // PENDING -> IN_PROGRESS
+                .withExternal()
+                .source(MilestoneState.PENDING)
                 .target(MilestoneState.IN_PROGRESS)
                 .event(MilestoneEvent.START)
                 .action(milestoneAction)
                 .and()
-                // IN_PROGRESS -> PLANNED
+                // Все раунды завершены и в статусе READY.
+                // Можно посмотреть на предварительный результат этапа
+                // и принять решение нужен ли дополнительный раунд или нет
+                // Все раунды в состоянии READY (или COMPLETED?)
+                // IN_PROGRESS -> SUMMARIZING
                 .withExternal()
                 .source(MilestoneState.IN_PROGRESS)
-                .target(MilestoneState.PLANNED)
-                .event(MilestoneEvent.PLAN)
+                .target(MilestoneState.SUMMARIZING)
+                .event(MilestoneEvent.SUM_UP)
                 .action(milestoneAction)
                 .and()
-                // IN_PROGRESS -> COMPLETED
+                // Если дополнительный раунд понадобился, то его создали и этап продолжается
+                // SUMMARIZING -> IN_PROGRESS
                 .withExternal()
-                .source(MilestoneState.IN_PROGRESS)
+                .source(MilestoneState.SUMMARIZING)
+                .target(MilestoneState.IN_PROGRESS)
+                .event(MilestoneEvent.START)
+                .action(milestoneAction)
+                .and()
+                // Все раунды, включая дополнительные, завершены, этап можно завершать,
+                // получать его конечный результат и переходить к следующему
+                // SUMMARIZING -> COMPLETED
+                .withExternal()
+                .source(MilestoneState.SUMMARIZING)
                 .target(MilestoneState.COMPLETED)
                 .event(MilestoneEvent.COMPLETE)
                 .action(milestoneAction)
                 .and()
-                // COMPLETED -> IN_PROGRESS
+                // ********
+                // Следующие переходы не уверена пока, что нужны:
+                // PENDING -> PLANNED
                 .withExternal()
-                .source(MilestoneState.COMPLETED)
-                .target(MilestoneState.IN_PROGRESS)
-                .event(MilestoneEvent.START)
+                .source(MilestoneState.PENDING)
+                .target(MilestoneState.PLANNED)
+                .event(MilestoneEvent.PLAN)
+                .action(milestoneAction)
+                .and()
+                // IN_PROGRESS -> PENDING
+                .withExternal()
+                .source(MilestoneState.IN_PROGRESS)
+                .target(MilestoneState.PENDING)
+                .event(MilestoneEvent.PREPARE_ROUNDS)
                 .action(milestoneAction);
     }
 }
