@@ -12,6 +12,8 @@ import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
 import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
+import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
@@ -130,7 +132,8 @@ public class ParticipantServiceImpl implements ParticipantService {
         Preconditions.checkArgument(milestoneIds.contains(round.getMilestone().getId()),
                 "Участник %s не может быть привязан к раунду %s, т.к. он не привязан к этапу раунда", participantId, roundId);
 
-        //TODO проверить стейты в которых может происходить привязка и отвязка
+        Preconditions.checkState(!Set.of(RoundState.READY, RoundState.COMPLETED).contains(round.getState()),
+                "Нельзя привязать участника к раунду т.к. раунд в состоянии %s", round.getState());
         participant.getRounds().add(round);
         participantRepository.save(participant);
         return participantDtoMapper.toDto(participant);
@@ -142,7 +145,8 @@ public class ParticipantServiceImpl implements ParticipantService {
         ParticipantEntity participant = participantRepository.getByIdOrThrow(participantId);
         RoundEntity round = roundRepository.getByIdOrThrow(roundId);
 
-        //TODO проверить стейты в которых может происходить привязка и отвязка
+        Preconditions.checkState(!Set.of(RoundState.READY, RoundState.COMPLETED).contains(round.getState()),
+                "Нельзя отвязать участника от раунда т.к. раунд в состоянии %s", round.getState());
         participant.getRounds().remove(round);
         participantRepository.save(participant);
         return participantDtoMapper.toDto(participant);
@@ -157,7 +161,8 @@ public class ParticipantServiceImpl implements ParticipantService {
         Preconditions.checkArgument(participant.getActivity().getId().equals(milestone.getActivity().getId()),
                 "Участник %s не может быть привязан к этапу %s, т.к. этап находится в другой активности", participantId, milestoneId);
 
-        //TODO проверить стейты в которых может происходить привязка и отвязка
+        Preconditions.checkState(!Set.of(MilestoneState.SUMMARIZING, MilestoneState.COMPLETED).contains(milestone.getState()),
+                "Нельзя привязать участника к этапу т.к. этап в состоянии %s", milestone.getState());
         participant.getMilestones().add(milestone);
         participantRepository.save(participant);
         return participantDtoMapper.toDto(participant);
@@ -175,8 +180,8 @@ public class ParticipantServiceImpl implements ParticipantService {
                 .collect(Collectors.toSet());
         Preconditions.checkArgument(assignedRounds.isEmpty(), "Сначала отвяжите участника от раундов этапа: %s", assignedRounds);
 
-        //TODO проверить стейты в которых может происходить привязка и отвязка
-        participant.getMilestones().remove(milestone);
+        Preconditions.checkState(!Set.of(MilestoneState.SUMMARIZING, MilestoneState.COMPLETED).contains(milestone.getState()),
+                "Нельзя отвязать участника от этапа т.к. этап в состоянии %s", milestone.getState());        participant.getMilestones().remove(milestone);
         participantRepository.save(participant);
         return participantDtoMapper.toDto(participant);
     }
