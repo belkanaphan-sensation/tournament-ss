@@ -237,7 +237,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                         .build())
                 .number("001")
                 .partnerSide(PartnerSide.LEADER)
-                .registered(true)
+                .isRegistered(true)
                 .rounds(new HashSet<>(Set.of(testRound)))
                 .build();
         testParticipant = participantRepository.save(testParticipant);
@@ -363,7 +363,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                         .phoneNumber("+1234567893")
                         .build())
                 .number("002")
-                .registered(true)
+                .isRegistered(true)
                 .partnerSide(PartnerSide.FOLLOWER)
                 .rounds(new HashSet<>()) // Not in any round
                 .build();

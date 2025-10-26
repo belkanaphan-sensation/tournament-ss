@@ -47,24 +47,6 @@ public class ParticipantController {
         return ResponseEntity.ok(participantService.findAll(pageable));
     }
 
-    @Operation(summary = "Получить всех участников по ID раунда")
-    @GetMapping(path = "/round/{roundId}")
-    public ResponseEntity<List<ParticipantDto>> getByRoundId(@PathVariable("roundId") Long roundId) {
-        return ResponseEntity.ok(participantService.findByRoundId(roundId));
-    }
-
-    @Operation(summary = "Получить участников, расформированных по раундам по ID раунда")
-    @GetMapping(path = "/by-round/round/{roundId}/currentUser")
-    public ResponseEntity<List<ParticipantDto>> getByRoundByRoundIdForCurrentUser(@PathVariable("roundId") Long roundId) {
-        return ResponseEntity.ok(participantService.getByRoundByRoundIdForCurrentUser(roundId));
-    }
-
-    @Operation(summary = "Получить всех участников, расформированных по раундам по ID этапа")
-    @GetMapping(path = "/by-round/milestone/{milestoneId}/currentUser")
-    public ResponseEntity<List<RoundParticipantsDto>> getByRoundByMilestoneIdForCurrentUser(@PathVariable("milestoneId") Long milestoneId) {
-        return ResponseEntity.ok(participantService.getByRoundByMilestoneIdForCurrentUser(milestoneId));
-    }
-
     @Operation(summary = "Создать нового участника")
     @PostMapping
     public ResponseEntity<ParticipantDto> create(@Valid @RequestBody CreateParticipantRequest request) {
@@ -85,6 +67,24 @@ public class ParticipantController {
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         participantService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Получить всех участников по ID раунда")
+    @GetMapping(path = "/round/{roundId}")
+    public ResponseEntity<List<ParticipantDto>> getByRoundId(@PathVariable("roundId") Long roundId) {
+        return ResponseEntity.ok(participantService.findByRoundId(roundId));
+    }
+
+    @Operation(summary = "Получить участников, расформированных по раундам по ID раунда для текущего пользователя")
+    @GetMapping(path = "/by-round/round/{roundId}/currentUser")
+    public ResponseEntity<List<ParticipantDto>> getByRoundByRoundIdForCurrentUser(@PathVariable("roundId") Long roundId) {
+        return ResponseEntity.ok(participantService.getByRoundByRoundIdForCurrentUser(roundId));
+    }
+
+    @Operation(summary = "Получить всех участников, расформированных по раундам по ID этапа для текущего пользователя")
+    @GetMapping(path = "/by-round/milestone/{milestoneId}/currentUser")
+    public ResponseEntity<List<RoundParticipantsDto>> getByRoundByMilestoneIdForCurrentUser(@PathVariable("milestoneId") Long milestoneId) {
+        return ResponseEntity.ok(participantService.getByRoundByMilestoneIdForCurrentUser(milestoneId));
     }
 
     @Operation(summary = "Привязать участника к раунду")

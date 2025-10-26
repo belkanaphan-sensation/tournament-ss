@@ -5,10 +5,7 @@ import java.util.List;
 import org.bn.sensation.core.common.statemachine.event.RoundEvent;
 import org.bn.sensation.core.round.service.RoundService;
 import org.bn.sensation.core.round.service.RoundStateMachineService;
-import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
-import org.bn.sensation.core.round.service.dto.RoundDto;
-import org.bn.sensation.core.round.service.dto.RoundWithJRStatusDto;
-import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
+import org.bn.sensation.core.round.service.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -125,4 +122,10 @@ public class RoundController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Распределить участников в этап. Создать раунды на основании списка участников")
+    @PostMapping("/generate-rounds")
+    public ResponseEntity<List<RoundDto>> generateRoundsWithParticipants(@Valid @RequestBody GenerateRoundsRequest request) {
+        List<RoundDto> generated = roundService.generateRounds(request);
+        return ResponseEntity.ok(generated);
+    }
 }

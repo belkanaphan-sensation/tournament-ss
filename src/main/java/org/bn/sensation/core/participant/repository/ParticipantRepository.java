@@ -22,6 +22,10 @@ public interface ParticipantRepository extends BaseRepository<ParticipantEntity>
             """)
     List<ParticipantEntity> findByRoundId(@Param("roundId") Long roundId);
 
+    List<ParticipantEntity> findByActivityId(@Param("activityId") Long activityId);
+
+    List<ParticipantEntity> findByActivityIdAndIdIn(@Param("activityId") Long activityId, @Param("ids") List<Long> ids);
+
 //    @EntityGraph(attributePaths = {"activity", "rounds", "milestones"})
 //    @Query("""
 //            SELECT DISTINCT p
