@@ -275,16 +275,22 @@ public class RoundServiceImpl implements RoundService {
         return getNextState(currentState, event) != currentState;
     }
 
+    /**
+     * Не должно применяться в нормальном флоу. Нужно на экстренный случай
+     */
     private void addParticipants(List<Long> participantIds, MilestoneEntity milestone, RoundEntity round) {
         if (participantIds != null && !participantIds.isEmpty()) {
             Set<ParticipantEntity> participants = participantRepository.findAllByIdWithActivity(participantIds)
                     .stream()
                     .peek(participant -> {
+                        Preconditions.checkArgument(participant.getIsRegistered(), "Может быть добавлен только зарегистрированный участник");
                         Preconditions.checkArgument(participant.getActivity().getId().equals(milestone.getActivity().getId()),
                                 "Участник с ID %s не принадлежит активности %s", participant.getId(), milestone.getActivity().getId());
+                        Preconditions.checkArgument(participant.getMilestones().stream().anyMatch(m -> m.getId().equals(milestone.getId())),
+                                "Участник с ID %s должен быть сначала добавлен в этап раунда с ID: %s", participant.getId(), milestone.getId());
                     })
                     .collect(Collectors.toSet());
-            round.setParticipants(participants);
+            round.getParticipants().addAll(participants);
         }
     }
 }

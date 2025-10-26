@@ -182,6 +182,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+1234567890")
                         .build())
                 .number("001")
+                .registered(true)
                 .partnerSide(PartnerSide.LEADER)
                 .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
@@ -232,6 +233,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .email("jane.smith@example.com")
                 .phoneNumber("+0987654321")
                 .number("002")
+                .isRegistered(true)
                 .partnerSide(PartnerSide.FOLLOWER)
                 .activityId(testActivity.getId())
                 .build();
@@ -327,6 +329,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+2222222222")
                         .build())
                 .number("003")
+                .registered(true)
                 .activity(testActivity)
                 .build();
         participantRepository.save(participant2);
@@ -339,6 +342,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+3333333333")
                         .build())
                 .number("004")
+                .registered(true)
                 .activity(testActivity)
                 .build();
         participantRepository.save(participant3);
@@ -442,6 +446,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .email(null) // Null email
                 .phoneNumber(null) // Null phone
                 .activityId(testActivity.getId())
+                .isRegistered(false)
                 .build();
 
         // When
@@ -475,6 +480,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .email("mapping@test.com")
                 .phoneNumber("+5555555555")
                 .activityId(testActivity.getId())
+                .isRegistered(false)
                 .build();
 
         // When
@@ -525,6 +531,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .email("role@test.com")
                 .phoneNumber("+6666666666")
                 .number("R-001")
+                .isRegistered(true)
                 .partnerSide(PartnerSide.FOLLOWER)
                 .activityId(testActivity.getId())
                 .build();
@@ -575,6 +582,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .number("N-001")
                 .partnerSide(null) // Null competition role
                 .activityId(testActivity.getId())
+                .isRegistered(true)
                 .build();
 
         // When
@@ -618,6 +626,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+2222222222")
                         .build())
                 .number("003")
+                .registered(true)
                 .partnerSide(PartnerSide.FOLLOWER)
                 .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
@@ -632,6 +641,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+3333333333")
                         .build())
                 .number("004")
+                .registered(true)
                 .partnerSide(PartnerSide.LEADER)
                 .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
@@ -664,6 +674,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                             .phoneNumber("+111111111" + i)
                             .build())
                     .number("P-" + String.format("%03d", i))
+                    .registered(true)
                     .partnerSide(PartnerSide.FOLLOWER)
                     .activity(testActivity)
                     .rounds(new HashSet<>(Set.of(testRound)))
@@ -696,6 +707,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+9999999999")
                         .build())
                 .number("OTHER-001")
+                .registered(true)
                 .partnerSide(PartnerSide.FOLLOWER)
                 .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound1))) // Only in testRound1, not testRound
@@ -742,6 +754,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+8888888888")
                         .build())
                 .number("MULTI-001")
+                .registered(true)
                 .partnerSide(PartnerSide.LEADER)
                 .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound, testRound1))) // In both rounds
@@ -777,6 +790,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                             .phoneNumber("+222222222" + i)
                             .build())
                     .number("MT-" + String.format("%03d", i))
+                    .registered(true)
                     .partnerSide(PartnerSide.FOLLOWER)
                     .rounds(new HashSet<>(Set.of(testRound)))
                     .build();
@@ -868,6 +882,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+9876543210")
                         .build())
                 .number("002")
+                .registered(true)
                 .partnerSide(PartnerSide.FOLLOWER)
                 .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
@@ -910,6 +925,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+9876543210")
                         .build())
                 .number("002")
+                .registered(true)
                 .partnerSide(PartnerSide.FOLLOWER)
                 .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
@@ -982,6 +998,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+1111111111")
                         .build())
                 .number("002")
+                .registered(true)
                 .partnerSide(PartnerSide.FOLLOWER)
                 .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
@@ -996,6 +1013,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+2222222222")
                         .build())
                 .number("003")
+                .registered(true)
                 .partnerSide(PartnerSide.FOLLOWER)
                 .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
@@ -1080,6 +1098,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+1234567891")
                         .build())
                 .number("002")
+                .registered(true)
                 .partnerSide(PartnerSide.FOLLOWER)
                 .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
@@ -1128,6 +1147,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+1234567891")
                         .build())
                 .number("002")
+                .registered(true)
                 .partnerSide(PartnerSide.FOLLOWER)
                 .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
@@ -1169,6 +1189,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+1234567892")
                         .build())
                 .number("003")
+                .registered(true)
                 .partnerSide(PartnerSide.LEADER)
                 .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound1)))

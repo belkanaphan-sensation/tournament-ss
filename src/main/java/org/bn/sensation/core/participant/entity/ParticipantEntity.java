@@ -34,6 +34,9 @@ public class ParticipantEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private PartnerSide partnerSide;
 
+    @Column(name = "is_registered")
+    private Boolean isRegistered;
+
     @ManyToOne
     @JoinColumn(name = "activity_id")
     private ActivityEntity activity;

@@ -1,5 +1,7 @@
 package org.bn.sensation.core.milestone.service.dto;
 
+import java.util.List;
+
 import org.bn.sensation.core.common.dto.EmptyDto;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 
@@ -37,4 +39,7 @@ public class UpdateMilestoneRequest extends EmptyDto {
     @PositiveOrZero
     @Schema(description = "Порядок этапа в рамках активности", example = "1")
     private Integer milestoneOrder;
+
+    @Schema(description = "Список ID участников для этапа")
+    private List<Long> participantIds;
 }

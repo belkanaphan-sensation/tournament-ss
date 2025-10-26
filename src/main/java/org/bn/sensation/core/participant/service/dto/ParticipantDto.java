@@ -34,6 +34,9 @@ public class ParticipantDto extends BaseDto {
     @Schema(description = "Сторона участника в соревновании", example = "LEADER")
     private PartnerSide partnerSide;
 
+    @Schema(description = "Пометка о том что участник прошел регистрацию")
+    private Boolean isRegistered;
+
     @Schema(description = "Активность участника")
     private EntityLinkDto activity;
 

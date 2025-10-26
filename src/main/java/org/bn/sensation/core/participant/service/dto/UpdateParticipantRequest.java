@@ -50,4 +50,7 @@ public class UpdateParticipantRequest extends EmptyDto {
 
     @Schema(description = "Сторона участника в соревновании", example = "LEADER")
     private PartnerSide partnerSide;
+
+    @Schema(description = "Пометка о том что участник прошел регистрацию")
+    private Boolean isRegistered;
 }

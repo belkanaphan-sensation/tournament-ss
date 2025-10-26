@@ -2,6 +2,7 @@ package org.bn.sensation.core.milestone.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
@@ -21,6 +22,8 @@ import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.mapper.CreateMilestoneRequestMapper;
 import org.bn.sensation.core.milestone.service.mapper.MilestoneDtoMapper;
 import org.bn.sensation.core.milestone.service.mapper.UpdateMilestoneRequestMapper;
+import org.bn.sensation.core.participant.entity.ParticipantEntity;
+import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.round.service.RoundStateMachineService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -44,6 +47,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     private final MilestoneDtoMapper milestoneDtoMapper;
     private final MilestoneRepository milestoneRepository;
 //    private final MilestoneStateMachineService milestoneStateMachineService;
+    private final ParticipantRepository participantRepository;
     private final RoundStateMachineService roundStateMachineService;
     private final UpdateMilestoneRequestMapper updateMilestoneRequestMapper;
 
@@ -103,7 +107,7 @@ public class MilestoneServiceImpl implements MilestoneService {
             validateOrderSequence(request.getActivityId(), request.getMilestoneOrder(), true);
             reorderMilestones(request.getActivityId(), null, request.getMilestoneOrder());
         }
-
+        addParticipants(request.getParticipantIds(), activity, milestone);
         MilestoneEntity saved = milestoneRepository.save(milestone);
 
         return enrichMilestoneDtoWithStatistics(saved);
@@ -125,6 +129,7 @@ public class MilestoneServiceImpl implements MilestoneService {
             }
         }
         updateMilestoneRequestMapper.updateMilestoneFromRequest(request, milestone);
+        addParticipants(request.getParticipantIds(), milestone.getActivity(), milestone);
 
         MilestoneEntity saved = milestoneRepository.save(milestone);
         return enrichMilestoneDtoWithStatistics(saved);
@@ -302,5 +307,22 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     public boolean isValidTransition(MilestoneState currentState, MilestoneEvent event) {
         return getNextState(currentState, event) != currentState;
+    }
+
+    /**
+     * Не должно применяться в нормальном флоу. Нужно на экстренный случай
+     */
+    private void addParticipants(List<Long> participantIds, ActivityEntity activity, MilestoneEntity milestone) {
+        if (participantIds != null && !participantIds.isEmpty()) {
+            Set<ParticipantEntity> participants = participantRepository.findAllByIdWithActivity(participantIds)
+                    .stream()
+                    .peek(participant -> {
+                        Preconditions.checkArgument(participant.getIsRegistered(), "Может быть добавлен только зарегистрированный участник");
+                        Preconditions.checkArgument(participant.getActivity().getId().equals(activity.getId()),
+                                "Участник с ID %s не принадлежит активности %s", participant.getId(), activity.getId());
+                    })
+                    .collect(Collectors.toSet());
+            milestone.getParticipants().addAll(participants);
+        }
     }
 }

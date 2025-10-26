@@ -261,6 +261,7 @@ databaseChangeLog:
                 phone_number VARCHAR(50),
                 number VARCHAR(100),
                 partner_side VARCHAR(20),
+                is_registered BOOLEAN NOT NULL,
                 activity_id BIGINT,
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),

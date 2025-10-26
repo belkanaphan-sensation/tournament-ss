@@ -236,6 +236,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+1234567890")
                         .build())
                 .number("001")
+                .registered(true)
                 .build();
         testParticipant = participantRepository.save(testParticipant);
 
@@ -247,6 +248,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+0987654321")
                         .build())
                 .number("002")
+                .registered(true)
                 .build();
         testParticipant1 = participantRepository.save(testParticipant1);
 

@@ -313,6 +313,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+1234567895")
                         .build())
                 .number("001")
+                .registered(true)
                 .partnerSide(PartnerSide.LEADER)
                 .rounds(new HashSet<>())
                 .build();
@@ -326,6 +327,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+1234567896")
                         .build())
                 .number("002")
+                .registered(true)
                 .partnerSide(PartnerSide.LEADER)
                 .rounds(new HashSet<>())
                 .build();
@@ -339,6 +341,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
                         .phoneNumber("+1234567897")
                         .build())
                 .number("003")
+                .registered(true)
                 .partnerSide(PartnerSide.LEADER)
                 .rounds(new HashSet<>())
                 .build();

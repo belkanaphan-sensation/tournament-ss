@@ -2,10 +2,14 @@ package org.bn.sensation.core.participant.service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.util.Strings;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
+import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
@@ -22,7 +26,6 @@ import org.bn.sensation.core.participant.service.mapper.RoundParticipantsDtoMapp
 import org.bn.sensation.core.participant.service.mapper.UpdateParticipantRequestMapper;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -82,6 +85,10 @@ public class ParticipantServiceImpl implements ParticipantService {
         ParticipantEntity participant = createParticipantRequestMapper.toEntity(request);
         participant.setActivity(activity);
 
+        if (Boolean.TRUE.equals(participant.getIsRegistered())) {
+            Preconditions.checkArgument(Strings.isNotBlank(participant.getNumber()), "Участник должен иметь стартовый номер");
+        }
+
         ParticipantEntity saved = participantRepository.save(participant);
         return participantDtoMapper.toDto(participantRepository.getByIdFullOrThrow(saved.getId()));
     }
@@ -92,6 +99,10 @@ public class ParticipantServiceImpl implements ParticipantService {
         ParticipantEntity participant = participantRepository.getByIdOrThrow(id);
 
         updateParticipantRequestMapper.updateParticipantFromRequest(request, participant);
+
+        if (participant.getIsRegistered()) {
+            Preconditions.checkArgument(Strings.isNotBlank(participant.getNumber()), "Участник должен иметь стартовый номер");
+        }
 
         participantRepository.save(participant);
         return participantDtoMapper.toDto(participantRepository.getByIdFullOrThrow(id));
@@ -110,9 +121,14 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Transactional
     public ParticipantDto assignParticipantToRound(Long participantId, Long roundId) {
         ParticipantEntity participant = participantRepository.getByIdFullOrThrow(participantId);
+        Preconditions.checkArgument(participant.getIsRegistered(), "Участник не закончил регистрацию");
         RoundEntity round = roundRepository.getByIdOrThrow(roundId);
         Preconditions.checkArgument(participant.getActivity().getId().equals(round.getMilestone().getActivity().getId()),
                 "Участник %s не может быть привязан к раунду %s, т.к. раунд находится в другой активности", participantId, roundId);
+
+        Set<Long> milestoneIds = participant.getMilestones().stream().map(MilestoneEntity::getId).collect(Collectors.toSet());
+        Preconditions.checkArgument(milestoneIds.contains(round.getMilestone().getId()),
+                "Участник %s не может быть привязан к раунду %s, т.к. он не привязан к этапу раунда", participantId, roundId);
 
         //TODO проверить стейты в которых может происходить привязка и отвязка
         participant.getRounds().add(round);
@@ -136,6 +152,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Transactional
     public ParticipantDto assignParticipantToMilestone(Long participantId, Long milestoneId) {
         ParticipantEntity participant = participantRepository.getByIdFullOrThrow(participantId);
+        Preconditions.checkArgument(participant.getIsRegistered(), "Участник не закончил регистрацию");
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
         Preconditions.checkArgument(participant.getActivity().getId().equals(milestone.getActivity().getId()),
                 "Участник %s не может быть привязан к этапу %s, т.к. этап находится в другой активности", participantId, milestoneId);
@@ -151,6 +168,12 @@ public class ParticipantServiceImpl implements ParticipantService {
     public ParticipantDto removeParticipantFromMilestone(Long participantId, Long milestoneId) {
         ParticipantEntity participant = participantRepository.getByIdOrThrow(participantId);
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
+
+        Set<Long> assignedRounds = participant.getRounds().stream()
+                .filter(r -> r.getMilestone().getId().equals(milestoneId))
+                .map(RoundEntity::getId)
+                .collect(Collectors.toSet());
+        Preconditions.checkArgument(assignedRounds.isEmpty(), "Сначала отвяжите участника от раундов этапа: %s", assignedRounds);
 
         //TODO проверить стейты в которых может происходить привязка и отвязка
         participant.getMilestones().remove(milestone);

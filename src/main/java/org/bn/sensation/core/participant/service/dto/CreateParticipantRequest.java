@@ -57,6 +57,10 @@ public class CreateParticipantRequest extends EmptyDto {
     private PartnerSide partnerSide;
 
     @NotNull
+    @Schema(description = "Пометка о том что участник прошел регистрацию")
+    private Boolean isRegistered;
+
+    @NotNull
     @Schema(description = "ID активности", example = "1", required = true)
     private Long activityId;
 }
