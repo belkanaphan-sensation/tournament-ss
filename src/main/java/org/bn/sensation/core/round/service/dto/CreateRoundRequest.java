@@ -43,6 +43,6 @@ public class CreateRoundRequest extends EmptyDto {
     @Schema(description = "Дополнительный раунд", example = "true")
     private Boolean isExtraRound;
 
-    @Schema(description = "Список ID участников для раунда")
+    @Schema(description = "Список ID участников для раунда. Доступно только для суперадмина")
     private List<Long> participantIds;
 }

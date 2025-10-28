@@ -31,6 +31,6 @@ public class UpdateRoundRequest extends EmptyDto {
     @Schema(description = "Статус раунда", example = "DRAFT")
     private RoundState state;
 
-    @Schema(description = "Список ID участников для раунда")
+    @Schema(description = "Список ID участников для раунда. Доступно только для суперадмина")
     private List<Long> participantIds;
 }

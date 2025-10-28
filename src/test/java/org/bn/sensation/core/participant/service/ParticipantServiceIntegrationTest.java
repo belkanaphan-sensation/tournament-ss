@@ -165,11 +165,21 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
         testRound = roundRepository.save(testRound);
 
+        // Create second milestone for testRound1
+        MilestoneEntity testMilestone2 = MilestoneEntity.builder()
+                .name("Test Milestone 2")
+                .description("Test Milestone 2 Description")
+                .state(MilestoneState.DRAFT)
+                .activity(testActivity)
+                .milestoneOrder(1)
+                .build();
+        testMilestone2 = milestoneRepository.save(testMilestone2);
+
         testRound1 = RoundEntity.builder()
                 .name("Test Round 1")
                 .state(RoundState.DRAFT)
-                .milestone(testMilestone)
-                .roundOrder(1)
+                .milestone(testMilestone2)
+                .roundOrder(0)
                 .build();
         testRound1 = roundRepository.save(testRound1);
 
@@ -186,7 +196,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .partnerSide(PartnerSide.LEADER)
                 .activity(testActivity)
                 .rounds(new HashSet<>(Set.of(testRound)))
-                .milestones(new HashSet<>(Set.of(testMilestone)))
+                .milestones(new HashSet<>(Set.of(testMilestone, testMilestone2)))
                 .build();
         testParticipant = participantRepository.save(testParticipant);
 
@@ -433,6 +443,41 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // When & Then
         assertThrows(JpaObjectRetrievalFailureException.class, () -> {
             participantService.assignParticipantToRound(testParticipant.getId(), 999L);
+        });
+    }
+
+    @Test
+    void testAssignParticipantToRound_AlreadyAssignedToAnotherRoundInSameMilestone_ThrowsException() {
+        // Given - создаем второго участника и второй раунд в том же этапе
+        final ParticipantEntity anotherParticipant = participantRepository.save(ParticipantEntity.builder()
+                .person(Person.builder()
+                        .name("Jane")
+                        .surname("Smith")
+                        .email("jane.smith@example.com")
+                        .phoneNumber("+1234567891")
+                        .build())
+                .number("002")
+                .isRegistered(true)
+                .partnerSide(PartnerSide.FOLLOWER)
+                .activity(testActivity)
+                .rounds(new HashSet<>())
+                .milestones(new HashSet<>(Set.of(testMilestone)))
+                .build());
+
+        final RoundEntity testRound2 = roundRepository.save(RoundEntity.builder()
+                .name("Test Round 2")
+                .state(RoundState.DRAFT)
+                .milestone(testMilestone)
+                .participants(new HashSet<>())
+                .roundOrder(1)
+                .build());
+
+        // Сначала привязываем участника к первому раунду
+        participantService.assignParticipantToRound(anotherParticipant.getId(), testRound.getId());
+
+        // When & Then - пытаемся привязать к второму раунду того же этапа
+        assertThrows(IllegalArgumentException.class, () -> {
+            participantService.assignParticipantToRound(anotherParticipant.getId(), testRound2.getId());
         });
     }
 
@@ -838,7 +883,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Проверяем, что milestones загружены
         assertNotNull(participant.getMilestones());
-        assertEquals(1, participant.getMilestones().size());
+        assertEquals(2, participant.getMilestones().size());
         assertTrue(participant.getMilestones().stream()
                 .anyMatch(milestone -> milestone.getId().equals(testMilestone.getId())));
         assertTrue(participant.getMilestones().stream()

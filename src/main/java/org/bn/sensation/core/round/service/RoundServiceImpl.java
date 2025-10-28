@@ -26,6 +26,7 @@ import org.bn.sensation.core.round.service.mapper.RoundDtoMapper;
 import org.bn.sensation.core.round.service.mapper.RoundWithJRStatusMapper;
 import org.bn.sensation.core.round.service.mapper.UpdateRoundRequestMapper;
 import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
+import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -83,7 +84,7 @@ public class RoundServiceImpl implements RoundService {
         RoundEntity round = createRoundRequestMapper.toEntity(request);
         round.setMilestone(milestone);
 
-        round.setRoundOrder(roundRepository.getLastRoundOrder(milestone.getId()).orElse(0) + 1);
+        round.setRoundOrder(roundRepository.getLastRoundOrder(milestone.getId()).orElse(-1) + 1);
         addParticipants(request.getParticipantIds(), milestone, round);
 
         RoundEntity saved = roundRepository.save(round);
@@ -418,6 +419,8 @@ public class RoundServiceImpl implements RoundService {
      * Не должно применяться в нормальном флоу. Нужно на экстренный случай
      */
     private void addParticipants(List<Long> participantIds, MilestoneEntity milestone, RoundEntity round) {
+        log.warn("Добавление участников в раунд вне нормального флоу: milestone={}, round={}, participantIds={}", milestone.getId(), round.getId(), participantIds);
+        Preconditions.checkArgument(currentUser.getSecurityUser().getRoles().contains(Role.SUPERADMIN), "Только суперадмин может привязывать участников напрямую");
         if (participantIds != null && !participantIds.isEmpty()) {
             Set<ParticipantEntity> participants = participantRepository.findAllByIdWithActivity(participantIds)
                     .stream()

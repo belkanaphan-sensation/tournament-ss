@@ -43,6 +43,15 @@ public interface ParticipantRepository extends BaseRepository<ParticipantEntity>
     @Query("SELECT p FROM ParticipantEntity p WHERE p.id = :id")
     Optional<ParticipantEntity> findByIdFull(@Param("id") Long id);
 
+    @Query("""
+            SELECT COUNT(p) > 0
+            FROM ParticipantEntity p
+            JOIN p.rounds r
+            WHERE p.id = :participantId
+            AND r.milestone.id = :milestoneId
+            """)
+    boolean existsByParticipantIdAndMilestoneId(@Param("participantId") Long participantId, @Param("milestoneId") Long milestoneId);
+
     default ParticipantEntity getByIdFullOrThrow(Long id) {
         return findByIdFull(id).orElseThrow(() -> new EntityNotFoundException("Участник не найден: " + id));
     }

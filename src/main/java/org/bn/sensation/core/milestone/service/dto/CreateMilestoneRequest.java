@@ -48,6 +48,6 @@ public class CreateMilestoneRequest extends EmptyDto {
     @Schema(description = "Порядок этапа в рамках активности (если не указан, будет рассчитан автоматически)", example = "1")
     private Integer milestoneOrder;
 
-    @Schema(description = "Список ID участников для этапа")
+    @Schema(description = "Список ID участников для этапа. Доступно только для суперадмина")
     private List<Long> participantIds;
 }

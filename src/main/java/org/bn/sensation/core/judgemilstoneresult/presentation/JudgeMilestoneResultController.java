@@ -96,7 +96,7 @@ public class JudgeMilestoneResultController {
             description = "Запрос на апдейт полностью перезаписывает предыдущие результаты, поэтому нужно передавать все значащие поля")
     @PostMapping(path = "/createOrUpdateForRound/{roundId}")
     public ResponseEntity<List<JudgeMilestoneResultDto>> createOrUpdateForRound(@Parameter @PathVariable("roundId") @NotNull Long roundId,
-                                                                                @Valid @RequestBody List<JudgeMilestoneResultRoundRequest> request) {
+                                                                                @Valid @NotNull @RequestBody List<JudgeMilestoneResultRoundRequest> request) {
         return ResponseEntity.ok(judgeMilestoneResultService.createOrUpdateForRound(roundId, request));
     }
 
@@ -104,7 +104,7 @@ public class JudgeMilestoneResultController {
             description = "Запрос полностью перезаписывает предыдущие результаты, поэтому нужно передавать все значащие поля")
     @PostMapping(path = "/updateForMilestone/{milestoneId}")
     public ResponseEntity<List<JudgeMilestoneResultDto>> updateForMilestone(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId,
-                                                                            @Valid @RequestBody List<JudgeMilestoneResultMilestoneRequest> request) {
+                                                                            @Valid @NotNull @RequestBody List<JudgeMilestoneResultMilestoneRequest> request) {
         return ResponseEntity.ok(judgeMilestoneResultService.createOrUpdateForMilestone(milestoneId, request));
     }
 

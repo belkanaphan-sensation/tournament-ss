@@ -25,6 +25,8 @@ import org.bn.sensation.core.milestone.service.mapper.UpdateMilestoneRequestMapp
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.round.service.RoundStateMachineService;
+import org.bn.sensation.core.user.entity.Role;
+import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class MilestoneServiceImpl implements MilestoneService {
 
+    private final CurrentUser currentUser;
     private final ActivityRepository activityRepository;
     private final CreateMilestoneRequestMapper createMilestoneRequestMapper;
     private final MilestoneDtoMapper milestoneDtoMapper;
@@ -63,16 +66,26 @@ public class MilestoneServiceImpl implements MilestoneService {
 
     @Override
     public void completeMilestone(Long milestoneId) {
+        log.info("Завершение этапа: id={}", milestoneId);
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
         MilestoneEntity milestone = milestoneRepository.getByIdOrThrow(milestoneId);
-        milestone.getRounds().forEach(round -> roundStateMachineService.sendEvent(round.getId(), RoundEvent.COMPLETE));
+        log.debug("Найден этап={} для завершения, количество раундов={}", milestoneId, milestone.getRounds().size());
+        
+        milestone.getRounds().forEach(round -> {
+            log.debug("Отправка события COMPLETE для раунда={}", round.getId());
+            roundStateMachineService.sendEvent(round.getId(), RoundEvent.COMPLETE);
+        });
 //        milestoneStateMachineService.sendEvent(milestoneId, MilestoneEvent.COMPLETE);
+        log.info("Этап успешно завершен: id={}", milestoneId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<MilestoneDto> findAll(Pageable pageable) {
+        log.debug("Поиск всех этапов с пагинацией: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
         List<MilestoneEntity> milestones = milestoneRepository.findAll();
+        log.debug("Найдено {} этапов в базе данных", milestones.size());
+        
         List<MilestoneDto> enrichedDtos = milestones.stream()
                 .map(this::enrichMilestoneDtoWithStatistics)
                 .toList();
@@ -81,34 +94,49 @@ public class MilestoneServiceImpl implements MilestoneService {
         int end = Math.min((start + pageable.getPageSize()), enrichedDtos.size());
         List<MilestoneDto> pageContent = enrichedDtos.subList(start, end);
 
+        log.debug("Возвращается страница с {} этапами", pageContent.size());
         return new PageImpl<>(pageContent, pageable, enrichedDtos.size());
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<MilestoneDto> findById(Long id) {
-        return milestoneRepository.findById(id)
+        log.debug("Поиск этапа по id={}", id);
+        Optional<MilestoneDto> result = milestoneRepository.findById(id)
                 .map(this::enrichMilestoneDtoWithStatistics);
+        if (result.isPresent()) {
+            log.debug("Этап найден: id={}, название={}", id, result.get().getName());
+        } else {
+            log.debug("Этап не найден: id={}", id);
+        }
+        return result;
     }
 
     @Override
     @Transactional
     public MilestoneDto create(CreateMilestoneRequest request) {
+        log.info("Создание этапа: название={}, активность={}", request.getName(), request.getActivityId());
         Preconditions.checkArgument(request.getActivityId() != null, "ID активности не может быть null");
         ActivityEntity activity = activityRepository.findById(request.getActivityId())
                 .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + request.getActivityId()));
 
+        log.debug("Найдена активность={} для создания этапа", activity.getId());
         MilestoneEntity milestone = createMilestoneRequestMapper.toEntity(request);
         milestone.setActivity(activity);
 
         if (milestone.getMilestoneOrder() == null) {
-            milestone.setMilestoneOrder(calculateNextOrder(request.getActivityId()));
+            Integer nextOrder = calculateNextOrder(request.getActivityId());
+            milestone.setMilestoneOrder(nextOrder);
+            log.debug("Установлен автоматический порядок этапа: {}", nextOrder);
         } else {
+            log.debug("Валидация и пересчет порядка этапов для активности={}, порядок={}", request.getActivityId(), request.getMilestoneOrder());
             validateOrderSequence(request.getActivityId(), request.getMilestoneOrder(), true);
             reorderMilestones(request.getActivityId(), null, request.getMilestoneOrder());
         }
+        
         addParticipants(request.getParticipantIds(), activity, milestone);
         MilestoneEntity saved = milestoneRepository.save(milestone);
+        log.info("Этап успешно создан: id={}, название={}", saved.getId(), saved.getName());
 
         return enrichMilestoneDtoWithStatistics(saved);
     }
@@ -116,50 +144,65 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     @Transactional
     public MilestoneDto update(Long id, UpdateMilestoneRequest request) {
+        log.info("Обновление этапа: id={}, название={}", id, request.getName());
         MilestoneEntity milestone = milestoneRepository.getByIdOrThrow(id);
+        log.debug("Найден этап={} для обновления", milestone.getId());
 
         Integer oldOrder = milestone.getMilestoneOrder();
 
         if (request.getMilestoneOrder() != null) {
+            log.debug("Обновление порядка этапа: старый порядок={}, новый порядок={}", oldOrder, request.getMilestoneOrder());
             validateOrderSequence(milestone.getActivity().getId(), request.getMilestoneOrder(), false);
             milestone.setMilestoneOrder(request.getMilestoneOrder());
 
             if (!request.getMilestoneOrder().equals(oldOrder)) {
+                log.debug("Пересчет порядка этапов для активности={}", milestone.getActivity().getId());
                 reorderMilestones(milestone.getActivity().getId(), id, request.getMilestoneOrder());
             }
         }
+        
         updateMilestoneRequestMapper.updateMilestoneFromRequest(request, milestone);
         addParticipants(request.getParticipantIds(), milestone.getActivity(), milestone);
 
         MilestoneEntity saved = milestoneRepository.save(milestone);
+        log.info("Этап успешно обновлен: id={}", saved.getId());
         return enrichMilestoneDtoWithStatistics(saved);
     }
 
     @Override
     @Transactional
     public void deleteById(Long id) {
+        log.info("Удаление этапа: id={}", id);
         if (!milestoneRepository.existsById(id)) {
+            log.warn("Попытка удаления несуществующего этапа: id={}", id);
             throw new EntityNotFoundException("Этап не найден с id: " + id);
         }
         milestoneRepository.deleteById(id);
+        log.info("Этап успешно удален: id={}", id);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<MilestoneDto> findByActivityId(Long id) {
+        log.debug("Поиск этапов для активности={}", id);
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
-        return milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(id).stream()
+        List<MilestoneDto> result = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(id).stream()
                 .map(this::enrichMilestoneDtoWithStatistics)
                 .toList();
+        log.debug("Найдено {} этапов для активности={}", result.size(), id);
+        return result;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<MilestoneDto> findByActivityIdInLifeStates(Long id) {
+        log.debug("Поиск этапов в жизненных состояниях для активности={}", id);
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
-        return milestoneRepository.findByActivityIdAndStateIn(id, MilestoneState.LIFE_MILESTONE_STATES).stream()
+        List<MilestoneDto> result = milestoneRepository.findByActivityIdAndStateIn(id, MilestoneState.LIFE_MILESTONE_STATES).stream()
                 .map(this::enrichMilestoneDtoWithStatistics)
                 .toList();
+        log.debug("Найдено {} этапов в жизненных состояниях для активности={}", result.size(), id);
+        return result;
     }
 
     private MilestoneDto enrichMilestoneDtoWithStatistics(MilestoneEntity milestone) {
@@ -313,6 +356,8 @@ public class MilestoneServiceImpl implements MilestoneService {
      * Не должно применяться в нормальном флоу. Нужно на экстренный случай
      */
     private void addParticipants(List<Long> participantIds, ActivityEntity activity, MilestoneEntity milestone) {
+        log.warn("Добавление участников в этап вне нормального флоу: milestone={}, activity={}, participantIds={}", milestone.getId(), activity.getId(), participantIds);
+        Preconditions.checkArgument(currentUser.getSecurityUser().getRoles().contains(Role.SUPERADMIN), "Только суперадмин может привязывать участников напрямую");
         if (participantIds != null && !participantIds.isEmpty()) {
             Set<ParticipantEntity> participants = participantRepository.findAllByIdWithActivity(participantIds)
                     .stream()

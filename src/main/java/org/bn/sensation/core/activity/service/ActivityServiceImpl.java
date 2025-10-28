@@ -58,16 +58,22 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional(readOnly = true)
     public Page<ActivityDto> findAll(Pageable pageable) {
-        return activityRepository.findAll(pageable).map(this::enrichActivityDtoWithStatistics);
+        log.debug("Поиск всех активностей с пагинацией: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
+        Page<ActivityDto> result = activityRepository.findAll(pageable).map(this::enrichActivityDtoWithStatistics);
+        log.debug("Найдено {} активностей на странице", result.getContent().size());
+        return result;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ActivityDto> findByOccasionId(Long id) {
+        log.debug("Поиск активностей для мероприятия={}", id);
         Preconditions.checkArgument(id != null, "ID мероприятия не может быть null");
-        return activityRepository.findByOccasionId(id).stream()
+        List<ActivityDto> result = activityRepository.findByOccasionId(id).stream()
                 .map(this::enrichActivityDtoWithStatistics)
                 .toList();
+        log.debug("Найдено {} активностей для мероприятия={}", result.size(), id);
+        return result;
     }
 
     @Override
@@ -89,8 +95,15 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional(readOnly = true)
     public Optional<ActivityDto> findById(Long id) {
-        return activityRepository.findById(id)
+        log.debug("Поиск активности по id={}", id);
+        Optional<ActivityDto> result = activityRepository.findById(id)
                 .map(this::enrichActivityDtoWithStatistics);
+        if (result.isPresent()) {
+            log.debug("Активность найдена: id={}, название={}", id, result.get().getName());
+        } else {
+            log.debug("Активность не найдена: id={}", id);
+        }
+        return result;
     }
 
     @Override
@@ -111,15 +124,18 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     @Transactional
     public ActivityDto update(Long id, UpdateActivityRequest request) {
+        log.info("Обновление активности: id={}, название={}", id, request.getName());
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
 
         ActivityEntity activity = activityRepository.getByIdOrThrow(id);
+        log.debug("Найдена активность={} для обновления", activity.getId());
 
         // Обновляем поля активности
         updateActivityRequestMapper.updateActivityFromRequest(request, activity);
 
         // Обновляем адрес
         if (request.getAddress() != null) {
+            log.debug("Обновление адреса для активности={}", activity.getId());
             Address address = activity.getAddress();
             if (address == null) {
                 address = Address.builder().build();
@@ -135,22 +151,29 @@ public class ActivityServiceImpl implements ActivityService {
         // }
 
         ActivityEntity saved = activityRepository.save(activity);
+        log.info("Активность успешно обновлена: id={}", saved.getId());
         return enrichActivityDtoWithStatistics(saved);
     }
 
     @Override
     @Transactional
     public void deleteById(Long id) {
+        log.info("Удаление активности: id={}", id);
+        
         // Проверяем существование активности без загрузки связанных объектов
         if (!activityRepository.existsById(id)) {
+            log.warn("Попытка удаления несуществующей активности: id={}", id);
             throw new EntityNotFoundException("Активность не найдена с id: " + id);
         }
 
+        log.debug("Удаление связанных назначений пользователей для активности={}", id);
         // Сначала удаляем все связанные назначения пользователей
         activityUserRepository.deleteByActivityId(id);
 
+        log.debug("Удаление активности={}", id);
         // Затем удаляем саму активность
         activityRepository.deleteById(id);
+        log.info("Активность успешно удалена: id={}", id);
     }
 
     /**
@@ -177,28 +200,40 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     public void saveTransition(ActivityEntity activity, ActivityState state) {
+        log.debug("Сохранение перехода состояния активности: id={}, новое состояние={}", activity.getId(), state);
         activity.setState(state);
         activityRepository.save(activity);
+        log.debug("Переход состояния активности сохранен: id={}, состояние={}", activity.getId(), state);
     }
 
     @Override
     public boolean canTransition(ActivityEntity activity, ActivityEvent event) {
+        log.debug("Проверка возможности перехода активности: id={}, событие={}, текущее состояние={}", 
+                activity.getId(), event, activity.getState());
         // TODO: Implement business logic for activity transitions
-        return true;
+        boolean canTransition = true;
+        log.debug("Результат проверки перехода активности: id={}, может перейти={}", activity.getId(), canTransition);
+        return canTransition;
     }
 
     @Override
     public ActivityState getNextState(ActivityState currentState, ActivityEvent event) {
-        return switch (currentState) {
+        log.debug("Определение следующего состояния активности: текущее состояние={}, событие={}", currentState, event);
+        ActivityState nextState = switch (currentState) {
             case DRAFT -> event == ActivityEvent.PLAN ? ActivityState.PLANNED : currentState;
             case PLANNED, COMPLETED -> event == ActivityEvent.START ? ActivityState.IN_PROGRESS : currentState;
             case IN_PROGRESS -> event == ActivityEvent.COMPLETE ? ActivityState.COMPLETED : currentState;
             default -> currentState;
         };
+        log.debug("Следующее состояние активности: текущее={}, событие={}, следующее={}", currentState, event, nextState);
+        return nextState;
     }
 
     @Override
     public boolean isValidTransition(ActivityState currentState, ActivityEvent event) {
-        return getNextState(currentState, event) != currentState;
+        log.debug("Проверка валидности перехода активности: текущее состояние={}, событие={}", currentState, event);
+        boolean isValid = getNextState(currentState, event) != currentState;
+        log.debug("Результат проверки валидности перехода: текущее состояние={}, событие={}, валиден={}", currentState, event, isValid);
+        return isValid;
     }
 }

@@ -54,16 +54,26 @@ public class UserServiceImpl implements UserService {
     //todo: Удалить после перехода на нормальный продовый энкодер паролья
     @Override
     public Optional<UserDto> findById(Long id) {
-        return UserService.super.findById(id)
+        log.debug("Поиск пользователя по id={}", id);
+        Optional<UserDto> result = UserService.super.findById(id)
                 .map(userDto -> {
                     userDto.setPassword(passwordEncoder.decrypt(userDto.getPassword()));
                     return userDto;
                 });
+        if (result.isPresent()) {
+            log.debug("Пользователь найден: id={}, username={}", id, result.get().getUsername());
+        } else {
+            log.debug("Пользователь не найден: id={}", id);
+        }
+        return result;
     }
 
     @Override
     public Optional<UserDto> getCurrentUser() {
-        return Optional.of(userDtoMapper.toDto(currentUser.getSecurityUser()));
+        log.debug("Получение текущего пользователя: id={}", currentUser.getSecurityUser().getId());
+        Optional<UserDto> result = Optional.of(userDtoMapper.toDto(currentUser.getSecurityUser()));
+        log.debug("Текущий пользователь: id={}, username={}", result.get().getId(), result.get().getUsername());
+        return result;
     }
 
     @Override
@@ -173,7 +183,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public Page<UserDto> findAll(Pageable pageable) {
-        return userRepository.findAll(pageable).map(userDtoMapper::toDto);
+        log.debug("Поиск всех пользователей с пагинацией: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
+        Page<UserDto> result = userRepository.findAll(pageable).map(userDtoMapper::toDto);
+        log.debug("Найдено {} пользователей на странице", result.getContent().size());
+        return result;
     }
 
     @Override
@@ -208,9 +221,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto update(Long id, UpdateUserRequest request) {
+        log.info("Обновление пользователя: id={}, имя={}", id, request.getName());
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден с id: " + id));
 
+        log.debug("Найден пользователь={} для обновления", user.getId());
 
         if(request.getName()!=null) {
             Preconditions.checkArgument(!request.getName().trim().isEmpty(), "Имя пользователя не может быть пустым");
@@ -218,39 +233,49 @@ public class UserServiceImpl implements UserService {
 
         if (request.getEmail() != null && !request.getEmail().isBlank()
                 && !request.getEmail().equals(user.getPerson().getEmail())) {
+            log.debug("Проверка уникальности email={} для пользователя={}", request.getEmail(), user.getId());
             validateEmailUniqueness(request.getEmail(), user.getId());
         }
 
         if (request.getPhoneNumber() != null && !request.getPhoneNumber().isBlank()
                 && !request.getPhoneNumber().equals(user.getPerson().getPhoneNumber())) {
+            log.debug("Проверка уникальности номера телефона={} для пользователя={}", request.getPhoneNumber(), user.getId());
             validatePhoneNumberUniqueness(request.getPhoneNumber(), user.getId());
         }
 
         updateUserRequestMapper.updateUserFromRequest(request, user);
 
         UserEntity saved = userRepository.save(user);
+        log.info("Пользователь успешно обновлен: id={}", saved.getId());
         return userDtoMapper.toDto(saved);
     }
 
     @Override
     @Transactional
     public void deleteById(Long id) {
+        log.info("Удаление пользователя: id={}", id);
         if (!userRepository.existsById(id)) {
+            log.warn("Попытка удаления несуществующего пользователя: id={}", id);
             throw new EntityNotFoundException("Пользователь не найден с id: " + id);
         }
         userRepository.deleteById(id);
+        log.info("Пользователь успешно удален: id={}", id);
     }
 
     @Override
     @Transactional
     public UserDto assignUserToOrganization(Long userId, Long organizationId) {
+        log.info("Назначение пользователя на организацию: пользователь={}, организация={}", userId, organizationId);
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
         OrganizationEntity org = organizationRepository.findById(organizationId)
                 .orElseThrow(() -> new EntityNotFoundException("Организация не найдена"));
 
+        log.debug("Найдены пользователь={} и организация={} для назначения", user.getId(), org.getId());
         user.getOrganizations().add(org);
-        return userDtoMapper.toDto(userRepository.save(user));
+        UserEntity saved = userRepository.save(user);
+        log.info("Пользователь успешно назначен на организацию: пользователь={}, организация={}", saved.getId(), org.getId());
+        return userDtoMapper.toDto(saved);
     }
 
     private static String generateTempPassword(int length) {

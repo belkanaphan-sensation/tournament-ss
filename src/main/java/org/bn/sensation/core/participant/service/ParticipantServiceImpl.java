@@ -125,12 +125,13 @@ public class ParticipantServiceImpl implements ParticipantService {
         ParticipantEntity participant = participantRepository.getByIdFullOrThrow(participantId);
         Preconditions.checkArgument(participant.getIsRegistered(), "Участник не закончил регистрацию");
         RoundEntity round = roundRepository.getByIdOrThrow(roundId);
-        Preconditions.checkArgument(participant.getActivity().getId().equals(round.getMilestone().getActivity().getId()),
-                "Участник %s не может быть привязан к раунду %s, т.к. раунд находится в другой активности", participantId, roundId);
 
         Set<Long> milestoneIds = participant.getMilestones().stream().map(MilestoneEntity::getId).collect(Collectors.toSet());
         Preconditions.checkArgument(milestoneIds.contains(round.getMilestone().getId()),
                 "Участник %s не может быть привязан к раунду %s, т.к. он не привязан к этапу раунда", participantId, roundId);
+
+        Preconditions.checkArgument(!participantRepository.existsByParticipantIdAndMilestoneId(participantId, round.getMilestone().getId()),
+                "Участник %s уже привязан к другому раунду этапа %s", participantId, round.getMilestone().getId());
 
         Preconditions.checkState(!Set.of(RoundState.READY, RoundState.COMPLETED).contains(round.getState()),
                 "Нельзя привязать участника к раунду т.к. раунд в состоянии %s", round.getState());
