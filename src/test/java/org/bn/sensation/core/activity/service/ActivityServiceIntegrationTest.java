@@ -164,7 +164,6 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                         .comment("Activity Address")
                         .build())
                 .occasionId(testOccasion.getId())
-                .state(ActivityState.DRAFT)
                 .build();
 
         // When
@@ -195,7 +194,6 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusHours(2))
                 .occasionId(999L) // Несуществующее мероприятие
-                .state(ActivityState.DRAFT)
                 .build();
 
         // When & Then
@@ -254,7 +252,6 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .description("Updated Description")
                 .startDateTime(LocalDateTime.now().plusHours(1))
                 .endDateTime(LocalDateTime.now().plusHours(3))
-                .state(ActivityState.IN_PROGRESS)
                 .build();
 
         // When
@@ -264,14 +261,14 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result);
         assertEquals("Updated Name", result.getName());
         assertEquals("Updated Description", result.getDescription());
-        assertEquals(ActivityState.IN_PROGRESS, result.getState());
+        assertEquals(ActivityState.DRAFT, result.getState());
 
         // Проверяем, что изменения сохранены в БД
         Optional<ActivityEntity> savedActivity = activityRepository.findById(activity.getId());
         assertTrue(savedActivity.isPresent());
         assertEquals("Updated Name", savedActivity.get().getName());
         assertEquals("Updated Description", savedActivity.get().getDescription());
-        assertEquals(ActivityState.IN_PROGRESS, savedActivity.get().getState());
+        assertEquals(ActivityState.DRAFT, savedActivity.get().getState());
     }
 
     @Test
@@ -339,7 +336,6 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusHours(2))
                 .occasionId(testOccasion.getId())
-                .state(ActivityState.IN_PROGRESS)
                 .build();
 
         // When
@@ -347,12 +343,10 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Then
         assertNotNull(result);
-        assertEquals(ActivityState.IN_PROGRESS, result.getState());
 
         // Проверяем, что статус сохранен в БД
         Optional<ActivityEntity> savedActivity = activityRepository.findById(result.getId());
         assertTrue(savedActivity.isPresent());
-        assertEquals(ActivityState.IN_PROGRESS, savedActivity.get().getState());
     }
 
 
@@ -365,7 +359,6 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusHours(2))
                 .occasionId(testOccasion.getId())
-                .state(ActivityState.DRAFT)
                 .build();
 
         // When
@@ -394,7 +387,6 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                         .comment("Test Address")
                         .build())
                 .occasionId(testOccasion.getId())
-                .state(ActivityState.DRAFT)
                 .build();
 
         // When
@@ -419,7 +411,6 @@ class ActivityServiceIntegrationTest extends AbstractIntegrationTest {
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusHours(2))
                 .occasionId(testOccasion.getId())
-                .state(ActivityState.DRAFT)
                 .build();
 
         // When

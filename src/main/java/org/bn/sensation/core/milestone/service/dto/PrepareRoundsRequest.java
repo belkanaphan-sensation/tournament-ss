@@ -1,11 +1,10 @@
-package org.bn.sensation.core.round.service.dto;
+package org.bn.sensation.core.milestone.service.dto;
 
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,11 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Запрос на формирование раундов с участниками")
-public class GenerateRoundsRequest {
-
-    @NotNull
-    @Schema(description = "ID этапа в который должны быть добавлены участники")
-    private Long milestoneId;
+public class PrepareRoundsRequest {
 
     @Schema(description = "Список ID участников. Если он присутствует, " +
             "то участники добавляются из данного списка, если нет, то все участники, " +

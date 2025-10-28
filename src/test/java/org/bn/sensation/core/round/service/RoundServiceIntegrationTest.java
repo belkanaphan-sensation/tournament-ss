@@ -168,7 +168,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                         .email("judge@example.com")
                         .phoneNumber("+1234567891")
                         .build())
-                .roles(Set.of(Role.USER))
+                .roles(Set.of(Role.USER, Role.SUPERADMIN))
                 .organizations(Set.of(testOrganization))
                 .build();
         testJudge = userRepository.save(testJudge);
@@ -206,8 +206,8 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         testJudgeChiefAssignment = activityUserRepository.save(testJudgeChiefAssignment);
 
         // Add assignments to activity
-        testActivity.getUserAssignments().add(testJudgeAssignment);
-        testActivity.getUserAssignments().add(testJudgeChiefAssignment);
+        testActivity.getActivityUsers().add(testJudgeAssignment);
+        testActivity.getActivityUsers().add(testJudgeChiefAssignment);
         testActivity = activityRepository.save(testActivity);
 
         // Create test milestones
@@ -268,9 +268,17 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         CreateRoundRequest request = CreateRoundRequest.builder()
                 .name("New Round")
-                .state(RoundState.DRAFT)
                 .milestoneId(testMilestone.getId())
                 .build();
+
+        // Set up security context with judge user
+        SecurityUser securityUser = (SecurityUser) SecurityUser.fromUser(testJudge);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Mock CurrentUser to return the test judge
+        when(mockCurrentUser.getSecurityUser()).thenReturn(securityUser);
 
         // When
         RoundDto result = roundService.create(request);
@@ -325,6 +333,15 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         UpdateRoundRequest request = UpdateRoundRequest.builder()
                 .name("Updated Round")
                 .build();
+
+        // Set up security context with judge user
+        SecurityUser securityUser = (SecurityUser) SecurityUser.fromUser(testJudge);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Mock CurrentUser to return the test judge
+        when(mockCurrentUser.getSecurityUser()).thenReturn(securityUser);
 
         // When
         RoundDto result = roundService.update(testRound.getId(), request);

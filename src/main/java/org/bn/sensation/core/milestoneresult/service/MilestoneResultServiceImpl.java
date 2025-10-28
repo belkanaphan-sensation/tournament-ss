@@ -7,16 +7,16 @@ import java.util.stream.Collectors;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.judgemilestonestatus.dto.JudgeMilestoneStatusDto;
+import org.bn.sensation.core.judgemilestonestatus.model.JudgeMilestoneStatus;
+import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCacheService;
 import org.bn.sensation.core.judgemilstoneresult.entity.JudgeMilestoneResultEntity;
-import org.bn.sensation.core.judgemilestonestatus.entity.JudgeMilestoneStatus;
-import org.bn.sensation.core.judgemilestonestatus.entity.JudgeMilestoneStatusEntity;
 import org.bn.sensation.core.judgemilstoneresult.repository.JudgeMilestoneResultRepository;
-import org.bn.sensation.core.judgemilestonestatus.repository.JudgeMilestoneStatusRepository;
 import org.bn.sensation.core.milestone.entity.AssessmentMode;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestoneresult.entity.MilestoneResultEntity;
 import org.bn.sensation.core.milestoneresult.entity.PassStatus;
-import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestoneresult.repository.MilestoneResultRepository;
 import org.bn.sensation.core.milestoneresult.service.dto.CreateMilestoneResultRequest;
 import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
@@ -44,8 +44,8 @@ import lombok.extern.slf4j.Slf4j;
 public class MilestoneResultServiceImpl implements MilestoneResultService {
 
     private static final int FINAL_RESULT_LIMIT = 3;
-    private final JudgeMilestoneStatusRepository judgeMilestoneStatusRepository;
     private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
+    private final JudgeMilestoneStatusCacheService judgeMilestoneStatusCacheService;
     private final MilestoneResultRepository milestoneResultRepository;
     private final MilestoneResultDtoMapper milestoneResultDtoMapper;
     private final CreateMilestoneResultRequestMapper createMilestoneResultRequestMapper;
@@ -71,13 +71,13 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
 
-        Map<Long, JudgeMilestoneStatusEntity> judgeResults = judgeMilestoneStatusRepository.findByMilestoneId(milestoneId)
+        Map<Long, JudgeMilestoneStatusDto> judgeResults = judgeMilestoneStatusCacheService.getAllJudgesStatusForMilestone(milestoneId)
                 .stream()
                 .collect(Collectors.toMap(jm -> jm.getJudge().getId(), Function.identity()));
 
         log.debug("Найдено {} результатов судей для этапа={}", judgeResults.size(), milestoneId);
 
-        Preconditions.checkState(milestone.getActivity().getUserAssignments().stream()
+        Preconditions.checkState(milestone.getActivity().getActivityUsers().stream()
                         .allMatch(ua -> judgeResults.get(ua.getId()) != null
                                 && judgeResults.get(ua.getId()).getStatus() == JudgeMilestoneStatus.READY),
                 "Для получения результатов этапа все судьи должны завершить этап");

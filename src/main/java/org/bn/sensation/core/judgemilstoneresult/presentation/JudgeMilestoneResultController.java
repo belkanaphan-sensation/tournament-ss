@@ -2,12 +2,9 @@ package org.bn.sensation.core.judgemilstoneresult.presentation;
 
 import java.util.List;
 
-import org.bn.sensation.core.judgemilestonestatus.entity.JudgeMilestoneStatus;
+import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCacheService;
 import org.bn.sensation.core.judgemilstoneresult.service.JudgeMilestoneResultService;
-import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusService;
-import org.bn.sensation.core.judgemilestonestatus.service.dto.JudgeMilestoneStatusDto;
 import org.bn.sensation.core.judgemilstoneresult.service.dto.JudgeMilestoneResultDto;
-import org.bn.sensation.core.judgemilstoneresult.service.dto.JudgeMilestoneResultMilestoneRequest;
 import org.bn.sensation.core.judgemilstoneresult.service.dto.JudgeMilestoneResultRoundRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 public class JudgeMilestoneResultController {
 
     private final JudgeMilestoneResultService judgeMilestoneResultService;
-    private final JudgeMilestoneStatusService judgeMilestoneStatusService;
+    private final JudgeMilestoneStatusCacheService judgeMilestoneStatusCacheService;
 
     @Operation(summary = "Получить результат судьи по ID")
     @GetMapping(path = "/{id}")
@@ -100,22 +97,14 @@ public class JudgeMilestoneResultController {
         return ResponseEntity.ok(judgeMilestoneResultService.createOrUpdateForRound(roundId, request));
     }
 
-    @Operation(summary = "Обновить результаты судьи по этапу. Судья - текущий пользователь",
-            description = "Запрос полностью перезаписывает предыдущие результаты, поэтому нужно передавать все значащие поля")
-    @PostMapping(path = "/updateForMilestone/{milestoneId}")
-    public ResponseEntity<List<JudgeMilestoneResultDto>> updateForMilestone(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId,
-                                                                            @Valid @NotNull @RequestBody List<JudgeMilestoneResultMilestoneRequest> request) {
-        return ResponseEntity.ok(judgeMilestoneResultService.createOrUpdateForMilestone(milestoneId, request));
-    }
-
     @Operation(summary = "Создать новый результат для судьи",
             description = "Можно создать результат для судьи, привязанного к этапу. Функционал для админа. " +
                     "Запрос на апдейт полностью перезаписывает предыдущие результаты, поэтому нужно передавать все значащие поля")
-    @PostMapping("/{activityUserId}")
+    @PostMapping("/{userId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN')")
-    public ResponseEntity<JudgeMilestoneResultDto> createOrUpdate(@PathVariable("activityUserId") @NotNull Long activityUserId,
+    public ResponseEntity<JudgeMilestoneResultDto> createOrUpdate(@PathVariable("userId") @NotNull Long userId,
                                                           @Valid @RequestBody JudgeMilestoneResultRoundRequest request) {
-        JudgeMilestoneResultDto created = judgeMilestoneResultService.createOrUpdate(request, activityUserId);
+        JudgeMilestoneResultDto created = judgeMilestoneResultService.createOrUpdate(request, userId);
         return ResponseEntity.ok(created);
     }
 
@@ -127,23 +116,18 @@ public class JudgeMilestoneResultController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Принять результаты этапа",
-            description = "Результаты этапа принимаются для текущего пользователя который должен являться судьей этапа")
-    @GetMapping(path = "/ready/{milestoneId}")
-    public ResponseEntity<JudgeMilestoneStatusDto> acceptRound(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        return ResponseEntity.ok(judgeMilestoneStatusService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.READY));
-    }
+//    @Operation(summary = "Принять результаты этапа",
+//            description = "Результаты этапа принимаются для текущего пользователя который должен являться судьей этапа")
+//    @GetMapping(path = "/ready/{milestoneId}")
+//    public ResponseEntity<JudgeMilestoneStatusDto> acceptRound(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+//        return ResponseEntity.ok(judgeMilestoneStatusService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.READY));
+//    }
+//
+//    @Operation(summary = "Отменить результаты раунда",
+//            description = "Результаты этапа отменяются для текущего пользователя который должен являться судьей этапа")
+//    @GetMapping(path = "/not-ready/{milestoneId}")
+//    public ResponseEntity<JudgeMilestoneStatusDto> rejectRound(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+//        return ResponseEntity.ok(judgeMilestoneStatusService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.NOT_READY));
+//    }
 
-    @Operation(summary = "Отменить результаты раунда",
-            description = "Результаты этапа отменяются для текущего пользователя который должен являться судьей этапа")
-    @GetMapping(path = "/not-ready/{milestoneId}")
-    public ResponseEntity<JudgeMilestoneStatusDto> rejectRound(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        return ResponseEntity.ok(judgeMilestoneStatusService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.NOT_READY));
-    }
-
-    @Operation(summary = "Проверить готовность этапа для текущего юзера - судьи")
-    @GetMapping(path = "/milestone-ready/{milestoneId}/currentUser")
-    public ResponseEntity<Boolean> isAllRoundsReady(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        return ResponseEntity.ok(judgeMilestoneStatusService.allRoundsReady(milestoneId));
-    }
 }

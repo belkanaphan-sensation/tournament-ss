@@ -96,7 +96,7 @@ public class MilestoneCriterionController {
     @Operation(summary = "Получить назначения критерия")
     @GetMapping(path = "/criterion/{criterionId}")
     public ResponseEntity<List<MilestoneCriterionDto>> getByCriterionId(
-            @Parameter @PathVariable("criterionId") @NotNull Long criterionId, Pageable pageable) {
+            @Parameter @PathVariable("criterionId") @NotNull Long criterionId) {
         return ResponseEntity.ok(milestoneCriterionService.findByCriterionId(criterionId));
     }
 

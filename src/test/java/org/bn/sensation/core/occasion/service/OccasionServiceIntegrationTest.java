@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -115,7 +116,6 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         CreateOccasionRequest request = CreateOccasionRequest.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .state(OccasionState.DRAFT)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
                 .organizationId(testOrganization.getId())
@@ -153,7 +153,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
+        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
             occasionService.create(request);
         });
     }
@@ -288,7 +288,6 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         CreateOccasionRequest request = CreateOccasionRequest.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .state(OccasionState.DRAFT)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
                 .organizationId(testOrganization.getId())
@@ -311,7 +310,6 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         CreateOccasionRequest request = CreateOccasionRequest.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .state(OccasionState.DRAFT)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
                 .organizationId(testOrganization.getId())
@@ -325,31 +323,6 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result.getOrganization());
         assertEquals(testOrganization.getId(), result.getOrganization().getId());
         assertEquals(testOrganization.getName(), result.getOrganization().getValue());
-    }
-
-    @Test
-    void testOccasionWithoutOrganization() {
-        // Given
-        CreateOccasionRequest request = CreateOccasionRequest.builder()
-                .name("Test Occasion")
-                .description("Test Description")
-                .state(OccasionState.DRAFT)
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now().plusDays(3))
-                .organizationId(null) // Без организации
-                .build();
-
-        // When
-        OccasionDto result = occasionService.create(request);
-
-        // Then
-        assertNotNull(result);
-        assertNull(result.getOrganization());
-
-        // Проверяем, что в БД организация тоже null
-        Optional<OccasionEntity> savedOccasion = occasionRepository.findById(result.getId());
-        assertTrue(savedOccasion.isPresent());
-        assertNull(savedOccasion.get().getOrganization());
     }
 
     // Вспомогательный метод для создания тестового события

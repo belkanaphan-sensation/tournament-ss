@@ -5,6 +5,7 @@ import org.bn.sensation.core.common.dto.BaseDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -29,6 +30,7 @@ public class JudgeMilestoneResultRoundRequest extends BaseDto {
     @Schema(description = "Критерий, сформированный для данного этапа. При апдейте игнорируется, т.к. не может быть изменен")
     private Long milestoneCriterionId;
 
+    @NotNull
     @Schema(description = "Значение оценки для данного участника данным судьей по данному критерию", example = "5")
     private Integer score;
 

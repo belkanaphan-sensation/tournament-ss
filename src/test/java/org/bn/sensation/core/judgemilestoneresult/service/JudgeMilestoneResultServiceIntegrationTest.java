@@ -287,7 +287,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
         activityRepository.save(testActivity);
 
         JudgeMilestoneResultRoundRequest request = JudgeMilestoneResultRoundRequest.builder()
@@ -324,7 +324,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.FOLLOWER) // Different from criteria
                 .build();
         activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
         activityRepository.save(testActivity);
 
         JudgeMilestoneResultRoundRequest request = JudgeMilestoneResultRoundRequest.builder()
@@ -351,7 +351,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
         activityRepository.save(testActivity);
 
         // Create another participant not in the round
@@ -393,7 +393,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
         activityRepository.save(testActivity);
 
         JudgeMilestoneResultRoundRequest request = JudgeMilestoneResultRoundRequest.builder()
@@ -435,7 +435,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.FOLLOWER) // Different side, but should work for common criteria
                 .build();
         activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
         activityRepository.save(testActivity);
 
         JudgeMilestoneResultRoundRequest request = JudgeMilestoneResultRoundRequest.builder()
@@ -533,7 +533,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
         activityRepository.save(testActivity);
 
         JudgeMilestoneResultRoundRequest request = JudgeMilestoneResultRoundRequest.builder()
@@ -575,7 +575,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
         activityRepository.save(testActivity);
 
         JudgeMilestoneResultRoundRequest request = JudgeMilestoneResultRoundRequest.builder()
@@ -607,7 +607,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
         activityRepository.save(testActivity);
 
         JudgeMilestoneResultRoundRequest request = JudgeMilestoneResultRoundRequest.builder()
@@ -639,7 +639,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
         activityRepository.save(testActivity);
 
         JudgeMilestoneResultRoundRequest request = JudgeMilestoneResultRoundRequest.builder()
@@ -671,7 +671,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
         activityRepository.save(testActivity);
 
         JudgeMilestoneResultRoundRequest request = JudgeMilestoneResultRoundRequest.builder()
@@ -711,7 +711,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
         activityRepository.save(testActivity);
 
         JudgeMilestoneResultRoundRequest createRequest = JudgeMilestoneResultRoundRequest.builder()
@@ -746,7 +746,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
         activityRepository.save(testActivity);
 
         JudgeMilestoneResultRoundRequest createRequest = JudgeMilestoneResultRoundRequest.builder()
@@ -799,7 +799,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
         activityRepository.save(testActivity);
 
         JudgeMilestoneResultRoundRequest createRequest = JudgeMilestoneResultRoundRequest.builder()
@@ -866,7 +866,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
         activityRepository.save(testActivity);
 
         JudgeMilestoneResultRoundRequest createRequest = JudgeMilestoneResultRoundRequest.builder()
@@ -903,7 +903,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         ActivityUserEntity assignmentEntity = activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(assignmentEntity);
+        testActivity.getActivityUsers().add(assignmentEntity);
         activityRepository.save(testActivity);
         // Create another criteria for the same milestone rule
         CriterionEntity testCriteria2 = CriterionEntity.builder()
@@ -987,7 +987,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         ActivityUserEntity assignmentEntity = activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(assignmentEntity);
+        testActivity.getActivityUsers().add(assignmentEntity);
         activityRepository.save(testActivity);
 
         // Сначала создаем результаты для всех участников раунда, чтобы условие валидации было выполнено
@@ -1021,7 +1021,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         ActivityUserEntity assignmentEntity = activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(assignmentEntity);
+        testActivity.getActivityUsers().add(assignmentEntity);
 
         UserEntity anotherJudge = UserEntity.builder()
                 .username("anotherjudge")
@@ -1044,7 +1044,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         anotherJudgeAssignment = activityUserRepository.save(anotherJudgeAssignment);
-        testActivity.getUserAssignments().add(anotherJudgeAssignment);
+        testActivity.getActivityUsers().add(anotherJudgeAssignment);
         activityRepository.save(testActivity);
         // Create another criteria for the same milestone rule
         CriterionEntity testCriteria2 = CriterionEntity.builder()
@@ -1139,7 +1139,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         ActivityUserEntity assignmentEntity = activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(assignmentEntity);
+        testActivity.getActivityUsers().add(assignmentEntity);
         activityRepository.save(testActivity);
         // Create second round
         RoundEntity testRound2 = RoundEntity.builder()
@@ -1214,7 +1214,7 @@ class JudgeMilestoneResultServiceIntegrationTest extends AbstractIntegrationTest
                 .partnerSide(PartnerSide.LEADER)
                 .build();
         ActivityUserEntity assignmentEntity = activityUserRepository.save(judgeAssignment);
-        testActivity.getUserAssignments().add(assignmentEntity);
+        testActivity.getActivityUsers().add(assignmentEntity);
         activityRepository.save(testActivity);
         // Create initial result
         JudgeMilestoneResultRoundRequest createRequest = JudgeMilestoneResultRoundRequest.builder()

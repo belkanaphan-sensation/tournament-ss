@@ -1,6 +1,7 @@
 package org.bn.sensation.core.milestone.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -35,13 +36,18 @@ import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.core.user.entity.UserEntity;
 import org.bn.sensation.core.user.entity.UserStatus;
 import org.bn.sensation.core.user.repository.UserRepository;
+import org.bn.sensation.security.CurrentUser;
+import org.bn.sensation.security.SecurityUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -50,6 +56,9 @@ import jakarta.persistence.EntityNotFoundException;
 
 @Transactional
 class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
+
+    @Mock
+    private CurrentUser mockCurrentUser;
 
     @Autowired
     private MilestoneService milestoneService;
@@ -121,7 +130,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                             .phoneNumber("+1234567890")
                             .build())
                     .status(UserStatus.ACTIVE)
-                    .roles(Set.of(Role.USER))
+                    .roles(Set.of(Role.SUPERADMIN))
                     .build();
             testUser = userRepository.save(testUser);
 
@@ -176,6 +185,15 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
 
             return null;
         });
+
+        // Set up security context with judge user
+        SecurityUser securityUser = (SecurityUser) SecurityUser.fromUser(testUser);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Mock CurrentUser to return the test judge
+        when(mockCurrentUser.getSecurityUser()).thenReturn(securityUser);
     }
 
     @Test
@@ -185,7 +203,6 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .activityId(testActivity.getId())
-                .state(MilestoneState.DRAFT)
                 .build();
 
         // When
@@ -215,7 +232,6 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .activityId(999L) // Несуществующая активность
-                .state(MilestoneState.DRAFT)
                 .build();
 
         // When & Then
@@ -273,7 +289,6 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         UpdateMilestoneRequest request = UpdateMilestoneRequest.builder()
                 .name("Updated Name")
                 .description("Updated Description")
-                .state(MilestoneState.PLANNED)
                 .build();
 
         // When
@@ -283,14 +298,14 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result);
         assertEquals("Updated Name", result.getName());
         assertEquals("Updated Description", result.getDescription());
-        assertEquals(MilestoneState.PLANNED, result.getState());
+        assertEquals(MilestoneState.DRAFT, result.getState());
 
         // Проверяем, что изменения сохранены в БД
         Optional<MilestoneEntity> savedMilestone = milestoneRepository.findById(milestone.getId());
         assertTrue(savedMilestone.isPresent());
         assertEquals("Updated Name", savedMilestone.get().getName());
         assertEquals("Updated Description", savedMilestone.get().getDescription());
-        assertEquals(MilestoneState.PLANNED, savedMilestone.get().getState());
+        assertEquals(MilestoneState.DRAFT, savedMilestone.get().getState());
     }
 
     @Test
@@ -361,7 +376,6 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .activityId(testActivity.getId())
-                .state(MilestoneState.IN_PROGRESS)
                 .build();
 
         // When
@@ -369,12 +383,12 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
 
         // Then
         assertNotNull(result);
-        assertEquals(MilestoneState.IN_PROGRESS, result.getState());
+        assertEquals(MilestoneState.DRAFT, result.getState());
 
         // Проверяем, что статус сохранен в БД
         Optional<MilestoneEntity> savedMilestone = milestoneRepository.findById(result.getId());
         assertTrue(savedMilestone.isPresent());
-        assertEquals(MilestoneState.IN_PROGRESS, savedMilestone.get().getState());
+        assertEquals(MilestoneState.DRAFT, savedMilestone.get().getState());
     }
 
     @Test
@@ -481,7 +495,6 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .activityId(testActivity.getId())
-                .state(MilestoneState.DRAFT)
                 .build();
 
         // When
@@ -501,7 +514,6 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .activityId(null) // Без активности
-                .state(MilestoneState.DRAFT)
                 .build();
 
         // When and then
@@ -517,7 +529,6 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .activityId(testActivity.getId())
-                .state(MilestoneState.DRAFT)
                 .milestoneOrder(0)
                 .build();
 
@@ -541,7 +552,6 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .activityId(testActivity.getId())
-                .state(MilestoneState.DRAFT)
                 .milestoneOrder(null) // Не указываем порядок
                 .build();
 
@@ -564,19 +574,16 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         CreateMilestoneRequest request1 = CreateMilestoneRequest.builder()
                 .name("First Milestone")
                 .activityId(testActivity.getId())
-                .state(MilestoneState.DRAFT)
                 .build();
 
         CreateMilestoneRequest request2 = CreateMilestoneRequest.builder()
                 .name("Second Milestone")
                 .activityId(testActivity.getId())
-                .state(MilestoneState.DRAFT)
                 .build();
 
         CreateMilestoneRequest request3 = CreateMilestoneRequest.builder()
                 .name("Third Milestone")
                 .activityId(testActivity.getId())
-                .state(MilestoneState.DRAFT)
                 .build();
 
         // When
@@ -596,21 +603,18 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         CreateMilestoneRequest request1 = CreateMilestoneRequest.builder()
                 .name("First Milestone")
                 .activityId(testActivity.getId())
-                .state(MilestoneState.DRAFT)
                 .milestoneOrder(0)
                 .build();
 
         CreateMilestoneRequest request2 = CreateMilestoneRequest.builder()
                 .name("Second Milestone")
                 .activityId(testActivity.getId())
-                .state(MilestoneState.DRAFT)
                 .milestoneOrder(1)
                 .build();
 
         CreateMilestoneRequest request3 = CreateMilestoneRequest.builder()
                 .name("Third Milestone")
                 .activityId(testActivity.getId())
-                .state(MilestoneState.DRAFT)
                 .milestoneOrder(1)
                 .build();
 
@@ -764,7 +768,6 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         CreateMilestoneRequest request = CreateMilestoneRequest.builder()
                 .name("New Milestone")
                 .activityId(testActivity.getId())
-                .state(MilestoneState.DRAFT)
                 .milestoneOrder(1) // Вставляем в позицию 1
                 .build();
 

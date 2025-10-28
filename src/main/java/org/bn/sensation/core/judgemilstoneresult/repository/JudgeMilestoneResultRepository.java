@@ -13,16 +13,16 @@ import jakarta.persistence.EntityNotFoundException;
 
 public interface JudgeMilestoneResultRepository extends BaseRepository<JudgeMilestoneResultEntity> {
 
-    @EntityGraph(attributePaths = {"activityUser.user"})
+    @EntityGraph(attributePaths = {"activityUser.user, round.milestone"})
     @Query("""
             SELECT DISTINCT jm
             FROM JudgeMilestoneResultEntity jm
             WHERE jm.id = :id
             """)
-    Optional<JudgeMilestoneResultEntity> findByIdWithUser(Long id);
+    Optional<JudgeMilestoneResultEntity> findByIdWithUserAndMilestone(Long id);
 
-    default JudgeMilestoneResultEntity getByIdWithUserOrThrow(Long id) {
-        return findByIdWithUser(id).orElseThrow(() -> new EntityNotFoundException("Результат раунда не найден: " + id));
+    default JudgeMilestoneResultEntity getByIdWithUserAndMilestoneOrThrow(Long id) {
+        return findByIdWithUserAndMilestone(id).orElseThrow(() -> new EntityNotFoundException("Результат раунда не найден: " + id));
     }
 
     @EntityGraph(attributePaths = {"participant", "round", "milestoneCriterion", "activityUser"})

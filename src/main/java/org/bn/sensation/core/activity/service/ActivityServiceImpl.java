@@ -11,6 +11,7 @@ import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.activity.service.mapper.ActivityDtoMapper;
 import org.bn.sensation.core.activity.service.mapper.CreateActivityRequestMapper;
 import org.bn.sensation.core.activity.service.mapper.UpdateActivityRequestMapper;
+import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
@@ -19,7 +20,6 @@ import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
-import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +44,7 @@ public class ActivityServiceImpl implements ActivityService {
     private final OccasionRepository occasionRepository;
     private final ActivityUserRepository activityUserRepository;
     private final CurrentUser currentUser;
+    private final ActivityStateMachineService activityStateMachineService;
 
     @Override
     public BaseRepository<ActivityEntity> getRepository() {
@@ -114,6 +115,7 @@ public class ActivityServiceImpl implements ActivityService {
 
         log.debug("Найдено мероприятие={} для создания активности", occasion.getId());
         ActivityEntity activity = createActivityRequestMapper.toEntity(request);
+        activity.setState(ActivityState.DRAFT);
         activity.setOccasion(occasion);
 
         ActivityEntity saved = activityRepository.save(activity);
@@ -159,7 +161,7 @@ public class ActivityServiceImpl implements ActivityService {
     @Transactional
     public void deleteById(Long id) {
         log.info("Удаление активности: id={}", id);
-        
+
         // Проверяем существование активности без загрузки связанных объектов
         if (!activityRepository.existsById(id)) {
             log.warn("Попытка удаления несуществующей активности: id={}", id);
@@ -199,41 +201,47 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
-    public void saveTransition(ActivityEntity activity, ActivityState state) {
-        log.debug("Сохранение перехода состояния активности: id={}, новое состояние={}", activity.getId(), state);
-        activity.setState(state);
-        activityRepository.save(activity);
-        log.debug("Переход состояния активности сохранен: id={}, состояние={}", activity.getId(), state);
+    @Transactional
+    public void draftActivity(Long id) {
+        log.info("Перевод активности в черновик: id={}", id);
+        ActivityEntity activity = activityRepository.getByIdOrThrow(id);
+        activityStateMachineService.sendEvent(activity, ActivityEvent.DRAFT);
+        log.info("Активность переведена в черновик: id={}", id);
     }
 
     @Override
-    public boolean canTransition(ActivityEntity activity, ActivityEvent event) {
-        log.debug("Проверка возможности перехода активности: id={}, событие={}, текущее состояние={}", 
-                activity.getId(), event, activity.getState());
-        // TODO: Implement business logic for activity transitions
-        boolean canTransition = true;
-        log.debug("Результат проверки перехода активности: id={}, может перейти={}", activity.getId(), canTransition);
-        return canTransition;
+    @Transactional
+    public void planActivity(Long id) {
+        log.info("Планирование активности: id={}", id);
+        ActivityEntity activity = activityRepository.getByIdOrThrow(id);
+        activityStateMachineService.sendEvent(activity, ActivityEvent.PLAN);
+        log.info("Активность запланирована: id={}", id);
     }
 
     @Override
-    public ActivityState getNextState(ActivityState currentState, ActivityEvent event) {
-        log.debug("Определение следующего состояния активности: текущее состояние={}, событие={}", currentState, event);
-        ActivityState nextState = switch (currentState) {
-            case DRAFT -> event == ActivityEvent.PLAN ? ActivityState.PLANNED : currentState;
-            case PLANNED, COMPLETED -> event == ActivityEvent.START ? ActivityState.IN_PROGRESS : currentState;
-            case IN_PROGRESS -> event == ActivityEvent.COMPLETE ? ActivityState.COMPLETED : currentState;
-            default -> currentState;
-        };
-        log.debug("Следующее состояние активности: текущее={}, событие={}, следующее={}", currentState, event, nextState);
-        return nextState;
+    @Transactional
+    public void startActivity(Long id) {
+        log.info("Запуск активности: id={}", id);
+        ActivityEntity activity = activityRepository.getByIdOrThrow(id);
+        activityStateMachineService.sendEvent(activity, ActivityEvent.START);
+        log.info("Активность запущена: id={}", id);
     }
 
     @Override
-    public boolean isValidTransition(ActivityState currentState, ActivityEvent event) {
-        log.debug("Проверка валидности перехода активности: текущее состояние={}, событие={}", currentState, event);
-        boolean isValid = getNextState(currentState, event) != currentState;
-        log.debug("Результат проверки валидности перехода: текущее состояние={}, событие={}, валиден={}", currentState, event, isValid);
-        return isValid;
+    @Transactional
+    public void closeRegistrationToActivity(Long id) {
+        log.info("Закрытие регистрации в активность: id={}", id);
+        ActivityEntity activity = activityRepository.getByIdOrThrow(id);
+        activityStateMachineService.sendEvent(activity, ActivityEvent.CLOSE_REGISTRATION);
+        log.info("Регистрация в активность закрыта: id={}", id);
+    }
+
+    @Override
+    @Transactional
+    public void completeActivity(Long id) {
+        log.info("Завершение активности: id={}", id);
+        ActivityEntity activity = activityRepository.getByIdOrThrow(id);
+        activityStateMachineService.sendEvent(activity, ActivityEvent.COMPLETE);
+        log.info("Активность завершена: id={}", id);
     }
 }

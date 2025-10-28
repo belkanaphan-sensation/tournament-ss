@@ -16,7 +16,7 @@ public final class ActivityUserUtil {
             @Nullable Long userId,
             Predicate<ActivityUserEntity> predicate) {
         return activity
-                .getUserAssignments()
+                .getActivityUsers()
                 .stream()
                 .filter(predicate)
                 .findFirst()

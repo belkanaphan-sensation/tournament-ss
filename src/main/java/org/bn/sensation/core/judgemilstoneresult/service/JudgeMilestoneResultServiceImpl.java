@@ -2,37 +2,34 @@ package org.bn.sensation.core.judgemilstoneresult.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
+import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.common.statemachine.event.RoundEvent;
-import org.bn.sensation.core.judgeroundstatus.service.JudgeRoundStatusService;
-import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusService;
-import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
+import org.bn.sensation.core.common.statemachine.state.RoundState;
+import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCacheService;
 import org.bn.sensation.core.judgemilstoneresult.entity.JudgeMilestoneResultEntity;
-import org.bn.sensation.core.judgemilestonestatus.entity.JudgeMilestoneStatus;
-import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judgemilstoneresult.repository.JudgeMilestoneResultRepository;
 import org.bn.sensation.core.judgemilstoneresult.service.dto.JudgeMilestoneResultDto;
-import org.bn.sensation.core.judgemilstoneresult.service.dto.JudgeMilestoneResultMilestoneRequest;
 import org.bn.sensation.core.judgemilstoneresult.service.dto.JudgeMilestoneResultRoundRequest;
 import org.bn.sensation.core.judgemilstoneresult.service.mapper.JudgeMilestoneResultDtoMapper;
-import org.bn.sensation.core.judgemilstoneresult.service.mapper.JudgeMilestoneResultMilestoneRequestMapper;
 import org.bn.sensation.core.judgemilstoneresult.service.mapper.JudgeMilestoneResultRoundRequestMapper;
+import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
+import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
+import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
+import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.core.round.service.RoundStateMachineService;
 import org.bn.sensation.core.user.entity.Role;
-import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -52,14 +49,12 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
     private final CurrentUser currentUser;
     private final JudgeMilestoneResultDtoMapper judgeMilestoneResultDtoMapper;
-    private final JudgeMilestoneResultMilestoneRequestMapper judgeMilestoneResultMilestoneRequestMapper;
     private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
     private final JudgeMilestoneResultRoundRequestMapper judgeMilestoneResultRoundRequestMapper;
-    //TODO может быть сделать через ApplicationEvents потом
-    private final JudgeMilestoneStatusService judgeMilestoneStatusService;
-    //TODO может быть сделать через ApplicationEvents потом
-    private final JudgeRoundStatusService judgeRoundStatusService;
+    private final JudgeMilestoneStatusCacheService judgeMilestoneStatusCacheService;
+    private final JudgeRoundStatusRepository judgeRoundStatusRepository;
     private final MilestoneRepository milestoneRepository;
+    private final ParticipantRepository participantRepository;
     private final RoundRepository roundRepository;
     private final RoundStateMachineService roundStateMachineService;
 
@@ -75,22 +70,30 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
     @Override
     @Transactional
-    public JudgeMilestoneResultDto createOrUpdate(JudgeMilestoneResultRoundRequest request, Long activityUserId) {
+    public JudgeMilestoneResultDto createOrUpdate(JudgeMilestoneResultRoundRequest request, Long userId) {
         log.info("Создание или обновление результата судьи для раунда={}, участника={}, судьи={}",
-                request.getRoundId(), request.getParticipantId(), activityUserId);
-
+                request.getRoundId(), request.getParticipantId(), userId);
+        JudgeMilestoneResultEntity entity;
         if (request.getId() == null) {
             log.debug("Создание нового результата судьи");
-            Preconditions.checkArgument(activityUserId != null, "ID судьи не может быть null");
+            Preconditions.checkArgument(userId != null, "ID судьи не может быть null");
             RoundEntity round = roundRepository.getByIdFullOrThrow(request.getRoundId());
             ActivityUserEntity activityUser = ActivityUserUtil.getFromActivity(
-                    round.getMilestone().getActivity(), activityUserId, ua -> ua.getId().equals(activityUserId));
+                    round.getMilestone().getActivity(), userId, ua -> ua.getUser().getId().equals(userId));
             log.debug("Найден раунд={} и судья={} для создания", round.getId(), activityUser.getId());
-            return createEntity(request, round, activityUser);
+            entity = createEntity(request, round, activityUser);
         } else {
             log.debug("Обновление существующего результата судьи с id={}", request.getId());
-            return updateEntity(request, activityUserId);
+            entity = updateEntity(request, userId);
         }
+        validateScores(entity.getRound().getMilestone(), List.of(entity));
+        JudgeMilestoneResultEntity saved = judgeMilestoneResultRepository.save(entity);
+        log.info("Успешно создан или обновлен результат судьи с id={} для участника={}, критерия={}, оценки={}",
+                saved.getId(), request.getParticipantId(), request.getMilestoneCriterionId(), request.getScore());
+        judgeMilestoneStatusCacheService.invalidateForMilestone(saved.getRound().getMilestone().getId());
+        log.debug("Инвалидирован кэш статуса этапа milestoneId={} после изменения статуса судьи={}",
+                saved.getRound().getMilestone().getId(), saved.getActivityUser().getId());
+        return judgeMilestoneResultDtoMapper.toDto(saved);
     }
 
     @Override
@@ -100,41 +103,50 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
                 roundId, requests != null ? requests.size() : 0);
 
         Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
+        Preconditions.checkArgument(requests != null && !requests.isEmpty(), "Отсутствуют результаты оценки участника");
         RoundEntity round = roundRepository.getByIdFullOrThrow(roundId);
+        Preconditions.checkState(round.getState() == RoundState.IN_PROGRESS,
+                "Результаты не могут быть сохранены, т.к. раунд в состоянии %s", round.getState().name());
 
         Long userId = currentUser.getSecurityUser().getId();
         ActivityUserEntity activityUser = ActivityUserUtil.getFromActivity(
-                round.getMilestone().getActivity(), userId, ua -> ua.getUser().getId().equals(currentUser.getSecurityUser().getId()));
+                round.getMilestone().getActivity(), userId,
+                ua -> ua.getUser().getId().equals(currentUser.getSecurityUser().getId())
+                        && ua.getPosition().isJudge());
 
         log.debug("Найден судья={} для раунда={}, сторона={}",
                 activityUser.getId(), roundId, activityUser.getPartnerSide());
 
         validateResultsCount(roundId, requests, round, activityUser);
 
-        List<JudgeMilestoneResultDto> dtos = new ArrayList<>();
-        if (requests != null && !requests.isEmpty()) {
-            log.debug("Обработка {} запросов для раунда {}", requests.size(), roundId);
-            requests.forEach(request -> {
-                if (request.getId() == null) {
-                    log.debug("Создание нового результата для участника={}, критерия={}",
-                            request.getParticipantId(), request.getMilestoneCriterionId());
-                    dtos.add(createEntity(request, round, activityUser));
-                } else {
-                    log.debug("Обновление существующего результата с id={}", request.getId());
-                    dtos.add(updateEntity(request, activityUser.getId()));
-                }
-            });
+        List<JudgeMilestoneResultEntity> toSave = new ArrayList<>();
+        log.debug("Обработка {} запросов для раунда {}", requests.size(), roundId);
+        requests.forEach(request -> {
+            if (request.getId() == null) {
+                log.debug("Создание нового результата для участника={}, критерия={}",
+                        request.getParticipantId(), request.getMilestoneCriterionId());
+                toSave.add(createEntity(request, round, activityUser));
+            } else {
+                log.debug("Обновление существующего результата с id={}", request.getId());
+                toSave.add(updateEntity(request, activityUser.getId()));
+            }
+        });
 
-            log.info("Изменение статуса раунда судьи на READY для судьи={}, раунда={}",
-                    activityUser.getId(), roundId);
-            judgeRoundStatusService.changeJudgeRoundStatusIfPossible(activityUser.getId(), roundId, JudgeRoundStatus.READY);
-            roundStateMachineService.sendEvent(roundId, RoundEvent.MARK_READY);
-        }
+        validateScores(round.getMilestone(), toSave);
 
-        if (judgeMilestoneStatusService.allRoundsReady(round.getMilestone().getId())) {
-            log.info("Все раунды готовы для этапа={}, изменение статуса на READY", round.getMilestone().getId());
-            judgeMilestoneStatusService.changeMilestoneStatus(round.getMilestone(), activityUser, JudgeMilestoneStatus.READY);
-        }
+        List<JudgeMilestoneResultDto> dtos = judgeMilestoneResultRepository.saveAll(toSave)
+                .stream().map(judgeMilestoneResultDtoMapper::toDto).toList();
+
+        log.info("Изменение статуса раунда судьи на READY для судьи={}, раунда={}", activityUser.getId(), roundId);
+        JudgeRoundStatusEntity status = judgeRoundStatusRepository.findByRoundIdAndJudgeId(
+                        round.getId(), activityUser.getId())
+                .orElse(JudgeRoundStatusEntity.builder().round(round).judge(activityUser).status(JudgeRoundStatus.READY).build());
+        judgeRoundStatusRepository.save(status);
+        log.debug("Попытка пометить раунд {} как READY", roundId);
+        roundStateMachineService.sendEvent(round, RoundEvent.MARK_READY);
+
+        judgeMilestoneStatusCacheService.invalidateForMilestone(round.getMilestone().getId());
+        log.debug("Инвалидирован кэш статуса этапа milestoneId={} после изменения статуса судьи", round.getMilestone().getId());
 
         log.info("Успешно обработано {} результатов для раунда {}", dtos.size(), roundId);
         return dtos;
@@ -145,29 +157,28 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
         List<JudgeMilestoneResultEntity> resultsByRound = judgeMilestoneResultRepository.findByRoundIdAndActivityUserId(roundId, activityUser.getId());
         long toCreate = requests.stream().filter(request -> request.getId() == null).count();
-        long participantsCount = round.getParticipants().stream().filter(p -> {
-            if (activityUser.getPartnerSide() != null) {
-                return p.getPartnerSide() == activityUser.getPartnerSide();
-            }
-            return true;
-        }).count();
-
-        long criteriaCount = round.getMilestone().getMilestoneRule().getMilestoneCriteria().stream()
-                .filter(ca -> ca.getPartnerSide() == null || ca.getPartnerSide() == activityUser.getPartnerSide())
-                .count();
-
-        long resultsTotalCount = participantsCount * criteriaCount;
-
-        log.debug("Результаты проверки: существующих={}, к созданию={}, участников={}, критериев={}, всего требуется={}",
-                resultsByRound.size(), toCreate, participantsCount, criteriaCount, resultsTotalCount);
-
+        log.debug("Результаты проверки: существующих={}, к созданию={}", resultsByRound.size(), toCreate);
+        long resultsTotalCount = activityUser.getPartnerSide() != null
+                ? countForPartnerSide(activityUser.getPartnerSide(), round)
+                : countForPartnerSide(PartnerSide.LEADER, round) + countForPartnerSide(PartnerSide.FOLLOWER, round);
         Preconditions.checkArgument(resultsByRound.size() + toCreate == resultsTotalCount,
-                "Не соответствует количество результатов проверки. существующих=%s, к созданию=%s, участников=%s, критериев=%s, всего требуется=%s",
-                resultsByRound.size(), toCreate, participantsCount, criteriaCount, resultsTotalCount);
+                "Не соответствует количество результатов проверки. существующих=%s, к созданию=%s, всего требуется=%s",
+                resultsByRound.size(), toCreate, resultsTotalCount);
+    }
+
+    private long countForPartnerSide(PartnerSide partnerSide, RoundEntity round) {
+        long participantsCount = round.getParticipants().stream().filter(p -> p.getPartnerSide() == partnerSide).count();
+        long criteriaCount = round.getMilestone().getMilestoneRule().getMilestoneCriteria().stream()
+                .filter(ca -> ca.getPartnerSide() == null || ca.getPartnerSide() == partnerSide)
+                .count();
+        long resultsTotalCount = participantsCount * criteriaCount;
+        log.debug("Результаты проверки для стороны: сторона={}, участников={}, критериев={}, всего={}",
+                partnerSide, participantsCount, criteriaCount, resultsTotalCount);
+        return resultsTotalCount;
     }
 
     //TODO тут должно быть применено правило, если судьи меняются сторонами, пока оно не учитывается
-    private JudgeMilestoneResultDto createEntity(JudgeMilestoneResultRoundRequest request, RoundEntity roundEntity, ActivityUserEntity activityUser) {
+    private JudgeMilestoneResultEntity createEntity(JudgeMilestoneResultRoundRequest request, RoundEntity roundEntity, ActivityUserEntity activityUser) {
         log.debug("Создание сущности результата судьи для раунда={}, участника={}, критерия={}, оценки={}",
                 request.getRoundId(), request.getParticipantId(), request.getMilestoneCriterionId(), request.getScore());
 
@@ -183,7 +194,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         MilestoneCriterionEntity milestoneCriterion = roundEntity.getMilestone().getMilestoneRule().getMilestoneCriteria().stream()
                 .filter(ca -> ca.getId().equals(request.getMilestoneCriterionId()))
                 .findFirst()
-                .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(() -> new IllegalArgumentException("В данном раунде нет такого критерия: " + request.getMilestoneCriterionId()));
 
         log.debug("Найден участник={} и критерий={} для создания результата", participant.getId(), milestoneCriterion.getId());
 
@@ -203,16 +214,11 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         entity.setRound(roundEntity);
         entity.setActivityUser(activityUser);
         entity.setMilestoneCriterion(milestoneCriterion);
-        JudgeMilestoneResultEntity saved = judgeMilestoneResultRepository.save(entity);
-
-        log.info("Успешно создан результат судьи с id={} для участника={}, критерия={}, оценки={}",
-                saved.getId(), participant.getId(), milestoneCriterion.getId(), request.getScore());
-
-        return judgeMilestoneResultDtoMapper.toDto(saved);
+        return entity;
     }
 
-    private JudgeMilestoneResultDto updateEntity(JudgeMilestoneResultRoundRequest request, Long activityUserId) {
-        JudgeMilestoneResultEntity entity = judgeMilestoneResultRepository.getByIdWithUserOrThrow(request.getId());
+    private JudgeMilestoneResultEntity updateEntity(JudgeMilestoneResultRoundRequest request, Long activityUserId) {
+        JudgeMilestoneResultEntity entity = judgeMilestoneResultRepository.getByIdWithUserAndMilestoneOrThrow(request.getId());
 
         Preconditions.checkArgument(currentUser.getSecurityUser()
                         .getRoles()
@@ -222,47 +228,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
                 "Нельзя изменить результат другого судьи");
 
         judgeMilestoneResultRoundRequestMapper.updateJudgeMilestoneResultRoundFromRequest(request, entity);
-        JudgeMilestoneResultEntity saved = judgeMilestoneResultRepository.save(entity);
-        return judgeMilestoneResultDtoMapper.toDto(saved);
-    }
-
-    @Override
-    @Transactional
-    public List<JudgeMilestoneResultDto> createOrUpdateForMilestone(Long milestoneId, List<JudgeMilestoneResultMilestoneRequest> requests) {
-        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
-
-        Long userId = currentUser.getSecurityUser().getId();
-        ActivityUserEntity activityUser = ActivityUserUtil.getFromActivity(
-                milestone.getActivity(), userId, ua -> ua.getUser().getId().equals(currentUser.getSecurityUser().getId()));
-
-        int participantsCount = (int) milestone.getRounds().stream()
-                .flatMap(round -> round.getParticipants().stream())
-                .filter(p -> {
-                    if (activityUser.getPartnerSide() != null) {
-                        return p.getPartnerSide() == activityUser.getPartnerSide();
-                    }
-                    return true;
-                }).count();
-        Preconditions.checkArgument(requests.size() == participantsCount,
-                "Отправлены не все результаты этапа");
-
-        Map<Long, JudgeMilestoneResultEntity> results = judgeMilestoneResultRepository.findByIdsIn(
-                        requests.stream().map(JudgeMilestoneResultMilestoneRequest::getId).toList())
-                .stream()
-                .collect(Collectors.toMap(JudgeMilestoneResultEntity::getId, Function.identity()));
-
-        validateByAssessmentMode(milestone, requests, results);
-
-        List<JudgeMilestoneResultEntity> updated = new ArrayList<>();
-        requests.forEach(request -> {
-            judgeMilestoneResultMilestoneRequestMapper.updateJudgeMilestoneResultMilestoneFromRequest(request, results.get(request.getId()));
-            updated.add(judgeMilestoneResultRepository.save(results.get(request.getId())));
-        });
-        updated.stream().map(res -> res.getRound().getId()).distinct().forEach(roundId -> {
-            judgeRoundStatusService.changeJudgeRoundStatusIfPossible(activityUser.getId(), roundId, JudgeRoundStatus.READY);
-        });
-        judgeMilestoneStatusService.changeMilestoneStatus(milestone, activityUser, JudgeMilestoneStatus.READY);
-        return updated.stream().map(judgeMilestoneResultDtoMapper::toDto).toList();
+        return entity;
     }
 
     @Override
@@ -340,9 +306,82 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         judgeMilestoneResultRepository.deleteById(id);
     }
 
-    private void validateByAssessmentMode(
+    private void validateScores(MilestoneEntity milestone, List<JudgeMilestoneResultEntity> resultsToSave) {
+        switch (milestone.getMilestoneRule().getAssessmentMode()) {
+            case SCORE -> validateScoreMode(resultsToSave);
+            case PASS -> validatePassMode(resultsToSave);
+            case PLACE -> validatePlaceMode(milestone, resultsToSave);
+        }
+    }
+
+    private void validateScoreMode(List<JudgeMilestoneResultEntity> resultsToSave) {
+        log.debug("Проверка режима SCORE для {} запросов раунда", resultsToSave.size());
+        for (JudgeMilestoneResultEntity result : resultsToSave) {
+            MilestoneCriterionEntity milestoneCriterion = result.getMilestoneCriterion();
+            log.debug("Проверка оценки={} для критерия={} со шкалой={}",
+                    result.getScore(), milestoneCriterion.getCriterion().getName(), milestoneCriterion.getScale());
+
+            Preconditions.checkArgument(result.getScore() != null,
+                    "Оценка не может быть null для режима SCORE");
+            Preconditions.checkArgument(result.getScore() > 0,
+                    "Оценка не может быть отрицательной для режима SCORE");
+            Preconditions.checkArgument(result.getScore() <= milestoneCriterion.getScale(),
+                    "Оценка %s не может превышать максимальную шкалу %s для критерия %s",
+                    result.getScore(), milestoneCriterion.getScale(), milestoneCriterion.getCriterion().getName());
+        }
+        log.debug("Проверка режима SCORE завершена успешно");
+    }
+
+    private void validatePassMode(List<JudgeMilestoneResultEntity> resultsToSave) {
+        for (JudgeMilestoneResultEntity result : resultsToSave) {
+            Preconditions.checkArgument(result.getScore() != null,
+                    "Оценка не может быть null для режима PASS");
+            Preconditions.checkArgument(result.getScore() == 0 || result.getScore() == 1,
+                    "Для режима PASS оценка может быть только 0 или 1, получена: %s", result.getScore());
+        }
+    }
+
+    private void validatePlaceMode(MilestoneEntity milestone, List<JudgeMilestoneResultEntity> resultsToSave) {
+        for (PartnerSide partnerSide : PartnerSide.values()) {
+            long countInCurrentMilestone = participantRepository.countByMilestoneIdAndPartnerSide(milestone.getId(), partnerSide);
+            List<JudgeMilestoneResultEntity> partnerSideResults = resultsToSave.stream()
+                    .filter(req -> req.getParticipant().getPartnerSide() == partnerSide)
+                    .toList();
+            // Проверяем, что все оценки в диапазоне от 1 до количества участников
+            for (JudgeMilestoneResultEntity result : partnerSideResults) {
+                Preconditions.checkArgument(result.getScore() != null,
+                        "Оценка не может быть null для режима PLACE");
+                Preconditions.checkArgument(result.getScore() >= 1 && result.getScore() <= countInCurrentMilestone,
+                        "Для режима PLACE оценка должна быть от 1 до %s, получена: %s",
+                        countInCurrentMilestone, result.getScore());
+            }
+
+            // Проверяем уникальность мест (каждое место может быть только один раз)
+            List<Integer> scores = partnerSideResults.stream()
+                    .map(JudgeMilestoneResultEntity::getScore)
+                    .sorted()
+                    .toList();
+
+            long uniqueScoresCount = scores.stream().distinct().count();
+            Preconditions.checkArgument(uniqueScoresCount == scores.size(),
+                    "В режиме PLACE каждое место должно быть уникальным. Найдены дублирующиеся места: %s", scores);
+        }
+    }
+
+    @Override
+    public JudgeMilestoneResultDto create(JudgeMilestoneResultRoundRequest request) {
+        return createOrUpdate(request, currentUser.getSecurityUser().getId());
+    }
+
+    @Override
+    public JudgeMilestoneResultDto update(Long id, JudgeMilestoneResultRoundRequest request) {
+        request.setId(id);
+        return createOrUpdate(request, currentUser.getSecurityUser().getId());
+    }
+
+/*    private void validateByAssessmentMode(
             MilestoneEntity milestone,
-            List<JudgeMilestoneResultMilestoneRequest> requests,
+            List<JudgeMilestoneResultRoundRequest> requests,
             Map<Long, JudgeMilestoneResultEntity> results
     ) {
         switch (milestone.getMilestoneRule().getAssessmentMode()) {
@@ -353,12 +392,12 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
     }
 
     private void validateScoreMode(
-            List<JudgeMilestoneResultMilestoneRequest> requests,
+            List<JudgeMilestoneResultRoundRequest> requests,
             Map<Long, JudgeMilestoneResultEntity> results
     ) {
         log.debug("Проверка режима SCORE для {} запросов", requests.size());
 
-        for (JudgeMilestoneResultMilestoneRequest request : requests) {
+        for (JudgeMilestoneResultRoundRequest request : requests) {
             JudgeMilestoneResultEntity result = results.get(request.getId());
             MilestoneCriterionEntity milestoneCriterion = result.getMilestoneCriterion();
 
@@ -379,10 +418,10 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
     private void validatePassMode(
             MilestoneEntity milestone,
-            List<JudgeMilestoneResultMilestoneRequest> requests,
+            List<JudgeMilestoneResultRoundRequest> requests,
             Map<Long, JudgeMilestoneResultEntity> results
     ) {
-        for (JudgeMilestoneResultMilestoneRequest request : requests) {
+        for (JudgeMilestoneResultRoundRequest request : requests) {
             Preconditions.checkArgument(request.getScore() != null,
                     "Оценка не может быть null для режима PASS");
             Preconditions.checkArgument(request.getScore() == 0 || request.getScore() == 1,
@@ -412,18 +451,18 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
     private void validatePlaceMode(
             MilestoneEntity milestone,
-            List<JudgeMilestoneResultMilestoneRequest> requests,
+            List<JudgeMilestoneResultRoundRequest> requests,
             Map<Long, JudgeMilestoneResultEntity> results
     ) {
         for (PartnerSide partnerSide : PartnerSide.values()) {
             long countInCurrentMilestone = milestone.getRounds().stream()
                     .flatMap(round -> round.getParticipants().stream())
                     .filter(p -> p.getPartnerSide() == partnerSide).count();
-            List<JudgeMilestoneResultMilestoneRequest> partnerSideRequests = requests.stream()
+            List<JudgeMilestoneResultRoundRequest> partnerSideRequests = requests.stream()
                     .filter(req -> results.get(req.getId()).getParticipant().getPartnerSide() == partnerSide)
                     .toList();
             // Проверяем, что все оценки в диапазоне от 1 до количества участников
-            for (JudgeMilestoneResultMilestoneRequest request : partnerSideRequests) {
+            for (JudgeMilestoneResultRoundRequest request : partnerSideRequests) {
                 Preconditions.checkArgument(request.getScore() != null,
                         "Оценка не может быть null для режима PLACE");
                 Preconditions.checkArgument(request.getScore() >= 1 && request.getScore() <= countInCurrentMilestone,
@@ -433,7 +472,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
             // Проверяем уникальность мест (каждое место может быть только один раз)
             List<Integer> scores = partnerSideRequests.stream()
-                    .map(JudgeMilestoneResultMilestoneRequest::getScore)
+                    .map(JudgeMilestoneResultRoundRequest::getScore)
                     .sorted()
                     .toList();
 
@@ -441,15 +480,5 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
             Preconditions.checkArgument(uniqueScoresCount == scores.size(),
                     "В режиме PLACE каждое место должно быть уникальным. Найдены дублирующиеся места: %s", scores);
         }
-    }
-
-    @Override
-    public JudgeMilestoneResultDto create(JudgeMilestoneResultRoundRequest request) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public JudgeMilestoneResultDto update(Long id, JudgeMilestoneResultRoundRequest request) {
-        throw new UnsupportedOperationException();
-    }
+    }*/
 }

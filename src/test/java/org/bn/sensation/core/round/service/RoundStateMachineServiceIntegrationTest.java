@@ -162,7 +162,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
         activityUserRepository.save(judgeAssignment);
 
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
 
         // Create test round
         testRound = RoundEntity.builder()
@@ -309,7 +309,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
 
         // Create judge round acceptance
-        ActivityUserEntity judgeAssignment = testActivity.getUserAssignments().stream()
+        ActivityUserEntity judgeAssignment = testActivity.getActivityUsers().stream()
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -343,7 +343,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
 
         // Create judge round acceptance
-        ActivityUserEntity judgeAssignment = testActivity.getUserAssignments().stream()
+        ActivityUserEntity judgeAssignment = testActivity.getActivityUsers().stream()
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -414,7 +414,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
 
         // Create judge round acceptance
-        ActivityUserEntity judgeAssignment = testActivity.getUserAssignments().stream()
+        ActivityUserEntity judgeAssignment = testActivity.getActivityUsers().stream()
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -469,7 +469,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(RoundState.IN_PROGRESS, inProgressRound.getState());
 
         // Create judge round acceptance before completing
-        ActivityUserEntity judgeAssignment = testActivity.getUserAssignments().stream()
+        ActivityUserEntity judgeAssignment = testActivity.getActivityUsers().stream()
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -505,7 +505,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(RoundState.IN_PROGRESS, inProgressRound.getState());
 
         // Create judge round acceptance before completing
-        ActivityUserEntity judgeAssignment = testActivity.getUserAssignments().stream()
+        ActivityUserEntity judgeAssignment = testActivity.getActivityUsers().stream()
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();

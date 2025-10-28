@@ -28,18 +28,19 @@ public class JudgeRoundStatusController {
 
     private final JudgeRoundStatusService judgeRoundStatusService;
 
-    @Operation(summary = "Принять результаты раунда",
+    //Меняется при отправлении результатов
+/*    @Operation(summary = "Принять результаты раунда",
             description = "Результаты раунда принимаются для текущего пользователя который должен являться судьей раунда")
     @GetMapping(path = "/ready/{roundId}")
     public ResponseEntity<JudgeRoundStatusDto> readyRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
         return ResponseEntity.ok(judgeRoundStatusService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.READY));
-    }
+    }*/
 
     @Operation(summary = "Отменить результаты раунда",
             description = "Результаты раунда отменяются для текущего пользователя который должен являться судьей раунда")
     @PostMapping(path = "/not-ready")
     public ResponseEntity<JudgeRoundStatusDto> notReadyRound(@RequestParam @NotNull Long roundId) {
-        return ResponseEntity.ok(judgeRoundStatusService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.NOT_READY));
+        return ResponseEntity.ok(judgeRoundStatusService.markNotReady(roundId));
     }
 
     @Operation(summary = "Получить статус раунда текущего пользователя",

@@ -24,7 +24,6 @@ import org.bn.sensation.core.criterion.entity.CriterionEntity;
 import org.bn.sensation.core.criterion.repository.CriterionRepository;
 import org.bn.sensation.core.judgemilstoneresult.service.JudgeMilestoneResultService;
 import org.bn.sensation.core.judgemilstoneresult.service.dto.JudgeMilestoneResultDto;
-import org.bn.sensation.core.judgemilstoneresult.service.dto.JudgeMilestoneResultMilestoneRequest;
 import org.bn.sensation.core.judgemilstoneresult.service.dto.JudgeMilestoneResultRoundRequest;
 import org.bn.sensation.core.milestone.entity.AssessmentMode;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
@@ -190,7 +189,7 @@ class JudgeMilestoneResultCreateOrUpdateForMilestoneIntegrationTest extends Abst
                 .build();
         testJudgeAssignment = activityUserRepository.save(testJudgeAssignment);
 
-        testActivity.getUserAssignments().add(testJudgeAssignment);
+        testActivity.getActivityUsers().add(testJudgeAssignment);
         activityRepository.save(testActivity);
 
         // Create test milestone

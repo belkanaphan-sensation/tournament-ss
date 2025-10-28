@@ -3,7 +3,6 @@ package org.bn.sensation.core.milestone.service.dto;
 import java.util.List;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -39,10 +38,6 @@ public class CreateMilestoneRequest extends EmptyDto {
     @NotNull
     @Schema(description = "ID активности, частью которой является этап")
     private Long activityId;
-
-    @NotNull
-    @Schema(description = "Статус этапа", example = "DRAFT")
-    private MilestoneState state;
 
     @PositiveOrZero
     @Schema(description = "Порядок этапа в рамках активности (если не указан, будет рассчитан автоматически)", example = "1")
