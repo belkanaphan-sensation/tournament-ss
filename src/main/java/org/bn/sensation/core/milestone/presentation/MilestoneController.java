@@ -2,12 +2,13 @@ package org.bn.sensation.core.milestone.presentation;
 
 import java.util.List;
 
-import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
 import org.bn.sensation.core.milestone.service.MilestoneService;
-import org.bn.sensation.core.milestone.service.MilestoneStateMachineService;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
+import org.bn.sensation.core.milestone.service.dto.PrepareRoundsRequest;
 import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
+import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
+import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,6 @@ import lombok.RequiredArgsConstructor;
 public class MilestoneController {
 
     private final MilestoneService milestoneService;
-    private final MilestoneStateMachineService milestoneStateMachineService;
 
     @Operation(summary = "Получить этап по ID")
     @GetMapping(path = "/{id}")
@@ -41,44 +41,6 @@ public class MilestoneController {
         return milestoneService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).build());
-    }
-
-    @Operation(summary = "Сменить стейт этапа по ID и ивенту",
-            description = "Сменить стейт этапа может администратор")
-    @GetMapping(path = "/{id}/change-state/{event}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> changeMilestoneState(@Parameter @PathVariable("id") @NotNull Long id,
-                                                 @Parameter @PathVariable("event") @NotNull MilestoneEvent event) {
-        milestoneStateMachineService.sendEvent(id, event);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "Запланировать этап по ID",
-            description = "Запланировать этап может администратор")
-    @GetMapping(path = "/plan/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> planMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
-        milestoneStateMachineService.sendEvent(id, MilestoneEvent.PLAN);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "Начать этап по ID",
-            description = "Начать этап может администратор")
-    @GetMapping(path = "/start/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> startMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
-        //TODO проверить или рассчитать участников и раунды
-        milestoneStateMachineService.sendEvent(id, MilestoneEvent.START);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "Завершить этап по ID",
-            description = "Завершить этап может администратор. Также завершаются раунды данного этапа")
-    @PostMapping(path = "/stop/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> completeMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
-        milestoneService.completeMilestone(id);
-        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Получить этапы по ID активности")
@@ -109,7 +71,7 @@ public class MilestoneController {
     @Operation(summary = "Обновить этап по ID")
     @PutMapping("/{id}")
     public ResponseEntity<MilestoneDto> update(@PathVariable("id") @NotNull Long id,
-                                             @Valid @RequestBody UpdateMilestoneRequest request) {
+                                               @Valid @RequestBody UpdateMilestoneRequest request) {
         MilestoneDto updated = milestoneService.update(id, request);
         return ResponseEntity.ok(updated);
     }
@@ -119,6 +81,62 @@ public class MilestoneController {
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         milestoneService.deleteById(id);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Перевести этап обратно в черновик",
+            description = "доступно для администратора")
+    @PostMapping(path = "/draft/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OCCASION_ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> draftMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
+        milestoneService.draftMilestone(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Запланировать этап по ID",
+            description = "Запланировать этап может администратор")
+    @PostMapping(path = "/plan/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OCCASION_ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> planMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
+        milestoneService.planMilestone(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Сформировать этап с участниками и раундами по ID",
+            description = "доступно для администратора")
+    @PostMapping(path = "/prepare-rounds/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OCCASION_ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<List<RoundDto>> prepareRoundsForMilestone(@Parameter @PathVariable("id") @NotNull Long id,
+                                                                    @Valid @RequestBody PrepareRoundsRequest request) {
+        List<RoundDto> rounds = milestoneService.prepareRounds(id, request);
+        return ResponseEntity.ok(rounds);
+    }
+
+    @Operation(summary = "Начать этап по ID",
+            description = "Начать этап может администратор")
+    @PostMapping(path = "/start/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OCCASION_ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> startMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
+        milestoneService.startMilestone(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Подвести предварительные итоги этапа по ID",
+            description = "доступно для администратора")
+    @PostMapping(path = "/sum-up/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OCCASION_ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<List<MilestoneResultDto>> sumUpMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
+        //TODO проверить или рассчитать участников и раунды
+        List<MilestoneResultDto> milestoneResults = milestoneService.sumUpMilestone(id);
+        return ResponseEntity.ok(milestoneResults);
+    }
+
+    @Operation(summary = "Завершить этап по ID",
+            description = "Завершить этап может администратор")
+    @PostMapping(path = "/complete/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OCCASION_ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> completeMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
+        milestoneService.completeMilestone(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

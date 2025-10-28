@@ -16,12 +16,20 @@ public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
 
     List<MilestoneEntity> findByActivityIdOrderByMilestoneOrderAsc(Long activityId);
 
-    @EntityGraph(attributePaths = {"activity.userAssignments.user", "rounds.participants", "milestoneRule", "results"})
+    @EntityGraph(attributePaths = {"activity.activityUsers.user", "rounds.participants", "milestoneRule", "participants", "results"})
     @Query("SELECT m FROM MilestoneEntity m WHERE m.id = :id")
     Optional<MilestoneEntity> findByIdFull(@Param("id") Long id);
 
     default MilestoneEntity getByIdFullOrThrow(Long id) {
         return findByIdFull(id).orElseThrow(() -> new EntityNotFoundException("Этап не найден: " + id));
+    }
+
+    @EntityGraph(attributePaths = {"activity.activityUsers.user"})
+    @Query("SELECT m FROM MilestoneEntity m WHERE m.id = :id")
+    Optional<MilestoneEntity> findByIdWithActivityUsers(@Param("id") Long id);
+
+    default MilestoneEntity getByIdWithActivityUsersOrThrow(Long id) {
+        return findByIdWithActivityUsers(id).orElseThrow(() -> new EntityNotFoundException("Этап не найден: " + id));
     }
 
     @EntityGraph(attributePaths = {"activity", "milestoneRule"})

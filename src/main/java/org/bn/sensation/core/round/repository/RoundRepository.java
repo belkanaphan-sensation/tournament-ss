@@ -18,7 +18,7 @@ public interface RoundRepository extends BaseRepository<RoundEntity> {
     List<RoundEntity> findByMilestoneId(Long milestoneId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @EntityGraph(attributePaths = {"milestone.activity.userAssignments.user"})
+    @EntityGraph(attributePaths = {"milestone.activity.activityUsers.user"})
     @Query("SELECT r FROM RoundEntity r WHERE r.id = :id")
     Optional<RoundEntity> findByIdWithUser(@Param("id") Long id);
 
@@ -27,7 +27,7 @@ public interface RoundRepository extends BaseRepository<RoundEntity> {
     }
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @EntityGraph(attributePaths = {"milestone.activity.userAssignments.user", "milestone.milestoneRule.milestoneCriteria", "participants"})
+    @EntityGraph(attributePaths = {"milestone.activity.activityUsers.user", "milestone.milestoneRule.milestoneCriteria", "participants"})
     @Query("SELECT r FROM RoundEntity r WHERE r.id = :id")
     Optional<RoundEntity> findByIdFull(@Param("id") Long id);
 

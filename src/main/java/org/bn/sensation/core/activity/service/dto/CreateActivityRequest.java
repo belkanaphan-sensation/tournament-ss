@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.dto.EmptyDto;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -49,8 +48,4 @@ public class CreateActivityRequest extends EmptyDto {
     @NotNull
     @Schema(description = "ID мероприятия, частью которого является активность")
     private Long occasionId;
-
-    @NotNull
-    @Schema(description = "Статус активности", example = "DRAFT")
-    private ActivityState state;
 }

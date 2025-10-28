@@ -3,6 +3,7 @@ package org.bn.sensation.core.judgeroundstatus.service;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 import org.bn.sensation.AbstractIntegrationTest;
@@ -12,25 +13,25 @@ import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
 import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
 import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.core.common.entity.Address;
+import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
+import org.bn.sensation.core.criterion.entity.CriterionEntity;
+import org.bn.sensation.core.criterion.repository.CriterionRepository;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
 import org.bn.sensation.core.judgeroundstatus.service.dto.JudgeRoundStatusDto;
-import org.bn.sensation.core.milestone.entity.MilestoneEntity;
-import org.bn.sensation.core.milestone.repository.MilestoneRepository;
-import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
-import org.bn.sensation.core.milestone.repository.MilestoneRuleRepository;
 import org.bn.sensation.core.milestone.entity.AssessmentMode;
-import org.bn.sensation.core.criterion.entity.CriterionEntity;
-import org.bn.sensation.core.criterion.repository.CriterionRepository;
+import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
+import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.bn.sensation.core.milestone.repository.MilestoneRuleRepository;
 import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
 import org.bn.sensation.core.milestonecriterion.repository.MilestoneCriterionRepository;
-import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
@@ -47,7 +48,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -205,8 +205,8 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
         judgeAssignment = activityUserRepository.save(judgeAssignment);
 
-        // Add assignment to activity's userAssignments collection
-        testActivity.getUserAssignments().add(judgeAssignment);
+        // Add assignment to activity's activityUsers collection
+        testActivity.getActivityUsers().add(judgeAssignment);
         activityRepository.save(testActivity);
 
         // Create test round
@@ -243,218 +243,226 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void testAcceptRound_AsJudge_Success() {
-        // Given
+    void testMarkNotReady_ShouldChangeStatusToNotReady() {
+        // Given - Create judge round status with READY status
         mockCurrentUser(testJudge);
-
-        // When
-        JudgeRoundStatusDto result = judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
-
-        // Then
-        assertNotNull(result);
-        assertNotNull(result.getId());
-        assertEquals(JudgeRoundStatus.READY, result.getStatus());
-        assertNotNull(result.getJudge());
-        assertNotNull(result.getRound());
-
-        // Verify in database
-        JudgeRoundStatusEntity savedEntity = judgeRoundStatusRepository.findByRoundIdAndJudgeId(
-                testRound.getId(), judgeAssignment.getId()).orElseThrow();
-        assertEquals(JudgeRoundStatus.READY, savedEntity.getStatus());
-        assertEquals(testRound.getId(), savedEntity.getRound().getId());
-        assertEquals(judgeAssignment.getId(), savedEntity.getJudge().getId());
-    }
-
-    @Test
-    void testRejectRound_AsJudge_Success() {
-        // Given
-        mockCurrentUser(testJudge);
-
-        // When
-        JudgeRoundStatusDto result = judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.NOT_READY);
-
-        // Then
-        assertNotNull(result);
-        assertNotNull(result.getId());
-        assertEquals(JudgeRoundStatus.NOT_READY, result.getStatus());
-        assertNotNull(result.getJudge());
-        assertNotNull(result.getRound());
-
-        // Verify in database
-        JudgeRoundStatusEntity savedEntity = judgeRoundStatusRepository.findByRoundIdAndJudgeId(
-                testRound.getId(), judgeAssignment.getId()).orElseThrow();
-        assertEquals(JudgeRoundStatus.NOT_READY, savedEntity.getStatus());
-    }
-
-    @Test
-    void testChangeJudgeRoundStatus_UpdateExistingStatus_Success() {
-        // Given
-        mockCurrentUser(testJudge);
-
-        // First accept the round
-        judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
-
-        // Verify initial status
-        JudgeRoundStatusEntity initialEntity = judgeRoundStatusRepository.findByRoundIdAndJudgeId(
-                testRound.getId(), judgeAssignment.getId()).orElseThrow();
-        assertEquals(JudgeRoundStatus.READY, initialEntity.getStatus());
-
-        // When - change to rejected
-        JudgeRoundStatusDto result = judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.NOT_READY);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(JudgeRoundStatus.NOT_READY, result.getStatus());
-        assertEquals(initialEntity.getId(), result.getId()); // Same entity, updated
-
-        // Verify in database
-        JudgeRoundStatusEntity updatedEntity = judgeRoundStatusRepository.findByRoundIdAndJudgeId(
-                testRound.getId(), judgeAssignment.getId()).orElseThrow();
-        assertEquals(JudgeRoundStatus.NOT_READY, updatedEntity.getStatus());
-        assertEquals(initialEntity.getId(), updatedEntity.getId()); // Same ID
-    }
-
-    @Test
-    void testChangeJudgeRoundStatus_AsNonJudge_ThrowsException() {
-        // Given
-        mockCurrentUser(testRegularUser);
-
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
-        });
-    }
-
-    @Test
-    void testChangeJudgeRoundStatus_AsAdmin_ThrowsException() {
-        // Given
-        mockCurrentUser(testAdmin);
-
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
-        });
-    }
-
-    @Test
-    void testChangeRoundStatus_NonExistentJudgeRound_ThrowsException() {
-        // Given
-        mockCurrentUser(testJudge);
-        Long nonExistentRoundId = 999L;
-
-        // When & Then
-        assertThrows(JpaObjectRetrievalFailureException.class, () -> {
-            judgeRoundStatusService.changeJudgeRoundStatus(nonExistentRoundId, JudgeRoundStatus.READY);
-        });
-    }
-
-    @Test
-    void testChangeRoundStatus_NullJudgeRoundId_ThrowsException() {
-        // Given
-        mockCurrentUser(testJudge);
-
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            judgeRoundStatusService.changeJudgeRoundStatus(null, JudgeRoundStatus.READY);
-        });
-    }
-
-    @Test
-    void testChangeJudgeRoundStatus_NullStatus_ThrowsException() {
-        // Given
-        mockCurrentUser(testJudge);
-
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), null);
-        });
-    }
-
-    @Test
-    void testMultipleJudges_DifferentStatuses_Success() {
-        // Given
-        // Create second judge
-        UserEntity secondJudge = createUser("judge2", Role.USER);
-        ActivityUserEntity secondJudgeAssignment = ActivityUserEntity.builder()
-                .user(secondJudge)
-                .activity(testActivity)
-                .position(UserActivityPosition.JUDGE)
+        
+        JudgeRoundStatusEntity status = JudgeRoundStatusEntity.builder()
+                .round(testRound)
+                .judge(judgeAssignment)
+                .status(JudgeRoundStatus.READY)
                 .build();
-        secondJudgeAssignment = activityUserRepository.save(secondJudgeAssignment);
+        status = judgeRoundStatusRepository.save(status);
 
-        // Add second assignment to activity's userAssignments collection
-        testActivity.getUserAssignments().add(secondJudgeAssignment);
-        activityRepository.save(testActivity);
+        // When
+        JudgeRoundStatusDto result = judgeRoundStatusService.markNotReady(testRound.getId());
 
-        // First judge accepts
-        mockCurrentUser(testJudge);
-        JudgeRoundStatusDto firstResult = judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
+        // Then - Verify status changed to NOT_READY
+        assertNotNull(result);
+        assertEquals(JudgeRoundStatus.NOT_READY, result.getStatus());
+        assertEquals(judgeAssignment.getId(), result.getJudge().getId());
+        assertEquals(testRound.getId(), result.getRound().getId());
 
-        // Second judge rejects
-        mockCurrentUser(secondJudge);
-        JudgeRoundStatusDto secondResult = judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.NOT_READY);
-
-        // Then
-        assertNotNull(firstResult);
-        assertNotNull(secondResult);
-        assertNotEquals(firstResult.getId(), secondResult.getId()); // Different entities
-
-        assertEquals(JudgeRoundStatus.READY, firstResult.getStatus());
-        assertEquals(JudgeRoundStatus.NOT_READY, secondResult.getStatus());
-
-        // Verify both in database
-        JudgeRoundStatusEntity firstEntity = judgeRoundStatusRepository.findByRoundIdAndJudgeId(
-                testRound.getId(), judgeAssignment.getId()).orElseThrow();
-        JudgeRoundStatusEntity secondEntity = judgeRoundStatusRepository.findByRoundIdAndJudgeId(
-                testRound.getId(), secondJudgeAssignment.getId()).orElseThrow();
-
-        assertEquals(JudgeRoundStatus.READY, firstEntity.getStatus());
-        assertEquals(JudgeRoundStatus.NOT_READY, secondEntity.getStatus());
+        // Verify in database
+        JudgeRoundStatusEntity savedStatus = judgeRoundStatusRepository.findById(status.getId()).orElseThrow();
+        assertEquals(JudgeRoundStatus.NOT_READY, savedStatus.getStatus());
     }
 
     @Test
-    void testJudgeRoundStatus_UniqueConstraint_Success() {
+    void testMarkNotReady_WithNonExistentRound_ShouldThrowException() {
         // Given
         mockCurrentUser(testJudge);
 
-        // When - create first status
-        JudgeRoundStatusDto firstResult = judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.READY);
-
-        // When - update same judge's status (should update, not create new)
-        JudgeRoundStatusDto secondResult = judgeRoundStatusService.changeJudgeRoundStatus(testRound.getId(), JudgeRoundStatus.NOT_READY);
-
-        // Then
-        assertEquals(firstResult.getId(), secondResult.getId()); // Same entity updated
-        assertEquals(JudgeRoundStatus.NOT_READY, secondResult.getStatus());
-
-        // Verify only one record exists for this judge-round combination
-        long count = judgeRoundStatusRepository.findAll().stream()
-                .filter(jr -> jr.getRound().getId().equals(testRound.getId())
-                           && jr.getJudge().getId().equals(judgeAssignment.getId()))
-                .count();
-        assertEquals(1, count);
+        // When & Then
+        assertThrows(Exception.class, () -> {
+            judgeRoundStatusService.markNotReady(99999L);
+        });
     }
 
     @Test
-    void testChangeRoundStatus_Judge_RoundInDraftState_ThrowsException() {
+    void testMarkNotReady_WithNullRoundId_ShouldThrowException() {
         // Given
         mockCurrentUser(testJudge);
 
-        // Create round in DRAFT state
-        final RoundEntity draftRound = RoundEntity.builder()
-                .name("Draft Round")
-                .state(RoundState.DRAFT)
+        // When & Then
+        assertThrows(IllegalArgumentException.class, () -> {
+            judgeRoundStatusService.markNotReady(null);
+        });
+    }
+
+    @Test
+    void testMarkNotReady_WithNonExistentStatus_ShouldThrowException() {
+        // Given - Create round but no judge round status
+        mockCurrentUser(testJudge);
+        
+        RoundEntity roundWithoutStatus = RoundEntity.builder()
+                .name("Round Without Status")
+                .state(RoundState.IN_PROGRESS)
+                .milestone(testMilestone)
+                .roundOrder(1)
+                .build();
+        final RoundEntity savedRound = roundRepository.save(roundWithoutStatus);
+
+        // When & Then
+        assertThrows(Exception.class, () -> {
+            judgeRoundStatusService.markNotReady(savedRound.getId());
+        });
+    }
+
+    @Test
+    void testGetRoundStatusForCurrentUser_WithExistingStatus_ShouldReturnStatus() {
+        // Given - Create judge round status
+        mockCurrentUser(testJudge);
+        
+        JudgeRoundStatusEntity status = JudgeRoundStatusEntity.builder()
+                .round(testRound)
+                .judge(judgeAssignment)
+                .status(JudgeRoundStatus.READY)
+                .build();
+        judgeRoundStatusRepository.save(status);
+
+        // When
+        JudgeRoundStatus result = judgeRoundStatusService.getRoundStatusForCurrentUser(testRound.getId());
+
+        // Then
+        assertNotNull(result);
+        assertEquals(JudgeRoundStatus.READY, result);
+    }
+
+    @Test
+    void testGetRoundStatusForCurrentUser_WithNoStatus_ShouldReturnNull() {
+        // Given - No judge round status created
+        mockCurrentUser(testJudge);
+
+        // When
+        JudgeRoundStatus result = judgeRoundStatusService.getRoundStatusForCurrentUser(testRound.getId());
+
+        // Then
+        assertNull(result);
+    }
+
+    @Test
+    void testGetRoundStatusForCurrentUser_WithNonExistentRound_ShouldThrowException() {
+        // Given
+        mockCurrentUser(testJudge);
+
+        // When & Then
+        assertThrows(Exception.class, () -> {
+            judgeRoundStatusService.getRoundStatusForCurrentUser(99999L);
+        });
+    }
+
+    @Test
+    void testGetByMilestoneIdForCurrentUser_WithMultipleRounds_ShouldReturnAllStatuses() {
+        // Given - Create multiple rounds with judge statuses
+        mockCurrentUser(testJudge);
+        
+        RoundEntity round1 = RoundEntity.builder()
+                .name("Round 1")
+                .state(RoundState.IN_PROGRESS)
                 .milestone(testMilestone)
                 .roundOrder(0)
                 .build();
-        roundRepository.save(draftRound);
+        final RoundEntity savedRound1 = roundRepository.save(round1);
 
-        // When & Then
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            judgeRoundStatusService.changeJudgeRoundStatus(draftRound.getId(), JudgeRoundStatus.READY);
-        });
+        RoundEntity round2 = RoundEntity.builder()
+                .name("Round 2")
+                .state(RoundState.IN_PROGRESS)
+                .milestone(testMilestone)
+                .roundOrder(1)
+                .build();
+        final RoundEntity savedRound2 = roundRepository.save(round2);
 
-        assertTrue(exception.getMessage().contains("Статус раунда DRAFT. Не может быть принят или отменен судьей"));
+        // Create judge round statuses
+        JudgeRoundStatusEntity status1 = JudgeRoundStatusEntity.builder()
+                .round(savedRound1)
+                .judge(judgeAssignment)
+                .status(JudgeRoundStatus.READY)
+                .build();
+        judgeRoundStatusRepository.save(status1);
+
+        JudgeRoundStatusEntity status2 = JudgeRoundStatusEntity.builder()
+                .round(savedRound2)
+                .judge(judgeAssignment)
+                .status(JudgeRoundStatus.NOT_READY)
+                .build();
+        judgeRoundStatusRepository.save(status2);
+
+        // When
+        List<JudgeRoundStatusDto> result = judgeRoundStatusService.getByMilestoneIdForCurrentUser(testMilestone.getId());
+
+        // Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        
+        // Verify statuses
+        JudgeRoundStatusDto status1Dto = result.stream()
+                .filter(dto -> dto.getRound().getId().equals(savedRound1.getId()))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(JudgeRoundStatus.READY, status1Dto.getStatus());
+
+        JudgeRoundStatusDto status2Dto = result.stream()
+                .filter(dto -> dto.getRound().getId().equals(savedRound2.getId()))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(JudgeRoundStatus.NOT_READY, status2Dto.getStatus());
     }
 
+    @Test
+    void testGetByMilestoneIdForCurrentUser_WithNoStatuses_ShouldReturnEmptyList() {
+        // Given - No judge round statuses created
+        mockCurrentUser(testJudge);
+
+        // When
+        List<JudgeRoundStatusDto> result = judgeRoundStatusService.getByMilestoneIdForCurrentUser(testMilestone.getId());
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testGetByMilestoneIdForCurrentUser_WithNonExistentMilestone_ShouldThrowException() {
+        // Given
+        mockCurrentUser(testJudge);
+
+        // When & Then
+        assertThrows(Exception.class, () -> {
+            judgeRoundStatusService.getByMilestoneIdForCurrentUser(99999L);
+        });
+    }
+
+    @Test
+    void testGetByMilestoneIdForCurrentUser_WithDifferentJudge_ShouldReturnEmptyList() {
+        // Given - Create status for different judge
+        mockCurrentUser(testJudge);
+        
+        // Create another judge
+        UserEntity otherJudge = createUser("otherJudge", Role.USER);
+        ActivityUserEntity otherJudgeAssignment = ActivityUserEntity.builder()
+                .user(otherJudge)
+                .activity(testActivity)
+                .position(UserActivityPosition.JUDGE)
+                .build();
+        otherJudgeAssignment = activityUserRepository.save(otherJudgeAssignment);
+        
+        testActivity.getActivityUsers().add(otherJudgeAssignment);
+        activityRepository.save(testActivity);
+
+        // Create status for other judge
+        JudgeRoundStatusEntity statusForOtherJudge = JudgeRoundStatusEntity.builder()
+                .round(testRound)
+                .judge(otherJudgeAssignment)
+                .status(JudgeRoundStatus.READY)
+                .build();
+        judgeRoundStatusRepository.save(statusForOtherJudge);
+
+        // When - Get statuses for current user (testJudge)
+        List<JudgeRoundStatusDto> result = judgeRoundStatusService.getByMilestoneIdForCurrentUser(testMilestone.getId());
+
+        // Then - Should return empty list (status belongs to other judge)
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
 }

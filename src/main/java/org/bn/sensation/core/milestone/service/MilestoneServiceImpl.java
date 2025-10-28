@@ -9,22 +9,27 @@ import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.common.service.BaseStateService;
 import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
 import org.bn.sensation.core.common.statemachine.event.RoundEvent;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
+import org.bn.sensation.core.milestone.service.dto.PrepareRoundsRequest;
 import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
 import org.bn.sensation.core.milestone.service.mapper.CreateMilestoneRequestMapper;
 import org.bn.sensation.core.milestone.service.mapper.MilestoneDtoMapper;
 import org.bn.sensation.core.milestone.service.mapper.UpdateMilestoneRequestMapper;
+import org.bn.sensation.core.milestoneresult.service.MilestoneResultService;
+import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
+import org.bn.sensation.core.round.service.RoundService;
 import org.bn.sensation.core.round.service.RoundStateMachineService;
+import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
@@ -46,11 +51,14 @@ public class MilestoneServiceImpl implements MilestoneService {
 
     private final CurrentUser currentUser;
     private final ActivityRepository activityRepository;
+    private final BaseStateService<MilestoneEntity, MilestoneState, MilestoneEvent> milestoneStateService;
     private final CreateMilestoneRequestMapper createMilestoneRequestMapper;
     private final MilestoneDtoMapper milestoneDtoMapper;
     private final MilestoneRepository milestoneRepository;
-//    private final MilestoneStateMachineService milestoneStateMachineService;
+    private final MilestoneResultService milestoneResultService;
+    private final MilestoneStateMachineService milestoneStateMachineService;
     private final ParticipantRepository participantRepository;
+    private final RoundService roundService;
     private final RoundStateMachineService roundStateMachineService;
     private final UpdateMilestoneRequestMapper updateMilestoneRequestMapper;
 
@@ -65,27 +73,12 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     @Override
-    public void completeMilestone(Long milestoneId) {
-        log.info("Завершение этапа: id={}", milestoneId);
-        Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
-        MilestoneEntity milestone = milestoneRepository.getByIdOrThrow(milestoneId);
-        log.debug("Найден этап={} для завершения, количество раундов={}", milestoneId, milestone.getRounds().size());
-        
-        milestone.getRounds().forEach(round -> {
-            log.debug("Отправка события COMPLETE для раунда={}", round.getId());
-            roundStateMachineService.sendEvent(round.getId(), RoundEvent.COMPLETE);
-        });
-//        milestoneStateMachineService.sendEvent(milestoneId, MilestoneEvent.COMPLETE);
-        log.info("Этап успешно завершен: id={}", milestoneId);
-    }
-
-    @Override
     @Transactional(readOnly = true)
     public Page<MilestoneDto> findAll(Pageable pageable) {
         log.debug("Поиск всех этапов с пагинацией: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
         List<MilestoneEntity> milestones = milestoneRepository.findAll();
         log.debug("Найдено {} этапов в базе данных", milestones.size());
-        
+
         List<MilestoneDto> enrichedDtos = milestones.stream()
                 .map(this::enrichMilestoneDtoWithStatistics)
                 .toList();
@@ -117,11 +110,11 @@ public class MilestoneServiceImpl implements MilestoneService {
     public MilestoneDto create(CreateMilestoneRequest request) {
         log.info("Создание этапа: название={}, активность={}", request.getName(), request.getActivityId());
         Preconditions.checkArgument(request.getActivityId() != null, "ID активности не может быть null");
-        ActivityEntity activity = activityRepository.findById(request.getActivityId())
-                .orElseThrow(() -> new EntityNotFoundException("Активность не найдена с id: " + request.getActivityId()));
+        ActivityEntity activity = activityRepository.getByIdWithActivityUserOrThrow(request.getActivityId());
 
         log.debug("Найдена активность={} для создания этапа", activity.getId());
         MilestoneEntity milestone = createMilestoneRequestMapper.toEntity(request);
+        milestone.setState(MilestoneState.DRAFT);
         milestone.setActivity(activity);
 
         if (milestone.getMilestoneOrder() == null) {
@@ -133,7 +126,7 @@ public class MilestoneServiceImpl implements MilestoneService {
             validateOrderSequence(request.getActivityId(), request.getMilestoneOrder(), true);
             reorderMilestones(request.getActivityId(), null, request.getMilestoneOrder());
         }
-        
+
         addParticipants(request.getParticipantIds(), activity, milestone);
         MilestoneEntity saved = milestoneRepository.save(milestone);
         log.info("Этап успешно создан: id={}, название={}", saved.getId(), saved.getName());
@@ -160,7 +153,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                 reorderMilestones(milestone.getActivity().getId(), id, request.getMilestoneOrder());
             }
         }
-        
+
         updateMilestoneRequestMapper.updateMilestoneFromRequest(request, milestone);
         addParticipants(request.getParticipantIds(), milestone.getActivity(), milestone);
 
@@ -296,62 +289,6 @@ public class MilestoneServiceImpl implements MilestoneService {
         return nextOrder;
     }
 
-    @Override
-    public void saveTransition(MilestoneEntity milestone, MilestoneState state) {
-        milestone.setState(state);
-        milestoneRepository.save(milestone);
-    }
-
-    @Override
-    public boolean canTransition(MilestoneEntity milestone, MilestoneEvent event) {
-        switch (event) {
-            case DRAFT, PLAN -> {
-            }
-            case START -> {
-                Preconditions.checkState(milestone.getActivity().getState() == ActivityState.IN_PROGRESS,
-                        "Нельзя стартовать этап, т.к. активность находится в статусе %s", milestone.getActivity().getState());
-            }
-            case COMPLETE -> {
-                boolean allRoundsCompleted = milestone.getRounds()
-                        .stream()
-                        .allMatch(round -> round.getState() == RoundState.COMPLETED);
-                Preconditions.checkState(allRoundsCompleted, "Не все раунды завершены");
-                int resultsCount = milestone.getResults().size();
-                long participantsCount = milestone.getRounds().stream()
-                        .filter(round -> !round.getExtraRound())
-                        .flatMap(round -> round.getParticipants().stream())
-                        .count();
-                Preconditions.checkState(resultsCount == participantsCount,
-                        "Результаты готовы не для всех участников");
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public MilestoneState getNextState(MilestoneState currentState, MilestoneEvent event) {
-        return switch (currentState) {
-            case DRAFT -> event == MilestoneEvent.PLAN ? MilestoneState.PLANNED : currentState;
-            case PLANNED -> switch (event) {
-                case DRAFT -> MilestoneState.DRAFT;
-                case START -> MilestoneState.IN_PROGRESS;
-                default -> currentState;
-            };
-            case IN_PROGRESS -> switch (event) {
-                case PLAN -> MilestoneState.PLANNED;
-                case COMPLETE -> MilestoneState.COMPLETED;
-                default -> currentState;
-            };
-            case COMPLETED -> event == MilestoneEvent.START ? MilestoneState.IN_PROGRESS : currentState;
-            default -> currentState;
-        };
-    }
-
-    @Override
-    public boolean isValidTransition(MilestoneState currentState, MilestoneEvent event) {
-        return getNextState(currentState, event) != currentState;
-    }
-
     /**
      * Не должно применяться в нормальном флоу. Нужно на экстренный случай
      */
@@ -369,5 +306,81 @@ public class MilestoneServiceImpl implements MilestoneService {
                     .collect(Collectors.toSet());
             milestone.getParticipants().addAll(participants);
         }
+    }
+
+    @Override
+    @Transactional
+    public void draftMilestone(Long id) {
+        log.info("Перевод этапа в черновик: id={}", id);
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(id);
+        milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.DRAFT);
+        log.info("Этап переведен в черновик: id={}", id);
+    }
+
+    @Override
+    @Transactional
+    public void planMilestone(Long id) {
+        log.info("Планирование этапа: id={}", id);
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(id);
+        milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.PLAN);
+        log.info("Этап запланирован: id={}", id);
+    }
+
+    @Override
+    @Transactional
+    public List<RoundDto> prepareRounds(Long milestoneId, PrepareRoundsRequest request) {
+        log.info("Начало подготовки раундов для этапа ID={}, перегенерация={}",
+                milestoneId, request.getReGenerate());
+
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
+        log.debug("Этап найден: ID={}, состояние={}, активность ID={}",
+                milestone.getId(), milestone.getState(), milestone.getActivity().getId());
+        Preconditions.checkState(milestoneStateService.getNextState(milestone.getState(), MilestoneEvent.PREPARE_ROUNDS).isPresent(),
+                "Этап находится в состоянии %s и не может быть переформирован", milestone.getState());
+
+        List<RoundDto> rounds = roundService.generateRounds(milestone, request.getParticipantIds(), request.getReGenerate());
+        milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.PREPARE_ROUNDS);
+        milestoneRepository.save(milestone);
+        return rounds;
+    }
+
+    @Override
+    @Transactional
+    public void startMilestone(Long id) {
+        log.info("Запуск этапа: id={}", id);
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(id);
+        milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.START);
+        log.info("Этап запущен: id={}", id);
+    }
+
+    @Override
+    @Transactional
+    public List<MilestoneResultDto> sumUpMilestone(Long id) {
+        log.info("Подведение предварительных итогов этапа: id={}", id);
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(id);
+        milestone.getRounds().stream().filter(round -> round.getState() != RoundState.COMPLETED)
+                .forEach(round -> {
+                    roundStateMachineService.sendEvent(round, RoundEvent.COMPLETE);
+                });
+        milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.SUM_UP);
+        List<MilestoneResultDto> milestoneResultDtos = milestoneResultService.calculateResults(milestone);
+        log.info("Предварительные итоги этапа подведены: id={}", id);
+        return milestoneResultDtos;
+    }
+
+    @Override
+    @Transactional
+    public void completeMilestone(Long milestoneId) {
+        log.info("Завершение этапа: id={}", milestoneId);
+        Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
+        log.debug("Найден этап={} для завершения, количество раундов={}", milestoneId, milestone.getRounds().size());
+
+        milestone.getRounds().forEach(round -> {
+            log.debug("Отправка события COMPLETE для раунда={}", round.getId());
+            roundStateMachineService.sendEvent(round, RoundEvent.COMPLETE);
+        });
+        milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.COMPLETE);
+        log.info("Этап успешно завершен: id={}", milestoneId);
     }
 }

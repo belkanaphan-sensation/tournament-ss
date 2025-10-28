@@ -2,14 +2,10 @@ package org.bn.sensation.core.judgeroundstatus.service;
 
 import java.util.List;
 
+import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
+import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.common.statemachine.event.RoundEvent;
-import org.bn.sensation.core.common.statemachine.state.RoundState;
-import org.bn.sensation.core.judgemilestonestatus.entity.JudgeMilestoneStatus;
-import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusService;
-import org.bn.sensation.core.judgemilstoneresult.entity.JudgeMilestoneResultEntity;
-import org.bn.sensation.core.judgemilstoneresult.repository.JudgeMilestoneResultRepository;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
@@ -17,12 +13,9 @@ import org.bn.sensation.core.judgeroundstatus.service.dto.JudgeRoundStatusDto;
 import org.bn.sensation.core.judgeroundstatus.service.mapper.JudgeRoundStatusDtoMapper;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCacheService;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.round.service.RoundStateMachineService;
-import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
-import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
-import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,14 +31,11 @@ import lombok.extern.slf4j.Slf4j;
 public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
 
     private final CurrentUser currentUser;
-    private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
     private final JudgeRoundStatusDtoMapper judgeRoundStatusDtoMapper;
     private final JudgeRoundStatusRepository judgeRoundStatusRepository;
-    private final JudgeMilestoneStatusService judgeMilestoneStatusService;
     private final MilestoneRepository milestoneRepository;
     private final RoundRepository roundRepository;
-    private final RoundStateMachineService roundStateMachineService;
-    private final ActivityUserRepository activityUserRepository;
+    private final JudgeMilestoneStatusCacheService judgeMilestoneStatusCacheService;
 
     @Override
     public BaseRepository<JudgeRoundStatusEntity> getRepository() {
@@ -59,44 +49,20 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
 
     @Override
     @Transactional
-    public JudgeRoundStatusDto changeJudgeRoundStatus(Long roundId, JudgeRoundStatus judgeRoundStatus) {
-        log.info("Изменение статуса раунда судьи: раунд={}, статус={}, пользователь={}",
-                roundId, judgeRoundStatus, currentUser.getSecurityUser().getId());
-
+    public JudgeRoundStatusDto markNotReady(Long roundId) {
+        log.info("Откат статуса раунда судьи: раунд={}, судья={}", roundId, currentUser.getSecurityUser().getId());
         Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
-        Preconditions.checkArgument(judgeRoundStatus != null, "Статус не может быть null");
-
         RoundEntity round = roundRepository.getByIdWithUserOrThrow(roundId);
-
         ActivityUserEntity activityUser = getActivityUser(round.getMilestone(), currentUser.getSecurityUser().getId());
+        JudgeRoundStatusEntity status = judgeRoundStatusRepository
+                .getByRoundIdAndJudgeIdOrThrow(roundId, activityUser.getId());
+        status.setStatus(JudgeRoundStatus.NOT_READY);
+        JudgeRoundStatusEntity saved = judgeRoundStatusRepository.save(status);
 
-        log.debug("Найден судья={} для раунда={}, состояние раунда={}",
-                activityUser.getId(), roundId, round.getState());
+        judgeMilestoneStatusCacheService.invalidateForMilestone(round.getMilestone().getId());
+        log.debug("Инвалидирован кэш статуса этапа milestoneId={} после отката статуса судьи", round.getMilestone().getId());
 
-        Preconditions.checkState(round.getState() == RoundState.IN_PROGRESS,
-                "Статус раунда %s. Не может быть принят или отменен судьей", round.getState());
-
-        if (!canChange(judgeRoundStatus, activityUser, round)) {
-            log.warn("Судья={} не может изменить статус на {} - не все участники оценены",
-                    activityUser.getId(), judgeRoundStatus);
-            throw new IllegalStateException("Судья оценил не всех участников");
-        }
-
-        //TODO а зачем  здесь это???
-        log.debug("Отправка события START для раунда={}", roundId);
-        roundStateMachineService.sendEvent(roundId, RoundEvent.START);
-
-        if (judgeRoundStatus == JudgeRoundStatus.NOT_READY) {
-            log.debug("Изменение статуса этапа на NOT_READY для этапа={}", round.getMilestone().getId());
-            judgeMilestoneStatusService.changeMilestoneStatus(round.getMilestone(), activityUser, JudgeMilestoneStatus.NOT_READY);
-        } else if (judgeRoundStatus == JudgeRoundStatus.READY && judgeMilestoneStatusService.allRoundsReady(round.getMilestone().getId())) {
-            log.debug("Все раунды готовы, изменение статуса этапа на READY для этапа={}", round.getMilestone().getId());
-            judgeMilestoneStatusService.changeMilestoneStatus(round.getMilestone(), activityUser, JudgeMilestoneStatus.READY);
-        }
-
-        JudgeRoundStatusDto result = createOrUpdateJudgeRoundStatus(judgeRoundStatus, activityUser, round);
-        log.info("Статус раунда судьи успешно изменен: раунд={}, статус={}", roundId, judgeRoundStatus);
-        return result;
+        return judgeRoundStatusDtoMapper.toDto(saved);
     }
 
     @Override
@@ -104,15 +70,6 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
         RoundEntity round = roundRepository.getByIdWithUserOrThrow(roundId);
         ActivityUserEntity activityUser = getActivityUser(round.getMilestone(), currentUser.getSecurityUser().getId());
         return judgeRoundStatusRepository.findByRoundIdAndJudgeId(roundId, activityUser.getId()).map(JudgeRoundStatusEntity::getStatus).orElse(null);
-    }
-
-    private ActivityUserEntity getActivityUser(MilestoneEntity milestone, Long userId) {
-        return ActivityUserUtil.getFromActivity(
-                milestone.getActivity(), userId, ua ->
-                        ua.getUser()
-                                .getId()
-                                .equals(userId)
-                                && ua.getPosition().isJudge());
     }
 
     @Override
@@ -126,71 +83,12 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
                 .toList();
     }
 
-    private JudgeRoundStatusDto createOrUpdateJudgeRoundStatus(JudgeRoundStatus judgeRoundStatus, ActivityUserEntity activityAssignment, RoundEntity round) {
-        JudgeRoundStatusEntity judgeRoundStatusEntity = judgeRoundStatusRepository.findByRoundIdAndJudgeId(round.getId(), activityAssignment.getId())
-                .orElse(JudgeRoundStatusEntity.builder().round(round).judge(activityAssignment).build());
-        judgeRoundStatusEntity.setStatus(judgeRoundStatus);
-        return judgeRoundStatusDtoMapper.toDto(judgeRoundStatusRepository.save(judgeRoundStatusEntity));
+    private ActivityUserEntity getActivityUser(MilestoneEntity milestone, Long userId) {
+        return ActivityUserUtil.getFromActivity(
+                milestone.getActivity(), userId, ua ->
+                        ua.getUser()
+                                .getId()
+                                .equals(userId)
+                                && ua.getPosition().isJudge());
     }
-
-    private boolean canChange(JudgeRoundStatus judgeRoundStatus, ActivityUserEntity activityUser, RoundEntity round) {
-        log.debug("Проверка возможности изменения статуса: судья={}, статус={}, раунд={}",
-                activityUser.getId(), judgeRoundStatus, round.getId());
-
-        if (judgeRoundStatus == JudgeRoundStatus.READY) {
-            List<JudgeMilestoneResultEntity> results = judgeMilestoneResultRepository.findByRoundIdAndActivityUserId(round.getId(), activityUser.getId());
-            log.debug("Найдено {} результатов для судьи={} в раунде={}", results.size(), activityUser.getId(), round.getId());
-
-            if (activityUser.getPartnerSide() == null) {
-                int expectedCount = round.getParticipants().size() * round.getMilestone().getMilestoneRule().getMilestoneCriteria().size();
-                boolean canChange = expectedCount == results.size();
-                log.debug("Судья без стороны: участников={}, критериев={}, ожидается результатов={}, найдено={}, может изменить={}",
-                        round.getParticipants().size(), round.getMilestone().getMilestoneRule().getMilestoneCriteria().size(),
-                        expectedCount, results.size(), canChange);
-                return canChange;
-            } else {
-                //TODO добавить смену сторон, если есть правило этапа на смену сторон судей
-                long participantsCount = round.getParticipants()
-                        .stream()
-                        .filter(p -> p.getPartnerSide() == activityUser.getPartnerSide())
-                        .count();
-                long criteriaCount = round.getMilestone().getMilestoneRule().getMilestoneCriteria().stream()
-                        .filter(ca -> ca.getPartnerSide() == null || ca.getPartnerSide() == activityUser.getPartnerSide())
-                        .count();
-                long resultsCount = results.stream()
-                        .filter(prr -> prr.getParticipant().getPartnerSide() == activityUser.getPartnerSide())
-                        .count();
-
-                long expectedCount = participantsCount * criteriaCount;
-                boolean canChange = expectedCount == resultsCount;
-
-                log.debug("Судья со стороной={}: участников={}, критериев={}, ожидается результатов={}, найдено={}, может изменить={}",
-                        activityUser.getPartnerSide(), participantsCount, criteriaCount, expectedCount, resultsCount, canChange);
-
-                return canChange;
-            }
-        }
-        log.debug("Статус не READY, изменение разрешено");
-        return true;
-    }
-
-    @Override
-    @Transactional
-    public void changeJudgeRoundStatusIfPossible(Long activityUserId, Long roundId, JudgeRoundStatus judgeRoundStatus) {
-        Preconditions.checkArgument(activityUserId != null, "ID судьи не может быть null");
-        Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
-        Preconditions.checkArgument(judgeRoundStatus != null, "Статус не может быть null");
-        ActivityUserEntity activityUser = activityUserRepository.getByIdOrThrow(activityUserId);
-        RoundEntity round = roundRepository.getByIdWithUserOrThrow(roundId);
-        Preconditions.checkArgument(round.getMilestone().getActivity().getUserAssignments()
-                        .stream()
-                        .map(ActivityUserEntity::getId)
-                        .anyMatch(id -> id.equals(activityUser.getId())),
-                "Некорректные данные");
-        if (round.getState() == RoundState.IN_PROGRESS && canChange(judgeRoundStatus, activityUser, round)) {
-            createOrUpdateJudgeRoundStatus(judgeRoundStatus, activityUser, round);
-        }
-        log.info("Статус раунда судьи изменен: судья={}, раунд={}, статус={}", activityUserId, roundId, judgeRoundStatus);
-    }
-
 }

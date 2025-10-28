@@ -3,6 +3,7 @@ package org.bn.sensation.core.participant.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -12,6 +13,8 @@ import org.springframework.data.repository.query.Param;
 import jakarta.persistence.EntityNotFoundException;
 
 public interface ParticipantRepository extends BaseRepository<ParticipantEntity> {
+
+    Long countByMilestones_IdAndPartnerSide(@Param("milestoneId") Long milestoneId, @Param("partnerSide") PartnerSide partnerSide);
 
     @EntityGraph(attributePaths = {"activity", "rounds", "milestones"})
     @Query("""

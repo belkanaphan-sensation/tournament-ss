@@ -5,12 +5,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
+import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.common.statemachine.event.RoundEvent;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
+import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCacheService;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
@@ -20,22 +21,26 @@ import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.round.service.dto.*;
+import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
+import org.bn.sensation.core.round.service.dto.RoundDto;
+import org.bn.sensation.core.round.service.dto.RoundWithJRStatusDto;
+import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
 import org.bn.sensation.core.round.service.mapper.CreateRoundRequestMapper;
 import org.bn.sensation.core.round.service.mapper.RoundDtoMapper;
 import org.bn.sensation.core.round.service.mapper.RoundWithJRStatusMapper;
 import org.bn.sensation.core.round.service.mapper.UpdateRoundRequestMapper;
-import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Preconditions;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,11 +51,13 @@ public class RoundServiceImpl implements RoundService {
 
     private final CurrentUser currentUser;
     private final CreateRoundRequestMapper createRoundRequestMapper;
+    private final JudgeMilestoneStatusCacheService judgeMilestoneStatusCacheService;
     private final JudgeRoundStatusRepository judgeRoundStatusRepository;
     private final MilestoneRepository milestoneRepository;
     private final ParticipantRepository participantRepository;
     private final RoundDtoMapper roundDtoMapper;
     private final RoundRepository roundRepository;
+    private final RoundStateMachineService roundStateMachineService;
     private final RoundWithJRStatusMapper roundWithJRStatusMapper;
     private final UpdateRoundRequestMapper updateRoundRequestMapper;
 
@@ -77,34 +84,30 @@ public class RoundServiceImpl implements RoundService {
 
         // Проверяем существование этапа
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(request.getMilestoneId());
-
         log.debug("Найден этап={} для создания раунда", milestone.getId());
+        if(milestone.getMilestoneOrder().equals(0) && !milestone.getRounds().isEmpty()) {
+            throw new IllegalArgumentException("Раунд не может быть создан для этапа %s, т.к этап финальный и уже имеет раунд".formatted(milestone.getId()));
+        }
 
         // Создаем сущность раунда
         RoundEntity round = createRoundRequestMapper.toEntity(request);
+        round.setState(RoundState.DRAFT);
         round.setMilestone(milestone);
 
-        round.setRoundOrder(roundRepository.getLastRoundOrder(milestone.getId()).orElse(-1) + 1);
+        round.setRoundOrder(roundRepository.getLastRoundOrder(milestone.getId()).orElse(0) + 1);
         addParticipants(request.getParticipantIds(), milestone, round);
 
         RoundEntity saved = roundRepository.save(round);
         log.info("Сохранен раунд с id={}", saved.getId());
 
         // Создаем статусы для судей
-        int judgeStatusCount = 0;
-        for (ActivityUserEntity au : milestone.getActivity().getUserAssignments()) {
-            if (au.getPosition().isJudge()) {
-                JudgeRoundStatusEntity judgeRoundStatus = new JudgeRoundStatusEntity();
-                judgeRoundStatus.setRound(saved);
-                judgeRoundStatus.setJudge(au);
-                judgeRoundStatus.setStatus(JudgeRoundStatus.NOT_READY);
-                judgeRoundStatusRepository.save(judgeRoundStatus);
-                judgeStatusCount++;
-                log.debug("Создан статус судьи для судьи={}, раунда={}", au.getId(), saved.getId());
-            }
-        }
+        createJudgeStatusesForRound(milestone, saved);
 
-        log.info("Создано {} статусов судей для раунда={}", judgeStatusCount, saved.getId());
+        // Инвалидируем кэш статуса этапа при создании новых статусов судей
+        Long milestoneId = milestone.getId();
+        judgeMilestoneStatusCacheService.invalidateForMilestone(milestoneId);
+        log.debug("Инвалидирован кэш статуса этапа milestoneId={} после создания статусов судей для нового раунда", milestoneId);
+
         return roundDtoMapper.toDto(saved);
     }
 
@@ -190,19 +193,9 @@ public class RoundServiceImpl implements RoundService {
     }
 
     @Override
-    @Transactional
-    public List<RoundDto> generateRounds(GenerateRoundsRequest request) {
-        log.info("Начало генерации раундов для этапа ID={}, перегенерация={}", 
-                request.getMilestoneId(), request.getReGenerate());
-        
-        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(request.getMilestoneId());
-        log.debug("Этап найден: ID={}, состояние={}, активность ID={}", 
-                milestone.getId(), milestone.getState(), milestone.getActivity().getId());
-        
-        Preconditions.checkState(!Set.of(MilestoneState.IN_PROGRESS, MilestoneState.COMPLETED, MilestoneState.SUMMARIZING).contains(milestone.getState()),
-                "Этап находится в состоянии %s и не может быть переформирован", milestone.getState());
-        
-        if (!Boolean.TRUE.equals(request.getReGenerate())) {
+    @Transactional(propagation = Propagation.MANDATORY)
+    public List<RoundDto> generateRounds(@NotNull MilestoneEntity milestone, List<Long> participantIds, Boolean reGenerate) {
+        if (!Boolean.TRUE.equals(reGenerate)) {
             Preconditions.checkArgument(milestone.getParticipants().isEmpty() && milestone.getRounds().isEmpty(),
                     "Этап уже содержит участников или раунды");
         } else {
@@ -210,11 +203,11 @@ public class RoundServiceImpl implements RoundService {
             roundRepository.deleteAll(milestone.getRounds());
             milestone.getRounds().clear();
         }
-        
+
         List<ParticipantEntity> participants;
-        if (request.getParticipantIds() != null && !request.getParticipantIds().isEmpty()) {
-            log.info("Генерация раундов для конкретных участников: {}", request.getParticipantIds());
-            participants = participantRepository.findByActivityIdAndIdIn(milestone.getActivity().getId(), request.getParticipantIds())
+        if (participantIds != null && !participantIds.isEmpty()) {
+            log.info("Генерация раундов для конкретных участников: {}", participantIds);
+            participants = participantRepository.findByActivityIdAndIdIn(milestone.getActivity().getId(), participantIds)
                     .stream()
                     .peek(participant -> {
                         Preconditions.checkArgument(participant.getIsRegistered(), "Участник с ID %s не зарегистрирован".formatted(participant.getId()));
@@ -222,10 +215,11 @@ public class RoundServiceImpl implements RoundService {
                     .sorted(Comparator.comparing(ParticipantEntity::getNumber).reversed())
                     .toList();
 
-            if (participants.size() != request.getParticipantIds().size()) {
-                participants.stream().map(ParticipantEntity::getId).forEach(request.getParticipantIds()::remove);
+            if (participants.size() != participantIds.size()) {
+                Set<Long> participantIdsCopy = new HashSet<>(participantIds);
+                participants.stream().map(ParticipantEntity::getId).forEach(participantIdsCopy::remove);
                 throw new IllegalArgumentException("Не все участники из запроса найдены для активности ID %s. Не найдены: %s"
-                        .formatted(milestone.getActivity().getId(), request.getParticipantIds()));
+                        .formatted(milestone.getActivity().getId(), participantIdsCopy));
             }
         } else {
             log.info("Генерация раундов для всех зарегистрированных участников активности");
@@ -235,46 +229,56 @@ public class RoundServiceImpl implements RoundService {
                     .sorted(Comparator.comparing(ParticipantEntity::getNumber).reversed())
                     .toList();
         }
-        
+
         log.info("Найдено участников для генерации: {}", participants.size());
         if (participants.isEmpty()) {
             log.warn("Нет зарегистрированных участников для генерации раундов");
             return Collections.emptyList();
         }
-        
+
         milestone.getParticipants().addAll(participants);
         List<RoundEntity> rounds = roundRepository.saveAll(generate(participants, milestone));
         milestone.getRounds().addAll(rounds);
-        milestoneRepository.save(milestone);
-        
+        rounds.forEach(r -> createJudgeStatusesForRound(milestone, r));
+
         log.info("Успешно сгенерировано {} раундов для этапа ID={}", rounds.size(), milestone.getId());
         return rounds.stream().map(roundDtoMapper::toDto).toList();
     }
 
     private List<RoundEntity> generate(List<ParticipantEntity> participants, MilestoneEntity milestone) {
         log.debug("Начало генерации раундов для {} участников", participants.size());
-        
+        if (milestone.getMilestoneOrder().equals(0)) {
+            log.debug("Генерация финального раунда. Количество участников {} лимит финального этапа {}",
+                    participants.size(), milestone.getMilestoneRule().getParticipantLimit());
+            return List.of(
+                    RoundEntity.builder()
+                            .roundOrder(0)
+                            .extraRound(false)
+                            .milestone(milestone)
+                            .state(RoundState.DRAFT)
+                            .name("Финал")
+                            .participants(new HashSet<>(participants))
+                            .build()
+            );
+        }
+
         List<ParticipantEntity> leaders = new ArrayList<>(participants.stream()
                 .filter(p -> p.getPartnerSide() == PartnerSide.LEADER)
                 .toList());
         List<ParticipantEntity> followers = new ArrayList<>(participants.stream()
                 .filter(p -> p.getPartnerSide() == PartnerSide.FOLLOWER)
                 .toList());
-        
+
         log.debug("Разделение участников: лидеров={}, последователей={}", leaders.size(), followers.size());
-        
-        if (leaders.isEmpty() && followers.isEmpty()) {
-            log.warn("Нет участников для генерации раундов");
-            return Collections.emptyList();
-        }
-        
+
         boolean distribute = false;
         int roundLimit = milestone.getMilestoneRule().getRoundParticipantLimit().intValue();
         log.debug("Лимит участников на раунд: {}", roundLimit);
+
         int dividend = Math.max(leaders.size(), followers.size());
         int roundCount = dividend / roundLimit;
         int remainder = dividend % roundLimit;
-        log.debug("Расчет раундов: всего участников={}, раундов={}, остаток={}", 
+        log.debug("Расчет раундов: всего участников={}, раундов={}, остаток={}",
                 dividend, roundCount, remainder);
         if (remainder <= roundLimit / 2 && remainder <= roundCount) {
             distribute = true;
@@ -284,17 +288,17 @@ public class RoundServiceImpl implements RoundService {
             log.debug("Создается дополнительный раунд для остатка");
         }
         log.info("Будет создано {} раундов", roundCount);
-        
+
         List<RoundEntity> roundEntities = new ArrayList<>();
         for (int i = 0; i < roundCount; i++) {
             RoundEntity round = RoundEntity.builder()
                     .roundOrder(i)
                     .extraRound(false)
                     .milestone(milestone)
-                    .state(RoundState.PLANNED)
+                    .state(RoundState.DRAFT)
                     .name("Раунд %s".formatted(i + 1))
                     .build();
-            
+
             log.debug("Создание раунда {}", round.getName());
             int j = 0;
             while (j < roundLimit && (!leaders.isEmpty() || !followers.isEmpty())) {
@@ -306,113 +310,45 @@ public class RoundServiceImpl implements RoundService {
                 addToRound(leaders, followers, round);
                 log.debug("Добавлен дополнительный участник в раунд {} (распределение остатка)", i + 1);
             }
-            
+
             log.debug("Раунд {} сформирован: {} участников", i, round.getParticipants().size());
             roundEntities.add(round);
         }
-        
+
         log.info("Генерация завершена: создано {} раундов", roundEntities.size());
         return roundEntities;
     }
 
     private void addToRound(List<ParticipantEntity> leaders, List<ParticipantEntity> followers, RoundEntity round) {
         if (!leaders.isEmpty()) {
-            ParticipantEntity leader = leaders.get(leaders.size()-1);
+            ParticipantEntity leader = leaders.get(leaders.size() - 1);
             round.getParticipants().add(leader);
-            leaders.remove(leaders.size()-1);
+            leaders.remove(leaders.size() - 1);
             log.trace("Добавлен лидер ID={} в раунд {}", leader.getId(), round.getName());
         }
         if (!followers.isEmpty()) {
-            ParticipantEntity follower = followers.get(followers.size()-1);
+            ParticipantEntity follower = followers.get(followers.size() - 1);
             round.getParticipants().add(follower);
-            followers.remove(followers.size()-1);
+            followers.remove(followers.size() - 1);
             log.trace("Добавлен последователь ID={} в раунд {}", follower.getId(), round.getName());
         }
     }
 
-    @Override
-    @Transactional
-    public void saveTransition(RoundEntity round, RoundState state) {
-        round.setState(state);
-        roundRepository.save(round);
-    }
-
-    @Override
-    public boolean canTransition(RoundEntity round, RoundEvent event) {
-        log.debug("Проверка возможности перехода раунда={} из состояния={} по событию={}",
-                round.getId(), round.getState(), event);
-
-        return switch (event) {
-            case DRAFT, PLAN, COMPLETE -> {
-                log.debug("Переход разрешен для события={}", event);
-                yield true;
+    private void createJudgeStatusesForRound(MilestoneEntity milestone, RoundEntity round) {
+        int judgeStatusCount = 0;
+        List<JudgeRoundStatusEntity> judgeRoundStatusEntities = new ArrayList<>();
+        for (ActivityUserEntity au : milestone.getActivity().getActivityUsers()) {
+            if (au.getPosition().isJudge()) {
+                JudgeRoundStatusEntity judgeRoundStatus = new JudgeRoundStatusEntity();
+                judgeRoundStatus.setRound(round);
+                judgeRoundStatus.setJudge(au);
+                judgeRoundStatus.setStatus(JudgeRoundStatus.NOT_READY);
+                judgeRoundStatusEntities.add(judgeRoundStatus);
+                judgeStatusCount++;
             }
-            case START -> {
-                log.debug("Проверка возможности старта раунда={}, состояние этапа={}",
-                        round.getId(), round.getMilestone().getState());
-                Preconditions.checkState(round.getMilestone().getState() == MilestoneState.IN_PROGRESS,
-                        "Нельзя стартовать раунд, т.к. этап находится в статусе %s", round.getMilestone().getState());
-                log.debug("Старт раунда разрешен");
-                yield true;
-            }
-            case MARK_READY -> {
-                log.debug("Проверка возможности подтверждения раунда={}", round.getId());
-
-                if (round.getMilestone().getState() != MilestoneState.IN_PROGRESS) {
-                    log.debug("Подтверждение невозможно: этап не в состоянии IN_PROGRESS, текущее состояние={}",
-                            round.getMilestone().getState());
-                    yield false;
-                }
-
-                List<JudgeRoundStatusEntity> judgeRoundStatuses = judgeRoundStatusRepository.findByRoundId(round.getId());
-                Set<Long> acceptedJudgeIds = judgeRoundStatuses.stream()
-                        .filter(jrs -> jrs.getStatus() == JudgeRoundStatus.READY)
-                        .map(jrs -> jrs.getJudge().getUser().getId())
-                        .collect(Collectors.toSet());
-
-                Set<Long> requiredJudgeIds = round.getMilestone().getActivity().getUserAssignments()
-                        .stream()
-                        .filter(ua -> ua.getPosition().isJudge())
-                        .map(ua -> ua.getUser().getId())
-                        .collect(Collectors.toSet());
-
-                log.debug("Готовых судей={}, требуемых судей={}", acceptedJudgeIds.size(), requiredJudgeIds.size());
-                log.debug("ID готовых судей: {}", acceptedJudgeIds);
-                log.debug("ID требуемых судей: {}", requiredJudgeIds);
-
-                boolean allJudgesReady = acceptedJudgeIds.containsAll(requiredJudgeIds);
-                log.debug("Все судьи готовы: {}", allJudgesReady);
-                yield allJudgesReady;
-            }
-        };
-    }
-
-    @Override
-    public RoundState getNextState(RoundState currentState, RoundEvent event) {
-        return switch (currentState) {
-            case DRAFT -> event == RoundEvent.PLAN ? RoundState.PLANNED : currentState;
-            case PLANNED -> switch (event) {
-                case DRAFT -> RoundState.DRAFT;
-                case START -> RoundState.IN_PROGRESS;
-                default -> currentState;
-            };
-            case IN_PROGRESS -> switch (event) {
-                case PLAN -> RoundState.PLANNED;
-                case MARK_READY -> RoundState.READY;
-                default -> currentState;
-            };
-            case READY -> switch (event) {
-                case START -> RoundState.IN_PROGRESS;
-                case COMPLETE -> RoundState.COMPLETED;
-                default -> currentState;
-            };
-            case COMPLETED -> event == RoundEvent.START ? RoundState.IN_PROGRESS : currentState;
-        };
-    }
-
-    @Override
-    public boolean isValidTransition(RoundState currentState, RoundEvent event) {
-        return getNextState(currentState, event) != currentState;
+        }
+        judgeRoundStatusRepository.saveAll(judgeRoundStatusEntities);
+        log.info("Создано {} статусов судей для раунда={}", judgeStatusCount, round.getId());
     }
 
     /**
@@ -434,5 +370,48 @@ public class RoundServiceImpl implements RoundService {
                     .collect(Collectors.toSet());
             round.getParticipants().addAll(participants);
         }
+    }
+
+    @Override
+    @Transactional
+    public void draftRound(Long id) {
+        log.info("Перевод раунда в черновик: id={}. Все статусы будут переведены в NOT_READY", id);
+        RoundEntity round = roundRepository.getByIdFullOrThrow(id);
+        roundStateMachineService.sendEvent(round, RoundEvent.DRAFT);
+
+        List<JudgeRoundStatusEntity> statuses = judgeRoundStatusRepository.findByRoundId(id);
+        statuses.forEach(jr -> jr.setStatus(JudgeRoundStatus.NOT_READY));
+        judgeRoundStatusRepository.saveAll(statuses);
+
+        judgeMilestoneStatusCacheService.invalidateForMilestone(round.getMilestone().getId());
+        log.debug("Инвалидирован кэш статуса этапа milestoneId={} при переводе раунда в черновик", round.getMilestone().getId());
+        log.info("Раунд переведен в черновик: id={}", id);
+    }
+
+    @Override
+    @Transactional
+    public void planRound(Long id) {
+        log.info("Планирование раунда: id={}", id);
+        RoundEntity round = roundRepository.getByIdFullOrThrow(id);
+        roundStateMachineService.sendEvent(round, RoundEvent.PLAN);
+        log.info("Раунд запланирован: id={}", id);
+    }
+
+    @Override
+    @Transactional
+    public void startRound(Long id) {
+        log.info("Запуск раунда: id={}", id);
+        RoundEntity round = roundRepository.getByIdFullOrThrow(id);
+        roundStateMachineService.sendEvent(round, RoundEvent.START);
+        log.info("Раунд запущен: id={}", id);
+    }
+
+    @Override
+    @Transactional
+    public void completeRound(Long id) {
+        log.info("Завершение раунда: id={}", id);
+        RoundEntity round = roundRepository.getByIdFullOrThrow(id);
+        roundStateMachineService.sendEvent(round, RoundEvent.COMPLETE);
+        log.info("Раунд завершен: id={}", id);
     }
 }

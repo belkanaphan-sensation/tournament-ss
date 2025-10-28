@@ -24,7 +24,7 @@ public class RoundEntity extends BaseEntity {
     @Column(name = "name")
     private String name;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "milestone_id")
     private MilestoneEntity milestone;
 

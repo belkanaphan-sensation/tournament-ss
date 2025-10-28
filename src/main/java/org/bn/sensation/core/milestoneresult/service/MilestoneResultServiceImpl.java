@@ -1,22 +1,19 @@
 package org.bn.sensation.core.milestoneresult.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.judgemilstoneresult.entity.JudgeMilestoneResultEntity;
-import org.bn.sensation.core.judgemilestonestatus.entity.JudgeMilestoneStatus;
-import org.bn.sensation.core.judgemilestonestatus.entity.JudgeMilestoneStatusEntity;
-import org.bn.sensation.core.judgemilstoneresult.repository.JudgeMilestoneResultRepository;
-import org.bn.sensation.core.judgemilestonestatus.repository.JudgeMilestoneStatusRepository;
+import org.bn.sensation.core.judgemilestoneresult.entity.JudgeMilestoneResultEntity;
+import org.bn.sensation.core.judgemilestoneresult.repository.JudgeMilestoneResultRepository;
 import org.bn.sensation.core.milestone.entity.AssessmentMode;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestoneresult.entity.MilestoneResultEntity;
 import org.bn.sensation.core.milestoneresult.entity.PassStatus;
-import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestoneresult.repository.MilestoneResultRepository;
 import org.bn.sensation.core.milestoneresult.service.dto.CreateMilestoneResultRequest;
 import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
@@ -30,11 +27,13 @@ import org.bn.sensation.core.round.entity.RoundEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Preconditions;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,7 +43,6 @@ import lombok.extern.slf4j.Slf4j;
 public class MilestoneResultServiceImpl implements MilestoneResultService {
 
     private static final int FINAL_RESULT_LIMIT = 3;
-    private final JudgeMilestoneStatusRepository judgeMilestoneStatusRepository;
     private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
     private final MilestoneResultRepository milestoneResultRepository;
     private final MilestoneResultDtoMapper milestoneResultDtoMapper;
@@ -64,29 +62,14 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
     }
 
     @Override
-    @Transactional
-    public List<MilestoneResultDto> calculateResults(Long milestoneId) {
-        log.info("Расчет результатов для этапа={}", milestoneId);
-
-        Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
-        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
-
-        Map<Long, JudgeMilestoneStatusEntity> judgeResults = judgeMilestoneStatusRepository.findByMilestoneId(milestoneId)
-                .stream()
-                .collect(Collectors.toMap(jm -> jm.getJudge().getId(), Function.identity()));
-
-        log.debug("Найдено {} результатов судей для этапа={}", judgeResults.size(), milestoneId);
-
-        Preconditions.checkState(milestone.getActivity().getUserAssignments().stream()
-                        .allMatch(ua -> judgeResults.get(ua.getId()) != null
-                                && judgeResults.get(ua.getId()).getStatus() == JudgeMilestoneStatus.READY),
-                "Для получения результатов этапа все судьи должны завершить этап");
-
+    @Transactional(propagation = Propagation.MANDATORY)
+    public List<MilestoneResultDto> calculateResults(@NotNull MilestoneEntity milestone) {
+        log.info("Расчет результатов для этапа={}", milestone.getId());
         if (milestone.getResults().isEmpty()) {
-            log.info("Результаты этапа отсутствуют, начинаем расчет для этапа={}", milestoneId);
+            log.info("Результаты этапа отсутствуют, начинаем расчет для этапа={}", milestone.getId());
             return calculate(milestone);
         } else {
-            log.info("Результаты этапа уже существуют, возвращаем пустой список для этапа={}", milestoneId);
+            log.info("Результаты этапа уже существуют, рассчет для дополнительных раундов={}", milestone.getId());
             //пока не реализовано
             return List.of();
         }
@@ -109,7 +92,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
 
         List<MilestoneResultEntity> resultEntities = milestone.getRounds()
             .stream()
-            .filter(round -> !round.getExtraRound())
+            .filter(round -> !Boolean.TRUE.equals(round.getExtraRound()))
             .flatMap(round -> round.getParticipants().stream()
                 .map(participant -> createMilestoneResult(participant, milestone, round, resultsMap)))
             .toList();
@@ -119,12 +102,12 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         Integer limit = getParticipantLimit(milestone);
         log.debug("Лимит участников для следующего этапа: {}", limit);
 
-        Map<Double, List<MilestoneResultEntity>> groupedByScore = resultEntities.stream()
+        Map<BigDecimal, List<MilestoneResultEntity>> groupedByScore = resultEntities.stream()
             .collect(Collectors.groupingBy(MilestoneResultEntity::getTotalScore));
 
         log.debug("Результаты сгруппированы по {} уникальным оценкам", groupedByScore.size());
 
-        List<Double> sortedScores = groupedByScore.keySet().stream()
+        List<BigDecimal> sortedScores = groupedByScore.keySet().stream()
             .sorted(getScoreComparator(milestone))
             .toList();
 
@@ -148,11 +131,12 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
 
         log.debug("Создание результата этапа для участника={}, раунда={}", participant.getId(), round.getId());
 
-        MilestoneResultEntity resultEntity = new MilestoneResultEntity();
-        resultEntity.setParticipant(participant);
-        resultEntity.setMilestone(milestone);
-        resultEntity.setJudgePassed(PassStatus.FAILED);
-        resultEntity.setFinallyApproved(false);
+        MilestoneResultEntity resultEntity = MilestoneResultEntity.builder()
+                .participant(participant)
+                .milestone(milestone)
+                .judgePassed(PassStatus.FAILED)
+                .finallyApproved(false)
+                .build();
 
         List<JudgeMilestoneResultEntity> participantResults = resultsMap
             .getOrDefault(participant.getId(), Collections.emptyMap())
@@ -164,18 +148,22 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         log.debug("Найдено {} результатов судей для участника={} в раунде={}",
                 participantResults.size(), participant.getId(), round.getId());
 
-        double totalScore = participantResults.stream()
-            .mapToDouble(pr -> {
-                double weightedScore = pr.getMilestoneCriterion().getWeight()
-                    .multiply(new BigDecimal(pr.getScore())).doubleValue();
-                log.debug("Расчет взвешенной оценки: критерий={}, вес={}, оценка={}, результат={}",
-                        pr.getMilestoneCriterion().getCriterion().getName(),
-                        pr.getMilestoneCriterion().getWeight(),
-                        pr.getScore(),
-                        weightedScore);
-                return weightedScore;
-            })
-            .sum();
+        BigDecimal totalScore = participantResults.stream()
+                .map(pr -> {
+                    BigDecimal weight = pr.getMilestoneCriterion().getWeight();
+                    BigDecimal score = BigDecimal.valueOf(pr.getScore());
+                    BigDecimal weightedScore = weight.multiply(score);
+
+                    log.debug("Расчет взвешенной оценки: критерий={}, вес={}, оценка={}, результат={}",
+                            pr.getMilestoneCriterion().getCriterion().getName(),
+                            weight,
+                            score,
+                            weightedScore);
+
+                    return weightedScore;
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(3, RoundingMode.HALF_UP);
 
         log.debug("Итоговая оценка для участника={}: {}", participant.getId(), totalScore);
         resultEntity.setTotalScore(totalScore);
@@ -189,21 +177,21 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
             : FINAL_RESULT_LIMIT;
     }
 
-    private Comparator<Double> getScoreComparator(MilestoneEntity milestone) {
+    private Comparator<BigDecimal> getScoreComparator(MilestoneEntity milestone) {
         return milestone.getMilestoneRule().getAssessmentMode() != AssessmentMode.PLACE
             ? Comparator.reverseOrder()
             : Comparator.naturalOrder();
     }
 
     private void distributePlaces(
-            Map<Double, List<MilestoneResultEntity>> groupedByScore,
-            List<Double> sortedScores,
+            Map<BigDecimal, List<MilestoneResultEntity>> groupedByScore,
+            List<BigDecimal> sortedScores,
             int limit) {
 
         log.debug("Распределение мест: лимит={}, количество уникальных оценок={}", limit, sortedScores.size());
 
         int remainingSlots = limit;
-        for (Double score : sortedScores) {
+        for (BigDecimal score : sortedScores) {
             List<MilestoneResultEntity> entitiesWithScore = groupedByScore.get(score);
             log.debug("Обработка оценки={}, участников с этой оценкой={}, оставшихся мест={}",
                     score, entitiesWithScore.size(), remainingSlots);

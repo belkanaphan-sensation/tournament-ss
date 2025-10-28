@@ -1,5 +1,7 @@
 package org.bn.sensation.core.milestoneresult.entity;
 
+import java.math.BigDecimal;
+
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
@@ -40,6 +42,6 @@ public class MilestoneResultEntity extends BaseEntity {
     private Boolean finallyApproved;
 
     @Column(name = "total_score")
-    private Double totalScore;
+    private BigDecimal totalScore;
 
 }

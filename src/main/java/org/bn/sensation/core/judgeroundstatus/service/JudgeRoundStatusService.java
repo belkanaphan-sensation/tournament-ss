@@ -9,9 +9,7 @@ import org.bn.sensation.core.judgeroundstatus.service.dto.JudgeRoundStatusDto;
 
 public interface JudgeRoundStatusService extends BaseService<JudgeRoundStatusEntity, JudgeRoundStatusDto> {
 
-    JudgeRoundStatusDto changeJudgeRoundStatus(Long roundId, JudgeRoundStatus judgeRoundStatus);
-
-    void changeJudgeRoundStatusIfPossible(Long activityUserId, Long roundId, JudgeRoundStatus judgeRoundStatus);
+    JudgeRoundStatusDto markNotReady(Long roundId);
 
     JudgeRoundStatus getRoundStatusForCurrentUser(Long roundId);
 

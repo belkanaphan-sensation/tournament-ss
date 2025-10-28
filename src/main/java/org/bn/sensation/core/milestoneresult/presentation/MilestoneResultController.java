@@ -1,7 +1,5 @@
 package org.bn.sensation.core.milestoneresult.presentation;
 
-import java.util.List;
-
 import org.bn.sensation.core.milestoneresult.service.MilestoneResultService;
 import org.bn.sensation.core.milestoneresult.service.dto.CreateMilestoneResultRequest;
 import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
@@ -31,13 +29,6 @@ import lombok.RequiredArgsConstructor;
 public class MilestoneResultController {
 
     private final MilestoneResultService milestoneResultService;
-
-    @Operation(summary = "Получить результаты этапа для участников по ID этапа")
-    @GetMapping(path = "/{milestoneId}")
-    public ResponseEntity<List<MilestoneResultDto>> calculateByMilestoneId(
-            @Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-        return ResponseEntity.ok(milestoneResultService.calculateResults(milestoneId));
-    }
 
     @Operation(summary = "Получить результат этапа по ID")
     @GetMapping(path = "/{id}")
