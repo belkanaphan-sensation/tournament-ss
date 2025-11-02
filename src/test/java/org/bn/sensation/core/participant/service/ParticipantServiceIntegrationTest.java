@@ -179,7 +179,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Round 1")
                 .state(RoundState.DRAFT)
                 .milestone(testMilestone2)
-                .roundOrder(0)
+                .roundOrder(1)
                 .build();
         testRound1 = roundRepository.save(testRound1);
 
@@ -894,7 +894,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     void testGetByRoundByRoundIdForCurrentUser_Success() {
         // Given - testParticipant is already assigned to testRound and has PartnerSide.LEADER
         // testUser is assigned to testActivity with PartnerSide.LEADER
-        testActivity.getUserAssignments().add(userAssignment);
+        testActivity.getActivityUsers().add(userAssignment);
         activityRepository.save(testActivity);
         testRound.getParticipants().add(testParticipant);
         roundRepository.save(testRound);
@@ -917,7 +917,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testGetByRoundByRoundIdForCurrentUser_WithPartnerSideFiltering() {
         // Given - Create another participant with FOLLOWER partner side
-        testActivity.getUserAssignments().add(userAssignment);
+        testActivity.getActivityUsers().add(userAssignment);
         activityRepository.save(testActivity);
         ParticipantEntity followerParticipant = ParticipantEntity.builder()
                 .person(Person.builder()
@@ -958,7 +958,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
                 .findByUserIdAndActivityId(testUser.getId(), testActivity.getId()).orElseThrow();
         userAssignment.setPartnerSide(null);
         activityUserRepository.save(userAssignment);
-        testActivity.getUserAssignments().add(userAssignment);
+        testActivity.getActivityUsers().add(userAssignment);
         activityRepository.save(testActivity);
 
         // Create participants with different partner sides
@@ -1075,7 +1075,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         userAssignment.setPartnerSide(PartnerSide.FOLLOWER);
         activityUserRepository.save(userAssignment);
 
-        testActivity.getUserAssignments().add(userAssignment);
+        testActivity.getActivityUsers().add(userAssignment);
         activityRepository.save(testActivity);
 
         // When
@@ -1096,7 +1096,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     void testGetByRoundByMilestoneIdForCurrentUser_Success() {
         // Given - testUser is assigned to testActivity with PartnerSide.LEADER
         // testMilestone has testRound and testRound1 with participants
-        testActivity.getUserAssignments().add(userAssignment);
+        testActivity.getActivityUsers().add(userAssignment);
         activityRepository.save(testActivity);
 
         // Add participants to rounds
@@ -1132,7 +1132,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testGetByRoundByMilestoneIdForCurrentUser_WithPartnerSideFiltering() {
         // Given - Create participants with different partner sides
-        testActivity.getUserAssignments().add(userAssignment);
+        testActivity.getActivityUsers().add(userAssignment);
         activityRepository.save(testActivity);
 
         ParticipantEntity followerParticipant = ParticipantEntity.builder()
@@ -1180,7 +1180,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Given - Remove partnerSide from user assignment
         userAssignment.setPartnerSide(null);
         activityUserRepository.save(userAssignment);
-        testActivity.getUserAssignments().add(userAssignment);
+        testActivity.getActivityUsers().add(userAssignment);
         activityRepository.save(testActivity);
 
         // Create participants with different partner sides
@@ -1223,7 +1223,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testGetByRoundByMilestoneIdForCurrentUser_MultipleRounds() {
         // Given - Create additional participants for different rounds
-        testActivity.getUserAssignments().add(userAssignment);
+        testActivity.getActivityUsers().add(userAssignment);
         activityRepository.save(testActivity);
 
         ParticipantEntity participant2 = ParticipantEntity.builder()

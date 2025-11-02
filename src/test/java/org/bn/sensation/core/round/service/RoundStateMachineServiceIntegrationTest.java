@@ -13,6 +13,8 @@ import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
+import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
+import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.common.statemachine.event.RoundEvent;
@@ -20,6 +22,9 @@ import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
+import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
+import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
+import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
@@ -28,13 +33,10 @@ import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.organization.repository.OrganizationRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.user.entity.*;
-import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
+import org.bn.sensation.core.user.entity.Role;
+import org.bn.sensation.core.user.entity.UserEntity;
+import org.bn.sensation.core.user.entity.UserStatus;
 import org.bn.sensation.core.user.repository.UserRepository;
-import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
-import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
-import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
-import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
 import org.bn.sensation.security.CurrentUser;
 import org.bn.sensation.security.SecurityUser;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,8 +47,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @Transactional
 @Disabled("Пока что непонятно как должны работать переходы")
@@ -162,7 +162,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
                 .build();
         activityUserRepository.save(judgeAssignment);
 
-        testActivity.getUserAssignments().add(judgeAssignment);
+        testActivity.getActivityUsers().add(judgeAssignment);
 
         // Create test round
         testRound = RoundEntity.builder()
@@ -206,7 +206,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(RoundState.DRAFT, testRound.getState());
 
         // When
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.PLAN);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.PLAN);
 
         // Then
         RoundEntity updatedRound = roundRepository.findById(testRound.getId()).orElseThrow();
@@ -220,7 +220,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(RoundState.DRAFT, testRound.getState());
 
         // When
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.PLAN);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.PLAN);
 
         // Then
         RoundEntity updatedRound = roundRepository.findById(testRound.getId()).orElseThrow();
@@ -234,7 +234,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(RoundState.DRAFT, testRound.getState());
 
         // When
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.PLAN);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.PLAN);
 
         // Then
         RoundEntity updatedRound = roundRepository.findById(testRound.getId()).orElseThrow();
@@ -247,7 +247,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         mockCurrentUser(judgeUser);
         // First plan the round as admin
         mockCurrentUser(adminUser);
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.PLAN);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.PLAN);
 
         // Then switch to judge and start
         mockCurrentUser(judgeUser);
@@ -255,7 +255,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(RoundState.PLANNED, plannedRound.getState());
 
         // When
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.START);
 
         // Then
         RoundEntity updatedRound = roundRepository.findById(testRound.getId()).orElseThrow();
@@ -267,13 +267,13 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         mockCurrentUser(adminUser);
         // First plan the round
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.PLAN);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.PLAN);
 
         RoundEntity plannedRound = roundRepository.findById(testRound.getId()).orElseThrow();
         assertEquals(RoundState.PLANNED, plannedRound.getState());
 
         // When
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.START);
 
         // Then
         RoundEntity updatedRound = roundRepository.findById(testRound.getId()).orElseThrow();
@@ -285,7 +285,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         mockCurrentUser(adminUser);
         // First plan the round
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.PLAN);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.PLAN);
 
         // Switch to regular user
         mockCurrentUser(regularUser);
@@ -293,7 +293,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(RoundState.PLANNED, plannedRound.getState());
 
         // When
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.START);
 
         // Then
         RoundEntity updatedRound = roundRepository.findById(testRound.getId()).orElseThrow();
@@ -305,11 +305,11 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         mockCurrentUser(adminUser);
         // Plan and start the round
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.PLAN);
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.PLAN);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.START);
 
         // Create judge round acceptance
-        ActivityUserEntity judgeAssignment = testActivity.getUserAssignments().stream()
+        ActivityUserEntity judgeAssignment = testActivity.getActivityUsers().stream()
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -327,7 +327,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(RoundState.IN_PROGRESS, inProgressRound.getState());
 
         // When
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.COMPLETE);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.COMPLETE);
 
         // Then
         RoundEntity updatedRound = roundRepository.findById(testRound.getId()).orElseThrow();
@@ -339,11 +339,11 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         mockCurrentUser(adminUser);
         // Plan and start the round
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.PLAN);
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.PLAN);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.START);
 
         // Create judge round acceptance
-        ActivityUserEntity judgeAssignment = testActivity.getUserAssignments().stream()
+        ActivityUserEntity judgeAssignment = testActivity.getActivityUsers().stream()
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -359,7 +359,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(RoundState.IN_PROGRESS, inProgressRound.getState());
 
         // When
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.COMPLETE);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.COMPLETE);
 
         // Then
         RoundEntity updatedRound = roundRepository.findById(testRound.getId()).orElseThrow();
@@ -371,8 +371,8 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         mockCurrentUser(adminUser);
         // Plan and start the round
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.PLAN);
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.PLAN);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.START);
 
         // Switch to regular user (no judge acceptance created)
         mockCurrentUser(regularUser);
@@ -381,7 +381,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
 
         // When & Then
         assertThrows(IllegalStateException.class, () -> {
-            roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.COMPLETE);
+            roundStateMachineService.sendEvent(testRound, RoundEvent.COMPLETE);
         });
 
         // Verify state didn't change
@@ -397,7 +397,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
 
         // When & Then
         assertThrows(IllegalStateException.class, () -> {
-            roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.COMPLETE);
+            roundStateMachineService.sendEvent(testRound, RoundEvent.COMPLETE);
         });
 
         // Verify state didn't change
@@ -410,11 +410,11 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         mockCurrentUser(adminUser);
         // Plan and start the round
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.PLAN);
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.PLAN);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.START);
 
         // Create judge round acceptance
-        ActivityUserEntity judgeAssignment = testActivity.getUserAssignments().stream()
+        ActivityUserEntity judgeAssignment = testActivity.getActivityUsers().stream()
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -427,29 +427,18 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         judgeRoundStatusRepository.save(judgeRound);
 
         // Complete the round
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.COMPLETE);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.COMPLETE);
 
         RoundEntity completedRound = roundRepository.findById(testRound.getId()).orElseThrow();
         assertEquals(RoundState.COMPLETED, completedRound.getState());
 
         // When & Then - State machine will reject this transition
         // The state machine itself handles invalid transitions, not canTransition
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.START);
 
         // Verify state didn't change (state machine rejected the transition)
         RoundEntity updatedRound = roundRepository.findById(testRound.getId()).orElseThrow();
         assertEquals(RoundState.COMPLETED, updatedRound.getState());
-    }
-
-    @Test
-    void testSendEvent_NonExistentRound_ThrowsException() {
-        // Given
-        mockCurrentUser(adminUser);
-
-        // When & Then
-        assertThrows(EntityNotFoundException.class, () -> {
-            roundStateMachineService.sendEvent(999L, RoundEvent.PLAN);
-        });
     }
 
     @Test
@@ -459,17 +448,17 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(RoundState.DRAFT, testRound.getState());
 
         // When - Plan
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.PLAN);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.PLAN);
         RoundEntity plannedRound = roundRepository.findById(testRound.getId()).orElseThrow();
         assertEquals(RoundState.PLANNED, plannedRound.getState());
 
         // When - Start
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.START);
         RoundEntity inProgressRound = roundRepository.findById(testRound.getId()).orElseThrow();
         assertEquals(RoundState.IN_PROGRESS, inProgressRound.getState());
 
         // Create judge round acceptance before completing
-        ActivityUserEntity judgeAssignment = testActivity.getUserAssignments().stream()
+        ActivityUserEntity judgeAssignment = testActivity.getActivityUsers().stream()
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -482,7 +471,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         judgeRoundStatusRepository.save(judgeRound);
 
         // When - Complete
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.COMPLETE);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.COMPLETE);
         RoundEntity completedRound = roundRepository.findById(testRound.getId()).orElseThrow();
         assertEquals(RoundState.COMPLETED, completedRound.getState());
     }
@@ -494,18 +483,18 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
 
         // When - Plan as Admin
         mockCurrentUser(adminUser);
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.PLAN);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.PLAN);
         RoundEntity plannedRound = roundRepository.findById(testRound.getId()).orElseThrow();
         assertEquals(RoundState.PLANNED, plannedRound.getState());
 
         // When - Start as Judge
         mockCurrentUser(judgeUser);
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.START);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.START);
         RoundEntity inProgressRound = roundRepository.findById(testRound.getId()).orElseThrow();
         assertEquals(RoundState.IN_PROGRESS, inProgressRound.getState());
 
         // Create judge round acceptance before completing
-        ActivityUserEntity judgeAssignment = testActivity.getUserAssignments().stream()
+        ActivityUserEntity judgeAssignment = testActivity.getActivityUsers().stream()
                 .filter(ua -> ua.getUser().getId().equals(judgeUser.getId()))
                 .findFirst()
                 .orElseThrow();
@@ -518,7 +507,7 @@ class RoundStateMachineServiceIntegrationTest extends AbstractIntegrationTest {
         judgeRoundStatusRepository.save(judgeRound);
 
         // When - Complete as Judge
-        roundStateMachineService.sendEvent(testRound.getId(), RoundEvent.COMPLETE);
+        roundStateMachineService.sendEvent(testRound, RoundEvent.COMPLETE);
         RoundEntity completedRound = roundRepository.findById(testRound.getId()).orElseThrow();
         assertEquals(RoundState.COMPLETED, completedRound.getState());
     }

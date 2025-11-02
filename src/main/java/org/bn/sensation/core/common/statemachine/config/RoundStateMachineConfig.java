@@ -103,20 +103,11 @@ public class RoundStateMachineConfig extends EnumStateMachineConfigurerAdapter<R
                 .event(RoundEvent.COMPLETE)
                 .action(roundAction)
                 .and()
-                // ********
-                // Следующие переходы не уверена пока, что нужны:
                 // COMPLETED -> IN_PROGRESS
                 .withExternal()
                 .source(RoundState.COMPLETED)
                 .target(RoundState.IN_PROGRESS)
                 .event(RoundEvent.START)
-                .action(roundAction)
-                .and()
-                // IN_PROGRESS -> PLANNED
-                .withExternal()
-                .source(RoundState.IN_PROGRESS)
-                .target(RoundState.PLANNED)
-                .event(RoundEvent.PLAN)
                 .action(roundAction);
     }
 }

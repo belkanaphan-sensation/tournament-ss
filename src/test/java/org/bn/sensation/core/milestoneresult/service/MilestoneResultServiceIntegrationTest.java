@@ -13,6 +13,8 @@ import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
+import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
+import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.Person;
@@ -21,20 +23,17 @@ import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.criterion.entity.CriterionEntity;
-import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
 import org.bn.sensation.core.criterion.repository.CriterionRepository;
-import org.bn.sensation.core.milestonecriterion.repository.MilestoneCriterionRepository;
-import org.bn.sensation.core.judgemilstoneresult.entity.JudgeMilestoneResultEntity;
-import org.bn.sensation.core.judgemilestonestatus.entity.JudgeMilestoneStatus;
-import org.bn.sensation.core.judgemilestonestatus.entity.JudgeMilestoneStatusEntity;
-import org.bn.sensation.core.judgemilstoneresult.repository.JudgeMilestoneResultRepository;
-import org.bn.sensation.core.judgemilestonestatus.repository.JudgeMilestoneStatusRepository;
+import org.bn.sensation.core.judgemilestoneresult.entity.JudgeMilestoneResultEntity;
+import org.bn.sensation.core.judgemilestoneresult.repository.JudgeMilestoneResultRepository;
 import org.bn.sensation.core.milestone.entity.AssessmentMode;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
-import org.bn.sensation.core.milestoneresult.entity.PassStatus;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.repository.MilestoneRuleRepository;
+import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
+import org.bn.sensation.core.milestonecriterion.repository.MilestoneCriterionRepository;
+import org.bn.sensation.core.milestoneresult.entity.PassStatus;
 import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
@@ -44,10 +43,10 @@ import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.user.entity.*;
-import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
+import org.bn.sensation.core.user.entity.Role;
+import org.bn.sensation.core.user.entity.UserEntity;
+import org.bn.sensation.core.user.entity.UserStatus;
 import org.bn.sensation.core.user.repository.UserRepository;
-import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
 import org.bn.sensation.security.CurrentUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -103,9 +102,6 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private JudgeMilestoneResultRepository judgeMilestoneResultRepository;
-
-    @Autowired
-    private JudgeMilestoneStatusRepository judgeMilestoneStatusRepository;
 
     @Mock
     private CurrentUser mockCurrentUser;
@@ -165,7 +161,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
                         .build())
                 .state(ActivityState.IN_PROGRESS)
                 .occasion(testOccasion)
-                .userAssignments(new HashSet<>())
+                .activityUsers(new HashSet<>())
                 .build();
         testActivity = activityRepository.save(testActivity);
 
@@ -216,8 +212,8 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         testJudgeAssignment2 = activityUserRepository.save(testJudgeAssignment2);
 
         // Add judge assignments to activity
-        testActivity.getUserAssignments().add(testJudgeAssignment1);
-        testActivity.getUserAssignments().add(testJudgeAssignment2);
+        testActivity.getActivityUsers().add(testJudgeAssignment1);
+        testActivity.getActivityUsers().add(testJudgeAssignment2);
         activityRepository.save(testActivity);
 
         // Create test milestone
@@ -405,7 +401,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         createJudgeResults();
 
         // When
-        List<MilestoneResultDto> results = milestoneResultService.calculateResults(testMilestone.getId());
+        List<MilestoneResultDto> results = milestoneResultService.calculateResults(testMilestone);
 
         // Then
         assertNotNull(results);
@@ -440,7 +436,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         createJudgeResultsWithTies();
 
         // When
-        List<MilestoneResultDto> results = milestoneResultService.calculateResults(testMilestone.getId());
+        List<MilestoneResultDto> results = milestoneResultService.calculateResults(testMilestone);
 
         // Then
         assertNotNull(results);
@@ -464,8 +460,8 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         // Given - No judge results created
 
         // When & Then
-        assertThrows(IllegalStateException.class, () ->
-            milestoneResultService.calculateResults(testMilestone.getId()));
+        assertThrows(IllegalArgumentException.class, () ->
+            milestoneResultService.calculateResults(testMilestone));
     }
 
     @Test
@@ -474,40 +470,11 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         createJudgeResultsForOneJudge();
 
         // When & Then
-        assertThrows(IllegalStateException.class, () ->
-            milestoneResultService.calculateResults(testMilestone.getId()));
-    }
-
-    @Test
-    void testCalculateResults_NullMilestoneId_ThrowsException() {
-        // When & Then
         assertThrows(IllegalArgumentException.class, () ->
-            milestoneResultService.calculateResults(null));
-    }
-
-    @Test
-    void testCalculateResults_NonExistentMilestone_ThrowsException() {
-        // When & Then
-        assertThrows(Exception.class, () ->
-            milestoneResultService.calculateResults(999L));
+            milestoneResultService.calculateResults(testMilestone));
     }
 
     private void createJudgeResults() {
-        // Create judge milestone statuses
-        JudgeMilestoneStatusEntity judgeStatus1 = JudgeMilestoneStatusEntity.builder()
-                .judge(testJudgeAssignment1)
-                .milestone(testMilestone)
-                .status(JudgeMilestoneStatus.READY)
-                .build();
-        judgeMilestoneStatusRepository.save(judgeStatus1);
-
-        JudgeMilestoneStatusEntity judgeStatus2 = JudgeMilestoneStatusEntity.builder()
-                .judge(testJudgeAssignment2)
-                .milestone(testMilestone)
-                .status(JudgeMilestoneStatus.READY)
-                .build();
-        judgeMilestoneStatusRepository.save(judgeStatus2);
-
         // Create judge results for participant 1 (highest score)
         JudgeMilestoneResultEntity result1_1 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant1)
@@ -633,21 +600,6 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     private void createJudgeResultsWithTies() {
-        // Create judge milestone statuses
-        JudgeMilestoneStatusEntity judgeStatus1 = JudgeMilestoneStatusEntity.builder()
-                .judge(testJudgeAssignment1)
-                .milestone(testMilestone)
-                .status(JudgeMilestoneStatus.READY)
-                .build();
-        judgeMilestoneStatusRepository.save(judgeStatus1);
-
-        JudgeMilestoneStatusEntity judgeStatus2 = JudgeMilestoneStatusEntity.builder()
-                .judge(testJudgeAssignment2)
-                .milestone(testMilestone)
-                .status(JudgeMilestoneStatus.READY)
-                .build();
-        judgeMilestoneStatusRepository.save(judgeStatus2);
-
         // Create judge results with tied scores (all participants get same total score)
         // Participant 1: 8*0.6 + 7*0.4 = 7.6
         JudgeMilestoneResultEntity result1_1 = JudgeMilestoneResultEntity.builder()
@@ -774,14 +726,6 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     private void createJudgeResultsForOneJudge() {
-        // Create judge milestone status for only one judge
-        JudgeMilestoneStatusEntity judgeStatus1 = JudgeMilestoneStatusEntity.builder()
-                .judge(testJudgeAssignment1)
-                .milestone(testMilestone)
-                .status(JudgeMilestoneStatus.READY)
-                .build();
-        judgeMilestoneStatusRepository.save(judgeStatus1);
-
         // Create results for only one judge
         JudgeMilestoneResultEntity result1_1 = JudgeMilestoneResultEntity.builder()
                 .participant(testParticipant1)

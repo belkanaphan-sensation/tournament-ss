@@ -3,7 +3,6 @@ package org.bn.sensation.core.round.service.dto;
 import java.util.List;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
-import org.bn.sensation.core.common.statemachine.state.RoundState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -34,10 +33,6 @@ public class CreateRoundRequest extends EmptyDto {
     @Schema(description = "ID этапа, частью которой является раунд")
     @NotNull
     private Long milestoneId;
-
-    @NotNull
-    @Schema(description = "Статус раунда", example = "DRAFT")
-    private RoundState state;
 
     @NotNull
     @Schema(description = "Дополнительный раунд", example = "true")

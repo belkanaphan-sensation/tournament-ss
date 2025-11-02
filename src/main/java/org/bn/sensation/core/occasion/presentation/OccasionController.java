@@ -1,8 +1,6 @@
 package org.bn.sensation.core.occasion.presentation;
 
-import org.bn.sensation.core.common.statemachine.event.OccasionEvent;
 import org.bn.sensation.core.occasion.service.OccasionService;
-import org.bn.sensation.core.occasion.service.OccasionStateMachineService;
 import org.bn.sensation.core.occasion.service.dto.CreateOccasionRequest;
 import org.bn.sensation.core.occasion.service.dto.OccasionDto;
 import org.bn.sensation.core.occasion.service.dto.UpdateOccasionRequest;
@@ -37,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 public class OccasionController {
 
     private final OccasionService occasionService;
-    private final OccasionStateMachineService occasionStateMachineService;
 
     @Operation(summary = "Получить мероприятие по ID")
     @GetMapping(path = "/{id}")
@@ -92,7 +89,7 @@ public class OccasionController {
     @GetMapping(path = "/plan/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> planOccasion(@Parameter @PathVariable("id") @NotNull Long id) {
-        occasionStateMachineService.sendEvent(id, OccasionEvent.PLAN);
+        occasionService.planOccasion(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -101,16 +98,16 @@ public class OccasionController {
     @GetMapping(path = "/start/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> startOccasion(@Parameter @PathVariable("id") @NotNull Long id) {
-        occasionStateMachineService.sendEvent(id, OccasionEvent.START);
+        occasionService.startOccasion(id);
         return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Завершить мероприятие по ID",
             description = "Завершить мероприятие может администратор")
-    @GetMapping(path = "/stop/{id}")
+    @GetMapping(path = "/complete/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> completeOccasion(@Parameter @PathVariable("id") @NotNull Long id) {
-        occasionStateMachineService.sendEvent(id, OccasionEvent.COMPLETE);
+        occasionService.completeOccasion(id);
         return ResponseEntity.noContent().build();
     }
 }

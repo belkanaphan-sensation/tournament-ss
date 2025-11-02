@@ -57,5 +57,5 @@ public class ActivityEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "activity", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @Builder.Default
-    private Set<ActivityUserEntity> userAssignments = new HashSet<>();
+    private Set<ActivityUserEntity> activityUsers = new HashSet<>();
 }

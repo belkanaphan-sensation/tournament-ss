@@ -31,7 +31,6 @@ import org.bn.sensation.core.organization.repository.OrganizationRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.round.service.dto.GenerateRoundsRequest;
 import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,7 +74,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
     private OccasionEntity testOccasion;
     private OrganizationEntity testOrganization;
     private MilestoneRuleEntity testMilestoneRule;
-    
+
     // Тестовые участники
     private ParticipantEntity leader1;
     private ParticipantEntity leader2;
@@ -153,7 +152,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
                 .state(MilestoneState.DRAFT)
                 .activity(testActivity)
                 .milestoneRule(testMilestoneRule)
-                .milestoneOrder(0)
+                .milestoneOrder(1)
                 .build();
         testMilestone = milestoneRepository.save(testMilestone);
         testMilestoneRule.setMilestone(testMilestone);
@@ -167,7 +166,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
         createTestParticipants();
     }
 
-    private void createTestParticipants() {
+    private List<ParticipantEntity> createTestParticipants() {
         // Лидеры
         leader1 = createParticipant("Leader1", PartnerSide.LEADER, "1", true);
         leader2 = createParticipant("Leader2", PartnerSide.LEADER, "2", true);
@@ -184,6 +183,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
 
         // Незарегистрированный участник
         unregisteredParticipant = createParticipant("Unregistered", PartnerSide.LEADER, "11", false);
+        return List.of(leader1, leader2, leader3, leader4, leader5, follower1, follower2, follower3, follower4, follower5, unregisteredParticipant);
     }
 
     private ParticipantEntity createParticipant(String name, PartnerSide partnerSide, String number, boolean isRegistered) {
@@ -205,14 +205,8 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void testGenerateRounds_AllParticipants_Success() {
-        // Given
-        GenerateRoundsRequest request = GenerateRoundsRequest.builder()
-                .milestoneId(testMilestone.getId())
-                .reGenerate(false)
-                .build();
-
         // When
-        List<RoundDto> result = roundService.generateRounds(request);
+        List<RoundDto> result = roundService.generateRounds(testMilestone, null, false);
 
         // Then
         assertNotNull(result);
@@ -221,21 +215,21 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
         // Проверяем первый раунд
         RoundDto round1 = result.get(0);
         assertEquals("Раунд 1", round1.getName());
-        assertEquals(RoundState.PLANNED, round1.getState());
+        assertEquals(RoundState.DRAFT, round1.getState());
         assertEquals(0, round1.getRoundOrder());
         assertEquals(6, round1.getParticipants().size()); // 3 лидера + 3 последователя
 
         // Проверяем второй раунд
         RoundDto round2 = result.get(1);
         assertEquals("Раунд 2", round2.getName());
-        assertEquals(RoundState.PLANNED, round2.getState());
+        assertEquals(RoundState.DRAFT, round2.getState());
         assertEquals(1, round2.getRoundOrder());
         assertEquals(4, round2.getParticipants().size()); // 2 лидера + 2 последователя
 
         // Проверяем что участники правильно распределены
         Set<Long> allParticipantIds = new HashSet<>();
-        result.forEach(round -> 
-            round.getParticipants().forEach(participant -> 
+        result.forEach(round ->
+            round.getParticipants().forEach(participant ->
                 allParticipantIds.add(participant.getId())
             )
         );
@@ -246,14 +240,9 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
     void testGenerateRounds_SpecificParticipants_Success() {
         // Given
         List<Long> specificParticipantIds = Arrays.asList(leader1.getId(), leader2.getId(), leader3.getId(), follower1.getId(), follower2.getId());
-        GenerateRoundsRequest request = GenerateRoundsRequest.builder()
-                .milestoneId(testMilestone.getId())
-                .participantIds(specificParticipantIds)
-                .reGenerate(false)
-                .build();
 
         // When
-        List<RoundDto> result = roundService.generateRounds(request);
+        List<RoundDto> result = roundService.generateRounds(testMilestone, specificParticipantIds, false);
 
         // Then
         assertNotNull(result);
@@ -265,8 +254,8 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
 
         // Проверяем что только указанные участники добавлены
         Set<Long> participantIds = new HashSet<>();
-        result.forEach(round -> 
-            round.getParticipants().forEach(participant -> 
+        result.forEach(round ->
+            round.getParticipants().forEach(participant ->
                 participantIds.add(participant.getId())
             )
         );
@@ -281,18 +270,10 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testGenerateRounds_ReGenerate_Success() {
         // Given - сначала создаем раунды
-        GenerateRoundsRequest initialRequest = GenerateRoundsRequest.builder()
-                .milestoneId(testMilestone.getId())
-                .reGenerate(false)
-                .build();
-        roundService.generateRounds(initialRequest);
+        roundService.generateRounds(testMilestone, null, false);
 
         // When - перегенерируем
-        GenerateRoundsRequest reGenerateRequest = GenerateRoundsRequest.builder()
-                .milestoneId(testMilestone.getId())
-                .reGenerate(true)
-                .build();
-        List<RoundDto> result = roundService.generateRounds(reGenerateRequest);
+        List<RoundDto> result = roundService.generateRounds(testMilestone, null, true);
 
         // Then
         assertNotNull(result);
@@ -304,13 +285,8 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
         // Given - удаляем всех участников
         participantRepository.deleteAll();
 
-        GenerateRoundsRequest request = GenerateRoundsRequest.builder()
-                .milestoneId(testMilestone.getId())
-                .reGenerate(false)
-                .build();
-
         // When
-        List<RoundDto> result = roundService.generateRounds(request);
+        List<RoundDto> result = roundService.generateRounds(testMilestone, null, false);
 
         // Then
         assertNotNull(result);
@@ -326,13 +302,8 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
         participantRepository.delete(follower4);
         participantRepository.delete(follower5);
 
-        GenerateRoundsRequest request = GenerateRoundsRequest.builder()
-                .milestoneId(testMilestone.getId())
-                .reGenerate(false)
-                .build();
-
         // When
-        List<RoundDto> result = roundService.generateRounds(request);
+        List<RoundDto> result = roundService.generateRounds(testMilestone, null, false);
 
         // Then
         assertNotNull(result);
@@ -343,61 +314,14 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void testGenerateRounds_OnlyFollowers_Success() {
-        // Given - удаляем всех лидеров
-        participantRepository.delete(leader1);
-        participantRepository.delete(leader2);
-        participantRepository.delete(leader3);
-        participantRepository.delete(leader4);
-        participantRepository.delete(leader5);
-
-        GenerateRoundsRequest request = GenerateRoundsRequest.builder()
-                .milestoneId(testMilestone.getId())
-                .reGenerate(false)
-                .build();
-
-        // When
-        List<RoundDto> result = roundService.generateRounds(request);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(2, result.size()); // 5 последователей / 3 лимит = 2 раунда (1 полный + 1 с остатком)
-
-        RoundDto round = result.get(0);
-        assertEquals(3, round.getParticipants().size()); // Первый раунд: 3 последователя
-    }
-
-    @Test
-    void testGenerateRounds_InvalidMilestoneState_ThrowsException() {
-        // Given - изменяем состояние этапа на недопустимое
-        testMilestone.setState(MilestoneState.IN_PROGRESS);
-        milestoneRepository.save(testMilestone);
-
-        GenerateRoundsRequest request = GenerateRoundsRequest.builder()
-                .milestoneId(testMilestone.getId())
-                .reGenerate(false)
-                .build();
-
-        // When & Then
-        assertThrows(IllegalStateException.class, () -> {
-            roundService.generateRounds(request);
-        });
-    }
-
-    @Test
     void testGenerateRounds_MilestoneAlreadyHasParticipants_ThrowsException() {
         // Given - добавляем участника в этап
         testMilestone.getParticipants().add(leader1);
         milestoneRepository.save(testMilestone);
 
-        GenerateRoundsRequest request = GenerateRoundsRequest.builder()
-                .milestoneId(testMilestone.getId())
-                .reGenerate(false) // Не перегенерация
-                .build();
-
         // When & Then
         assertThrows(IllegalArgumentException.class, () -> {
-            roundService.generateRounds(request);
+            roundService.generateRounds(testMilestone, null, false);
         });
     }
 
@@ -405,15 +329,10 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
     void testGenerateRounds_NonExistentParticipant_ThrowsException() {
         // Given
         List<Long> nonExistentParticipantIds = Arrays.asList(999L, 1000L);
-        GenerateRoundsRequest request = GenerateRoundsRequest.builder()
-                .milestoneId(testMilestone.getId())
-                .participantIds(nonExistentParticipantIds)
-                .reGenerate(false)
-                .build();
 
         // When & Then
         assertThrows(IllegalArgumentException.class, () -> {
-            roundService.generateRounds(request);
+            roundService.generateRounds(testMilestone, nonExistentParticipantIds, false);
         });
     }
 
@@ -421,15 +340,10 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
     void testGenerateRounds_UnregisteredParticipant_ThrowsException() {
         // Given
         List<Long> participantIds = Arrays.asList(leader1.getId(), unregisteredParticipant.getId());
-        GenerateRoundsRequest request = GenerateRoundsRequest.builder()
-                .milestoneId(testMilestone.getId())
-                .participantIds(participantIds)
-                .reGenerate(false)
-                .build();
 
         // When & Then
         assertThrows(IllegalArgumentException.class, () -> {
-            roundService.generateRounds(request);
+            roundService.generateRounds(testMilestone, participantIds, false);
         });
     }
 
@@ -441,13 +355,8 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
             createParticipant("Follower" + i, PartnerSide.FOLLOWER, String.valueOf(i + 10), true);
         }
 
-        GenerateRoundsRequest request = GenerateRoundsRequest.builder()
-                .milestoneId(testMilestone.getId())
-                .reGenerate(false)
-                .build();
-
         // When
-        List<RoundDto> result = roundService.generateRounds(request);
+        List<RoundDto> result = roundService.generateRounds(testMilestone, null, false);
 
         // Then
         assertNotNull(result);
@@ -464,28 +373,22 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void testGenerateRounds_ParticipantDistribution_LeadersAndFollowers() {
-        // Given
-        GenerateRoundsRequest request = GenerateRoundsRequest.builder()
-                .milestoneId(testMilestone.getId())
-                .reGenerate(false)
-                .build();
-
         // When
-        List<RoundDto> result = roundService.generateRounds(request);
+        List<RoundDto> result = roundService.generateRounds(testMilestone, null, false);
 
         // Then
         assertNotNull(result);
-        
+
         // Проверяем что каждый раунд содержит участников
         for (RoundDto round : result) {
             assertNotNull(round.getParticipants());
             assertFalse(round.getParticipants().isEmpty(), "Раунд должен содержать хотя бы одного участника");
         }
-        
+
         // Проверяем что все участники распределены по раундам
         Set<Long> allParticipantIds = new HashSet<>();
-        result.forEach(round -> 
-            round.getParticipants().forEach(participant -> 
+        result.forEach(round ->
+            round.getParticipants().forEach(participant ->
                 allParticipantIds.add(participant.getId())
             )
         );

@@ -21,8 +21,11 @@ import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
+import org.bn.sensation.core.milestone.entity.AssessmentMode;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.bn.sensation.core.milestone.repository.MilestoneRuleRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
@@ -90,6 +93,9 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private JudgeRoundStatusRepository judgeRoundStatusRepository;
+
+    @Autowired
+    private MilestoneRuleRepository milestoneRuleRepository;
 
     @Mock
     private CurrentUser mockCurrentUser;
@@ -168,7 +174,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                         .email("judge@example.com")
                         .phoneNumber("+1234567891")
                         .build())
-                .roles(Set.of(Role.USER))
+                .roles(Set.of(Role.USER, Role.SUPERADMIN))
                 .organizations(Set.of(testOrganization))
                 .build();
         testJudge = userRepository.save(testJudge);
@@ -206,8 +212,8 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         testJudgeChiefAssignment = activityUserRepository.save(testJudgeChiefAssignment);
 
         // Add assignments to activity
-        testActivity.getUserAssignments().add(testJudgeAssignment);
-        testActivity.getUserAssignments().add(testJudgeChiefAssignment);
+        testActivity.getActivityUsers().add(testJudgeAssignment);
+        testActivity.getActivityUsers().add(testJudgeChiefAssignment);
         testActivity = activityRepository.save(testActivity);
 
         // Create test milestones
@@ -268,9 +274,17 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Given
         CreateRoundRequest request = CreateRoundRequest.builder()
                 .name("New Round")
-                .state(RoundState.DRAFT)
                 .milestoneId(testMilestone.getId())
                 .build();
+
+        // Set up security context with judge user
+        SecurityUser securityUser = (SecurityUser) SecurityUser.fromUser(testJudge);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Mock CurrentUser to return the test judge
+        when(mockCurrentUser.getSecurityUser()).thenReturn(securityUser);
 
         // When
         RoundDto result = roundService.create(request);
@@ -325,6 +339,15 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         UpdateRoundRequest request = UpdateRoundRequest.builder()
                 .name("Updated Round")
                 .build();
+
+        // Set up security context with judge user
+        SecurityUser securityUser = (SecurityUser) SecurityUser.fromUser(testJudge);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Mock CurrentUser to return the test judge
+        when(mockCurrentUser.getSecurityUser()).thenReturn(securityUser);
 
         // When
         RoundDto result = roundService.update(testRound.getId(), request);
@@ -678,5 +701,201 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         assertThrows(IllegalArgumentException.class, () -> {
             roundService.findByMilestoneIdInLifeStates(testMilestone.getId());
         });
+    }
+
+    @Test
+    void testDraftRound_ShouldChangeStateToDraftAndUpdateJudgeStatuses() {
+        // Given - Create a round with judge statuses in READY state
+        RoundEntity round = RoundEntity.builder()
+                .name("Test Round")
+                .state(RoundState.PLANNED)
+                .milestone(testMilestone)
+                .participants(new HashSet<>(Set.of(testParticipant)))
+                .roundOrder(0)
+                .build();
+        round = roundRepository.save(round);
+
+        // Create judge round statuses with READY status
+        JudgeRoundStatusEntity judgeStatus1 = JudgeRoundStatusEntity.builder()
+                .round(round)
+                .judge(testJudgeAssignment)
+                .status(JudgeRoundStatus.READY)
+                .build();
+        judgeRoundStatusRepository.save(judgeStatus1);
+
+        JudgeRoundStatusEntity judgeStatus2 = JudgeRoundStatusEntity.builder()
+                .round(round)
+                .judge(testJudgeChiefAssignment)
+                .status(JudgeRoundStatus.READY)
+                .build();
+        judgeRoundStatusRepository.save(judgeStatus2);
+
+        // When
+        roundService.draftRound(round.getId());
+
+        // Then - Verify round state changed to DRAFT
+        RoundEntity savedRound = roundRepository.findById(round.getId()).orElseThrow();
+        assertEquals(RoundState.DRAFT, savedRound.getState());
+
+        // Verify all judge statuses changed to NOT_READY
+        List<JudgeRoundStatusEntity> statuses = judgeRoundStatusRepository.findByRoundId(round.getId());
+        assertFalse(statuses.isEmpty());
+        statuses.forEach(status -> assertEquals(JudgeRoundStatus.NOT_READY, status.getStatus()));
+    }
+
+    @Test
+    void testDraftRound_WithNoJudgeStatuses_ShouldChangeStateToDraft() {
+        // Given - Create a round without judge statuses
+        RoundEntity round = RoundEntity.builder()
+                .name("Test Round")
+                .state(RoundState.PLANNED)
+                .milestone(testMilestone)
+                .participants(new HashSet<>(Set.of(testParticipant)))
+                .roundOrder(0)
+                .build();
+        round = roundRepository.save(round);
+
+        // When
+        roundService.draftRound(round.getId());
+
+        // Then - Verify round state changed to DRAFT
+        RoundEntity savedRound = roundRepository.findById(round.getId()).orElseThrow();
+        assertEquals(RoundState.DRAFT, savedRound.getState());
+    }
+
+    @Test
+    void testGenerateRounds_WithFinalMilestone_ShouldCreateOneFinalRound() {
+        // Given - Create a final milestone (milestoneOrder == 0)
+        MilestoneRuleEntity finalMilestoneRule = MilestoneRuleEntity.builder()
+                .assessmentMode(AssessmentMode.SCORE)
+                .participantLimit(10)
+                .roundParticipantLimit(5)
+                .strictPassMode(false)
+                .build();
+        finalMilestoneRule = milestoneRuleRepository.save(finalMilestoneRule);
+
+        MilestoneEntity finalMilestone = MilestoneEntity.builder()
+                .name("Final Milestone")
+                .state(MilestoneState.DRAFT)
+                .activity(testActivity)
+                .milestoneRule(finalMilestoneRule)
+                .milestoneOrder(0) // Final milestone
+                .build();
+        finalMilestone = milestoneRepository.save(finalMilestone);
+        
+        finalMilestoneRule.setMilestone(finalMilestone);
+        milestoneRuleRepository.save(finalMilestoneRule);
+        finalMilestone.setMilestoneRule(finalMilestoneRule);
+        finalMilestone = milestoneRepository.save(finalMilestone);
+
+        // Create participants for final milestone
+        ParticipantEntity participant1 = ParticipantEntity.builder()
+                .person(Person.builder()
+                        .name("Final")
+                        .surname("Participant1")
+                        .email("final1@test.com")
+                        .phoneNumber("+1234567890")
+                        .build())
+                .number("F001")
+                .isRegistered(true)
+                .partnerSide(PartnerSide.LEADER)
+                .activity(testActivity)
+                .rounds(new HashSet<>())
+                .milestones(new HashSet<>())
+                .build();
+        participant1 = participantRepository.save(participant1);
+
+        ParticipantEntity participant2 = ParticipantEntity.builder()
+                .person(Person.builder()
+                        .name("Final")
+                        .surname("Participant2")
+                        .email("final2@test.com")
+                        .phoneNumber("+1234567891")
+                        .build())
+                .number("F002")
+                .isRegistered(true)
+                .partnerSide(PartnerSide.FOLLOWER)
+                .activity(testActivity)
+                .rounds(new HashSet<>())
+                .milestones(new HashSet<>())
+                .build();
+        participant2 = participantRepository.save(participant2);
+
+        List<Long> participantIds = List.of(participant1.getId(), participant2.getId());
+
+        // When - Generate rounds for final milestone
+        List<RoundDto> rounds = roundService.generateRounds(finalMilestone, participantIds, false);
+
+        // Then - Verify only one round created with name "Финал"
+        assertNotNull(rounds);
+        assertEquals(1, rounds.size());
+        
+        RoundDto finalRound = rounds.get(0);
+        assertEquals("Финал", finalRound.getName());
+        assertEquals(RoundState.DRAFT, finalRound.getState());
+        assertEquals(0, finalRound.getRoundOrder());
+        assertNotNull(finalRound.getMilestone());
+        assertEquals(finalMilestone.getId(), finalRound.getMilestone().getId());
+        assertNotNull(finalRound.getParticipants());
+        assertEquals(2, finalRound.getParticipants().size()); // Both participants should be in final round
+    }
+
+    @Test
+    void testGenerateRounds_WithFinalMilestone_ExceedsParticipantLimit_ShouldStillCreateOneRound() {
+        // Given - Create a final milestone with participant limit less than actual participants
+        MilestoneRuleEntity finalMilestoneRule = MilestoneRuleEntity.builder()
+                .assessmentMode(AssessmentMode.SCORE)
+                .participantLimit(5) // Limit is 5
+                .roundParticipantLimit(5)
+                .strictPassMode(false)
+                .build();
+        finalMilestoneRule = milestoneRuleRepository.save(finalMilestoneRule);
+
+        MilestoneEntity finalMilestone = MilestoneEntity.builder()
+                .name("Final Milestone")
+                .state(MilestoneState.DRAFT)
+                .activity(testActivity)
+                .milestoneRule(finalMilestoneRule)
+                .milestoneOrder(0) // Final milestone
+                .build();
+        finalMilestone = milestoneRepository.save(finalMilestone);
+        
+        finalMilestoneRule.setMilestone(finalMilestone);
+        milestoneRuleRepository.save(finalMilestoneRule);
+        finalMilestone.setMilestoneRule(finalMilestoneRule);
+        finalMilestone = milestoneRepository.save(finalMilestone);
+
+        // Create more participants than limit
+        List<Long> participantIds = new ArrayList<>();
+        for (int i = 1; i <= 8; i++) {
+            ParticipantEntity participant = ParticipantEntity.builder()
+                    .person(Person.builder()
+                            .name("Final")
+                            .surname("Participant" + i)
+                            .email("final" + i + "@test.com")
+                            .phoneNumber("+123456789" + i)
+                            .build())
+                    .number("F00" + i)
+                    .isRegistered(true)
+                    .partnerSide(i % 2 == 0 ? PartnerSide.FOLLOWER : PartnerSide.LEADER)
+                    .activity(testActivity)
+                    .rounds(new HashSet<>())
+                    .milestones(new HashSet<>())
+                    .build();
+            participant = participantRepository.save(participant);
+            participantIds.add(participant.getId());
+        }
+
+        // When - Generate rounds for final milestone
+        List<RoundDto> rounds = roundService.generateRounds(finalMilestone, participantIds, false);
+
+        // Then - Verify only one round created (final round ignores limit)
+        assertNotNull(rounds);
+        assertEquals(1, rounds.size());
+        
+        RoundDto finalRound = rounds.get(0);
+        assertEquals("Финал", finalRound.getName());
+        assertNotNull(finalRound.getParticipants());
+        assertEquals(8, finalRound.getParticipants().size()); // All 8 participants should be in final round
     }
 }

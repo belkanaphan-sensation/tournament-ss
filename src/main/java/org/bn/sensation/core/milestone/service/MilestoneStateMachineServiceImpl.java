@@ -1,16 +1,18 @@
 package org.bn.sensation.core.milestone.service;
 
+import org.bn.sensation.core.common.service.BaseStateService;
 import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
 import org.bn.sensation.core.common.statemachine.listener.MilestoneStateMachineListener;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
-import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,41 +23,36 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class MilestoneStateMachineServiceImpl implements MilestoneStateMachineService {
 
-    private final MilestoneRepository milestoneRepository;
-    private final MilestoneService milestoneService;
+    private final BaseStateService<MilestoneEntity, MilestoneState, MilestoneEvent> milestoneStateService;
     private final StateMachineFactory<MilestoneState, MilestoneEvent> milestoneStateMachine;
 
     @Override
-    public void sendEvent(Long milestoneId, MilestoneEvent event) {
-        // Устанавливаем ID этапа для логирования
-        MilestoneStateMachineListener.setMilestoneId(milestoneId);
-
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void sendEvent(MilestoneEntity milestone, MilestoneEvent event) {
+        MilestoneStateMachineListener.setMilestoneId(milestone.getId());
         try {
-            MilestoneEntity milestone =  milestoneRepository.getByIdFullOrThrow(milestoneId);
-
             log.info("🎯 [MILESTONE_EVENT_START] Milestone ID: {} | Event: {} | Current State: {}",
-                milestoneId, event, milestone.getState());
+                    milestone.getId(), event, milestone.getState());
 
-            // Проверяем, изменится ли состояние
-            MilestoneState nextState = milestoneService.getNextState(milestone.getState(), event);
+            MilestoneState nextState = milestoneStateService.getNextState(milestone.getState(), event)
+                    .orElseThrow(() -> {
+                        log.warn("❌ [MILESTONE_EVENT_REJECTED] Milestone ID: {} | Invalid transition from {} to {}",
+                                milestone.getId(), milestone.getState(), event);
+                        return new IllegalStateException(
+                                String.format("Невалидный переход из %s в %s", milestone.getState(), event));
+                    });
+
             if (nextState == milestone.getState()) {
-                log.info("ℹ️ [MILESTONE_EVENT_NO_CHANGE] Round ID: {} | Event: {} | State remains: {}",
-                        milestoneId, event, milestone.getState());
-                return; // Состояние не меняется, просто выходим
+                log.info("ℹ️ [MILESTONE_EVENT_NO_CHANGE] Milestone ID: {} | Event: {} | State remains: {}",
+                        milestone.getId(), event, milestone.getState());
+                return;
             }
 
-            if (!milestoneService.isValidTransition(milestone.getState(), event)) {
-                log.warn("❌ [MILESTONE_EVENT_REJECTED] Milestone ID: {} | Invalid transition from {} to {}",
-                    milestoneId, milestone.getState(), event);
-                throw new IllegalStateException(
-                        String.format("Невалидный переход из %s в %s", milestone.getState(), event));
-            }
-
-            if (milestoneService.canTransition(milestone, event)) {
+            if (milestoneStateService.canTransition(milestone, event)) {
                 StateMachine<MilestoneState, MilestoneEvent> sm = milestoneStateMachine.getStateMachine(milestone.getId().toString());
 
                 // Регистрируем связь между State Machine и Milestone ID
-                MilestoneStateMachineListener.registerStateMachine(sm.getId(), milestoneId);
+                MilestoneStateMachineListener.registerStateMachine(sm.getId(), milestone.getId());
 
                 // Создаем сообщение
                 Message<MilestoneEvent> message = MessageBuilder
@@ -64,7 +61,7 @@ public class MilestoneStateMachineServiceImpl implements MilestoneStateMachineSe
                         .build();
 
                 log.debug("📤 [MILESTONE_MESSAGE_CREATED] Milestone ID: {} | Event: {} | Headers: {}",
-                    milestoneId, event, message.getHeaders());
+                        milestone.getId(), event, message.getHeaders());
 
                 // Инициализируем состояние (синхронно)
                 sm.stop();
@@ -75,23 +72,23 @@ public class MilestoneStateMachineServiceImpl implements MilestoneStateMachineSe
                 sm.start();
 
                 log.debug("🔄 [MILESTONE_SM_INITIALIZED] Milestone ID: {} | State: {}",
-                    milestoneId, milestone.getState());
+                        milestone.getId(), milestone.getState());
 
                 // Используем реактивный API для отправки события
                 sm.sendEvent(Mono.just(message))
                         .doFinally(signalType -> {
                             log.debug("🏁 [MILESTONE_EVENT_COMPLETED] Milestone ID: {} | Signal: {}",
-                                milestoneId, signalType);
+                                    milestone.getId(), signalType);
                             sm.stop();
                             MilestoneStateMachineListener.unregisterStateMachine(sm.getId());
                         })
                         .blockLast(); // Блокируем до завершения всех операций
 
                 log.info("✅ [MILESTONE_EVENT_SUCCESS] Milestone ID: {} | Event: {} | Final State: {}",
-                    milestoneId, event, milestone.getState());
+                        milestone.getId(), event, milestone.getState());
             } else {
                 log.warn("🚫 [MILESTONE_EVENT_BLOCKED] Milestone ID: {} | Event: {} | Reason: Business logic validation failed",
-                    milestoneId, event);
+                        milestone.getId(), event);
             }
         } finally {
             // Очищаем контекст
