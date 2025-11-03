@@ -25,6 +25,7 @@ import org.bn.sensation.core.milestone.service.mapper.MilestoneDtoMapper;
 import org.bn.sensation.core.milestone.service.mapper.UpdateMilestoneRequestMapper;
 import org.bn.sensation.core.milestoneresult.service.MilestoneResultService;
 import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
+import org.bn.sensation.core.milestoneresult.service.dto.UpdateMilestoneResultRequest;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.round.service.RoundService;
@@ -293,9 +294,9 @@ public class MilestoneServiceImpl implements MilestoneService {
      * Не должно применяться в нормальном флоу. Нужно на экстренный случай
      */
     private void addParticipants(List<Long> participantIds, ActivityEntity activity, MilestoneEntity milestone) {
-        log.warn("Добавление участников в этап вне нормального флоу: milestone={}, activity={}, participantIds={}", milestone.getId(), activity.getId(), participantIds);
-        Preconditions.checkArgument(currentUser.getSecurityUser().getRoles().contains(Role.SUPERADMIN), "Только суперадмин может привязывать участников напрямую");
         if (participantIds != null && !participantIds.isEmpty()) {
+            log.warn("Добавление участников в этап вне нормального флоу: milestone={}, activity={}, participantIds={}", milestone.getId(), activity.getId(), participantIds);
+            Preconditions.checkArgument(currentUser.getSecurityUser().getRoles().contains(Role.SUPERADMIN), "Только суперадмин может привязывать участников напрямую");
             Set<ParticipantEntity> participants = participantRepository.findAllByIdWithActivity(participantIds)
                     .stream()
                     .peek(participant -> {
@@ -358,28 +359,24 @@ public class MilestoneServiceImpl implements MilestoneService {
     public List<MilestoneResultDto> sumUpMilestone(Long id) {
         log.info("Подведение предварительных итогов этапа: id={}", id);
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(id);
+        milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.SUM_UP);
+        List<MilestoneResultDto> milestoneResultDtos = milestoneResultService.calculateResults(milestone);
         milestone.getRounds().stream().filter(round -> round.getState() != RoundState.COMPLETED)
                 .forEach(round -> {
                     roundStateMachineService.sendEvent(round, RoundEvent.COMPLETE);
                 });
-        milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.SUM_UP);
-        List<MilestoneResultDto> milestoneResultDtos = milestoneResultService.calculateResults(milestone);
         log.info("Предварительные итоги этапа подведены: id={}", id);
         return milestoneResultDtos;
     }
 
     @Override
     @Transactional
-    public void completeMilestone(Long milestoneId) {
+    public void completeMilestone(Long milestoneId, List<UpdateMilestoneResultRequest> request) {
         log.info("Завершение этапа: id={}", milestoneId);
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
         log.debug("Найден этап={} для завершения, количество раундов={}", milestoneId, milestone.getRounds().size());
 
-        milestone.getRounds().forEach(round -> {
-            log.debug("Отправка события COMPLETE для раунда={}", round.getId());
-            roundStateMachineService.sendEvent(round, RoundEvent.COMPLETE);
-        });
         milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.COMPLETE);
         log.info("Этап успешно завершен: id={}", milestoneId);
     }

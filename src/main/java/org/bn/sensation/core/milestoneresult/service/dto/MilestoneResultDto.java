@@ -28,6 +28,12 @@ public class MilestoneResultDto extends BaseDto {
     @Schema(description = "Участник")
     private EntityLinkDto participant;
 
+    @Schema(description = "Раунд")
+    private EntityLinkDto round;
+
+    @Schema(description = "Результат дополнительного раунда")
+    private Boolean isExtraResult;
+
     @Schema(description = "Прошел участник в следующий этап или нет по результатам оценок")
     private PassStatus judgePassed;
 

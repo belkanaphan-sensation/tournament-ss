@@ -6,18 +6,15 @@ import java.util.Optional;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.LockModeType;
 
 public interface RoundRepository extends BaseRepository<RoundEntity> {
 
     List<RoundEntity> findByMilestoneId(Long milestoneId);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @EntityGraph(attributePaths = {"milestone.activity.activityUsers.user"})
     @Query("SELECT r FROM RoundEntity r WHERE r.id = :id")
     Optional<RoundEntity> findByIdWithUser(@Param("id") Long id);
@@ -26,7 +23,6 @@ public interface RoundRepository extends BaseRepository<RoundEntity> {
         return findByIdWithUser(id).orElseThrow(() -> new EntityNotFoundException("Раунд не найден: " + id));
     }
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @EntityGraph(attributePaths = {"milestone.activity.activityUsers.user", "milestone.milestoneRule.milestoneCriteria", "participants"})
     @Query("SELECT r FROM RoundEntity r WHERE r.id = :id")
     Optional<RoundEntity> findByIdFull(@Param("id") Long id);

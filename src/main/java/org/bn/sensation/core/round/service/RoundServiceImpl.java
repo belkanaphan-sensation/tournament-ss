@@ -38,6 +38,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.constraints.NotNull;
@@ -85,16 +86,23 @@ public class RoundServiceImpl implements RoundService {
         // Проверяем существование этапа
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(request.getMilestoneId());
         log.debug("Найден этап={} для создания раунда", milestone.getId());
-        if(milestone.getMilestoneOrder().equals(0) && !milestone.getRounds().isEmpty()) {
+        if (milestone.getMilestoneOrder().equals(0) && !milestone.getRounds().isEmpty()) {
             throw new IllegalArgumentException("Раунд не может быть создан для этапа %s, т.к этап финальный и уже имеет раунд".formatted(milestone.getId()));
         }
 
         // Создаем сущность раунда
         RoundEntity round = createRoundRequestMapper.toEntity(request);
+        if (Strings.isNullOrEmpty(round.getName())) {
+            round.setName("Раунд " + (milestone.getRounds().size() + 1));
+        }
         round.setState(RoundState.DRAFT);
         round.setMilestone(milestone);
 
         round.setRoundOrder(roundRepository.getLastRoundOrder(milestone.getId()).orElse(0) + 1);
+        if (round.getExtraRound()) {
+            Preconditions.checkArgument(request.getParticipantIds() != null && !request.getParticipantIds().isEmpty(),
+                    "Для создания дополнительного раунда требуется список участников");
+        }
         addParticipants(request.getParticipantIds(), milestone, round);
 
         RoundEntity saved = roundRepository.save(round);
@@ -355,9 +363,11 @@ public class RoundServiceImpl implements RoundService {
      * Не должно применяться в нормальном флоу. Нужно на экстренный случай
      */
     private void addParticipants(List<Long> participantIds, MilestoneEntity milestone, RoundEntity round) {
-        log.warn("Добавление участников в раунд вне нормального флоу: milestone={}, round={}, participantIds={}", milestone.getId(), round.getId(), participantIds);
-        Preconditions.checkArgument(currentUser.getSecurityUser().getRoles().contains(Role.SUPERADMIN), "Только суперадмин может привязывать участников напрямую");
         if (participantIds != null && !participantIds.isEmpty()) {
+            log.warn("Добавление участников в раунд: milestone={}, round={}, participantIds={}", milestone.getId(), round.getId(), participantIds);
+            Preconditions.checkArgument(round.getExtraRound()
+                            || currentUser.getSecurityUser().getRoles().contains(Role.SUPERADMIN),
+                    "Раунд должен быть дополнительным или только суперадмин может привязывать участников напрямую");
             Set<ParticipantEntity> participants = participantRepository.findAllByIdWithActivity(participantIds)
                     .stream()
                     .peek(participant -> {

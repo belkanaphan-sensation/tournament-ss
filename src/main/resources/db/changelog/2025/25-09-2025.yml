@@ -40,6 +40,7 @@ databaseChangeLog:
                 judge_passed VARCHAR(255) NOT NULL,
                 finally_approved BOOLEAN NOT NULL DEFAULT FALSE,
                 milestone_id BIGINT NOT NULL,
+                round_id BIGINT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -32,7 +32,7 @@ public class JudgeMilestoneStatusController {
 
     @Operation(summary = "Получить статусы всех судей для этапа",
             description = "Возвращает список статусов всех судей для указанного этапа. " +
-                    "Данные берутся из кэша (обновляется каждые 10 секунд).")
+                    "Данные берутся из кэша (обновляется каждую минуту или при смене обновлении результатов оценок судей).")
     @GetMapping(path = "/milestone/{milestoneId}")
     public ResponseEntity<List<JudgeMilestoneStatusDto>> getJudgesStatusForMilestone(
             @Parameter(description = "ID этапа") @PathVariable("milestoneId") @NotNull Long milestoneId) {

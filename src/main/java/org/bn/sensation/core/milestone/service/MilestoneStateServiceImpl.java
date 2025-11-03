@@ -62,7 +62,8 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
                                 .getAllJudgesStatusForMilestone(milestone.getId()).stream()
                                 .noneMatch(st -> st.getStatus() == JudgeMilestoneStatus.NOT_READY),
                         "Результаты этапа готовы для подведения итогов не у всех судей");
-                Preconditions.checkState(milestone.getRounds().stream().allMatch(r -> r.getState() == RoundState.COMPLETED),
+                Preconditions.checkState(milestone.getRounds().stream()
+                                .allMatch(r -> r.getState() == RoundState.READY || r.getState() == RoundState.COMPLETED),
                         "Все раунды этапа должны быть завершены");
             }
             case COMPLETE -> {
