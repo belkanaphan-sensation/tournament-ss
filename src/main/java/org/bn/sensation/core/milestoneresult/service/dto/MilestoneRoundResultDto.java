@@ -1,14 +1,12 @@
 package org.bn.sensation.core.milestoneresult.service.dto;
 
-import java.math.BigDecimal;
-
-import org.bn.sensation.core.common.dto.EmptyDto;
+import org.bn.sensation.core.common.dto.BaseDto;
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.milestoneresult.entity.PassStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,29 +19,18 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Запрос на создание результата этапа")
-public class CreateMilestoneResultRequest extends EmptyDto {
+@Schema(description = "Результат раунда для результата этапа")
+public class MilestoneRoundResultDto extends BaseDto {
 
-    @NotNull
-    @Schema(description = "ID этапа", example = "1")
-    private Long milestoneId;
+    @Schema(description = "Раунд")
+    private EntityLinkDto round;
 
-    @NotNull
-    @Schema(description = "ID участника", example = "1")
-    private Long participantId;
+    @Schema(description = "Результат дополнительного раунда")
+    private Boolean fromExtraRound;
 
-    @NotNull
-    @Schema(description = "ID раунда", example = "1")
-    private Long roundId;
-
-    @NotNull
     @Schema(description = "Прошел участник в следующий этап или нет по результатам оценок")
     private PassStatus judgePassed;
 
-    @Schema(description = "Прошел участник в следующий этап или нет по решению организатора")
-    private Boolean finallyApproved;
-
-    @NotNull
     @Schema(description = "Суммарный балл этапа для участника", example = "5")
-    private BigDecimal totalScore;
+    private Integer totalScore;
 }

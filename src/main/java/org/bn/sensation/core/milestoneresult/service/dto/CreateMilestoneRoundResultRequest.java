@@ -21,16 +21,12 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Запрос на создание результата этапа")
-public class CreateMilestoneResultRequest extends EmptyDto {
+@Schema(description = "Запрос на создание результата раунда для этапа")
+public class CreateMilestoneRoundResultRequest extends EmptyDto {
 
     @NotNull
-    @Schema(description = "ID этапа", example = "1")
-    private Long milestoneId;
-
-    @NotNull
-    @Schema(description = "ID участника", example = "1")
-    private Long participantId;
+    @Schema(description = "ID результата этапа", example = "1")
+    private Long milestoneResultId;
 
     @NotNull
     @Schema(description = "ID раунда", example = "1")
@@ -39,9 +35,6 @@ public class CreateMilestoneResultRequest extends EmptyDto {
     @NotNull
     @Schema(description = "Прошел участник в следующий этап или нет по результатам оценок")
     private PassStatus judgePassed;
-
-    @Schema(description = "Прошел участник в следующий этап или нет по решению организатора")
-    private Boolean finallyApproved;
 
     @NotNull
     @Schema(description = "Суммарный балл этапа для участника", example = "5")

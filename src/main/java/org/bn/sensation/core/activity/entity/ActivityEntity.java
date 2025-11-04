@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.bn.sensation.core.activityresult.entity.ActivityResultEntity;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.common.statemachine.state.ActivityState;
@@ -58,4 +59,8 @@ public class ActivityEntity extends BaseEntity {
     @OneToMany(mappedBy = "activity", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @Builder.Default
     private Set<ActivityUserEntity> activityUsers = new HashSet<>();
+
+    @OneToMany(mappedBy = "activity", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
+    @Builder.Default
+    private Set<ActivityResultEntity> activityResults = new HashSet<>();
 }

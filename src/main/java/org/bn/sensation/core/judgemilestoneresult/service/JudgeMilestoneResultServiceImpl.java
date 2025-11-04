@@ -144,7 +144,8 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         log.info("Изменение статуса раунда судьи на READY для судьи={}, раунда={}", activityUser.getId(), roundId);
         JudgeRoundStatusEntity status = judgeRoundStatusRepository.findByRoundIdAndJudgeId(
                         round.getId(), activityUser.getId())
-                .orElse(JudgeRoundStatusEntity.builder().round(round).judge(activityUser).status(JudgeRoundStatus.READY).build());
+                .orElse(JudgeRoundStatusEntity.builder().round(round).judge(activityUser).build());
+        status.setStatus(JudgeRoundStatus.READY);
         judgeRoundStatusRepository.save(status);
         log.debug("Попытка пометить раунд {} как READY", roundId);
         roundStateMachineService.sendEvent(round, RoundEvent.MARK_READY);
@@ -313,9 +314,9 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
             Preconditions.checkArgument(result.getScore() != null,
                     "Оценка не может быть null для режима SCORE");
-            Preconditions.checkArgument(result.getScore() > 0,
+            Preconditions.checkArgument(result.getScore().intValue() > 0,
                     "Оценка не может быть отрицательной для режима SCORE");
-            Preconditions.checkArgument(result.getScore() <= milestoneCriterion.getScale(),
+            Preconditions.checkArgument(result.getScore().intValue() <= milestoneCriterion.getScale().intValue(),
                     "Оценка %s не может превышать максимальную шкалу %s для критерия %s",
                     result.getScore(), milestoneCriterion.getScale(), milestoneCriterion.getCriterion().getName());
         }
@@ -326,7 +327,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         for (JudgeMilestoneResultEntity result : resultsToSave) {
             Preconditions.checkArgument(result.getScore() != null,
                     "Оценка не может быть null для режима PASS");
-            Preconditions.checkArgument(result.getScore() == 0 || result.getScore() == 1,
+            Preconditions.checkArgument(result.getScore().intValue() == 0 || result.getScore().intValue() == 1,
                     "Для режима PASS оценка может быть только 0 или 1, получена: %s", result.getScore());
         }
     }
@@ -341,7 +342,8 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
             for (JudgeMilestoneResultEntity result : partnerSideResults) {
                 Preconditions.checkArgument(result.getScore() != null,
                         "Оценка не может быть null для режима PLACE");
-                Preconditions.checkArgument(result.getScore() >= 1 && result.getScore() <= countInCurrentMilestone,
+                Preconditions.checkArgument(result.getScore().intValue() >= 1
+                                && result.getScore().intValue() <= countInCurrentMilestone,
                         "Для режима PLACE оценка должна быть от 1 до %s, получена: %s",
                         countInCurrentMilestone, result.getScore());
             }

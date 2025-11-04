@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.judgemilestoneresult.entity.JudgeMilestoneResultEntity;
 import org.bn.sensation.core.judgemilestoneresult.repository.JudgeMilestoneResultRepository;
@@ -16,14 +17,13 @@ import org.bn.sensation.core.milestone.entity.AssessmentMode;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestoneresult.entity.MilestoneResultEntity;
+import org.bn.sensation.core.milestoneresult.entity.MilestoneRoundResultEntity;
 import org.bn.sensation.core.milestoneresult.entity.PassStatus;
 import org.bn.sensation.core.milestoneresult.repository.MilestoneResultRepository;
-import org.bn.sensation.core.milestoneresult.service.dto.CreateMilestoneResultRequest;
-import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
-import org.bn.sensation.core.milestoneresult.service.dto.UpdateMilestoneResultRequest;
-import org.bn.sensation.core.milestoneresult.service.mapper.CreateMilestoneResultRequestMapper;
+import org.bn.sensation.core.milestoneresult.repository.MilestoneRoundResultRepository;
+import org.bn.sensation.core.milestoneresult.service.dto.*;
 import org.bn.sensation.core.milestoneresult.service.mapper.MilestoneResultDtoMapper;
-import org.bn.sensation.core.milestoneresult.service.mapper.UpdateMilestoneResultRequestMapper;
+import org.bn.sensation.core.milestoneresult.service.mapper.MilestoneRoundResultDtoMapper;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
@@ -46,12 +46,12 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class MilestoneResultServiceImpl implements MilestoneResultService {
 
-    private static final int FINAL_RESULT_LIMIT = 3;
+    private static final long FINAL_RESULT_LIMIT = 3;
     private final JudgeMilestoneResultRepository judgeMilestoneResultRepository;
     private final MilestoneResultRepository milestoneResultRepository;
+    private final MilestoneRoundResultRepository milestoneRoundResultRepository;
     private final MilestoneResultDtoMapper milestoneResultDtoMapper;
-    private final CreateMilestoneResultRequestMapper createMilestoneResultRequestMapper;
-    private final UpdateMilestoneResultRequestMapper updateMilestoneResultRequestMapper;
+    private final MilestoneRoundResultDtoMapper milestoneRoundResultDtoMapper;
     private final MilestoneRepository milestoneRepository;
     private final ParticipantRepository participantRepository;
     private final RoundRepository roundRepository;
@@ -67,35 +67,117 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
     }
 
     @Override
+    @Transactional
+    public List<MilestoneResultDto> acceptResults(Long milestoneId, List<UpdateMilestoneResultRequest> request) {
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
+        Preconditions.checkState(milestone.getState() == MilestoneState.IN_PROGRESS || milestone.getState() == MilestoneState.SUMMARIZING,
+                "Недопустимое состояние этапа %s для обновления результатов".formatted(milestone.getState()));
+        return acceptResults(milestone, request);
+    }
+
+    @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public List<MilestoneResultDto> acceptResults(MilestoneEntity milestone, List<UpdateMilestoneResultRequest> request) {
+        log.info("Принятие результатов этапа: milestoneId={}, количество запросов={}", milestone.getId(), request.size());
+
         Map<Long, MilestoneResultEntity> resultEntityMap = milestone.getResults().stream()
                 .collect(Collectors.toMap(MilestoneResultEntity::getId, Function.identity()));
         List<MilestoneResultEntity> toSave = request.stream().map(r -> {
             MilestoneResultEntity resultEntity = Optional.ofNullable(resultEntityMap.get(r.getId()))
                     .orElseThrow(() -> new IllegalArgumentException("Нет результата с ID: " + r.getId()));
+            log.debug("Обновление результата: resultId={}, finallyApproved={}", resultEntity.getId(), r.getFinallyApproved());
             resultEntity.setFinallyApproved(r.getFinallyApproved());
             return resultEntity;
         }).toList();
+
         if (Boolean.TRUE.equals(milestone.getMilestoneRule().getStrictPassMode())) {
-            Preconditions.checkArgument(milestone.getMilestoneRule().getParticipantLimit().longValue()
-                            >= milestone.getResults().stream()
-                            .filter(res -> res.getFinallyApproved())
-                            .count(),
+            long approvedCount = milestone.getResults().stream()
+                    .filter(res -> res.getFinallyApproved())
+                    .count();
+            Integer participantLimit = milestone.getMilestoneRule().getParticipantLimit();
+            log.debug("Проверка strictPassMode: одобрено участников={}, лимит={}", approvedCount, participantLimit);
+
+            Preconditions.checkArgument(participantLimit.longValue() >= approvedCount,
                     "Количество одобренных участников больше чем требуется");
         }
+
         milestoneResultRepository.saveAll(toSave);
-        return milestone.getResults().stream().map(milestoneResultDtoMapper::toDto).toList();
+        log.info("Сохранено {} результатов этапа milestoneId={}", toSave.size(), milestone.getId());
+
+        return milestoneResultRepository.findAllByMilestoneId(milestone.getId()).stream().map(milestoneResultDtoMapper::toDto).toList();
     }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public List<MilestoneResultDto> calculateResults(@NotNull MilestoneEntity milestone) {
-        log.info("Расчет результатов для этапа={}", milestone.getId());
-        return calculate(milestone);
+        if (milestone.getResults().isEmpty()) {
+            log.info("Создание основных результатов для этапа={}", milestone.getId());
+            Preconditions.checkArgument(milestone.getRounds().stream()
+                            .noneMatch(r -> Boolean.TRUE.equals(r.getExtraRound())),
+                    "Основные результаты этапа еще не созданы. у этапа не должно быть дополнительных раундов");
+            return calculateNewResults(milestone);
+        } else {
+            log.info("Обновление результатов для этапа по дополнительному раунду={}", milestone.getId());
+            List<RoundEntity> extraRounds = milestone.getRounds().stream()
+                    .filter(r -> r.getState() == RoundState.READY)
+                    .filter(r -> Boolean.TRUE.equals(r.getExtraRound()))
+                    .toList();
+            if (!extraRounds.isEmpty()) {
+                Preconditions.checkArgument(extraRounds.size() == 1,
+                        "Одновременно может быть только один активный дополнительный раунд");
+                return calculateExtraResults(milestone, extraRounds.get(0));
+            }
+            return milestone.getResults().stream()
+                    .map(milestoneResultDtoMapper::toDto)
+                    .toList();
+        }
     }
 
-    private List<MilestoneResultDto> calculate(MilestoneEntity milestone) {
+    private List<MilestoneResultDto> calculateExtraResults(@NotNull MilestoneEntity milestone, @NotNull RoundEntity round) {
+        log.info("Начинаем расчет результатов для дополнительного раунда={} этапа={}, режим оценки={}",
+                round.getId(), milestone.getId(), milestone.getMilestoneRule().getAssessmentMode());
+
+        //Map<PartnerSide, Map<ParticipantId, List<JudgeMilestoneResultEntity>>>
+        Map<PartnerSide, Map<Long, List<JudgeMilestoneResultEntity>>> resultsMap = judgeMilestoneResultRepository.findByRoundId(round.getId())
+                .stream().collect(
+                        Collectors.groupingBy(jmr -> jmr.getParticipant().getPartnerSide(),
+                                Collectors.groupingBy(jmr -> jmr.getParticipant().getId())));
+        //Map<ParticipantId, MilestoneResultEntity>
+        Map<Long, MilestoneResultEntity> pIdToResult = milestone.getResults().stream()
+                .collect(Collectors.toMap(mr -> mr.getParticipant().getId(), Function.identity()));
+        long limit = getParticipantLimit(milestone);
+        for (Map.Entry<PartnerSide, Map<Long, List<JudgeMilestoneResultEntity>>> entry : resultsMap.entrySet()) {
+            log.debug("Результаты сгруппированы по уникальным оценкам для стороны {}", entry.getKey());
+            Map<Long, List<JudgeMilestoneResultEntity>> roundJudgeResults = entry.getValue();
+            long remainingPlaces = limit - milestone.getResults().stream()
+                    .filter(res -> Boolean.TRUE.equals(res.getFinallyApproved())
+                            && res.getParticipant().getPartnerSide() ==  entry.getKey()).count();
+            List<MilestoneRoundResultEntity> toDistribute = new ArrayList<>();
+            List<MilestoneResultEntity> toSave = new ArrayList<>();
+            roundJudgeResults.forEach((pId, jmrList) -> {
+                MilestoneResultEntity resultEntity = Optional.ofNullable(pIdToResult.get(pId))
+                        .orElseThrow(() -> new IllegalArgumentException("У участника %s отсутствует результат этапа по основным раундам".formatted(pId)));
+                MilestoneRoundResultEntity roundResult = createMilestoneRoundResult(pId, jmrList, round);
+                resultEntity.getRoundResults().add(roundResult);
+                roundResult.setMilestoneResult(resultEntity);
+                toDistribute.add(roundResult);
+                toSave.add(resultEntity);
+            });
+            Map<BigDecimal, List<MilestoneRoundResultEntity>> groupedForPartnerSide = toDistribute.stream()
+                    .collect(Collectors.groupingBy(mrr -> mrr.getTotalScore()));
+            List<BigDecimal> sortedScores = groupedForPartnerSide.keySet().stream()
+                    .sorted(getScoreComparator(milestone))
+                    .toList();
+            log.debug("Оценки отсортированы: {}", sortedScores);
+            distributePlaces(groupedForPartnerSide, sortedScores, remainingPlaces);
+
+            milestoneResultRepository.saveAll(toSave);
+            milestoneRoundResultRepository.saveAll(toDistribute);
+        }
+        return milestoneResultRepository.findAllByMilestoneId(milestone.getId()).stream().map(milestoneResultDtoMapper::toDto).toList();
+    }
+
+    private List<MilestoneResultDto> calculateNewResults(@NotNull MilestoneEntity milestone) {
         log.info("Начинаем расчет результатов для этапа={}, режим оценки={}",
                 milestone.getId(), milestone.getMilestoneRule().getAssessmentMode());
 
@@ -103,7 +185,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         Map<Long, Map<Long, List<JudgeMilestoneResultEntity>>> resultsMap =
                 judgeMilestoneResultRepository.findByMilestoneId(milestone.getId())
                         .stream()
-                        .filter(jm -> jm.getRound().getState() != RoundState.COMPLETED)
+                        .filter(jm -> jm.getRound().getState() == RoundState.READY)
                         .collect(Collectors.groupingBy(
                                 jm -> jm.getParticipant().getId(),
                                 Collectors.groupingBy(jmr -> jmr.getRound().getId())
@@ -111,73 +193,66 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
 
         log.debug("Сгруппированы результаты судей: {} участников", resultsMap.size());
 
-        List<MilestoneResultEntity> resultEntities = milestone.getRounds()
+        List<MilestoneResultEntity> createdResults = milestone.getRounds()
                 .stream()
-                .filter(round -> round.getState() != RoundState.COMPLETED)
+                .filter(round -> round.getState() == RoundState.READY)
                 .flatMap(round -> round.getParticipants().stream()
                         .map(participant -> createMilestoneResult(participant, milestone, round, resultsMap)))
                 .toList();
 
-        log.debug("Создано {} сущностей результатов этапа", resultEntities.size());
+        log.debug("Создано {} сущностей результатов этапа", createdResults.size());
 
-        Integer limit = getParticipantLimit(milestone);
+        long limit = getParticipantLimit(milestone);
         log.debug("Лимит участников для следующего этапа: {}", limit);
 
-        Map<PartnerSide, Map<BigDecimal, List<MilestoneResultEntity>>> groupedByScore = resultEntities.stream()
-                .collect(Collectors.groupingBy(res -> res.getParticipant().getPartnerSide(),
-                        Collectors.groupingBy(MilestoneResultEntity::getTotalScore)
-                ));
+        List<MilestoneRoundResultEntity> allRoundResults = createdResults.stream()
+                .flatMap(mr -> mr.getRoundResults().stream())
+                .toList();
 
-        for (Map.Entry<PartnerSide, Map<BigDecimal, List<MilestoneResultEntity>>> entry : groupedByScore.entrySet()) {
-            log.debug("Результаты сгруппированы по {} уникальным оценкам для стороны {}", groupedByScore.size(), entry.getKey());
-            Map<BigDecimal, List<MilestoneResultEntity>> groupedForPartnerSide = entry.getValue();
+        Map<PartnerSide, Map<BigDecimal, List<MilestoneRoundResultEntity>>> groupedByScore =
+                allRoundResults.stream()
+                        .collect(Collectors.groupingBy(
+                                mrr -> mrr.getMilestoneResult().getParticipant().getPartnerSide(),
+                                Collectors.groupingBy(MilestoneRoundResultEntity::getTotalScore)
+                        ));
+
+        for (Map.Entry<PartnerSide, Map<BigDecimal, List<MilestoneRoundResultEntity>>> entry : groupedByScore.entrySet()) {
+            log.debug("Результаты сгруппированы по уникальным оценкам для стороны {}", entry.getKey());
+            Map<BigDecimal, List<MilestoneRoundResultEntity>> groupedForPartnerSide = entry.getValue();
             List<BigDecimal> sortedScores = groupedForPartnerSide.keySet().stream()
                     .sorted(getScoreComparator(milestone))
                     .toList();
             log.debug("Оценки отсортированы: {}", sortedScores);
 
-            long placesRemained = limit - milestone.getResults().stream()
-                    .filter(res -> res.getParticipant().getPartnerSide() == entry.getKey()
-                            && res.getJudgePassed() == PassStatus.PASSED)
-                    .count();
-            distributePlaces(groupedForPartnerSide, sortedScores, placesRemained);
+            distributePlaces(groupedForPartnerSide, sortedScores, limit);
         }
 
-        List<MilestoneResultEntity> savedEntities = milestoneResultRepository.saveAll(resultEntities);
+        List<MilestoneResultEntity> savedEntities = milestoneResultRepository.saveAll(createdResults);
+        milestoneRoundResultRepository.saveAll(allRoundResults);
         log.info("Сохранено {} результатов этапа в базу данных", savedEntities.size());
         milestone.getResults().addAll(savedEntities);
 
-        return milestone.getResults().stream()
+        return savedEntities.stream()
                 .map(milestoneResultDtoMapper::toDto)
                 .toList();
     }
 
-    private MilestoneResultEntity createMilestoneResult(
-            ParticipantEntity participant,
-            MilestoneEntity milestone,
-            RoundEntity round,
-            Map<Long, Map<Long, List<JudgeMilestoneResultEntity>>> resultsMap) {
+    private MilestoneRoundResultEntity createMilestoneRoundResult(Long participantId, List<JudgeMilestoneResultEntity> participantResults, RoundEntity round) {
+        log.debug("Создание результата раунда для этапа для участника={}, раунда={}", participantId, round.getId());
+        Preconditions.checkArgument(participantResults != null && !participantResults.isEmpty(),
+                "Отсутствуют результаты для участника " + participantId);
 
-        log.debug("Создание результата этапа для участника={}, раунда={}", participant.getId(), round.getId());
-
-        MilestoneResultEntity resultEntity = MilestoneResultEntity.builder()
-                .participant(participant)
-                .milestone(milestone)
+        MilestoneRoundResultEntity roundResult = MilestoneRoundResultEntity.builder()
                 .round(round)
                 .judgePassed(PassStatus.FAILED)
-                .finallyApproved(false)
+                .totalScore(getTotalScore(participantResults, participantId, round.getId()))
                 .build();
+        return roundResult;
+    }
 
-        List<JudgeMilestoneResultEntity> participantResults = resultsMap
-                .getOrDefault(participant.getId(), Collections.emptyMap())
-                .get(round.getId());
-
-        Preconditions.checkArgument(participantResults != null && !participantResults.isEmpty(),
-                "Отсутствуют результаты для участника " + participant.getId());
-
+    private BigDecimal getTotalScore(List<JudgeMilestoneResultEntity> participantResults, Long participantId, Long roundId) {
         log.debug("Найдено {} результатов судей для участника={} в раунде={}",
-                participantResults.size(), participant.getId(), round.getId());
-
+                participantResults.size(), participantId, roundId);
         BigDecimal totalScore = participantResults.stream()
                 .map(pr -> {
                     BigDecimal weight = pr.getMilestoneCriterion().getWeight();
@@ -194,16 +269,44 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .setScale(2, RoundingMode.HALF_UP);
+        log.debug("Итоговая оценка для участника={}: {}", participantId, totalScore);
+        return totalScore;
+    }
 
-        log.debug("Итоговая оценка для участника={}: {}", participant.getId(), totalScore);
-        resultEntity.setTotalScore(totalScore);
+    private MilestoneResultEntity createMilestoneResult(
+            ParticipantEntity participant,
+            MilestoneEntity milestone,
+            RoundEntity round,
+            Map<Long, Map<Long, List<JudgeMilestoneResultEntity>>> resultsMap) {
+
+        log.debug("Создание результата этапа для участника={}, раунда={}", participant.getId(), round.getId());
+        List<JudgeMilestoneResultEntity> participantResults = resultsMap
+                .getOrDefault(participant.getId(), Collections.emptyMap())
+                .get(round.getId());
+
+        Preconditions.checkArgument(participantResults != null && !participantResults.isEmpty(),
+                "Отсутствуют результаты для участника " + participant.getId());
+
+        MilestoneRoundResultEntity roundResult = MilestoneRoundResultEntity.builder()
+                .round(round)
+                .judgePassed(PassStatus.FAILED)
+                .build();
+        MilestoneResultEntity resultEntity = MilestoneResultEntity.builder()
+                .participant(participant)
+                .milestone(milestone)
+                .roundResults(new HashSet<>())
+                .finallyApproved(false)
+                .build();
+        resultEntity.getRoundResults().add(roundResult);
+        roundResult.setMilestoneResult(resultEntity);
+        roundResult.setTotalScore(getTotalScore(participantResults, participant.getId(), round.getId()));
         return resultEntity;
     }
 
-    private Integer getParticipantLimit(MilestoneEntity milestone) {
+    private long getParticipantLimit(MilestoneEntity milestone) {
         return milestone.getMilestoneOrder().compareTo(0) > 0
                 ? milestoneRepository.getParticipantLimitForNextMilestone(
-                milestone.getActivity().getId(), milestone.getMilestoneOrder() - 1)
+                milestone.getActivity().getId(), milestone.getMilestoneOrder().intValue() - 1).longValue()
                 : FINAL_RESULT_LIMIT;
     }
 
@@ -214,7 +317,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
     }
 
     private void distributePlaces(
-            Map<BigDecimal, List<MilestoneResultEntity>> groupedByScore,
+            Map<BigDecimal, List<MilestoneRoundResultEntity>> groupedByScore,
             List<BigDecimal> sortedScores,
             long limit) {
 
@@ -222,7 +325,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
 
         long remainingSlots = limit;
         for (BigDecimal score : sortedScores) {
-            List<MilestoneResultEntity> entitiesWithScore = groupedByScore.get(score);
+            List<MilestoneRoundResultEntity> entitiesWithScore = groupedByScore.get(score);
             log.debug("Обработка оценки={}, участников с этой оценкой={}, оставшихся мест={}",
                     score, entitiesWithScore.size(), remainingSlots);
 
@@ -230,19 +333,18 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
                 log.debug("Все участники с оценкой={} проходят в следующий этап", score);
                 entitiesWithScore.forEach(entity -> {
                     entity.setJudgePassed(PassStatus.PASSED);
-                    entity.setFinallyApproved(true);
+                    entity.getMilestoneResult().setFinallyApproved(true);
                 });
                 remainingSlots -= entitiesWithScore.size();
             } else {
                 log.debug("Участники с оценкой={} получают статус PENDING (не все проходят)", score);
                 entitiesWithScore.forEach(entity -> {
                     entity.setJudgePassed(PassStatus.PENDING);
-                    entity.setFinallyApproved(false);
+                    entity.getMilestoneResult().setFinallyApproved(false);
                 });
                 break;
             }
         }
-
         log.debug("Распределение мест завершено, оставшихся мест: {}", remainingSlots);
     }
 
@@ -270,13 +372,41 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         ParticipantEntity participant = participantRepository.getByIdOrThrow(request.getParticipantId());
         RoundEntity round = roundRepository.getByIdOrThrow(request.getRoundId());
 
-        MilestoneResultEntity result = createMilestoneResultRequestMapper.toEntity(request);
-        result.setMilestone(milestone);
-        result.setParticipant(participant);
-        result.setRound(round);
 
-        MilestoneResultEntity saved = milestoneResultRepository.save(result);
-        return milestoneResultDtoMapper.toDto(saved);
+        MilestoneResultEntity result = MilestoneResultEntity.builder()
+                .participant(participant)
+                .milestone(milestone)
+                .finallyApproved(request.getFinallyApproved())
+                .build();
+        MilestoneResultEntity savedMR = milestoneResultRepository.save(result);
+        MilestoneRoundResultEntity roundResult = MilestoneRoundResultEntity.builder()
+                .round(round)
+                .milestoneResult(savedMR)
+                .totalScore(request.getTotalScore())
+                .judgePassed(request.getJudgePassed())
+                .build();
+        MilestoneRoundResultEntity savedMRR = milestoneRoundResultRepository.save(roundResult);
+        savedMR.getRoundResults().add(savedMRR);
+        return milestoneResultDtoMapper.toDto(savedMR);
+    }
+
+    @Override
+    @Transactional
+    public MilestoneRoundResultDto createMilestoneRoundResult(CreateMilestoneRoundResultRequest request) {
+        Preconditions.checkArgument(request.getMilestoneResultId() != null, "Milestone result ID не может быть null");
+        Preconditions.checkArgument(request.getRoundId() != null, "Round ID не может быть null");
+
+        MilestoneResultEntity milestoneResult = milestoneResultRepository.getByIdOrThrow(request.getMilestoneResultId());
+        RoundEntity round = roundRepository.getByIdOrThrow(request.getRoundId());
+
+        MilestoneRoundResultEntity roundResult = MilestoneRoundResultEntity.builder()
+                .round(round)
+                .milestoneResult(milestoneResult)
+                .totalScore(request.getTotalScore())
+                .judgePassed(request.getJudgePassed())
+                .build();
+        MilestoneRoundResultEntity savedMRR = milestoneRoundResultRepository.save(roundResult);
+        return milestoneRoundResultDtoMapper.toDto(savedMRR);
     }
 
     @Override
@@ -285,8 +415,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         Preconditions.checkArgument(id != null, "ID результата не может быть null");
 
         MilestoneResultEntity result = milestoneResultRepository.getByIdOrThrow(id);
-
-        updateMilestoneResultRequestMapper.updateMilestoneResultFromRequest(request, result);
+        result.setFinallyApproved(request.getFinallyApproved());
 
         MilestoneResultEntity saved = milestoneResultRepository.save(result);
         return milestoneResultDtoMapper.toDto(saved);

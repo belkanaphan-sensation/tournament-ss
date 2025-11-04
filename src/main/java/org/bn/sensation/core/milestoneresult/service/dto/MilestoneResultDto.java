@@ -1,8 +1,9 @@
 package org.bn.sensation.core.milestoneresult.service.dto;
 
+import java.util.List;
+
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.bn.sensation.core.milestoneresult.entity.PassStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -28,19 +29,9 @@ public class MilestoneResultDto extends BaseDto {
     @Schema(description = "Участник")
     private EntityLinkDto participant;
 
-    @Schema(description = "Раунд")
-    private EntityLinkDto round;
-
-    @Schema(description = "Результат дополнительного раунда")
-    private Boolean isExtraResult;
-
-    @Schema(description = "Прошел участник в следующий этап или нет по результатам оценок")
-    private PassStatus judgePassed;
-
     @Schema(description = "Прошел участник в следующий этап или нет по решению организатора")
     private Boolean finallyApproved;
 
-    @Schema(description = "Суммарный балл этапа для участника", example = "5")
-    private Integer totalScore;
-
+    @Schema(description = "Результаты раундов для этапа")
+    private List<MilestoneRoundResultDto> milestoneRoundResults;
 }

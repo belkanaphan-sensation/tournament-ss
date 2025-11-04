@@ -10,7 +10,7 @@ databaseChangeLog:
             sql: |
               CREATE TABLE IF NOT EXISTS activity_result (
                 id BIGSERIAL PRIMARY KEY,
-                total_score INTEGER NOT NULL,
+                total_score DECIMAL(10,2) NOT NULL,
                 place INTEGER,
                 participant_id BIGINT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -35,12 +35,9 @@ databaseChangeLog:
             sql: |
               CREATE TABLE IF NOT EXISTS milestone_result (
                 id BIGSERIAL PRIMARY KEY,
-                total_score INTEGER,
                 participant_id BIGINT NOT NULL,
-                judge_passed VARCHAR(255) NOT NULL,
                 finally_approved BOOLEAN NOT NULL DEFAULT FALSE,
                 milestone_id BIGINT NOT NULL,
-                round_id BIGINT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
