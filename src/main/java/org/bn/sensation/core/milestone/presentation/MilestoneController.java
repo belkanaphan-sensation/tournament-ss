@@ -8,6 +8,7 @@ import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
 import org.bn.sensation.core.milestone.service.dto.PrepareRoundsRequest;
 import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
 import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
+import org.bn.sensation.core.milestoneresult.service.dto.UpdateMilestoneResultRequest;
 import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -134,8 +135,9 @@ public class MilestoneController {
             description = "Завершить этап может администратор")
     @PostMapping(path = "/complete/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'OCCASION_ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> completeMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
-        milestoneService.completeMilestone(id);
+    public ResponseEntity<Void> completeMilestone(@Parameter @PathVariable("id") @NotNull Long id,
+                                                  @Valid @RequestBody List<UpdateMilestoneResultRequest> request) {
+        milestoneService.completeMilestone(id, request);
         return ResponseEntity.noContent().build();
     }
 

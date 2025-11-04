@@ -7,7 +7,6 @@ import org.bn.sensation.core.common.dto.EmptyDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -27,7 +26,6 @@ public class CreateRoundRequest extends EmptyDto {
 
     @Size(max = 255)
     @Schema(description = "Название раунда", example = "Первый раунд")
-    @NotBlank
     private String name;
 
     @Schema(description = "ID этапа, частью которой является раунд")

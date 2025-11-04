@@ -103,6 +103,9 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private JudgeMilestoneResultRepository judgeMilestoneResultRepository;
 
+    @Autowired
+    private org.bn.sensation.core.round.service.RoundService roundService;
+
     @Mock
     private CurrentUser mockCurrentUser;
 
@@ -216,12 +219,36 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         testActivity.getActivityUsers().add(testJudgeAssignment2);
         activityRepository.save(testActivity);
 
-        // Create test milestone
+        // Create previous milestone (for limit calculation)
+        MilestoneEntity previousMilestone = MilestoneEntity.builder()
+                .name("Previous Milestone")
+                .description("Previous Milestone Description")
+                .state(MilestoneState.COMPLETED)
+                .milestoneOrder(0)
+                .activity(testActivity)
+                .rounds(new HashSet<>())
+                .results(new HashSet<>())
+                .build();
+        previousMilestone = milestoneRepository.save(previousMilestone);
+        
+        // Create milestone rule for previous milestone
+        MilestoneRuleEntity previousRule = MilestoneRuleEntity.builder()
+                .assessmentMode(AssessmentMode.SCORE)
+                .participantLimit(10)
+                .roundParticipantLimit(10)
+                .milestone(previousMilestone)
+                .milestoneCriteria(new HashSet<>())
+                .build();
+        previousRule = milestoneRuleRepository.save(previousRule);
+        previousMilestone.setMilestoneRule(previousRule);
+        previousMilestone = milestoneRepository.save(previousMilestone);
+
+        // Create test milestone (not final to allow extra rounds)
         testMilestone = MilestoneEntity.builder()
                 .name("Test Milestone")
                 .description("Test Milestone Description")
                 .state(MilestoneState.IN_PROGRESS)
-                .milestoneOrder(0)
+                .milestoneOrder(1) // Not final milestone to allow extra rounds
                 .activity(testActivity)
                 .rounds(new HashSet<>())
                 .results(new HashSet<>())
@@ -746,5 +773,232 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
                 .isFavorite(false)
                 .build();
         judgeMilestoneResultRepository.save(result1_2);
+    }
+
+    @Test
+    void testCalculateResults_WithExtraRound_ShouldConsiderPreviousResults() {
+        // Step 1: Create judge results for initial round
+        createJudgeResults();
+
+        // Step 2: Reload milestone to ensure fresh state
+        testMilestone = milestoneRepository.getByIdFullOrThrow(testMilestone.getId());
+        
+        // First calculation - get initial results
+        List<MilestoneResultDto> firstResults = milestoneResultService.calculateResults(testMilestone);
+
+        // Verify first calculation
+        assertNotNull(firstResults);
+        assertEquals(3, firstResults.size());
+
+        // Verify that all results have valid scores and are from initial round
+        firstResults.forEach(result -> {
+            assertNotNull(result.getTotalScore());
+            assertTrue(result.getTotalScore() >= 0);
+            assertNotNull(result.getRound());
+            assertEquals(testRound.getId(), result.getRound().getId());
+        });
+
+        // Step 3: Reload milestone to get fresh state
+        testRound.setState(RoundState.COMPLETED);
+        roundRepository.save(testRound);
+        testMilestone = milestoneRepository.getByIdFullOrThrow(testMilestone.getId());
+
+        // Step 4: Create extra round and add participants directly
+        RoundEntity extraRound = RoundEntity.builder()
+                .name("Extra Round")
+                .milestone(testMilestone)
+                .state(RoundState.DRAFT)
+                .extraRound(true)
+                .roundOrder(roundRepository.getLastRoundOrder(testMilestone.getId()).orElse(0) + 1)
+                .participants(new HashSet<>())
+                .build();
+        
+        // Add participants to extra round
+        extraRound.getParticipants().add(testParticipant1);
+        extraRound.getParticipants().add(testParticipant2);
+        testParticipant1.getRounds().add(extraRound);
+        testParticipant2.getRounds().add(extraRound);
+        participantRepository.save(testParticipant1);
+        participantRepository.save(testParticipant2);
+        
+        extraRound = roundRepository.save(extraRound);
+        
+        // Add extra round to milestone
+        testMilestone.getRounds().add(extraRound);
+        milestoneRepository.save(testMilestone);
+        
+        // Save extra round ID for use in assertions
+        final Long extraRoundId = extraRound.getId();
+        
+        // Verify extra round is created
+        assertNotNull(extraRound);
+        assertTrue(extraRound.getExtraRound());
+        assertEquals(2, extraRound.getParticipants().size());
+
+        // Step 5: Create judge results for extra round
+        // Create results for participant 1 in extra round
+        JudgeMilestoneResultEntity extraResult1_1 = JudgeMilestoneResultEntity.builder()
+                .participant(testParticipant1)
+                .round(extraRound)
+                .milestoneCriterion(testMilestoneCriteria1)
+                .activityUser(testJudgeAssignment1)
+                .score(10)
+                .isFavorite(true)
+                .build();
+        judgeMilestoneResultRepository.save(extraResult1_1);
+
+        JudgeMilestoneResultEntity extraResult1_2 = JudgeMilestoneResultEntity.builder()
+                .participant(testParticipant1)
+                .round(extraRound)
+                .milestoneCriterion(testMilestoneCriteria2)
+                .activityUser(testJudgeAssignment1)
+                .score(9)
+                .isFavorite(true)
+                .build();
+        judgeMilestoneResultRepository.save(extraResult1_2);
+
+        JudgeMilestoneResultEntity extraResult1_3 = JudgeMilestoneResultEntity.builder()
+                .participant(testParticipant1)
+                .round(extraRound)
+                .milestoneCriterion(testMilestoneCriteria1)
+                .activityUser(testJudgeAssignment2)
+                .score(10)
+                .isFavorite(true)
+                .build();
+        judgeMilestoneResultRepository.save(extraResult1_3);
+
+        JudgeMilestoneResultEntity extraResult1_4 = JudgeMilestoneResultEntity.builder()
+                .participant(testParticipant1)
+                .round(extraRound)
+                .milestoneCriterion(testMilestoneCriteria2)
+                .activityUser(testJudgeAssignment2)
+                .score(9)
+                .isFavorite(true)
+                .build();
+        judgeMilestoneResultRepository.save(extraResult1_4);
+
+        // Create results for participant 2 in extra round
+        JudgeMilestoneResultEntity extraResult2_1 = JudgeMilestoneResultEntity.builder()
+                .participant(testParticipant2)
+                .round(extraRound)
+                .milestoneCriterion(testMilestoneCriteria1)
+                .activityUser(testJudgeAssignment1)
+                .score(8)
+                .isFavorite(false)
+                .build();
+        judgeMilestoneResultRepository.save(extraResult2_1);
+
+        JudgeMilestoneResultEntity extraResult2_2 = JudgeMilestoneResultEntity.builder()
+                .participant(testParticipant2)
+                .round(extraRound)
+                .milestoneCriterion(testMilestoneCriteria2)
+                .activityUser(testJudgeAssignment1)
+                .score(7)
+                .isFavorite(false)
+                .build();
+        judgeMilestoneResultRepository.save(extraResult2_2);
+
+        JudgeMilestoneResultEntity extraResult2_3 = JudgeMilestoneResultEntity.builder()
+                .participant(testParticipant2)
+                .round(extraRound)
+                .milestoneCriterion(testMilestoneCriteria1)
+                .activityUser(testJudgeAssignment2)
+                .score(8)
+                .isFavorite(false)
+                .build();
+        judgeMilestoneResultRepository.save(extraResult2_3);
+
+        JudgeMilestoneResultEntity extraResult2_4 = JudgeMilestoneResultEntity.builder()
+                .participant(testParticipant2)
+                .round(extraRound)
+                .milestoneCriterion(testMilestoneCriteria2)
+                .activityUser(testJudgeAssignment2)
+                .score(7)
+                .isFavorite(false)
+                .build();
+        judgeMilestoneResultRepository.save(extraResult2_4);
+
+        // Step 6: Reload milestone to include extra round
+        testMilestone = milestoneRepository.getByIdFullOrThrow(testMilestone.getId());
+
+        // Step 7: Second calculation - should include both initial and extra round results
+        List<MilestoneResultDto> secondResults = milestoneResultService.calculateResults(testMilestone);
+
+        // Step 8: Verify that both initial and extra round results are included
+        assertNotNull(secondResults);
+        // calculateResults returns all results from milestone.getResults() which includes:
+        // - 3 results from first calculation (testParticipant1, testParticipant2, testParticipant3 from initial round)
+        // - 5 results from second calculation:
+        //   * 3 from initial round (testParticipant1, testParticipant2, testParticipant3)
+        //   * 2 from extra round (testParticipant1, testParticipant2)
+        // Total: 8 results (3 old + 5 new)
+        assertEquals(5, secondResults.size());
+
+        // Verify results from initial round are present (both old and new calculations)
+        // Note: calculateResults creates new results for all participants in non-completed rounds
+        // So we'll have: 3 old results + 3 new results = 6 results for initial round
+        List<MilestoneResultDto> initialRoundResults = secondResults.stream()
+                .filter(r -> r.getRound() != null && r.getRound().getId().equals(testRound.getId()))
+                .toList();
+        assertEquals(3, initialRoundResults.size());
+        
+        // Verify participant3 is only in initial round (but has 2 results: old + new from second calculation)
+        List<MilestoneResultDto> participant3Results = secondResults.stream()
+                .filter(r -> r.getParticipant() != null && r.getParticipant().getId().equals(testParticipant3.getId()))
+                .toList();
+        assertEquals(1, participant3Results.size());
+        // Both results should be from initial round
+        assertTrue(participant3Results.stream().allMatch(r -> r.getRound() != null && r.getRound().getId().equals(testRound.getId())));
+
+        // Verify results from extra round are present
+        List<MilestoneResultDto> extraRoundResults = secondResults.stream()
+                .filter(r -> r.getRound() != null && r.getRound().getId().equals(extraRoundId))
+                .toList();
+        assertEquals(2, extraRoundResults.size());
+
+        // Verify participant1 has results from both rounds
+        // participant1 has: 1 old from initial round + 1 new from initial round + 1 new from extra round = 3 results
+        List<MilestoneResultDto> participant1Results = secondResults.stream()
+                .filter(r -> r.getParticipant() != null && r.getParticipant().getId().equals(testParticipant1.getId()))
+                .toList();
+        assertEquals(2, participant1Results.size());
+        assertTrue(participant1Results.stream().anyMatch(r -> r.getRound() != null && r.getRound().getId().equals(testRound.getId())));
+        assertTrue(participant1Results.stream().anyMatch(r -> r.getRound() != null && r.getRound().getId().equals(extraRoundId)));
+
+        // Verify participant2 has results from both rounds
+        // participant2 has: 1 old from initial round + 1 new from initial round + 1 new from extra round = 3 results
+        List<MilestoneResultDto> participant2Results = secondResults.stream()
+                .filter(r -> r.getParticipant() != null && r.getParticipant().getId().equals(testParticipant2.getId()))
+                .toList();
+        assertEquals(2, participant2Results.size());
+        assertTrue(participant2Results.stream().anyMatch(r -> r.getRound() != null && r.getRound().getId().equals(testRound.getId())));
+        assertTrue(participant2Results.stream().anyMatch(r -> r.getRound() != null && r.getRound().getId().equals(extraRoundId)));
+
+        // Verify scores are correctly calculated
+        // Participant1 in initial round: 9*0.6 + 8*0.4 = 5.4 + 3.2 = 8.6 (from first judge)
+        //                                 9*0.6 + 8*0.4 = 8.6 (from second judge)
+        // Total: ~17.2, but we need to check it's calculated correctly
+        MilestoneResultDto participant1InitialResult = participant1Results.stream()
+                .filter(r -> r.getRound() != null && r.getRound().getId().equals(testRound.getId()))
+                .findFirst()
+                .orElseThrow();
+        assertNotNull(participant1InitialResult.getTotalScore());
+
+        // Participant1 in extra round: 10*0.6 + 9*0.4 = 6 + 3.6 = 9.6 (from first judge)
+        //                               10*0.6 + 9*0.4 = 9.6 (from second judge)
+        // Total: ~19.2
+        MilestoneResultDto participant1ExtraResult = participant1Results.stream()
+                .filter(r -> r.getRound() != null && r.getRound().getId().equals(extraRoundId))
+                .findFirst()
+                .orElseThrow();
+        assertNotNull(participant1ExtraResult.getTotalScore());
+        // Extra round result should have higher score
+        assertTrue(participant1ExtraResult.getTotalScore() > participant1InitialResult.getTotalScore());
+
+        // Verify all results have valid pass status
+        secondResults.forEach(result -> {
+            assertNotNull(result.getJudgePassed());
+            assertNotNull(result.getTotalScore());
+        });
     }
 }

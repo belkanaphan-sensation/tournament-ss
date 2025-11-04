@@ -31,6 +31,10 @@ public class CreateMilestoneResultRequest extends EmptyDto {
     private Long participantId;
 
     @NotNull
+    @Schema(description = "ID раунда", example = "1")
+    private Long roundId;
+
+    @NotNull
     @Schema(description = "Прошел участник в следующий этап или нет по результатам оценок")
     private PassStatus judgePassed;
 

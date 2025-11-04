@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
+import org.bn.sensation.core.round.entity.RoundEntity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -30,10 +31,9 @@ public class MilestoneResultEntity extends BaseEntity {
     @JoinColumn(name = "participant_id")
     private ParticipantEntity participant;
 
-//    //TODO не факт что нужно. М.б. убрать
-//    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-//    @JoinColumn(name = "round_id")
-//    private RoundEntity round;
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "round_id")
+    private RoundEntity round;
 
     @Column(name = "judge_passed")
     private PassStatus judgePassed;
