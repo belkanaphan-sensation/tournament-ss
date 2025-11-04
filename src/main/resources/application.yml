@@ -19,7 +19,7 @@ spring:
         # Таймаут блокировки в миллисекундах (10 секунд)
         jdbc.lock_timeout: 10000
   transaction:
-    default-timeout: 30s  # Глобальный таймаут транзакций
+    default-timeout: 600s  # Глобальный таймаут транзакций
   liquibase:
     enabled: true
     change-log: classpath:/db/changelog/db.changelog-master.yaml

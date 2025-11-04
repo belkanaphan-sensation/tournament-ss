@@ -376,7 +376,7 @@ public class MilestoneServiceImpl implements MilestoneService {
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
         log.debug("Найден этап={} для завершения, количество раундов={}", milestoneId, milestone.getRounds().size());
-
+           milestoneResultService.acceptResults(milestone, request);
         milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.COMPLETE);
         log.info("Этап успешно завершен: id={}", milestoneId);
     }

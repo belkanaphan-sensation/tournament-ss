@@ -102,6 +102,7 @@ public class RoundServiceImpl implements RoundService {
         if (round.getExtraRound()) {
             Preconditions.checkArgument(request.getParticipantIds() != null && !request.getParticipantIds().isEmpty(),
                     "Для создания дополнительного раунда требуется список участников");
+            checkParticipants(request.getParticipantIds(), milestone);
         }
         addParticipants(request.getParticipantIds(), milestone, round);
 
@@ -119,6 +120,19 @@ public class RoundServiceImpl implements RoundService {
         return roundDtoMapper.toDto(saved);
     }
 
+    private void checkParticipants(@NotNull List<Long> participantIds, MilestoneEntity milestone) {
+        participantIds.forEach(pId -> {
+            Boolean finallyApproved = Optional.ofNullable(milestone.getResults()
+                    .stream().collect(Collectors.toMap(
+                            res -> res.getParticipant().getId(),
+                            res -> res.getFinallyApproved()))
+                    .get(pId)).orElseThrow(() -> new IllegalArgumentException("Для участника с ID не существует результата этапа %s".formatted(pId)));
+            Preconditions.checkArgument(!Boolean.TRUE.equals(finallyApproved),
+                    "Участник %s прошел в следующий этап по результатам основного раунда и не может быть добавлен в дополнительный"
+                            .formatted(pId));
+        });
+    }
+
     @Override
     @Transactional
     public RoundDto update(Long id, UpdateRoundRequest request) {
@@ -128,6 +142,9 @@ public class RoundServiceImpl implements RoundService {
         }
         updateRoundRequestMapper.updateRoundFromRequest(request, round);
 
+        if (round.getExtraRound() && request.getParticipantIds() != null) {
+            checkParticipants(request.getParticipantIds(), round.getMilestone());
+        }
         addParticipants(request.getParticipantIds(), round.getMilestone(), round);
 
         RoundEntity saved = roundRepository.save(round);

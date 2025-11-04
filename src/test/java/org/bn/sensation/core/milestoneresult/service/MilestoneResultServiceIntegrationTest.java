@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
@@ -35,6 +36,7 @@ import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
 import org.bn.sensation.core.milestonecriterion.repository.MilestoneCriterionRepository;
 import org.bn.sensation.core.milestoneresult.entity.PassStatus;
 import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
+import org.bn.sensation.core.milestoneresult.service.dto.UpdateMilestoneResultRequest;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
@@ -238,6 +240,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
                 .roundParticipantLimit(10)
                 .milestone(previousMilestone)
                 .milestoneCriteria(new HashSet<>())
+                .strictPassMode(false)
                 .build();
         previousRule = milestoneRuleRepository.save(previousRule);
         previousMilestone.setMilestoneRule(previousRule);
@@ -1000,5 +1003,266 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
             assertNotNull(result.getJudgePassed());
             assertNotNull(result.getTotalScore());
         });
+    }
+
+    @Test
+    void testAcceptResults_ShouldUpdateFinallyApproved() {
+        // Given - Create judge results and calculate results
+        createJudgeResults();
+        List<MilestoneResultDto> calculatedResults = milestoneResultService.calculateResults(testMilestone);
+        
+        // Reload milestone to get fresh state
+        testMilestone = milestoneRepository.getByIdFullOrThrow(testMilestone.getId());
+        
+        // Create update requests
+        List<UpdateMilestoneResultRequest> requests = 
+                calculatedResults.stream()
+                        .map(result -> UpdateMilestoneResultRequest.builder()
+                                .id(result.getId())
+                                .finallyApproved(true)
+                                .build())
+                        .collect(Collectors.toList());
+        
+        // When
+        List<MilestoneResultDto> acceptedResults = milestoneResultService.acceptResults(testMilestone, requests);
+        
+        // Then
+        assertNotNull(acceptedResults);
+        assertEquals(calculatedResults.size(), acceptedResults.size());
+        
+        // Verify all results have finallyApproved = true
+        acceptedResults.forEach(result -> {
+            assertTrue(result.getFinallyApproved());
+        });
+        
+        // Verify results are persisted in database
+        testMilestone = milestoneRepository.getByIdFullOrThrow(testMilestone.getId());
+        testMilestone.getResults().forEach(result -> {
+            assertTrue(result.getFinallyApproved());
+        });
+    }
+
+    @Test
+    void testAcceptResults_WithPartialApproval_ShouldUpdateOnlySelected() {
+        // Given - Create judge results and calculate results
+        createJudgeResults();
+        List<MilestoneResultDto> calculatedResults = milestoneResultService.calculateResults(testMilestone);
+        
+        // Reload milestone to get fresh state
+        testMilestone = milestoneRepository.getByIdFullOrThrow(testMilestone.getId());
+        
+        // Create update requests - approve only first two results
+        List<UpdateMilestoneResultRequest> requests = 
+                calculatedResults.stream()
+                        .limit(2)
+                        .map(result -> UpdateMilestoneResultRequest.builder()
+                                .id(result.getId())
+                                .finallyApproved(false)
+                                .build())
+                        .collect(Collectors.toList());
+        
+        // When
+        List<MilestoneResultDto> acceptedResults = milestoneResultService.acceptResults(testMilestone, requests);
+        
+        // Then
+        assertNotNull(acceptedResults);
+        assertEquals(calculatedResults.size(), acceptedResults.size());
+        
+        // Verify first two results have finallyApproved = true
+        List<MilestoneResultDto> notApprovedResults = acceptedResults.stream()
+                .filter(r -> requests.stream().anyMatch(req -> req.getId().equals(r.getId())))
+                .toList();
+        assertEquals(2, notApprovedResults.size());
+        notApprovedResults.forEach(result -> assertFalse(result.getFinallyApproved()));
+        
+        // Verify remaining results have finallyApproved = false (or null)
+        List<MilestoneResultDto> approvedResults = acceptedResults.stream()
+                .filter(r -> requests.stream().noneMatch(req -> req.getId().equals(r.getId())))
+                .toList();
+        assertEquals(1, approvedResults.size());
+        approvedResults.forEach(result -> assertTrue(result.getFinallyApproved()));
+    }
+
+    @Test
+    void testAcceptResults_WithStrictPassMode_WithinLimit_ShouldSucceed() {
+        // Given - Set strict pass mode and limit to 2
+        testMilestoneRule.setStrictPassMode(true);
+        testMilestoneRule.setParticipantLimit(2);
+        milestoneRuleRepository.save(testMilestoneRule);
+        
+        // Create judge results and calculate results
+        createJudgeResults();
+        List<MilestoneResultDto> calculatedResults = milestoneResultService.calculateResults(testMilestone);
+        
+        // Reload milestone to get fresh state
+        testMilestone = milestoneRepository.getByIdFullOrThrow(testMilestone.getId());
+        
+        // Create update requests - approve only 2 results (within limit)
+        List<UpdateMilestoneResultRequest> requests = 
+                calculatedResults.stream()
+                        .limit(2)
+                        .map(result -> UpdateMilestoneResultRequest.builder()
+                                .id(result.getId())
+                                .finallyApproved(false)
+                                .build())
+                        .collect(Collectors.toList());
+        
+        // When & Then - Should not throw exception
+        assertDoesNotThrow(() -> {
+            List<MilestoneResultDto> acceptedResults = milestoneResultService.acceptResults(testMilestone, requests);
+            assertNotNull(acceptedResults);
+            
+            // Verify exactly 2 results are approved
+            long approvedCount = acceptedResults.stream()
+                    .filter(r -> Boolean.TRUE.equals(r.getFinallyApproved()))
+                    .count();
+            assertEquals(1, approvedCount);
+        });
+    }
+
+    @Test
+    void testAcceptResults_WithStrictPassMode_ExceedsLimit_ShouldThrowException() {
+        // Given - Set strict pass mode and limit to 2
+        testMilestoneRule.setStrictPassMode(true);
+        testMilestoneRule.setParticipantLimit(2);
+        milestoneRuleRepository.save(testMilestoneRule);
+        
+        // Create judge results and calculate results
+        createJudgeResults();
+        List<MilestoneResultDto> calculatedResults = milestoneResultService.calculateResults(testMilestone);
+        
+        // Reload milestone to get fresh state
+        testMilestone = milestoneRepository.getByIdFullOrThrow(testMilestone.getId());
+        
+        // Create update requests - approve all 3 results (exceeds limit of 2)
+        List<UpdateMilestoneResultRequest> requests = 
+                calculatedResults.stream()
+                        .map(result -> UpdateMilestoneResultRequest.builder()
+                                .id(result.getId())
+                                .finallyApproved(true)
+                                .build())
+                        .collect(Collectors.toList());
+        
+        // When & Then - Should throw exception
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            milestoneResultService.acceptResults(testMilestone, requests);
+        });
+        
+        assertTrue(exception.getMessage().contains("Количество одобренных участников больше чем требуется"));
+    }
+
+    @Test
+    void testAcceptResults_WithoutStrictPassMode_ExceedsLimit_ShouldSucceed() {
+        // Given - Set strict pass mode to false and limit to 2
+        testMilestoneRule.setStrictPassMode(false);
+        testMilestoneRule.setParticipantLimit(2);
+        milestoneRuleRepository.save(testMilestoneRule);
+        
+        // Create judge results and calculate results
+        createJudgeResults();
+        List<MilestoneResultDto> calculatedResults = milestoneResultService.calculateResults(testMilestone);
+        
+        // Reload milestone to get fresh state
+        testMilestone = milestoneRepository.getByIdFullOrThrow(testMilestone.getId());
+        
+        // Create update requests - approve all 3 results (exceeds limit, but strictPassMode is false)
+        List<UpdateMilestoneResultRequest> requests = 
+                calculatedResults.stream()
+                        .map(result -> UpdateMilestoneResultRequest.builder()
+                                .id(result.getId())
+                                .finallyApproved(true)
+                                .build())
+                        .collect(Collectors.toList());
+        
+        // When & Then - Should not throw exception (no validation when strictPassMode is false)
+        assertDoesNotThrow(() -> {
+            List<MilestoneResultDto> acceptedResults = milestoneResultService.acceptResults(testMilestone, requests);
+            assertNotNull(acceptedResults);
+            
+            // Verify all results are approved
+            long approvedCount = acceptedResults.stream()
+                    .filter(r -> Boolean.TRUE.equals(r.getFinallyApproved()))
+                    .count();
+            assertEquals(3, approvedCount);
+        });
+    }
+
+    @Test
+    void testAcceptResults_WithNonExistentResultId_ShouldThrowException() {
+        // Given - Create judge results and calculate results
+        createJudgeResults();
+        milestoneResultService.calculateResults(testMilestone);
+        
+        // Reload milestone to get fresh state
+        testMilestone = milestoneRepository.getByIdFullOrThrow(testMilestone.getId());
+        
+        // Create update request with non-existent ID
+        List<UpdateMilestoneResultRequest> requests = List.of(
+                UpdateMilestoneResultRequest.builder()
+                        .id(999999L) // Non-existent ID
+                        .finallyApproved(true)
+                        .build()
+        );
+        
+        // When & Then - Should throw exception
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            milestoneResultService.acceptResults(testMilestone, requests);
+        });
+        
+        assertTrue(exception.getMessage().contains("Нет результата с ID: 999999"));
+    }
+
+    @Test
+    void testAcceptResults_WithMixedApproval_ShouldUpdateCorrectly() {
+        // Given - Create judge results and calculate results
+        createJudgeResults();
+        List<MilestoneResultDto> calculatedResults = milestoneResultService.calculateResults(testMilestone);
+        
+        // Reload milestone to get fresh state
+        testMilestone = milestoneRepository.getByIdFullOrThrow(testMilestone.getId());
+        
+        // Create update requests - approve first, reject second, approve third
+        List<UpdateMilestoneResultRequest> requests = List.of(
+                UpdateMilestoneResultRequest.builder()
+                        .id(calculatedResults.get(0).getId())
+                        .finallyApproved(true)
+                        .build(),
+                UpdateMilestoneResultRequest.builder()
+                        .id(calculatedResults.get(1).getId())
+                        .finallyApproved(false)
+                        .build(),
+                UpdateMilestoneResultRequest.builder()
+                        .id(calculatedResults.get(2).getId())
+                        .finallyApproved(true)
+                        .build()
+        );
+        
+        // When
+        List<MilestoneResultDto> acceptedResults = milestoneResultService.acceptResults(testMilestone, requests);
+        
+        // Then
+        assertNotNull(acceptedResults);
+        assertEquals(3, acceptedResults.size());
+        
+        // Verify first result is approved
+        MilestoneResultDto firstResult = acceptedResults.stream()
+                .filter(r -> r.getId().equals(calculatedResults.get(0).getId()))
+                .findFirst()
+                .orElseThrow();
+        assertTrue(firstResult.getFinallyApproved());
+        
+        // Verify second result is not approved
+        MilestoneResultDto secondResult = acceptedResults.stream()
+                .filter(r -> r.getId().equals(calculatedResults.get(1).getId()))
+                .findFirst()
+                .orElseThrow();
+        assertFalse(secondResult.getFinallyApproved());
+        
+        // Verify third result is approved
+        MilestoneResultDto thirdResult = acceptedResults.stream()
+                .filter(r -> r.getId().equals(calculatedResults.get(2).getId()))
+                .findFirst()
+                .orElseThrow();
+        assertTrue(thirdResult.getFinallyApproved());
     }
 }

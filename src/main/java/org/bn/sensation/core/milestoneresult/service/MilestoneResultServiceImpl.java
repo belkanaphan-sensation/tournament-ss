@@ -3,6 +3,7 @@ package org.bn.sensation.core.milestoneresult.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.bn.sensation.core.common.entity.PartnerSide;
@@ -63,6 +64,28 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
     @Override
     public BaseDtoMapper<MilestoneResultEntity, MilestoneResultDto> getMapper() {
         return milestoneResultDtoMapper;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public List<MilestoneResultDto> acceptResults(MilestoneEntity milestone, List<UpdateMilestoneResultRequest> request) {
+        Map<Long, MilestoneResultEntity> resultEntityMap = milestone.getResults().stream()
+                .collect(Collectors.toMap(MilestoneResultEntity::getId, Function.identity()));
+        List<MilestoneResultEntity> toSave = request.stream().map(r -> {
+            MilestoneResultEntity resultEntity = Optional.ofNullable(resultEntityMap.get(r.getId()))
+                    .orElseThrow(() -> new IllegalArgumentException("Нет результата с ID: " + r.getId()));
+            resultEntity.setFinallyApproved(r.getFinallyApproved());
+            return resultEntity;
+        }).toList();
+        if (Boolean.TRUE.equals(milestone.getMilestoneRule().getStrictPassMode())) {
+            Preconditions.checkArgument(milestone.getMilestoneRule().getParticipantLimit().longValue()
+                            >= milestone.getResults().stream()
+                            .filter(res -> res.getFinallyApproved())
+                            .count(),
+                    "Количество одобренных участников больше чем требуется");
+        }
+        milestoneResultRepository.saveAll(toSave);
+        return milestone.getResults().stream().map(milestoneResultDtoMapper::toDto).toList();
     }
 
     @Override

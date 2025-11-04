@@ -1152,7 +1152,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         milestoneRepository.save(milestone);
 
         // When
-        milestoneService.completeMilestone(milestone.getId());
+        milestoneService.completeMilestone(milestone.getId(), List.of());
 
         // Then
         MilestoneEntity savedMilestone = milestoneRepository.findById(milestone.getId()).orElseThrow();
@@ -1171,7 +1171,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         MilestoneEntity milestone = createTestMilestoneWithState("Test Milestone", MilestoneState.SUMMARIZING);
 
         // When
-        milestoneService.completeMilestone(milestone.getId());
+        milestoneService.completeMilestone(milestone.getId(), List.of());
 
         // Then
         MilestoneEntity savedMilestone = milestoneRepository.findById(milestone.getId()).orElseThrow();

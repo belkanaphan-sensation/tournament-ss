@@ -17,4 +17,6 @@ public interface MilestoneResultService extends BaseCrudService<
 
     List<MilestoneResultDto> calculateResults(MilestoneEntity milestone);
 
+    List<MilestoneResultDto> acceptResults(MilestoneEntity milestone, List<UpdateMilestoneResultRequest> request);
+
 }
