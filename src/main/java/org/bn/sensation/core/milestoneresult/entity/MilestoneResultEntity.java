@@ -1,17 +1,16 @@
 package org.bn.sensation.core.milestoneresult.entity;
 
-import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
-import org.bn.sensation.core.round.entity.RoundEntity;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
@@ -31,17 +30,11 @@ public class MilestoneResultEntity extends BaseEntity {
     @JoinColumn(name = "participant_id")
     private ParticipantEntity participant;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "round_id")
-    private RoundEntity round;
-
-    @Column(name = "judge_passed")
-    private PassStatus judgePassed;
-
     @Column(name = "finally_approved")
     private Boolean finallyApproved;
 
-    @Column(name = "total_score")
-    private BigDecimal totalScore;
-
+    @Fetch(FetchMode.JOIN)
+    @OneToMany(mappedBy = "milestoneResult", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.EAGER)
+    @Builder.Default
+    private Set<MilestoneRoundResultEntity> roundResults = new HashSet<>();
 }

@@ -5,9 +5,7 @@ import java.util.List;
 import org.bn.sensation.core.common.service.BaseCrudService;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestoneresult.entity.MilestoneResultEntity;
-import org.bn.sensation.core.milestoneresult.service.dto.CreateMilestoneResultRequest;
-import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
-import org.bn.sensation.core.milestoneresult.service.dto.UpdateMilestoneResultRequest;
+import org.bn.sensation.core.milestoneresult.service.dto.*;
 
 public interface MilestoneResultService extends BaseCrudService<
         MilestoneResultEntity,
@@ -17,6 +15,9 @@ public interface MilestoneResultService extends BaseCrudService<
 
     List<MilestoneResultDto> calculateResults(MilestoneEntity milestone);
 
+    List<MilestoneResultDto> acceptResults(Long milestoneId, List<UpdateMilestoneResultRequest> request);
+
     List<MilestoneResultDto> acceptResults(MilestoneEntity milestone, List<UpdateMilestoneResultRequest> request);
 
+    MilestoneRoundResultDto createMilestoneRoundResult(CreateMilestoneRoundResultRequest request);
 }

@@ -1,10 +1,9 @@
-package org.bn.sensation.core.activityresult.entity;
+package org.bn.sensation.core.milestoneresult.entity;
 
 import java.math.BigDecimal;
 
-import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.entity.BaseEntity;
-import org.bn.sensation.core.participant.entity.ParticipantEntity;
+import org.bn.sensation.core.round.entity.RoundEntity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -14,26 +13,25 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "activity_result")
+@Table(name = "milestone_round_result")
 @Getter
 @Setter
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ActivityResultEntity extends BaseEntity {
+public class MilestoneRoundResultEntity extends BaseEntity {
 
     @Column(name = "total_score")
     private BigDecimal totalScore;
 
-    @Column(name = "place")
-    private Integer place;
+    @Column(name = "judge_passed")
+    private PassStatus judgePassed;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "participant_id")
-    private ParticipantEntity participant;
+    @JoinColumn(name = "round_id")
+    private RoundEntity round;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "activity_id")
-    private ActivityEntity activity;
-
+    @JoinColumn(name = "milestone_result_id")
+    private MilestoneResultEntity milestoneResult;
 }
