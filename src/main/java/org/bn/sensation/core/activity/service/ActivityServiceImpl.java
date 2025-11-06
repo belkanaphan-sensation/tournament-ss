@@ -11,6 +11,9 @@ import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.activity.service.mapper.ActivityDtoMapper;
 import org.bn.sensation.core.activity.service.mapper.CreateActivityRequestMapper;
 import org.bn.sensation.core.activity.service.mapper.UpdateActivityRequestMapper;
+import org.bn.sensation.core.activityresult.ActivityResultService;
+import org.bn.sensation.core.activityresult.service.dto.ActivityResultDto;
+import org.bn.sensation.core.activityresult.service.dto.CreateActivityResultRequest;
 import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
@@ -39,6 +42,7 @@ public class ActivityServiceImpl implements ActivityService {
 
     private final ActivityRepository activityRepository;
     private final ActivityDtoMapper activityDtoMapper;
+    private final ActivityResultService activityResultService;
     private final CreateActivityRequestMapper createActivityRequestMapper;
     private final UpdateActivityRequestMapper updateActivityRequestMapper;
     private final OccasionRepository occasionRepository;
@@ -85,7 +89,7 @@ public class ActivityServiceImpl implements ActivityService {
 
         Preconditions.checkArgument(id != null, "ID мероприятия не может быть null");
         List<ActivityDto> result = activityRepository.findByOccasionIdAndUserIdAndStateIn(
-                id, currentUser.getSecurityUser().getId(), ActivityState.LIFE_ACTIVITY_STATES).stream()
+                        id, currentUser.getSecurityUser().getId(), ActivityState.LIFE_ACTIVITY_STATES).stream()
                 .map(this::enrichActivityDtoWithStatistics)
                 .toList();
 
@@ -220,6 +224,15 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     @Transactional
+    public void closeRegistrationToActivity(Long id) {
+        log.info("Закрытие регистрации в активность: id={}", id);
+        ActivityEntity activity = activityRepository.getByIdOrThrow(id);
+        activityStateMachineService.sendEvent(activity, ActivityEvent.CLOSE_REGISTRATION);
+        log.info("Регистрация в активность закрыта: id={}", id);
+    }
+
+    @Override
+    @Transactional
     public void startActivity(Long id) {
         log.info("Запуск активности: id={}", id);
         ActivityEntity activity = activityRepository.getByIdOrThrow(id);
@@ -229,11 +242,13 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     @Transactional
-    public void closeRegistrationToActivity(Long id) {
-        log.info("Закрытие регистрации в активность: id={}", id);
+    public List<ActivityResultDto> sumUpActivity(Long id, List<CreateActivityResultRequest> request) {
+        log.info("Подведение итогов активности: id={}", id);
         ActivityEntity activity = activityRepository.getByIdOrThrow(id);
-        activityStateMachineService.sendEvent(activity, ActivityEvent.CLOSE_REGISTRATION);
-        log.info("Регистрация в активность закрыта: id={}", id);
+        List<ActivityResultDto> activityResults = activityResultService.createActivityResults(activity, request);
+        activityStateMachineService.sendEvent(activity, ActivityEvent.SUM_UP);
+        log.info("Подведение итогов активности окончено: id={}", id);
+        return activityResults;
     }
 
     @Override

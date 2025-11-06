@@ -24,7 +24,6 @@ import lombok.experimental.SuperBuilder;
 @Schema(description = "Запрос на создание результата этапа")
 public class CreateMilestoneResultRequest extends EmptyDto {
 
-    @NotNull
     @Schema(description = "ID этапа", example = "1")
     private Long milestoneId;
 

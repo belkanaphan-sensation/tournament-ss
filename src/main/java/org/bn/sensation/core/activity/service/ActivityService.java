@@ -6,8 +6,11 @@ import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.service.dto.ActivityDto;
 import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
+import org.bn.sensation.core.activityresult.service.dto.ActivityResultDto;
+import org.bn.sensation.core.activityresult.service.dto.CreateActivityResultRequest;
 import org.bn.sensation.core.common.service.BaseCrudService;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 public interface ActivityService extends BaseCrudService<
@@ -29,4 +32,6 @@ public interface ActivityService extends BaseCrudService<
     void closeRegistrationToActivity(Long id);
 
     void completeActivity(Long id);
+
+    List<ActivityResultDto> sumUpActivity(@NotNull Long id, @Valid List<CreateActivityResultRequest> request);
 }

@@ -1,7 +1,5 @@
 package org.bn.sensation.core.activityresult.entity;
 
-import java.math.BigDecimal;
-
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.entity.BaseEntity;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
@@ -21,9 +19,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ActivityResultEntity extends BaseEntity {
-
-    @Column(name = "total_score")
-    private BigDecimal totalScore;
 
     @Column(name = "place")
     private Integer place;

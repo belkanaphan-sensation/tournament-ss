@@ -10,7 +10,6 @@ databaseChangeLog:
             sql: |
               CREATE TABLE IF NOT EXISTS activity_result (
                 id BIGSERIAL PRIMARY KEY,
-                total_score DECIMAL(10,2) NOT NULL,
                 place INTEGER,
                 participant_id BIGINT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

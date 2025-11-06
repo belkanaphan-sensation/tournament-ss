@@ -47,22 +47,10 @@ databaseChangeLog:
             sql: |
               INSERT INTO activity (name, description, state, start_date_time, end_date_time, country, city, street_name, street_number, comment, occasion_id, created_at, created_by, modified_at, modified_by) VALUES
               ('Соревнования категории Любители', 'Формат соревнований Jack & Jill', 'IN_PROGRESS', '2025-11-01 09:00:00', '2025-11-03 18:00:00', 'Казахстан', 'Алматы', 'ул. Танцевальная', '15', 'Школа для всех уровней подготовки', (SELECT id FROM occasion WHERE name = 'Sensation J&J'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
-  # Test data for milestone rules (3 rules for school stages)
-  - changeSet:
-      id: 2025-10-08-6
-      author: system
-      context: test_data
-      changes:
-        - sql:
-            sql: |
-              INSERT INTO milestone_rule (assessment_mode, participant_limit, round_participant_limit, milestone_id, created_at, created_by, modified_at, modified_by) VALUES
-              ('SCORE', 25, 10, (SELECT id FROM milestone WHERE name = 'Этап 1 - Отборочный'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('SCORE', 15, 10, (SELECT id FROM milestone WHERE name = 'Этап 2 - Полуфинал'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('SCORE', 10, 10, (SELECT id FROM milestone WHERE name = 'Этап 3 - Финал'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
 
   # Test data for judges
   - changeSet:
-      id: 2025-10-08-7
+      id: 2025-10-08-5
       author: system
       context: test_data
       changes:
@@ -79,7 +67,7 @@ databaseChangeLog:
 
   # Test data for judge roles
   - changeSet:
-      id: 2025-10-08-8
+      id: 2025-10-08-6
       author: system
       context: test_data
       changes:
@@ -91,6 +79,37 @@ databaseChangeLog:
               ((SELECT id FROM users WHERE username = 'kevin'), 'USER'),
               ((SELECT id FROM users WHERE username = 'polina'), 'USER'),
               ((SELECT id FROM users WHERE username = 'masha'), 'USER');
+
+  # Test data for activity_user (judges for school activity)
+  - changeSet:
+      id: 2025-10-08-7
+      author: system
+      context: test_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO activity_user (user_id, activity_id, position, partner_side, created_at, created_by, modified_at, modified_by) VALUES
+              -- Судьи для лидеров
+              ((SELECT id FROM users WHERE username = 'kevin'), (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 'JUDGE_CHIEF', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM users WHERE username = 'bogdan'), (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 'JUDGE', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              
+              -- Судьи для фоловеров
+              ((SELECT id FROM users WHERE username = 'polina'), (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 'JUDGE_CHIEF', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM users WHERE username = 'masha'), (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
+
+  # Test data for users_organizations_association (judges to organization)
+  - changeSet:
+      id: 2025-10-08-8
+      author: system
+      context: test_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO users_organizations_association (user_id, organization_id) VALUES
+              ((SELECT id FROM users WHERE username = 'kevin'), 1),
+              ((SELECT id FROM users WHERE username = 'bogdan'), 1),
+              ((SELECT id FROM users WHERE username = 'polina'), 1),
+              ((SELECT id FROM users WHERE username = 'masha'), 1);
 
   # Test data for participants for "Школа" activity (25 participants: 13 leaders + 12 followers)
   - changeSet:
@@ -136,9 +155,9 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO milestone (name, description, state, activity_id, milestone_order, created_at, created_by, modified_at, modified_by) VALUES
-              ('Отборочный', 'Первый отборочный этап категории Любители', 'IN_PROGRESS', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('Полуфинал', 'Полуфинальный этап категории Любители', 'IN_PROGRESS', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('Финал', 'Финальный этап категории Любители', 'IN_PROGRESS', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
+              ('Отборочный', 'Первый отборочный этап категории Любители', 'PLANNED', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('Полуфинал', 'Полуфинальный этап категории Любители', 'PLANNED', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('Финал', 'Финальный этап категории Любители', 'PLANNED', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
 
   # Test data for milestone rules
   - changeSet:
@@ -149,9 +168,9 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO milestone_rule (assessment_mode, participant_limit, round_participant_limit, milestone_id, created_at, created_by, modified_at, modified_by) VALUES
-              ('SCORE', 20, 10, (SELECT id FROM milestone WHERE name = 'Отборочный'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('PASS', 20, 7, (SELECT id FROM milestone WHERE name = 'Отборочный'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('SCORE', 10, 10, (SELECT id FROM milestone WHERE name = 'Полуфинал'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('SCORE', 5, 5, (SELECT id FROM milestone WHERE name = 'Финал'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
+              ('PLACE', 5, 5, (SELECT id FROM milestone WHERE name = 'Финал'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
 
   # Test data for criterion assignments
   - changeSet:
@@ -165,208 +184,14 @@ databaseChangeLog:
               -- Этап 1: 1 критерий по шкале 0-1
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Отборочный')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               
-              -- Этап 2: 1 критерий по шкале 0-1
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- Этап 2: 4 критерий по шкале 1-10
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 4.0, 10, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 3.0, 10, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 10, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 10, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               
-              -- Этап 3: 3 критерия по шкале 12 (финал)
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- Этап 3: 4 критерия по шкале 1-5 (места)
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
-
-  # Test data for rounds
-  - changeSet:
-      id: 2025-10-08-13
-      author: system
-      context: test_data
-      changes:
-        - sql:
-            sql: |
-              INSERT INTO round (name, state, milestone_id, extra_round, round_order, created_at, created_by, modified_at, modified_by) VALUES
-              -- Этап 1: 5 раундов
-              ('Раунд 1', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Отборочный'), false, 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('Раунд 2', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Отборочный'), false, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              
-              -- Этап 2: 3 раунда
-              ('Раунд 1', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Полуфинал'), false, 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('Раунд 2', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Полуфинал'), false, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              
-              -- Этап 3: 2 раунда
-              ('Раунд 1', 'IN_PROGRESS', (SELECT id FROM milestone WHERE name = 'Финал'), false, 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
-
-  # Test data for milestones_participants_association with progressive selection
-  - changeSet:
-      id: 2025-10-08-14
-      author: system
-      context: test_data
-      changes:
-        - sql:
-            sql: |
-              INSERT INTO milestones_participants_association (participant_id, milestone_id) VALUES
-              -- Раунд 1.1: 5 пар
-              ((SELECT id FROM participant WHERE number = '001-L'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '002-L'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '003-L'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '004-L'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '005-L'), (select id from milestone where name = 'Отборочный')),
-
-              ((SELECT id FROM participant WHERE number = '001-F'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '002-F'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '003-F'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '004-F'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '005-F'), (select id from milestone where name = 'Отборочный')),
-              
-              -- Раунд 2: 5 пар на оценку и 2 парнерши с ассистентами
-              ((SELECT id FROM participant WHERE number = '006-L'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '007-L'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '008-L'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '009-L'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '010-L'), (select id from milestone where name = 'Отборочный')),
-              
-              ((SELECT id FROM participant WHERE number = '006-F'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '007-F'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '008-F'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '009-F'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '010-F'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '011-F'), (select id from milestone where name = 'Отборочный')),
-              ((SELECT id FROM participant WHERE number = '012-F'), (select id from milestone where name = 'Отборочный')),
-
-              ((SELECT id FROM participant WHERE number = '001-L'), (select id from milestone where name = 'Финал')),
-              ((SELECT id FROM participant WHERE number = '002-L'), (select id from milestone where name = 'Финал')),
-              ((SELECT id FROM participant WHERE number = '003-L'), (select id from milestone where name = 'Финал')),
-              ((SELECT id FROM participant WHERE number = '004-L'), (select id from milestone where name = 'Финал')),
-              ((SELECT id FROM participant WHERE number = '005-L'), (select id from milestone where name = 'Финал')),
-
-              ((SELECT id FROM participant WHERE number = '001-F'), (select id from milestone where name = 'Финал')),
-              ((SELECT id FROM participant WHERE number = '002-F'), (select id from milestone where name = 'Финал')),
-              ((SELECT id FROM participant WHERE number = '003-F'), (select id from milestone where name = 'Финал')),
-              ((SELECT id FROM participant WHERE number = '004-F'), (select id from milestone where name = 'Финал')),
-              ((SELECT id FROM participant WHERE number = '005-F'), (select id from milestone where name = 'Финал'));
-
-
-  # Test data for rounds_participants_association with progressive selection
-  - changeSet:
-      id: 2025-10-08-15
-      author: system
-      context: test_data
-      changes:
-        - sql:
-            sql: |
-              INSERT INTO rounds_participants_association (participant_id, round_id) VALUES
-              -- Раунд 1.1: 5 пар
-              ((SELECT id FROM participant WHERE number = '001-L'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '002-L'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '003-L'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '004-L'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '005-L'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-
-              ((SELECT id FROM participant WHERE number = '001-F'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '002-F'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '003-F'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '004-F'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '005-F'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              
-              -- Раунд 2: 5 пар на оценку и 2 парнерши с ассистентами
-              ((SELECT id FROM participant WHERE number = '006-L'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '007-L'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '008-L'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '009-L'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '010-L'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              
-              ((SELECT id FROM participant WHERE number = '006-F'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '007-F'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '008-F'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '009-F'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '010-F'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '011-F'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-              ((SELECT id FROM participant WHERE number = '012-F'), (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный'))),
-
-              ((SELECT id FROM participant WHERE number = '001-L'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Финал'))),
-              ((SELECT id FROM participant WHERE number = '002-L'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Финал'))),
-              ((SELECT id FROM participant WHERE number = '003-L'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Финал'))),
-              ((SELECT id FROM participant WHERE number = '004-L'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Финал'))),
-              ((SELECT id FROM participant WHERE number = '005-L'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Финал'))),
-
-              ((SELECT id FROM participant WHERE number = '001-F'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Финал'))),
-              ((SELECT id FROM participant WHERE number = '002-F'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Финал'))),
-              ((SELECT id FROM participant WHERE number = '003-F'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Финал'))),
-              ((SELECT id FROM participant WHERE number = '004-F'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Финал'))),
-              ((SELECT id FROM participant WHERE number = '005-F'), (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Финал')));
-
-  # Test data for activity_user (judges for school activity)
-  - changeSet:
-      id: 2025-10-08-16
-      author: system
-      context: test_data
-      changes:
-        - sql:
-            sql: |
-              INSERT INTO activity_user (user_id, activity_id, position, partner_side, created_at, created_by, modified_at, modified_by) VALUES
-              -- Судьи для лидеров
-              ((SELECT id FROM users WHERE username = 'kevin'), (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 'JUDGE_CHIEF', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM users WHERE username = 'bogdan'), (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 'JUDGE', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              
-              -- Судьи для фоловеров
-              ((SELECT id FROM users WHERE username = 'polina'), (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 'JUDGE_CHIEF', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM users WHERE username = 'masha'), (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
-
-  # Test data for users_organizations_association (judges to organization)
-  - changeSet:
-      id: 2025-10-08-17
-      author: system
-      context: test_data
-      changes:
-        - sql:
-            sql: |
-              INSERT INTO users_organizations_association (user_id, organization_id) VALUES
-              ((SELECT id FROM users WHERE username = 'kevin'), 1),
-              ((SELECT id FROM users WHERE username = 'bogdan'), 1),
-              ((SELECT id FROM users WHERE username = 'polina'), 1),
-              ((SELECT id FROM users WHERE username = 'masha'), 1);
-
-    # Test data for judge_round_status
-  - changeSet:
-      id: 2025-10-08-18
-      author: system
-      context: test_data
-      changes:
-        - sql:
-            sql: |
-              INSERT INTO judge_round_status (judge_id, round_id, status) VALUES
-              ((SELECT id FROM activity_user WHERE user_id = (select id from users where username = 'kevin') 
-                  and activity_id = (select a.id from activity a where a.name = 'Соревнования категории Любители')), 
-               (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный')), 'NOT_READY'),
-              ((SELECT id FROM activity_user WHERE user_id = (select id from users where username = 'kevin') 
-                  and activity_id = (select a.id from activity a where a.name = 'Соревнования категории Любители')), 
-               (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный')), 'NOT_READY'),
-              ((SELECT id FROM activity_user WHERE user_id = (select id from users where username = 'bogdan') 
-                  and activity_id = (select a.id from activity a where a.name = 'Соревнования категории Любители')), 
-               (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный')), 'NOT_READY'),
-              ((SELECT id FROM activity_user WHERE user_id = (select id from users where username = 'bogdan') 
-                  and activity_id = (select a.id from activity a where a.name = 'Соревнования категории Любители')), 
-               (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный')), 'NOT_READY'),
-              ((SELECT id FROM activity_user WHERE user_id = (select id from users where username = 'polina') 
-                  and activity_id = (select a.id from activity a where a.name = 'Соревнования категории Любители')), 
-               (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный')), 'NOT_READY'),
-              ((SELECT id FROM activity_user WHERE user_id = (select id from users where username = 'polina') 
-                  and activity_id = (select a.id from activity a where a.name = 'Соревнования категории Любители')), 
-               (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный')), 'NOT_READY'),
-              ((SELECT id FROM activity_user WHERE user_id = (select id from users where username = 'masha') 
-                  and activity_id = (select a.id from activity a where a.name = 'Соревнования категории Любители')), 
-               (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Отборочный')), 'NOT_READY'),
-              ((SELECT id FROM activity_user WHERE user_id = (select id from users where username = 'masha') 
-                  and activity_id = (select a.id from activity a where a.name = 'Соревнования категории Любители')), 
-               (SELECT id FROM round WHERE name = 'Раунд 2' and milestone_id = (select id from milestone where name = 'Отборочный')), 'NOT_READY'),
-
-              ((SELECT id FROM activity_user WHERE user_id = (select id from users where username = 'kevin') 
-                  and activity_id = (select a.id from activity a where a.name = 'Соревнования категории Любители')), 
-               (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Финал')), 'NOT_READY'),
-              ((SELECT id FROM activity_user WHERE user_id = (select id from users where username = 'bogdan') 
-                  and activity_id = (select a.id from activity a where a.name = 'Соревнования категории Любители')), 
-               (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Финал')), 'NOT_READY'),
-              ((SELECT id FROM activity_user WHERE user_id = (select id from users where username = 'polina') 
-                  and activity_id = (select a.id from activity a where a.name = 'Соревнования категории Любители')), 
-               (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Финал')), 'NOT_READY'),
-              ((SELECT id FROM activity_user WHERE user_id = (select id from users where username = 'masha') 
-                  and activity_id = (select a.id from activity a where a.name = 'Соревнования категории Любители')), 
-               (SELECT id FROM round WHERE name = 'Раунд 1' and milestone_id = (select id from milestone where name = 'Финал')), 'NOT_READY');

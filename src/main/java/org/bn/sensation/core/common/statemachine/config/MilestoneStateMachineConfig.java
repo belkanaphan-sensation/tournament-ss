@@ -4,7 +4,6 @@ import java.util.EnumSet;
 
 import org.bn.sensation.core.common.statemachine.action.MilestoneAction;
 import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
-import org.bn.sensation.core.common.statemachine.guard.MilestoneGuard;
 import org.bn.sensation.core.common.statemachine.listener.MilestoneStateMachineListener;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MilestoneStateMachineConfig extends EnumStateMachineConfigurerAdapter<MilestoneState, MilestoneEvent> {
 
-    private final MilestoneGuard milestoneGuard;
     private final MilestoneAction milestoneAction;
     private final MilestoneStateMachineListener milestoneStateMachineListener;
 

@@ -22,10 +22,10 @@ import lombok.experimental.SuperBuilder;
 public class ActivityResultDto extends BaseDto {
 
     @Schema(description = "Участник")
-    private EntityLinkDto participant;
+    private EntityLinkDto activity;
 
-    @Schema(description = "Суммарный балл активности для участника", example = "5")
-    private Integer scoreSum;
+    @Schema(description = "Участник")
+    private EntityLinkDto participant;
 
     @Schema(description = "Место, который занял участник в активности", example = "1")
     private Integer place;

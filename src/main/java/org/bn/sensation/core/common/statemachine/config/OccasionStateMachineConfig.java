@@ -4,7 +4,6 @@ import java.util.EnumSet;
 
 import org.bn.sensation.core.common.statemachine.action.OccasionAction;
 import org.bn.sensation.core.common.statemachine.event.OccasionEvent;
-import org.bn.sensation.core.common.statemachine.guard.OccasionGuard;
 import org.bn.sensation.core.common.statemachine.listener.OccasionStateMachineListener;
 import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class OccasionStateMachineConfig extends EnumStateMachineConfigurerAdapter<OccasionState, OccasionEvent> {
 
-    private final OccasionGuard occasionGuard;
     private final OccasionAction occasionAction;
     private final OccasionStateMachineListener occasionStateMachineListener;
 
@@ -49,7 +47,6 @@ public class OccasionStateMachineConfig extends EnumStateMachineConfigurerAdapte
                 .source(OccasionState.DRAFT)
                 .target(OccasionState.PLANNED)
                 .event(OccasionEvent.PLAN)
-                .guard(occasionGuard)
                 .action(occasionAction)
                 .and()
             // PLANNED -> IN_PROGRESS
@@ -57,7 +54,6 @@ public class OccasionStateMachineConfig extends EnumStateMachineConfigurerAdapte
                 .source(OccasionState.PLANNED)
                 .target(OccasionState.IN_PROGRESS)
                 .event(OccasionEvent.START)
-                .guard(occasionGuard)
                 .action(occasionAction)
                 .and()
             // IN_PROGRESS -> COMPLETED
@@ -65,7 +61,6 @@ public class OccasionStateMachineConfig extends EnumStateMachineConfigurerAdapte
                 .source(OccasionState.IN_PROGRESS)
                 .target(OccasionState.COMPLETED)
                 .event(OccasionEvent.COMPLETE)
-                .guard(occasionGuard)
                 .action(occasionAction);
     }
 }

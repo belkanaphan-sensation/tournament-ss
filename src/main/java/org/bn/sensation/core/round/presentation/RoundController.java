@@ -88,7 +88,7 @@ public class RoundController {
     @Operation(summary = "Перевести раунд обратно в черновик",
             description = "доступно для администратора. " +
                     "Переводит все статусы раунда и этапа в NOT_READY")
-    @GetMapping(path = "/draft/{id}")
+    @PostMapping(path = "/draft/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> draftRound(@Parameter @PathVariable("id") @NotNull Long id) {
         roundService.draftRound(id);
@@ -97,7 +97,7 @@ public class RoundController {
 
     @Operation(summary = "Запланировать раунд по ID",
             description = "Запланировать раунд может администратор")
-    @GetMapping(path = "/plan/{id}")
+    @PostMapping(path = "/plan/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> planRound(@Parameter @PathVariable("id") @NotNull Long id) {
         roundService.planRound(id);
@@ -106,7 +106,7 @@ public class RoundController {
 
     @Operation(summary = "Начать раунд по ID",
             description = "Начать раунд может администратор")
-    @GetMapping(path = "/start/{id}")
+    @PostMapping(path = "/start/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> startRound(@Parameter @PathVariable("id") @NotNull Long id) {
         roundService.startRound(id);
@@ -115,7 +115,7 @@ public class RoundController {
 
     @Operation(summary = "Завершить раунд по ID",
             description = "Завершить раунд может администратор")
-    @GetMapping(path = "/complete/{id}")
+    @PostMapping(path = "/complete/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> completeRound(@Parameter @PathVariable("id") @NotNull Long id) {
         roundService.completeRound(id);

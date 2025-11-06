@@ -10,6 +10,7 @@ public enum ActivityState implements BaseState {
     PLANNED,
     REGISTRATION_CLOSED,
     IN_PROGRESS,
+    SUMMARIZING,
     COMPLETED;
 
     public static List<ActivityState> LIFE_ACTIVITY_STATES = Arrays.stream(ActivityState.values())

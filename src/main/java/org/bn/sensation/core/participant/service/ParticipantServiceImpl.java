@@ -182,7 +182,8 @@ public class ParticipantServiceImpl implements ParticipantService {
         Preconditions.checkArgument(assignedRounds.isEmpty(), "Сначала отвяжите участника от раундов этапа: %s", assignedRounds);
 
         Preconditions.checkState(!Set.of(MilestoneState.SUMMARIZING, MilestoneState.COMPLETED).contains(milestone.getState()),
-                "Нельзя отвязать участника от этапа т.к. этап в состоянии %s", milestone.getState());        participant.getMilestones().remove(milestone);
+                "Нельзя отвязать участника от этапа т.к. этап в состоянии %s", milestone.getState());
+        participant.getMilestones().remove(milestone);
         participantRepository.save(participant);
         return participantDtoMapper.toDto(participant);
     }

@@ -4,7 +4,6 @@ import java.util.EnumSet;
 
 import org.bn.sensation.core.common.statemachine.action.ActivityAction;
 import org.bn.sensation.core.common.statemachine.event.ActivityEvent;
-import org.bn.sensation.core.common.statemachine.guard.ActivityGuard;
 import org.bn.sensation.core.common.statemachine.listener.ActivityStateMachineListener;
 import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ActivityStateMachineConfig extends EnumStateMachineConfigurerAdapter<ActivityState, ActivityEvent> {
 
-    private final ActivityGuard activityGuard;
     private final ActivityAction activityAction;
     private final ActivityStateMachineListener activityStateMachineListener;
 
@@ -49,7 +47,6 @@ public class ActivityStateMachineConfig extends EnumStateMachineConfigurerAdapte
                 .source(ActivityState.DRAFT)
                 .target(ActivityState.PLANNED)
                 .event(ActivityEvent.PLAN)
-                .guard(activityGuard)
                 .action(activityAction)
                 .and()
                 // PLANNED -> DRAFT
@@ -57,7 +54,6 @@ public class ActivityStateMachineConfig extends EnumStateMachineConfigurerAdapte
                 .source(ActivityState.PLANNED)
                 .target(ActivityState.DRAFT)
                 .event(ActivityEvent.DRAFT)
-                .guard(activityGuard)
                 .action(activityAction)
                 .and()
                 // PLANNED -> REGISTRATION_CLOSED
@@ -65,7 +61,6 @@ public class ActivityStateMachineConfig extends EnumStateMachineConfigurerAdapte
                 .source(ActivityState.PLANNED)
                 .target(ActivityState.REGISTRATION_CLOSED)
                 .event(ActivityEvent.CLOSE_REGISTRATION)
-                .guard(activityGuard)
                 .action(activityAction)
                 .and()
                 // REGISTRATION_CLOSED -> IN_PROGRESS
@@ -73,15 +68,20 @@ public class ActivityStateMachineConfig extends EnumStateMachineConfigurerAdapte
                 .source(ActivityState.REGISTRATION_CLOSED)
                 .target(ActivityState.IN_PROGRESS)
                 .event(ActivityEvent.START)
-                .guard(activityGuard)
                 .action(activityAction)
                 .and()
-                // IN_PROGRESS -> COMPLETED
+                // IN_PROGRESS -> SUMMARIZING
                 .withExternal()
                 .source(ActivityState.IN_PROGRESS)
+                .target(ActivityState.SUMMARIZING)
+                .event(ActivityEvent.SUM_UP)
+                .action(activityAction)
+                .and()
+                // SUMMARIZING -> COMPLETED
+                .withExternal()
+                .source(ActivityState.SUMMARIZING)
                 .target(ActivityState.COMPLETED)
                 .event(ActivityEvent.COMPLETE)
-                .guard(activityGuard)
                 .action(activityAction);
     }
 }

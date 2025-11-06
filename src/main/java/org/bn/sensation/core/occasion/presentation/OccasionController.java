@@ -86,7 +86,7 @@ public class OccasionController {
 
     @Operation(summary = "Запланировать мероприятие по ID",
             description = "Запланировать мероприятие может администратор")
-    @GetMapping(path = "/plan/{id}")
+    @PostMapping(path = "/plan/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> planOccasion(@Parameter @PathVariable("id") @NotNull Long id) {
         occasionService.planOccasion(id);
@@ -95,7 +95,7 @@ public class OccasionController {
 
     @Operation(summary = "Начать мероприятие по ID",
             description = "Начать мероприятие может администратор")
-    @GetMapping(path = "/start/{id}")
+    @PostMapping(path = "/start/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> startOccasion(@Parameter @PathVariable("id") @NotNull Long id) {
         occasionService.startOccasion(id);
@@ -104,7 +104,7 @@ public class OccasionController {
 
     @Operation(summary = "Завершить мероприятие по ID",
             description = "Завершить мероприятие может администратор")
-    @GetMapping(path = "/complete/{id}")
+    @PostMapping(path = "/complete/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> completeOccasion(@Parameter @PathVariable("id") @NotNull Long id) {
         occasionService.completeOccasion(id);
