@@ -35,7 +35,7 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO occasion (name, description, state, start_date, end_date, organization_id, created_at, created_by, modified_at, modified_by) VALUES
-              ('Sensation J&J', 'Ежегодное соревнования в рамках фестиваля SBF', 'IN_PROGRESS', '2025-11-01', '2025-11-03', (SELECT id FROM organization WHERE name = 'Sense Samara'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
+              ('Sensation J&J', 'Ежегодное соревнования в рамках фестиваля SBF', 'DRAFT', '2025-11-01', '2025-11-03', (SELECT id FROM organization WHERE name = 'Sense Samara'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
 
   # Test data for activity
   - changeSet:
@@ -46,7 +46,7 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO activity (name, description, state, start_date_time, end_date_time, country, city, street_name, street_number, comment, occasion_id, created_at, created_by, modified_at, modified_by) VALUES
-              ('Соревнования категории Любители', 'Формат соревнований Jack & Jill', 'IN_PROGRESS', '2025-11-01 09:00:00', '2025-11-03 18:00:00', 'Казахстан', 'Алматы', 'ул. Танцевальная', '15', 'Школа для всех уровней подготовки', (SELECT id FROM occasion WHERE name = 'Sensation J&J'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
+              ('Соревнования категории Любители', 'Формат соревнований Jack & Jill', 'DRAFT', '2025-11-01 09:00:00', '2025-11-03 18:00:00', 'Казахстан', 'Алматы', 'ул. Танцевальная', '15', 'Школа для всех уровней подготовки', (SELECT id FROM occasion WHERE name = 'Sensation J&J'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
 
   # Test data for judges
   - changeSet:
@@ -155,9 +155,9 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO milestone (name, description, state, activity_id, milestone_order, created_at, created_by, modified_at, modified_by) VALUES
-              ('Отборочный', 'Первый отборочный этап категории Любители', 'PLANNED', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('Полуфинал', 'Полуфинальный этап категории Любители', 'PLANNED', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('Финал', 'Финальный этап категории Любители', 'PLANNED', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
+              ('Отборочный', 'Первый отборочный этап категории Любители', 'DRAFT', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('Полуфинал', 'Полуфинальный этап категории Любители', 'DRAFT', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('Финал', 'Финальный этап категории Любители', 'DRAFT', (SELECT id FROM activity WHERE name = 'Соревнования категории Любители'), 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
 
   # Test data for milestone rules
   - changeSet:
