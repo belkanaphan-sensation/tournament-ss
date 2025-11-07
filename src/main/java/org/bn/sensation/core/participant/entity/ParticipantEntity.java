@@ -26,6 +26,9 @@ public class ParticipantEntity extends BaseEntity {
     @Embedded
     private Person person;
 
+    @Column(name = "school")
+    private String school;
+
     // Номер который присваивается например на джеке или еще где-то
     @Column(name = "number")
     private String number;

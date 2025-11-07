@@ -12,11 +12,13 @@ databaseChangeLog:
                 id BIGSERIAL PRIMARY KEY,
                 place INTEGER,
                 participant_id BIGINT NOT NULL,
+                activity_id BIGINT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 modified_by VARCHAR(255),
-                FOREIGN KEY (participant_id) REFERENCES participant(id) ON DELETE CASCADE
+                FOREIGN KEY (participant_id) REFERENCES participant(id) ON DELETE CASCADE,
+                FOREIGN KEY (activity_id) REFERENCES activity(id) ON DELETE CASCADE
               );
       rollback:
         - sql:
