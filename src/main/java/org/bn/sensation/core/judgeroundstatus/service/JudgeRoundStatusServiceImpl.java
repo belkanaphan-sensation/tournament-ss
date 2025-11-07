@@ -83,6 +83,14 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
                 .toList();
     }
 
+    @Override
+    public List<JudgeRoundStatusDto> getByRoundId(Long roundId) {
+        return judgeRoundStatusRepository.findByRoundId(roundId)
+                .stream()
+                .map(judgeRoundStatusDtoMapper::toDto)
+                .toList();
+    }
+
     private ActivityUserEntity getActivityUser(MilestoneEntity milestone, Long userId) {
         return ActivityUserUtil.getFromActivity(
                 milestone.getActivity(), userId, ua ->

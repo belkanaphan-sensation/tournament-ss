@@ -50,6 +50,14 @@ public class JudgeRoundStatusController {
         return ResponseEntity.ok(judgeRoundStatusService.getRoundStatusForCurrentUser(roundId));
     }
 
+    @Operation(summary = "Получить статусы раунда по судьям",
+            description = "Получить статусы раунда по судьям")
+    @GetMapping(path = "/round/{roundId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN')")
+    public ResponseEntity<List<JudgeRoundStatusDto>> getByRoundId(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
+        return ResponseEntity.ok(judgeRoundStatusService.getByRoundId(roundId));
+    }
+
     @Operation(summary = "Получить статусы всех раундов текущего пользователя по id этапа",
             description = "Получить статусы всех раундов текущего пользователя по id этапа")
     @GetMapping(path = "/milestone/{milestoneId}/currentUser")

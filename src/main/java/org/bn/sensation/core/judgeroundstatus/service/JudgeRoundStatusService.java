@@ -7,6 +7,8 @@ import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judgeroundstatus.service.dto.JudgeRoundStatusDto;
 
+import jakarta.validation.constraints.NotNull;
+
 public interface JudgeRoundStatusService extends BaseService<JudgeRoundStatusEntity, JudgeRoundStatusDto> {
 
     JudgeRoundStatusDto markNotReady(Long roundId);
@@ -14,4 +16,6 @@ public interface JudgeRoundStatusService extends BaseService<JudgeRoundStatusEnt
     JudgeRoundStatus getRoundStatusForCurrentUser(Long roundId);
 
     List<JudgeRoundStatusDto> getByMilestoneIdForCurrentUser(Long milestoneId);
+
+    List<JudgeRoundStatusDto> getByRoundId(@NotNull Long roundId);
 }
