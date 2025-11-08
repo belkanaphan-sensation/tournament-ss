@@ -58,6 +58,7 @@ databaseChangeLog:
             sql: |
               INSERT INTO users (username, password, status, name, surname, second_name, email, phone_number, created_at, created_by, modified_at, modified_by) VALUES
               ('admin', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Админ', 'Админов', 'Админович', 'admin@test.kz', '+7 777 000 00 01', '2025-01-01 10:00:00', 'system', '2025-01-01 10:00:00', 'system'),
+              ('administrator', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Администратор', 'Админчиков', 'Администраторович', 'administrator@test.kz', '+7 777 000 00 08', '2025-01-01 10:00:00', 'system', '2025-01-01 10:00:00', 'system'),
               -- Судьи для лидеров
               ('bogdan', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Богдан', 'Болдырев', 'Отчестович', 'bogdan@test.kz', '+7 777 201 00 01', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('kevin', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Кевин', 'Бака-Сегура', 'Батькович', 'kevin@test.kz', '+7 777 201 00 02', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
@@ -75,6 +76,7 @@ databaseChangeLog:
             sql: |
               INSERT INTO user_roles (user_id, role) VALUES
               ((SELECT id FROM users WHERE username = 'admin'), 'SUPERADMIN'),
+              ((SELECT id FROM users WHERE username = 'administrator'), 'ADMINISTRATOR'),
               ((SELECT id FROM users WHERE username = 'bogdan'), 'USER'),
               ((SELECT id FROM users WHERE username = 'kevin'), 'USER'),
               ((SELECT id FROM users WHERE username = 'polina'), 'USER'),
