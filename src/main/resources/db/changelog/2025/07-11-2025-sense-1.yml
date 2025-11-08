@@ -113,7 +113,7 @@ databaseChangeLog:
               ((SELECT id FROM users WHERE username = 'egor'), (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'JUDGE', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'fedor'), (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'JUDGE', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Судьи для фоловеров
-              ((SELECT id FROM users WHERE username = 'polina'), (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'JUDGE_CHIEF', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM users WHERE username = 'polina'), (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'JUDGE_CHIEF', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'yana'), (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'mila'), (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'masha'), (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
@@ -124,7 +124,7 @@ databaseChangeLog:
               ((SELECT id FROM users WHERE username = 'egor'), (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'JUDGE', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'fedor'), (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'JUDGE', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Судьи для фоловеров
-              ((SELECT id FROM users WHERE username = 'polina'), (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'JUDGE_CHIEF', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM users WHERE username = 'polina'), (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'JUDGE_CHIEF', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'yana'), (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'mila'), (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'masha'), (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
@@ -135,7 +135,7 @@ databaseChangeLog:
               ((SELECT id FROM users WHERE username = 'egor'), (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'JUDGE', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'fedor'), (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'JUDGE', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Судьи для фоловеров
-              ((SELECT id FROM users WHERE username = 'polina'), (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'JUDGE_CHIEF', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM users WHERE username = 'polina'), (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'JUDGE_CHIEF', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'yana'), (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'mila'), (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'masha'), (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
@@ -146,7 +146,7 @@ databaseChangeLog:
               ((SELECT id FROM users WHERE username = 'egor'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'fedor'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Судьи для фоловеров
-              ((SELECT id FROM users WHERE username = 'polina'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE_CHIEF', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM users WHERE username = 'polina'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE_CHIEF', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'yana'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'mila'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'masha'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
@@ -177,19 +177,19 @@ databaseChangeLog:
             sql: |
               INSERT INTO milestone (name, description, state, activity_id, milestone_order, created_at, created_by, modified_at, modified_by) VALUES
               -- Дебютанты
-              ('Отборочный Дебютанты', 'Отборочный этап', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ('Отборочный Дебютанты', 'Отборочный этап', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Полуфинал Дебютанты', 'Полуфинал', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Финал Дебютанты', 'Финал', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Начинающие
-              ('Отборочный Начинающие', 'Отборочный этап', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ('Отборочный Начинающие', 'Отборочный этап', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Полуфинал Начинающие', 'Полуфинал', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Финал Начинающие', 'Финал', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Любители
-              ('Отборочный Любители', 'Отборочный этап', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ('Отборочный Любители', 'Отборочный этап', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Полуфинал Любители', 'Полуфинал', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Финал Любители', 'Финал', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Профессионалы
-              ('Отборочный Профессионалы', 'Отборочный этап', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ('Отборочный Профессионалы', 'Отборочный этап', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Полуфинал Профессионалы', 'Полуфинал', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Финал Профессионалы', 'Финал', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
   # Test data for milestone rules
@@ -202,21 +202,21 @@ databaseChangeLog:
             sql: |
               INSERT INTO milestone_rule (assessment_mode, participant_limit, round_participant_limit, milestone_id, created_at, created_by, modified_at, modified_by) VALUES
               -- Дебютанты
-              ('PASS', 8, 8, (SELECT id FROM milestone WHERE name = 'Отборочный Дебютанты'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('SCORE', 8, 8, (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('SCORE', 5, 5, (SELECT id FROM milestone WHERE name = 'Финал Дебютанты'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ('PASS', 8, 8, (SELECT id FROM milestone WHERE name = 'Отборочный Дебютанты'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('PASS', 8, 8, (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('SCORE', 3, 3, (SELECT id FROM milestone WHERE name = 'Финал Дебютанты'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Начинающие
-              ('PASS', 12, 12, (SELECT id FROM milestone WHERE name = 'Отборочный Начинающие'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('SCORE', 12, 12, (SELECT id FROM milestone WHERE name = 'Полуфинал Начинающие'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('SCORE', 5, 5, (SELECT id FROM milestone WHERE name = 'Финал Начинающие'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ('PASS', 12, 12, (SELECT id FROM milestone WHERE name = 'Отборочный Начинающие'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('PASS', 12, 4, (SELECT id FROM milestone WHERE name = 'Полуфинал Начинающие'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('SCORE', 3, 3, (SELECT id FROM milestone WHERE name = 'Финал Начинающие'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Любители
-              ('PASS', 12, 12, (SELECT id FROM milestone WHERE name = 'Отборочный Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('SCORE', 12, 12, (SELECT id FROM milestone WHERE name = 'Полуфинал Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('SCORE', 5, 5, (SELECT id FROM milestone WHERE name = 'Финал Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ('PASS', 12, 12, (SELECT id FROM milestone WHERE name = 'Отборочный Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('PASS', 12, 6, (SELECT id FROM milestone WHERE name = 'Полуфинал Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('SCORE', 3, 3, (SELECT id FROM milestone WHERE name = 'Финал Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Профессионалы
-              ('PASS', 12, 12, (SELECT id FROM milestone WHERE name = 'Отборочный Профессионалы'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('SCORE', 12, 12, (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('SCORE', 5, 5, (SELECT id FROM milestone WHERE name = 'Финал Профессионалы'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
+              -- ('PASS', 12, 12, (SELECT id FROM milestone WHERE name = 'Отборочный Профессионалы'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('PASS', 12, 7, (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('SCORE', 3, 3, (SELECT id FROM milestone WHERE name = 'Финал Профессионалы'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
   # Test data for criterion assignments
   - changeSet:
       id: 2025-11-07-11
@@ -228,12 +228,14 @@ databaseChangeLog:
               INSERT INTO milestone_criterion (milestone_rule_id, criterion_id, partner_side, weight, scale, created_at, created_by, modified_at, modified_by) VALUES
               -- Дебютанты
               -- Этап 1
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Отборочный Дебютанты')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Отборочный Дебютанты')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Этап 2
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Этап 3
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Дебютанты')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Дебютанты')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
@@ -241,42 +243,48 @@ databaseChangeLog:
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Дебютанты')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Начинающие
               -- Этап 1
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Отборочный Начинающие')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Отборочный Начинающие')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Этап 2
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Начинающие')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Начинающие')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Начинающие')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Начинающие')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Начинающие')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Начинающие')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Начинающие')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Начинающие')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Начинающие')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Этап 3
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Начинающие')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Начинающие')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Начинающие')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Начинающие')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Начинающие')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Начинающие')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Любители
               -- Этап 1
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Отборочный Любители')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Отборочный Любители')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Этап 2
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Любители')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Любители')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Любители')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Любители')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+                    ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Любители')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Любители')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Любители')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Любители')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Любители')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Этап 3
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Любители')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Любители')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Любители')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Любители')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Любители')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Любители')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Профессионалы
               -- Этап 1
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Отборочный Профессионалы')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Отборочный Профессионалы')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Этап 2
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+                            ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Этап 3
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 4.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 2.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 3.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Финал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
 
   # Test data for participants for "Школа" activity (25 participants: 13 leaders + 12 followers)
@@ -290,7 +298,6 @@ databaseChangeLog:
               INSERT INTO participant (name, surname, partner_side, is_registered, activity_id, school, created_at, created_by, modified_at, modified_by) VALUES
               -- Дебютанты
               -- Лидеры 
-              -- ('Алексей', 'Танцоров', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               
               -- Фоловеры
               ('Анастасия', 'Клюшина', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
@@ -325,7 +332,7 @@ databaseChangeLog:
               ('Алексей', 'Лобанов', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Алексей', 'Тышлер', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Валерий', 'Холодков', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-
+              ('Александр', 'Мартынов', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
 
               -- Фоловеры
               ('Ирина', 'Зенченко', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
