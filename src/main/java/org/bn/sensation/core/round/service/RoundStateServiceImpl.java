@@ -46,7 +46,7 @@ public class RoundStateServiceImpl implements BaseStateService<RoundEntity, Roun
             case DRAFT -> {
                 log.debug("Проверка возможности перевода раунда в черновик={}, состояние этапа={}",
                         round.getId(), round.getMilestone().getState());
-                Preconditions.checkState(Set.of(MilestoneState.DRAFT, MilestoneState.PLANNED, MilestoneState.PENDING, MilestoneState.IN_PROGRESS).contains(round.getMilestone().getState()),
+                Preconditions.checkState(Set.of(MilestoneState.SKIPPED, MilestoneState.DRAFT, MilestoneState.PLANNED, MilestoneState.PENDING, MilestoneState.IN_PROGRESS).contains(round.getMilestone().getState()),
                         "Нельзя перевести раунд в черновик, т.к. этап находится в статусе %s", round.getMilestone().getState());
                 log.debug("Проверка возможности перевода раунда в черновик завершена");
                 yield true;

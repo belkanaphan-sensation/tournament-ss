@@ -36,4 +36,6 @@ public interface MilestoneService extends BaseCrudService<
     List<MilestoneResultDto> sumUpMilestone(Long id);
 
     void completeMilestone(Long milestoneId, List<UpdateMilestoneResultRequest> request);
+
+    void skipMilestone(@NotNull Long id);
 }

@@ -1,5 +1,6 @@
 package org.bn.sensation.core.common.advice;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
@@ -28,6 +29,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<String> handleIllegalStateException(IllegalStateException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        String mostSpecificMessage = ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : null;
+
+        if (mostSpecificMessage != null && mostSpecificMessage.contains("idx_participant_activity_number_unique")) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Участник с таким стартовым номером уже существует в активности");
+        }
+
+        log.error("Data integrity violation", ex);
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body("Нарушение целостности данных: " + (mostSpecificMessage != null ? mostSpecificMessage : ex.getMessage()));
     }
 
     @ExceptionHandler(AuthenticationException.class)

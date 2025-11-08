@@ -644,7 +644,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(Integer.valueOf(1), result2.getMilestoneOrder());
         assertEquals(Integer.valueOf(1), result3.getMilestoneOrder());
 
-        List<MilestoneEntity> milestones = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(testActivity.getId());
+        List<MilestoneEntity> milestones = milestoneRepository.findByActivityIdOrderByMilestoneOrderDesc(testActivity.getId());
         assertEquals(3, milestones.size());
         assertEquals(Integer.valueOf(0), milestones.get(0).getMilestoneOrder());
         assertEquals("First Milestone", milestones.get(0).getName());
@@ -890,7 +890,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     private MilestoneEntity createTestMilestone(String name) {
         return transactionTemplate.execute(status -> {
             // Получаем максимальный порядок для данной активности
-            List<MilestoneEntity> mstns = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(testActivity.getId());
+            List<MilestoneEntity> mstns = milestoneRepository.findByActivityIdOrderByMilestoneOrderDesc(testActivity.getId());
             Integer maxOrder = mstns.isEmpty() ? null : mstns.get(mstns.size() - 1).getMilestoneOrder();
             Integer nextOrder = (maxOrder != null) ? maxOrder + 1 : 0;
 
@@ -923,7 +923,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     private MilestoneEntity createTestMilestoneWithState(String name, MilestoneState state) {
         return transactionTemplate.execute(status -> {
             // Получаем максимальный порядок для данной активности
-            List<MilestoneEntity> mstns = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(testActivity.getId());
+            List<MilestoneEntity> mstns = milestoneRepository.findByActivityIdOrderByMilestoneOrderDesc(testActivity.getId());
             Integer maxOrder = mstns.isEmpty() ? null : mstns.get(mstns.size() - 1).getMilestoneOrder();
             Integer nextOrder = (maxOrder != null) ? maxOrder + 1 : 0;
 
