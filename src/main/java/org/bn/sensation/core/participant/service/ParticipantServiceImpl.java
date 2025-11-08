@@ -80,6 +80,13 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
+    public List<ParticipantDto> findByActivityId(Long activityId) {
+        return participantRepository.findByActivityId(activityId).stream()
+                .map(p -> participantDtoMapper.toDto(p))
+                .toList();
+    }
+
+    @Override
     @Transactional
     public ParticipantDto create(CreateParticipantRequest request) {
         ActivityEntity activity = activityRepository.getByIdOrThrow(request.getActivityId());
@@ -102,8 +109,10 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         updateParticipantRequestMapper.updateParticipantFromRequest(request, participant);
 
-        if (participant.getIsRegistered()) {
-            Preconditions.checkArgument(Strings.isNotBlank(participant.getNumber()), "Участник должен иметь стартовый номер");
+        if (Boolean.TRUE.equals(request.getIsRegistered())) {
+            Preconditions.checkArgument(Strings.isNotBlank(request.getNumber()), "Участник должен иметь стартовый номер");
+        } else if (Boolean.FALSE.equals(request.getIsRegistered())){
+            participant.setNumber(null);
         }
 
         participantRepository.save(participant);

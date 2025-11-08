@@ -28,4 +28,6 @@ public interface ParticipantService extends BaseCrudService<
     List<ParticipantDto> getByRoundByRoundIdForCurrentUser(Long roundId);
 
     List<RoundParticipantsDto> getByRoundByMilestoneIdForCurrentUser(Long milestoneId);
+
+    List<ParticipantDto> findByActivityId(Long activityId);
 }

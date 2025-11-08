@@ -75,6 +75,12 @@ public class ParticipantController {
         return ResponseEntity.ok(participantService.findByRoundId(roundId));
     }
 
+    @Operation(summary = "Получить всех участников по ID активности")
+    @GetMapping(path = "/activity/{activityId}")
+    public ResponseEntity<List<ParticipantDto>> getByActivityId(@PathVariable("activityId") Long activityId) {
+        return ResponseEntity.ok(participantService.findByActivityId(activityId));
+    }
+
     @Operation(summary = "Получить участников, расформированных по раундам по ID раунда для текущего пользователя")
     @GetMapping(path = "/by-round/round/{roundId}/currentUser")
     public ResponseEntity<List<ParticipantDto>> getByRoundByRoundIdForCurrentUser(@PathVariable("roundId") Long roundId) {
@@ -116,6 +122,28 @@ public class ParticipantController {
     public ResponseEntity<ParticipantDto> removeParticipantFromMilestone(@PathVariable Long participantId,
                                                                      @PathVariable Long milestoneId) {
         ParticipantDto updated = participantService.removeParticipantFromMilestone(participantId, milestoneId);
+        return ResponseEntity.ok(updated);
+    }
+
+    @Operation(summary = "Зарегистрировать участника")
+    @PostMapping("/{participantId}/register/{number}")
+    public ResponseEntity<ParticipantDto> registerParticipant(@PathVariable @NotNull Long participantId,
+                                                                    @PathVariable @NotNull String number) {
+        UpdateParticipantRequest request = UpdateParticipantRequest.builder()
+                .number(number)
+                .isRegistered(true)
+                .build();
+        ParticipantDto updated = participantService.update(participantId, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    @Operation(summary = "Снять с регистрации участника")
+    @PostMapping("/{participantId}/unregister")
+    public ResponseEntity<ParticipantDto> unregisterParticipant(@PathVariable @NotNull Long participantId) {
+        UpdateParticipantRequest request = UpdateParticipantRequest.builder()
+                .isRegistered(false)
+                .build();
+        ParticipantDto updated = participantService.update(participantId, request);
         return ResponseEntity.ok(updated);
     }
 }
