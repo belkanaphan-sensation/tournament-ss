@@ -75,4 +75,10 @@ public class MilestoneResultController {
         milestoneResultService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Получить результаты этапов по ID этапа")
+    @GetMapping("/{milestoneId}")
+    public ResponseEntity<List<MilestoneResultDto>> getByMilestoneId(@PathVariable("milestoneId") @NotNull Long milestoneId) {
+        return ResponseEntity.ok(milestoneResultService.getByMilestoneId(milestoneId));
+    }
 }

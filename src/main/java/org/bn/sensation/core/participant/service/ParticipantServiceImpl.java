@@ -80,6 +80,7 @@ public class ParticipantServiceImpl implements ParticipantService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ParticipantDto> findByActivityId(Long activityId) {
         return participantRepository.findByActivityId(activityId).stream()
                 .map(p -> participantDtoMapper.toDto(p))

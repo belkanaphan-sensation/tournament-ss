@@ -25,6 +25,7 @@ public class MilestoneRoundResultEntity extends BaseEntity {
     private BigDecimal totalScore;
 
     @Column(name = "judge_passed")
+    @Enumerated(EnumType.STRING)
     private PassStatus judgePassed;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})

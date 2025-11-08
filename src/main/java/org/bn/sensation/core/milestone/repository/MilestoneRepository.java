@@ -14,7 +14,7 @@ import jakarta.persistence.EntityNotFoundException;
 
 public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
 
-    List<MilestoneEntity> findByActivityIdOrderByMilestoneOrderAsc(Long activityId);
+    List<MilestoneEntity> findByActivityIdOrderByMilestoneOrderDesc(Long activityId);
 
     @EntityGraph(attributePaths = {"activity.activityUsers.user", "rounds.participants", "milestoneRule", "participants", "results"})
     @Query("SELECT m FROM MilestoneEntity m WHERE m.id = :id")

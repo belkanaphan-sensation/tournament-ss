@@ -7,6 +7,8 @@ import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestoneresult.entity.MilestoneResultEntity;
 import org.bn.sensation.core.milestoneresult.service.dto.*;
 
+import jakarta.validation.constraints.NotNull;
+
 public interface MilestoneResultService extends BaseCrudService<
         MilestoneResultEntity,
         MilestoneResultDto,
@@ -20,4 +22,6 @@ public interface MilestoneResultService extends BaseCrudService<
     List<MilestoneResultDto> acceptResults(MilestoneEntity milestone, List<UpdateMilestoneResultRequest> request);
 
     MilestoneRoundResultDto createMilestoneRoundResult(CreateMilestoneRoundResultRequest request);
+
+    List<MilestoneResultDto> getByMilestoneId(@NotNull Long milestoneId);
 }

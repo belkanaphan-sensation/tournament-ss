@@ -67,6 +67,12 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<MilestoneResultDto> getByMilestoneId(Long milestoneId) {
+        return milestoneResultRepository.findAllByMilestoneId(milestoneId).stream().map(milestoneResultDtoMapper::toDto).toList();
+    }
+
+    @Override
     @Transactional
     public List<MilestoneResultDto> acceptResults(Long milestoneId, List<UpdateMilestoneResultRequest> request) {
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
@@ -83,6 +89,8 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         Map<Long, MilestoneResultEntity> resultEntityMap = milestone.getResults().stream()
                 .collect(Collectors.toMap(MilestoneResultEntity::getId, Function.identity()));
         List<MilestoneResultEntity> toSave = request.stream().map(r -> {
+            Preconditions.checkArgument(r.getId() != null,
+                    "Требуется ID результата этапа");
             MilestoneResultEntity resultEntity = Optional.ofNullable(resultEntityMap.get(r.getId()))
                     .orElseThrow(() -> new IllegalArgumentException("Нет результата с ID: " + r.getId()));
             log.debug("Обновление результата: resultId={}, finallyApproved={}", resultEntity.getId(), r.getFinallyApproved());

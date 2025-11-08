@@ -105,7 +105,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
         Preconditions.checkArgument(requests != null && !requests.isEmpty(), "Отсутствуют результаты оценки участника");
         RoundEntity round = roundRepository.getByIdFullOrThrow(roundId);
-        Preconditions.checkState(round.getState() == RoundState.IN_PROGRESS,
+        Preconditions.checkState(round.getState() == RoundState.IN_PROGRESS || round.getState() == RoundState.READY,
                 "Результаты не могут быть сохранены, т.к. раунд в состоянии %s", round.getState().name());
 
         Long userId = currentUser.getSecurityUser().getId();

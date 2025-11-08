@@ -180,7 +180,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     public List<MilestoneDto> findByActivityId(Long id) {
         log.debug("Поиск этапов для активности={}", id);
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
-        List<MilestoneDto> result = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(id).stream()
+        List<MilestoneDto> result = milestoneRepository.findByActivityIdOrderByMilestoneOrderDesc(id).stream()
                 .map(this::enrichMilestoneDtoWithStatistics)
                 .toList();
         log.debug("Найдено {} этапов для активности={}", result.size(), id);
@@ -225,7 +225,7 @@ public class MilestoneServiceImpl implements MilestoneService {
         log.debug("Валидация порядка этапа: активность={}, новый порядок={}, создание={}",
                 activityId, newOrder, create);
 
-        Integer maxOrder = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(activityId).stream()
+        Integer maxOrder = milestoneRepository.findByActivityIdOrderByMilestoneOrderDesc(activityId).stream()
                 .map(MilestoneEntity::getMilestoneOrder)
                 .max(Integer::compareTo)
                 .orElse(-1);
@@ -252,7 +252,7 @@ public class MilestoneServiceImpl implements MilestoneService {
         log.debug("Пересчет порядка этапов: активность={}, текущий этап={}, новый порядок={}",
                 activityId, currentMilestoneId, newOrder);
 
-        List<MilestoneEntity> milestones = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(activityId)
+        List<MilestoneEntity> milestones = milestoneRepository.findByActivityIdOrderByMilestoneOrderDesc(activityId)
                 .stream()
                 .filter(m -> currentMilestoneId == null || !m.getId().equals(currentMilestoneId)) // Исключаем текущий этап (если указан)
                 .collect(Collectors.toList());
@@ -279,7 +279,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     private Integer calculateNextOrder(Long activityId) {
         log.debug("Расчет следующего порядка для активности={}", activityId);
 
-        Integer nextOrder = milestoneRepository.findByActivityIdOrderByMilestoneOrderAsc(activityId)
+        Integer nextOrder = milestoneRepository.findByActivityIdOrderByMilestoneOrderDesc(activityId)
                 .stream()
                 .map(MilestoneEntity::getMilestoneOrder)
                 .max(Integer::compareTo)

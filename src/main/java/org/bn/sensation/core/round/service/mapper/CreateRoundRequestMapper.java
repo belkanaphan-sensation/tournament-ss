@@ -11,6 +11,7 @@ public interface CreateRoundRequestMapper extends BaseDtoMapper<RoundEntity, Cre
     @Override
     @Mapping(target = "milestone", ignore = true)
     @Mapping(target = "participants", ignore = true)
+    @Mapping(target = "extraRound", source = "isExtraRound")
     RoundEntity toEntity(CreateRoundRequest dto);
 
 
