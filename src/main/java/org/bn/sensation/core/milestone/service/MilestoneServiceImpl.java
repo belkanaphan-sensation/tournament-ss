@@ -380,4 +380,14 @@ public class MilestoneServiceImpl implements MilestoneService {
         milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.COMPLETE);
         log.info("Этап успешно завершен: id={}", milestoneId);
     }
+
+    @Override
+    @Transactional
+    //TODO
+    public void skipMilestone(Long id) {
+        log.info("Пропуск этапа: id={}", id);
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(id);
+        milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.SKIP);
+        log.info("Пропуск запущен: id={}", id);
+    }
 }

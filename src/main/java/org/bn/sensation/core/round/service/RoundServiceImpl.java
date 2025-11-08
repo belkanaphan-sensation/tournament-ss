@@ -10,6 +10,7 @@ import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.common.statemachine.event.RoundEvent;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCacheService;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
@@ -251,9 +252,8 @@ public class RoundServiceImpl implements RoundService {
             }
         } else {
             MilestoneEntity previousMilestone = milestoneRepository.findByActivityIdAndMilestoneOrder(milestone.getActivity().getId(), milestone.getMilestoneOrder() + 1).orElse(null);
-            if (previousMilestone == null) {
-                log.info("Этап {} является первым этапом в активности {}." +
-                                " Генерация раундов для всех зарегистрированных участников активности",
+            if (previousMilestone == null || previousMilestone.getState() == MilestoneState.SKIPPED) {
+                log.info("Этап {} является первым (или первым непропущенным) этапом в активности {}. Генерация раундов для всех зарегистрированных участников активности",
                         milestone.getId(), milestone.getActivity().getId());
                 participants = participantRepository.findByActivityId(milestone.getActivity().getId())
                         .stream()
@@ -280,10 +280,10 @@ public class RoundServiceImpl implements RoundService {
         // Обновляем обе стороны связи ManyToMany: добавляем milestone в participant.milestones
         participants.forEach(participant -> participant.getMilestones().add(milestone));
         milestone.getParticipants().addAll(participants);
-        
+
         List<RoundEntity> rounds = roundRepository.saveAll(generate(participants, milestone));
         milestone.getRounds().addAll(rounds);
-        
+
         // Сохраняем участников с обновленными связями
         participantRepository.saveAll(participants);
         milestoneRepository.save(milestone);
@@ -392,10 +392,16 @@ public class RoundServiceImpl implements RoundService {
         List<JudgeRoundStatusEntity> judgeRoundStatusEntities = new ArrayList<>();
         for (ActivityUserEntity au : milestone.getActivity().getActivityUsers()) {
             if (au.getPosition().isJudge()) {
-                JudgeRoundStatusEntity judgeRoundStatus = new JudgeRoundStatusEntity();
-                judgeRoundStatus.setRound(round);
-                judgeRoundStatus.setJudge(au);
-                judgeRoundStatus.setStatus(JudgeRoundStatus.NOT_READY);
+                JudgeRoundStatus status = JudgeRoundStatus.NOT_READY;
+                if (au.getPartnerSide() != null
+                        && round.getParticipants().stream().filter(p -> p.getPartnerSide() == au.getPartnerSide()).count() == 0) {
+                    status = JudgeRoundStatus.READY;
+                }
+                JudgeRoundStatusEntity judgeRoundStatus = JudgeRoundStatusEntity.builder()
+                        .status(status)
+                        .round(round)
+                        .judge(au)
+                        .build();
                 judgeRoundStatusEntities.add(judgeRoundStatus);
                 judgeStatusCount++;
             }

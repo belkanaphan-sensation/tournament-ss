@@ -11,7 +11,8 @@ public enum MilestoneState implements BaseState {
     PENDING,
     IN_PROGRESS,
     SUMMARIZING,
-    COMPLETED;
+    COMPLETED,
+    SKIPPED;
 
     public static List<MilestoneState> LIFE_MILESTONE_STATES = Arrays.stream(MilestoneState.values())
             .filter(s -> s != DRAFT)

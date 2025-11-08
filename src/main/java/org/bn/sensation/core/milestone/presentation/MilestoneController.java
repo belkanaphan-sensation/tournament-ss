@@ -141,4 +141,13 @@ public class MilestoneController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Пропустить этап по ID",
+            description = "Пропустить этап может администратор")
+    @PostMapping(path = "/skip/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OCCASION_ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<Void> skipMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
+        milestoneService.skipMilestone(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

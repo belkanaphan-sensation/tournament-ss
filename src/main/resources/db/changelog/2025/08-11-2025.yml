@@ -1,0 +1,18 @@
+databaseChangeLog:
+  # Add unique index for participant activity and number
+  - changeSet:
+      id: 2025-11-08-1
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE UNIQUE INDEX IF NOT EXISTS idx_participant_activity_number_unique
+              ON participant(activity_id, number)
+              WHERE number IS NOT NULL;
+      rollback:
+        - sql:
+            sql: |
+              DROP INDEX IF EXISTS idx_participant_activity_number_unique;
+

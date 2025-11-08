@@ -36,7 +36,7 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
     @Override
     public boolean canTransition(MilestoneEntity milestone, MilestoneEvent event) {
         switch (event) {
-            case DRAFT -> {
+            case DRAFT, SKIP -> {
             }
             case PLAN -> {
                 Preconditions.checkState(Set.of(ActivityState.PLANNED, ActivityState.REGISTRATION_CLOSED, ActivityState.IN_PROGRESS)
@@ -86,34 +86,45 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
             case DRAFT -> switch (event) {
                 case DRAFT -> currentState;
                 case PLAN -> MilestoneState.PLANNED;
+                case SKIP -> MilestoneState.SKIPPED;
                 default -> null;
             };
             case PLANNED -> switch (event) {
                 case DRAFT -> MilestoneState.DRAFT;
                 case PLAN -> currentState;
                 case PREPARE_ROUNDS -> MilestoneState.PENDING;
+                case SKIP -> MilestoneState.SKIPPED;
                 default -> null;
             };
             case PENDING -> switch (event) {
                 case PLAN -> MilestoneState.PLANNED;
                 case PREPARE_ROUNDS -> currentState;
                 case START -> MilestoneState.IN_PROGRESS;
+                case SKIP -> MilestoneState.SKIPPED;
                 default -> null;
             };
             case IN_PROGRESS -> switch (event) {
                 case START -> currentState;
 //                case PREPARE_ROUNDS -> MilestoneState.PENDING;
                 case SUM_UP -> MilestoneState.SUMMARIZING;
+                case SKIP -> MilestoneState.SKIPPED;
                 default -> null;
             };
             case SUMMARIZING -> switch (event) {
                 case START -> MilestoneState.IN_PROGRESS;
                 case SUM_UP -> currentState;
                 case COMPLETE -> MilestoneState.COMPLETED;
+                case SKIP -> MilestoneState.SKIPPED;
                 default -> null;
             };
             case COMPLETED -> switch (event) {
                 case COMPLETE -> currentState;
+                case SKIP -> MilestoneState.SKIPPED;
+                default -> null;
+            };
+            case SKIPPED -> switch (event) {
+                case DRAFT -> MilestoneState.DRAFT;
+                case SKIP -> currentState;
                 default -> null;
             };
         };
