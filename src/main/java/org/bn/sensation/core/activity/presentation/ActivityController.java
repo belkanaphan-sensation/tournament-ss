@@ -2,14 +2,19 @@ package org.bn.sensation.core.activity.presentation;
 
 import java.util.List;
 
+import org.bn.sensation.core.activity.service.ActivityReportService;
 import org.bn.sensation.core.activity.service.ActivityService;
 import org.bn.sensation.core.activity.service.dto.ActivityDto;
 import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.activityresult.service.dto.ActivityResultDto;
 import org.bn.sensation.core.activityresult.service.dto.CreateActivityResultRequest;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -33,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 public class ActivityController {
 
     private final ActivityService activityService;
+    private final ActivityReportService activityReportService;
 
     @Operation(summary = "Получить активность по ID")
     @GetMapping(path = "/{id}")
@@ -135,5 +141,23 @@ public class ActivityController {
     public ResponseEntity<Void> completeActivity(@Parameter @PathVariable("id") @NotNull Long id) {
         activityService.completeActivity(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(path = "/{id}/report")
+    @Operation(summary = "Скачать Excel-отчет по активности")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN')")
+    public ResponseEntity<Resource> downloadReport(
+            @Parameter(description = "ID активности")
+            @PathVariable("id") @NotNull Long id) {
+
+        byte[] report = activityReportService.generateActivityReport(id);
+        ByteArrayResource resource = new ByteArrayResource(report);
+        String filename = String.format("activity-%d-report.xlsx", id);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.parseMediaType(activityReportService.getContentType()))
+                .contentLength(report.length)
+                .body(resource);
     }
 }

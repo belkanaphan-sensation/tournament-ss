@@ -21,6 +21,7 @@ ext {
     set('mockitoVersion', '5.14.0')
     set('guavaVersion', '33.4.8-jre')
     set('caffeineVersion', '3.2.3')
+    set('poiVersion', '5.4.1')
 }
 
 java {
@@ -68,6 +69,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     implementation "com.google.guava:guava:$guavaVersion"
     implementation "com.github.ben-manes.caffeine:caffeine:$caffeineVersion"
+    implementation "org.apache.poi:poi-ooxml:$poiVersion"
 
     testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
     testImplementation 'org.testcontainers:junit-jupiter'
