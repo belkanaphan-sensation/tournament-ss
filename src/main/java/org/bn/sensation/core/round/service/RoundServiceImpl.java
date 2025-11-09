@@ -16,6 +16,7 @@ import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCa
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
+import org.bn.sensation.core.judgeroundstatus.service.JudgeRoundStatusService;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestoneresult.entity.MilestoneResultEntity;
@@ -57,6 +58,7 @@ public class RoundServiceImpl implements RoundService {
     private final CreateRoundRequestMapper createRoundRequestMapper;
     private final JudgeMilestoneStatusCacheService judgeMilestoneStatusCacheService;
     private final JudgeRoundStatusRepository judgeRoundStatusRepository;
+    private final JudgeRoundStatusService judgeRoundStatusService;
     private final MilestoneRepository milestoneRepository;
     private final MilestoneResultRepository milestoneResultRepository;
     private final ParticipantRepository participantRepository;
@@ -407,6 +409,8 @@ public class RoundServiceImpl implements RoundService {
             }
         }
         judgeRoundStatusRepository.saveAll(judgeRoundStatusEntities);
+        judgeRoundStatusService.invalidateForRound(round.getId());
+        log.debug("Инвалидирован кэш статуса раунда roundId={}", round.getId());
         log.info("Создано {} статусов судей для раунда={}", judgeStatusCount, round.getId());
     }
 
@@ -446,6 +450,8 @@ public class RoundServiceImpl implements RoundService {
         statuses.forEach(jr -> jr.setStatus(JudgeRoundStatus.NOT_READY));
         judgeRoundStatusRepository.saveAll(statuses);
 
+        judgeRoundStatusService.invalidateForRound(round.getId());
+        log.debug("Инвалидирован кэш статуса раунда roundId={}", round.getId());
         judgeMilestoneStatusCacheService.invalidateForMilestone(round.getMilestone().getId());
         log.debug("Инвалидирован кэш статуса этапа milestoneId={} при переводе раунда в черновик", round.getMilestone().getId());
         log.info("Раунд переведен в черновик: id={}", id);

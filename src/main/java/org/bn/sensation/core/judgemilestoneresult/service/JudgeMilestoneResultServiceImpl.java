@@ -11,16 +11,17 @@ import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.common.statemachine.event.RoundEvent;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
-import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCacheService;
 import org.bn.sensation.core.judgemilestoneresult.entity.JudgeMilestoneResultEntity;
 import org.bn.sensation.core.judgemilestoneresult.repository.JudgeMilestoneResultRepository;
 import org.bn.sensation.core.judgemilestoneresult.service.dto.JudgeMilestoneResultDto;
 import org.bn.sensation.core.judgemilestoneresult.service.dto.JudgeMilestoneResultRoundRequest;
 import org.bn.sensation.core.judgemilestoneresult.service.mapper.JudgeMilestoneResultDtoMapper;
 import org.bn.sensation.core.judgemilestoneresult.service.mapper.JudgeMilestoneResultRoundRequestMapper;
+import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCacheService;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
+import org.bn.sensation.core.judgeroundstatus.service.JudgeRoundStatusService;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
@@ -52,6 +53,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
     private final JudgeMilestoneResultRoundRequestMapper judgeMilestoneResultRoundRequestMapper;
     private final JudgeMilestoneStatusCacheService judgeMilestoneStatusCacheService;
     private final JudgeRoundStatusRepository judgeRoundStatusRepository;
+    private final JudgeRoundStatusService judgeRoundStatusService;
     private final MilestoneRepository milestoneRepository;
     private final ParticipantRepository participantRepository;
     private final RoundRepository roundRepository;
@@ -152,6 +154,8 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         log.debug("Попытка пометить раунд {} как READY", roundId);
         roundStateMachineService.sendEvent(round, RoundEvent.MARK_READY);
 
+        judgeRoundStatusService.invalidateForRound(round.getId());
+        log.debug("Инвалидирован кэш статуса раунда roundId={}", round.getId());
         judgeMilestoneStatusCacheService.invalidateForMilestone(round.getMilestone().getId());
         log.debug("Инвалидирован кэш статуса этапа milestoneId={} после изменения статуса судьи", round.getMilestone().getId());
 

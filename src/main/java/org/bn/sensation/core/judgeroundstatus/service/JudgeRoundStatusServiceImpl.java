@@ -17,6 +17,8 @@ import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCa
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.security.CurrentUser;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +61,8 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
         status.setStatus(JudgeRoundStatus.NOT_READY);
         JudgeRoundStatusEntity saved = judgeRoundStatusRepository.save(status);
 
+        invalidateForRound(roundId);
+        log.debug("Инвалидирован кэш статуса раунда roundId={} после отката статуса судьи", roundId);
         judgeMilestoneStatusCacheService.invalidateForMilestone(round.getMilestone().getId());
         log.debug("Инвалидирован кэш статуса этапа milestoneId={} после отката статуса судьи", round.getMilestone().getId());
 
@@ -66,6 +70,7 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public JudgeRoundStatus getRoundStatusForCurrentUser(Long roundId) {
         RoundEntity round = roundRepository.getByIdWithUserOrThrow(roundId);
         ActivityUserEntity activityUser = getActivityUser(round.getMilestone(), currentUser.getSecurityUser().getId());
@@ -73,6 +78,7 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<JudgeRoundStatusDto> getByMilestoneIdForCurrentUser(Long milestoneId) {
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
         ActivityUserEntity activityAssignment = getActivityUser(milestone, currentUser.getSecurityUser().getId());
@@ -84,11 +90,20 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "judgeRoundStatus", key = "#roundId", sync = true)
     public List<JudgeRoundStatusDto> getByRoundId(Long roundId) {
+        log.trace("Получение статусов всех судей для раунда: roundId={}", roundId);
         return judgeRoundStatusRepository.findByRoundId(roundId)
                 .stream()
                 .map(judgeRoundStatusDtoMapper::toDto)
                 .toList();
+    }
+
+    @Override
+    @CacheEvict(cacheNames = "judgeRoundStatus", key = "#roundId")
+    public void invalidateForRound(Long roundId) {
+        log.trace("Инвалидация кэша статуса судей для roundId={}", roundId);
     }
 
     private ActivityUserEntity getActivityUser(MilestoneEntity milestone, Long userId) {

@@ -22,7 +22,7 @@ public interface JudgeRoundStatusRepository extends BaseRepository<JudgeRoundSta
                 new EntityNotFoundException("Не найден статус для раунда %s и судьи %s".formatted(roundId, judgeId)));
     }
 
-    @EntityGraph(attributePaths = {"judge", "round"})
+    @EntityGraph(attributePaths = {"judge.user", "round"})
     @Query("SELECT jr FROM JudgeRoundStatusEntity jr WHERE jr.round.id = :roundId")
     List<JudgeRoundStatusEntity> findByRoundId(@Param("roundId") Long roundId);
 

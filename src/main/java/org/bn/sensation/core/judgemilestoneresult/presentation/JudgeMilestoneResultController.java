@@ -95,16 +95,16 @@ public class JudgeMilestoneResultController {
         return ResponseEntity.ok(judgeMilestoneResultService.createOrUpdateForRound(roundId, request));
     }
 
-    @Operation(summary = "Создать новый результат для судьи",
-            description = "Можно создать результат для судьи, привязанного к этапу. Функционал для админа. " +
-                    "Запрос на апдейт полностью перезаписывает предыдущие результаты, поэтому нужно передавать все значащие поля")
-    @PostMapping("/{userId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN')")
-    public ResponseEntity<JudgeMilestoneResultDto> createOrUpdate(@PathVariable("userId") @NotNull Long userId,
-                                                          @Valid @RequestBody JudgeMilestoneResultRoundRequest request) {
-        JudgeMilestoneResultDto created = judgeMilestoneResultService.createOrUpdate(request, userId);
-        return ResponseEntity.ok(created);
-    }
+//    @Operation(summary = "Создать новый результат для судьи",
+//            description = "Можно создать результат для судьи, привязанного к этапу. Функционал для админа. " +
+//                    "Запрос на апдейт полностью перезаписывает предыдущие результаты, поэтому нужно передавать все значащие поля")
+//    @PostMapping("/{userId}")
+//    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN')")
+//    public ResponseEntity<JudgeMilestoneResultDto> createOrUpdate(@PathVariable("userId") @NotNull Long userId,
+//                                                          @Valid @RequestBody JudgeMilestoneResultRoundRequest request) {
+//        JudgeMilestoneResultDto created = judgeMilestoneResultService.createOrUpdate(request, userId);
+//        return ResponseEntity.ok(created);
+//    }
 
     @Operation(summary = "Удалить результат судьи по ID")
     @DeleteMapping("/{id}")
@@ -113,19 +113,5 @@ public class JudgeMilestoneResultController {
         judgeMilestoneResultService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
-
-//    @Operation(summary = "Принять результаты этапа",
-//            description = "Результаты этапа принимаются для текущего пользователя который должен являться судьей этапа")
-//    @GetMapping(path = "/ready/{milestoneId}")
-//    public ResponseEntity<JudgeMilestoneStatusDto> acceptRound(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-//        return ResponseEntity.ok(judgeMilestoneStatusService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.READY));
-//    }
-//
-//    @Operation(summary = "Отменить результаты раунда",
-//            description = "Результаты этапа отменяются для текущего пользователя который должен являться судьей этапа")
-//    @GetMapping(path = "/not-ready/{milestoneId}")
-//    public ResponseEntity<JudgeMilestoneStatusDto> rejectRound(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
-//        return ResponseEntity.ok(judgeMilestoneStatusService.changeMilestoneStatus(milestoneId, JudgeMilestoneStatus.NOT_READY));
-//    }
 
 }

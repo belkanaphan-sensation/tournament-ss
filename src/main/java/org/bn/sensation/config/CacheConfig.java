@@ -16,7 +16,8 @@ public class CacheConfig {
     @Bean
     public CaffeineCacheManager cacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager(
-                "judgeMilestoneStatus"
+                "judgeMilestoneStatus",
+                "judgeRoundStatus"
         );
         cacheManager.setCaffeine(
                 Caffeine.newBuilder()
