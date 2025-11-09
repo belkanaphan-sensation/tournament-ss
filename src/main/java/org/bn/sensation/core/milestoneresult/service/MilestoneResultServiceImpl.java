@@ -180,7 +180,6 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
             distributePlaces(groupedForPartnerSide, sortedScores, remainingPlaces);
 
             milestoneResultRepository.saveAll(toSave);
-            milestoneRoundResultRepository.saveAll(toDistribute);
         }
         return milestoneResultRepository.findAllByMilestoneId(milestone.getId()).stream().map(milestoneResultDtoMapper::toDto).toList();
     }

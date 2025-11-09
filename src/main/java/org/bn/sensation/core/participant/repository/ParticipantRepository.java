@@ -31,14 +31,9 @@ public interface ParticipantRepository extends BaseRepository<ParticipantEntity>
 
     List<ParticipantEntity> findByActivityIdAndIdIn(@Param("activityId") Long activityId, @Param("ids") List<Long> ids);
 
-//    @EntityGraph(attributePaths = {"activity", "rounds", "milestones"})
-//    @Query("""
-//            SELECT DISTINCT p
-//            FROM ParticipantEntity p
-//            JOIN p.milestones m
-//            WHERE m.id = :milestoneId
-//            """)
-//    List<ParticipantEntity> findByMilestoneId(@Param("milestoneId") Long milestoneId);
+    @EntityGraph(attributePaths = {"activity", "rounds", "milestones"})
+    @Query("SELECT p FROM ParticipantEntity p WHERE p.id IN :ids")
+    List<ParticipantEntity> findAllByIdFull(@Param("ids") List<Long> ids);
 
     @EntityGraph(attributePaths = {"activity"})
     @Query("SELECT p FROM ParticipantEntity p WHERE p.id IN :ids")

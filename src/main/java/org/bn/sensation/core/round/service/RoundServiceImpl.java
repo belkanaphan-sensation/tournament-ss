@@ -419,7 +419,7 @@ public class RoundServiceImpl implements RoundService {
             Preconditions.checkArgument(round.getExtraRound()
                             || currentUser.getSecurityUser().getRoles().contains(Role.SUPERADMIN),
                     "Раунд должен быть дополнительным или только суперадмин может привязывать участников напрямую");
-            Set<ParticipantEntity> participants = participantRepository.findAllByIdWithActivity(participantIds)
+            Set<ParticipantEntity> participants = participantRepository.findAllByIdFull(participantIds)
                     .stream()
                     .peek(participant -> {
                         Preconditions.checkArgument(participant.getIsRegistered(), "Может быть добавлен только зарегистрированный участник");
