@@ -18,15 +18,17 @@ and mrr.judge_passed <> 'PASSED'
 order by p.partner_side, mrr.total_score desc;
 
 {
-"name": "Иван",
-"surname": "Иванов",
+"name": "Алексей",
+"surname": "Скуратов",
 "partnerSide": "LEADER",
-"activityId": 1
+"isRegistered": false,
+"activityId": 3
 }
 
 {
-"name": "Иван",
-"surname": "Иванов",
+"name": "Марина",
+"surname": "Ермолаева",
 "partnerSide": "FOLLOWER",
-"activityId": 1
+"isRegistered": false,
+"activityId": 3
 }
