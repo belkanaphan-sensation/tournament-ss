@@ -53,4 +53,7 @@ public class UpdateParticipantRequest extends EmptyDto {
 
     @Schema(description = "Пометка о том что участник прошел регистрацию")
     private Boolean isRegistered;
+
+    @Schema(description = "ID активности")
+    private Long activityId;
 }

@@ -12,6 +12,7 @@ import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
 import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
@@ -114,6 +115,14 @@ public class ParticipantServiceImpl implements ParticipantService {
             Preconditions.checkArgument(Strings.isNotBlank(request.getNumber()), "Участник должен иметь стартовый номер");
         } else if (Boolean.FALSE.equals(request.getIsRegistered())){
             participant.setNumber(null);
+        }
+        if (request.getActivityId() != null) {
+            ActivityEntity activity = activityRepository.getByIdOrThrow(request.getActivityId());
+            Preconditions.checkArgument(activity.getOccasion().getId().equals(participant.getActivity().getOccasion().getId()),
+                    "Участник не может быть привязан к активности %s т.к. она находится в другом мероприятии", request.getActivityId());
+            Preconditions.checkState(Set.of(ActivityState.DRAFT, ActivityState.PLANNED).contains(activity.getState()),
+                    "Участник не может быть привязан к активности %s т.к. она находится в неподходящем состоянии %s", request.getActivityId(), activity.getState());
+            participant.setActivity(activity);
         }
 
         participantRepository.save(participant);

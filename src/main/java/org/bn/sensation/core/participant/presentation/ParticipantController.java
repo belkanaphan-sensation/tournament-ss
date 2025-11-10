@@ -146,4 +146,15 @@ public class ParticipantController {
         ParticipantDto updated = participantService.update(participantId, request);
         return ResponseEntity.ok(updated);
     }
+
+    @Operation(summary = "Переместить участника в другую активность")
+    @PostMapping("/{participantId}/activity/{activityId}")
+    public ResponseEntity<ParticipantDto> changeActivity(@PathVariable @NotNull Long participantId,
+                                                                @PathVariable @NotNull Long activityId) {
+        UpdateParticipantRequest request = UpdateParticipantRequest.builder()
+                .activityId(activityId)
+                .build();
+        ParticipantDto updated = participantService.update(participantId, request);
+        return ResponseEntity.ok(updated);
+    }
 }
