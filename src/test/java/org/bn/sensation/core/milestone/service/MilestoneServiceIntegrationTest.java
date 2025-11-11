@@ -413,9 +413,9 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         MilestoneEntity milestone = createTestMilestone("Test Milestone");
 
         // Создаем раунды с разными статусами
-        RoundEntity completedRound = createTestRound(milestone, "Completed Round", RoundState.COMPLETED);
-        RoundEntity activeRound = createTestRound(milestone, "Active Round", RoundState.IN_PROGRESS);
-        RoundEntity draftRound = createTestRound(milestone, "Draft Round", RoundState.DRAFT);
+        RoundEntity completedRound = createTestRound(milestone, "Completed Round", RoundState.CLOSED);
+        RoundEntity activeRound = createTestRound(milestone, "Active Round", RoundState.OPENED);
+        RoundEntity draftRound = createTestRound(milestone, "Draft Round", RoundState.OPENED);
 
         milestone.getRounds().addAll(Set.of(completedRound, activeRound, draftRound));
         milestoneRepository.save(milestone);
@@ -453,8 +453,8 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         createTestMilestone("Milestone 2"); // This milestone is intentionally left without rounds for testing
 
         // Добавляем раунды к первому этапу
-        RoundEntity testRound = createTestRound(milestone1, "Round 1", RoundState.COMPLETED);
-        RoundEntity testRound1 = createTestRound(milestone1, "Round 2", RoundState.IN_PROGRESS);
+        RoundEntity testRound = createTestRound(milestone1, "Round 1", RoundState.CLOSED);
+        RoundEntity testRound1 = createTestRound(milestone1, "Round 2", RoundState.OPENED);
 
         milestone1.getRounds().addAll(Set.of(testRound, testRound1));
         milestoneRepository.save(milestone1);
@@ -1017,7 +1017,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         createMilestoneRuleForMilestone(milestone);
 
         // Create existing rounds
-        RoundEntity existingRound = createTestRound(milestone, "Existing Round", RoundState.PLANNED);
+        RoundEntity existingRound = createTestRound(milestone, "Existing Round", RoundState.OPENED);
         milestone.getRounds().add(existingRound);
         milestoneRepository.save(milestone);
 
@@ -1056,7 +1056,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         testActivity.setState(ActivityState.IN_PROGRESS);
         activityRepository.save(testActivity);
         MilestoneEntity milestone = createTestMilestoneWithState("Test Milestone", MilestoneState.PENDING);
-        RoundEntity round1 = createTestRound(milestone, "Round 1", RoundState.PLANNED);
+        RoundEntity round1 = createTestRound(milestone, "Round 1", RoundState.OPENED);
         milestone.getRounds().add(round1);
         milestoneRepository.save(milestone);
 
@@ -1104,9 +1104,9 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         testActivity.setState(ActivityState.IN_PROGRESS);
         activityRepository.save(testActivity);
         MilestoneEntity milestone = createTestMilestoneWithState("Test Milestone", MilestoneState.IN_PROGRESS);
-        RoundEntity round1 = createTestRound(milestone, "Round 1", RoundState.READY);
-        RoundEntity round2 = createTestRound(milestone, "Round 2", RoundState.READY);
-        RoundEntity completedRound = createTestRound(milestone, "Completed Round", RoundState.COMPLETED);
+        RoundEntity round1 = createTestRound(milestone, "Round 1", RoundState.OPENED);
+        RoundEntity round2 = createTestRound(milestone, "Round 2", RoundState.OPENED);
+        RoundEntity completedRound = createTestRound(milestone, "Completed Round", RoundState.CLOSED);
         
         milestone.getRounds().addAll(Set.of(round1, round2, completedRound));
         milestoneRepository.save(milestone);
@@ -1122,12 +1122,12 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // Verify that non-completed rounds are completed
         RoundEntity savedRound1 = roundRepository.findById(round1.getId()).orElseThrow();
         RoundEntity savedRound2 = roundRepository.findById(round2.getId()).orElseThrow();
-        assertEquals(RoundState.COMPLETED, savedRound1.getState());
-        assertEquals(RoundState.COMPLETED, savedRound2.getState());
+        assertEquals(RoundState.CLOSED, savedRound1.getState());
+        assertEquals(RoundState.CLOSED, savedRound2.getState());
         
         // Completed round should remain completed
         RoundEntity savedCompletedRound = roundRepository.findById(completedRound.getId()).orElseThrow();
-        assertEquals(RoundState.COMPLETED, savedCompletedRound.getState());
+        assertEquals(RoundState.CLOSED, savedCompletedRound.getState());
     }
 
     @Test
@@ -1145,8 +1145,8 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
     void testCompleteMilestone_FromSummarizing_ShouldCompleteAllRoundsAndChangeStateToCompleted() {
         // Given
         MilestoneEntity milestone = createTestMilestoneWithState("Test Milestone", MilestoneState.SUMMARIZING);
-        RoundEntity round1 = createTestRound(milestone, "Round 1", RoundState.READY);
-        RoundEntity round2 = createTestRound(milestone, "Round 2", RoundState.READY);
+        RoundEntity round1 = createTestRound(milestone, "Round 1", RoundState.OPENED);
+        RoundEntity round2 = createTestRound(milestone, "Round 2", RoundState.OPENED);
         
         milestone.getRounds().addAll(Set.of(round1, round2));
         milestoneRepository.save(milestone);
@@ -1161,8 +1161,8 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
         // Verify that all rounds are completed
         RoundEntity savedRound1 = roundRepository.findById(round1.getId()).orElseThrow();
         RoundEntity savedRound2 = roundRepository.findById(round2.getId()).orElseThrow();
-        assertEquals(RoundState.COMPLETED, savedRound1.getState());
-        assertEquals(RoundState.COMPLETED, savedRound2.getState());
+        assertEquals(RoundState.CLOSED, savedRound1.getState());
+        assertEquals(RoundState.CLOSED, savedRound2.getState());
     }
 
     @Test

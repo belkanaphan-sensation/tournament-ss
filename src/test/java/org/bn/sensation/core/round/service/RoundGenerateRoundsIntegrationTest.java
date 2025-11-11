@@ -215,14 +215,14 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
         // Проверяем первый раунд
         RoundDto round1 = result.get(0);
         assertEquals("Раунд 1", round1.getName());
-        assertEquals(RoundState.DRAFT, round1.getState());
+        assertEquals(RoundState.OPENED, round1.getState());
         assertEquals(0, round1.getRoundOrder());
         assertEquals(6, round1.getParticipants().size()); // 3 лидера + 3 последователя
 
         // Проверяем второй раунд
         RoundDto round2 = result.get(1);
         assertEquals("Раунд 2", round2.getName());
-        assertEquals(RoundState.DRAFT, round2.getState());
+        assertEquals(RoundState.OPENED, round2.getState());
         assertEquals(1, round2.getRoundOrder());
         assertEquals(4, round2.getParticipants().size()); // 2 лидера + 2 последователя
 

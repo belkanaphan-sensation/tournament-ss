@@ -274,7 +274,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         // Create test round
         testRound = RoundEntity.builder()
                 .name("Test Round")
-                .state(RoundState.IN_PROGRESS)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>())
                 .extraRound(false)

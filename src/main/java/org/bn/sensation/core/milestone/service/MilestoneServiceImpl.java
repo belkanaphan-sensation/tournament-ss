@@ -205,7 +205,7 @@ public class MilestoneServiceImpl implements MilestoneService {
         MilestoneDto dto = milestoneDtoMapper.toDto(milestone);
 
         int completedCount = (int) milestone.getRounds().stream()
-                .filter(round -> round.getState() == RoundState.COMPLETED)
+                .filter(round -> round.getState() == RoundState.CLOSED)
                 .count();
         int totalCount = milestone.getRounds().size();
 
@@ -361,9 +361,9 @@ public class MilestoneServiceImpl implements MilestoneService {
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(id);
         milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.SUM_UP);
         List<MilestoneResultDto> milestoneResultDtos = milestoneResultService.calculateResults(milestone);
-        milestone.getRounds().stream().filter(round -> round.getState() != RoundState.COMPLETED)
+        milestone.getRounds().stream().filter(round -> round.getState() != RoundState.CLOSED)
                 .forEach(round -> {
-                    roundStateMachineService.sendEvent(round, RoundEvent.COMPLETE);
+                    roundStateMachineService.sendEvent(round, RoundEvent.CLOSE);
                 });
         log.info("Предварительные итоги этапа подведены: id={}", id);
         return milestoneResultDtos;

@@ -85,41 +85,4 @@ public class RoundController {
         return ResponseEntity.ok(roundService.findByMilestoneIdInLifeStates(id));
     }
 
-    @Operation(summary = "Перевести раунд обратно в черновик",
-            description = "доступно для администратора. " +
-                    "Переводит все статусы раунда и этапа в NOT_READY")
-    @PostMapping(path = "/draft/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> draftRound(@Parameter @PathVariable("id") @NotNull Long id) {
-        roundService.draftRound(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "Запланировать раунд по ID",
-            description = "Запланировать раунд может администратор")
-    @PostMapping(path = "/plan/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> planRound(@Parameter @PathVariable("id") @NotNull Long id) {
-        roundService.planRound(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "Начать раунд по ID",
-            description = "Начать раунд может администратор")
-    @PostMapping(path = "/start/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> startRound(@Parameter @PathVariable("id") @NotNull Long id) {
-        roundService.startRound(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "Завершить раунд по ID",
-            description = "Завершить раунд может администратор")
-    @PostMapping(path = "/complete/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> completeRound(@Parameter @PathVariable("id") @NotNull Long id) {
-        roundService.completeRound(id);
-        return ResponseEntity.noContent().build();
-    }
-
 }

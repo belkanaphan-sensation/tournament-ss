@@ -212,7 +212,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
         // Create test round
         testRound = RoundEntity.builder()
                 .name("Test Round")
-                .state(RoundState.IN_PROGRESS)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .roundOrder(0)
                 .build();
@@ -297,7 +297,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
         
         RoundEntity roundWithoutStatus = RoundEntity.builder()
                 .name("Round Without Status")
-                .state(RoundState.IN_PROGRESS)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .roundOrder(1)
                 .build();
@@ -359,7 +359,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
         
         RoundEntity round1 = RoundEntity.builder()
                 .name("Round 1")
-                .state(RoundState.IN_PROGRESS)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .roundOrder(0)
                 .build();
@@ -367,7 +367,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
 
         RoundEntity round2 = RoundEntity.builder()
                 .name("Round 2")
-                .state(RoundState.IN_PROGRESS)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .roundOrder(1)
                 .build();

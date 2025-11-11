@@ -235,7 +235,7 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
         // Create test rounds
         testRound1 = RoundEntity.builder()
                 .name("Test Round 1")
-                .state(RoundState.IN_PROGRESS)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .roundOrder(0)
                 .build();
@@ -243,7 +243,7 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
 
         testRound2 = RoundEntity.builder()
                 .name("Test Round 2")
-                .state(RoundState.IN_PROGRESS)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .roundOrder(1)
                 .build();
@@ -251,7 +251,7 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
 
         testRound3 = RoundEntity.builder()
                 .name("Test Round 3")
-                .state(RoundState.IN_PROGRESS)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .roundOrder(2)
                 .build();

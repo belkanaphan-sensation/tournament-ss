@@ -1,0 +1,11 @@
+databaseChangeLog:
+  # Update states for rounds
+  - changeSet:
+      id: 2025-11-12-1
+      author: system
+      context: test_data
+      changes:
+        - sql:
+            sql: |
+              UPDATE round SET state = 'OPENED' WHERE state <> 'COMPLETED';
+              UPDATE round SET state = 'CLOSED' WHERE state == 'COMPLETED';

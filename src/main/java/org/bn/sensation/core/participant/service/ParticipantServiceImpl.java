@@ -15,6 +15,11 @@ import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.common.statemachine.state.RoundState;
+import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCacheService;
+import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
+import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
+import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
+import org.bn.sensation.core.judgeroundstatus.service.JudgeRoundStatusService;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
@@ -52,6 +57,9 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final ParticipantDtoMapper participantDtoMapper;
     private final CreateParticipantRequestMapper createParticipantRequestMapper;
     private final UpdateParticipantRequestMapper updateParticipantRequestMapper;
+    private final JudgeRoundStatusRepository judgeRoundStatusRepository;
+    private final JudgeRoundStatusService judgeRoundStatusService;
+    private final JudgeMilestoneStatusCacheService judgeMilestoneStatusCacheService;
     private final RoundParticipantsDtoMapper roundParticipantsDtoMapper;
     private final CurrentUser currentUser;
     private final MilestoneRepository milestoneRepository;
@@ -152,10 +160,18 @@ public class ParticipantServiceImpl implements ParticipantService {
         Preconditions.checkArgument(!participantRepository.existsByParticipantIdAndMilestoneId(participantId, round.getMilestone().getId()),
                 "Участник %s уже привязан к другому раунду этапа %s", participantId, round.getMilestone().getId());
 
-        Preconditions.checkState(!Set.of(RoundState.READY, RoundState.COMPLETED).contains(round.getState()),
+        Preconditions.checkState(round.getState() == RoundState.OPENED,
                 "Нельзя привязать участника к раунду т.к. раунд в состоянии %s", round.getState());
         participant.getRounds().add(round);
         participantRepository.save(participant);
+        List<JudgeRoundStatusEntity> statuses = judgeRoundStatusService.getByRoundId(round.getId());
+        statuses.forEach(jr -> jr.setStatus(JudgeRoundStatus.NOT_READY));
+        judgeRoundStatusRepository.saveAll(statuses);
+
+        judgeRoundStatusService.invalidateForRound(round.getId());
+        log.debug("Инвалидирован кэш статуса раунда roundId={}", round.getId());
+        judgeMilestoneStatusCacheService.invalidateForMilestone(round.getMilestone().getId());
+        log.debug("Инвалидирован кэш статуса этапа milestoneId={} при переводе раунда в черновик", round.getMilestone().getId());
         return participantDtoMapper.toDto(participant);
     }
 
@@ -165,7 +181,7 @@ public class ParticipantServiceImpl implements ParticipantService {
         ParticipantEntity participant = participantRepository.getByIdOrThrow(participantId);
         RoundEntity round = roundRepository.getByIdOrThrow(roundId);
 
-        Preconditions.checkState(!Set.of(RoundState.READY, RoundState.COMPLETED).contains(round.getState()),
+        Preconditions.checkState(round.getState() == RoundState.OPENED,
                 "Нельзя отвязать участника от раунда т.к. раунд в состоянии %s", round.getState());
         participant.getRounds().remove(round);
         participantRepository.save(participant);

@@ -261,7 +261,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Create test round
         testRound = RoundEntity.builder()
                 .name("Test Round")
-                .state(RoundState.DRAFT)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
                 .roundOrder(0)
@@ -398,7 +398,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Create additional rounds
         RoundEntity round2 = RoundEntity.builder()
                 .name("Round 2")
-                .state(RoundState.DRAFT)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .roundOrder(1)
                 .build();
@@ -406,7 +406,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         RoundEntity round3 = RoundEntity.builder()
                 .name("Round 3")
-                .state(RoundState.DRAFT)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone1)
                 .roundOrder(0)
                 .build();
@@ -487,7 +487,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Given - Create additional rounds with different states
         RoundEntity plannedRound = RoundEntity.builder()
                 .name("Planned Round")
-                .state(RoundState.PLANNED)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
                 .roundOrder(0)
@@ -496,7 +496,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         RoundEntity inProgressRound = RoundEntity.builder()
                 .name("In Progress Round")
-                .state(RoundState.IN_PROGRESS)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
                 .roundOrder(1)
@@ -505,7 +505,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         RoundEntity readyRound = RoundEntity.builder()
                 .name("Ready Round")
-                .state(RoundState.READY)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
                 .roundOrder(2)
@@ -514,7 +514,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         RoundEntity completedRound = RoundEntity.builder()
                 .name("Completed Round")
-                .state(RoundState.COMPLETED)
+                .state(RoundState.CLOSED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
                 .roundOrder(3)
@@ -604,7 +604,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         // Given - Create a draft round (should be excluded)
         RoundEntity draftRound = RoundEntity.builder()
                 .name("Draft Round")
-                .state(RoundState.DRAFT)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
                 .roundOrder(0)
@@ -613,7 +613,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
 
         RoundEntity plannedRound = RoundEntity.builder()
                 .name("Planned Round")
-                .state(RoundState.PLANNED)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>(Set.of(testParticipant)))
                 .roundOrder(1)
@@ -651,7 +651,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(result);
         assertEquals(1, result.size()); // Should only return the planned round, not the draft
         assertEquals(plannedRound.getId(), result.get(0).getId());
-        assertEquals(RoundState.PLANNED, result.get(0).getState());
+        assertEquals(RoundState.OPENED, result.get(0).getState());
     }
 
     @Test
@@ -701,66 +701,6 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         assertThrows(IllegalArgumentException.class, () -> {
             roundService.findByMilestoneIdInLifeStates(testMilestone.getId());
         });
-    }
-
-    @Test
-    void testDraftRound_ShouldChangeStateToDraftAndUpdateJudgeStatuses() {
-        // Given - Create a round with judge statuses in READY state
-        RoundEntity round = RoundEntity.builder()
-                .name("Test Round")
-                .state(RoundState.PLANNED)
-                .milestone(testMilestone)
-                .participants(new HashSet<>(Set.of(testParticipant)))
-                .roundOrder(0)
-                .build();
-        round = roundRepository.save(round);
-
-        // Create judge round statuses with READY status
-        JudgeRoundStatusEntity judgeStatus1 = JudgeRoundStatusEntity.builder()
-                .round(round)
-                .judge(testJudgeAssignment)
-                .status(JudgeRoundStatus.READY)
-                .build();
-        judgeRoundStatusRepository.save(judgeStatus1);
-
-        JudgeRoundStatusEntity judgeStatus2 = JudgeRoundStatusEntity.builder()
-                .round(round)
-                .judge(testJudgeChiefAssignment)
-                .status(JudgeRoundStatus.READY)
-                .build();
-        judgeRoundStatusRepository.save(judgeStatus2);
-
-        // When
-        roundService.draftRound(round.getId());
-
-        // Then - Verify round state changed to DRAFT
-        RoundEntity savedRound = roundRepository.findById(round.getId()).orElseThrow();
-        assertEquals(RoundState.DRAFT, savedRound.getState());
-
-        // Verify all judge statuses changed to NOT_READY
-        List<JudgeRoundStatusEntity> statuses = judgeRoundStatusRepository.findByRoundId(round.getId());
-        assertFalse(statuses.isEmpty());
-        statuses.forEach(status -> assertEquals(JudgeRoundStatus.NOT_READY, status.getStatus()));
-    }
-
-    @Test
-    void testDraftRound_WithNoJudgeStatuses_ShouldChangeStateToDraft() {
-        // Given - Create a round without judge statuses
-        RoundEntity round = RoundEntity.builder()
-                .name("Test Round")
-                .state(RoundState.PLANNED)
-                .milestone(testMilestone)
-                .participants(new HashSet<>(Set.of(testParticipant)))
-                .roundOrder(0)
-                .build();
-        round = roundRepository.save(round);
-
-        // When
-        roundService.draftRound(round.getId());
-
-        // Then - Verify round state changed to DRAFT
-        RoundEntity savedRound = roundRepository.findById(round.getId()).orElseThrow();
-        assertEquals(RoundState.DRAFT, savedRound.getState());
     }
 
     @Test
@@ -832,7 +772,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         
         RoundDto finalRound = rounds.get(0);
         assertEquals("Финал", finalRound.getName());
-        assertEquals(RoundState.DRAFT, finalRound.getState());
+        assertEquals(RoundState.OPENED, finalRound.getState());
         assertEquals(0, finalRound.getRoundOrder());
         assertNotNull(finalRound.getMilestone());
         assertEquals(finalMilestone.getId(), finalRound.getMilestone().getId());

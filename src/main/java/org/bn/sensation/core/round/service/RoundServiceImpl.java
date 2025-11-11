@@ -64,7 +64,6 @@ public class RoundServiceImpl implements RoundService {
     private final ParticipantRepository participantRepository;
     private final RoundDtoMapper roundDtoMapper;
     private final RoundRepository roundRepository;
-    private final RoundStateMachineService roundStateMachineService;
     private final RoundWithJRStatusMapper roundWithJRStatusMapper;
     private final UpdateRoundRequestMapper updateRoundRequestMapper;
 
@@ -101,7 +100,7 @@ public class RoundServiceImpl implements RoundService {
         if (Strings.isNullOrEmpty(round.getName())) {
             round.setName("Раунд " + (milestone.getRounds().size() + 1));
         }
-        round.setState(RoundState.DRAFT);
+        round.setState(RoundState.OPENED);
         round.setMilestone(milestone);
 
         round.setRoundOrder(roundRepository.getLastRoundOrder(milestone.getId()).orElse(0) + 1);
@@ -304,7 +303,7 @@ public class RoundServiceImpl implements RoundService {
                     .roundOrder(0)
                     .extraRound(false)
                     .milestone(milestone)
-                    .state(RoundState.DRAFT)
+                    .state(RoundState.OPENED)
                     .name("Финал")
                     .participants(new HashSet<>(participants))
                     .build();
@@ -346,7 +345,7 @@ public class RoundServiceImpl implements RoundService {
                     .roundOrder(i)
                     .extraRound(false)
                     .milestone(milestone)
-                    .state(RoundState.DRAFT)
+                    .state(RoundState.OPENED)
                     .name("Раунд %s".formatted(i + 1))
                     .build();
 
@@ -439,48 +438,4 @@ public class RoundServiceImpl implements RoundService {
         }
     }
 
-    @Override
-    @Transactional
-    public void draftRound(Long id) {
-        log.info("Перевод раунда в черновик: id={}. Все статусы будут переведены в NOT_READY", id);
-        RoundEntity round = roundRepository.getByIdFullOrThrow(id);
-        roundStateMachineService.sendEvent(round, RoundEvent.DRAFT);
-
-        List<JudgeRoundStatusEntity> statuses = judgeRoundStatusRepository.findByRoundId(id);
-        statuses.forEach(jr -> jr.setStatus(JudgeRoundStatus.NOT_READY));
-        judgeRoundStatusRepository.saveAll(statuses);
-
-        judgeRoundStatusService.invalidateForRound(round.getId());
-        log.debug("Инвалидирован кэш статуса раунда roundId={}", round.getId());
-        judgeMilestoneStatusCacheService.invalidateForMilestone(round.getMilestone().getId());
-        log.debug("Инвалидирован кэш статуса этапа milestoneId={} при переводе раунда в черновик", round.getMilestone().getId());
-        log.info("Раунд переведен в черновик: id={}", id);
-    }
-
-    @Override
-    @Transactional
-    public void planRound(Long id) {
-        log.info("Планирование раунда: id={}", id);
-        RoundEntity round = roundRepository.getByIdFullOrThrow(id);
-        roundStateMachineService.sendEvent(round, RoundEvent.PLAN);
-        log.info("Раунд запланирован: id={}", id);
-    }
-
-    @Override
-    @Transactional
-    public void startRound(Long id) {
-        log.info("Запуск раунда: id={}", id);
-        RoundEntity round = roundRepository.getByIdFullOrThrow(id);
-        roundStateMachineService.sendEvent(round, RoundEvent.START);
-        log.info("Раунд запущен: id={}", id);
-    }
-
-    @Override
-    @Transactional
-    public void completeRound(Long id) {
-        log.info("Завершение раунда: id={}", id);
-        RoundEntity round = roundRepository.getByIdFullOrThrow(id);
-        roundStateMachineService.sendEvent(round, RoundEvent.COMPLETE);
-        log.info("Раунд завершен: id={}", id);
-    }
 }

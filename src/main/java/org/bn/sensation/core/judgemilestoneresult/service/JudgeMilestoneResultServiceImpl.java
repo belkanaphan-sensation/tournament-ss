@@ -9,8 +9,7 @@ import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.common.statemachine.event.RoundEvent;
-import org.bn.sensation.core.common.statemachine.state.RoundState;
+import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.bn.sensation.core.judgemilestoneresult.entity.JudgeMilestoneResultEntity;
 import org.bn.sensation.core.judgemilestoneresult.repository.JudgeMilestoneResultRepository;
 import org.bn.sensation.core.judgemilestoneresult.service.dto.JudgeMilestoneResultDto;
@@ -107,8 +106,8 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
 //        Preconditions.checkArgument(requests != null && !requests.isEmpty(), "Отсутствуют результаты оценки участника");
         RoundEntity round = roundRepository.getByIdFullOrThrow(roundId);
-        Preconditions.checkState(round.getState() == RoundState.IN_PROGRESS || round.getState() == RoundState.READY,
-                "Результаты не могут быть сохранены, т.к. раунд в состоянии %s", round.getState().name());
+        Preconditions.checkState(round.getMilestone().getState() == MilestoneState.IN_PROGRESS || round.getMilestone().getState() == MilestoneState.SUMMARIZING,
+                "Результаты не могут быть сохранены, т.к. этап в состоянии %s", round.getState().name());
 
         Long userId = currentUser.getSecurityUser().getId();
         ActivityUserEntity activityUser = ActivityUserUtil.getFromActivity(
@@ -151,8 +150,6 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
                 .orElse(JudgeRoundStatusEntity.builder().round(round).judge(activityUser).build());
         status.setStatus(JudgeRoundStatus.READY);
         judgeRoundStatusRepository.save(status);
-        log.debug("Попытка пометить раунд {} как READY", roundId);
-        roundStateMachineService.sendEvent(round, RoundEvent.MARK_READY);
 
         judgeRoundStatusService.invalidateForRound(round.getId());
         log.debug("Инвалидирован кэш статуса раунда roundId={}", round.getId());

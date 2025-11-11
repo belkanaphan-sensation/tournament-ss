@@ -92,12 +92,9 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = "judgeRoundStatus", key = "#roundId", sync = true)
-    public List<JudgeRoundStatusDto> getByRoundId(Long roundId) {
+    public List<JudgeRoundStatusEntity> getByRoundId(Long roundId) {
         log.trace("Получение статусов всех судей для раунда: roundId={}", roundId);
-        return judgeRoundStatusRepository.findByRoundId(roundId)
-                .stream()
-                .map(judgeRoundStatusDtoMapper::toDto)
-                .toList();
+        return judgeRoundStatusRepository.findByRoundId(roundId);
     }
 
     @Override

@@ -159,7 +159,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Create test rounds
         testRound = RoundEntity.builder()
                 .name("Test Round")
-                .state(RoundState.DRAFT)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .roundOrder(0)
                 .build();
@@ -177,7 +177,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
 
         testRound1 = RoundEntity.builder()
                 .name("Test Round 1")
-                .state(RoundState.DRAFT)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone2)
                 .roundOrder(1)
                 .build();
@@ -466,7 +466,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
 
         final RoundEntity testRound2 = roundRepository.save(RoundEntity.builder()
                 .name("Test Round 2")
-                .state(RoundState.DRAFT)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>())
                 .roundOrder(1)

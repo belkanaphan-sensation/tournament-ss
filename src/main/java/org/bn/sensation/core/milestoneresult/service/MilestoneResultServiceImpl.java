@@ -127,7 +127,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         } else {
             log.info("Обновление результатов для этапа по дополнительному раунду={}", milestone.getId());
             List<RoundEntity> extraRounds = milestone.getRounds().stream()
-                    .filter(r -> r.getState() == RoundState.READY)
+                    .filter(r -> r.getState() == RoundState.OPENED)
                     .filter(r -> Boolean.TRUE.equals(r.getExtraRound()))
                     .toList();
             if (!extraRounds.isEmpty()) {
@@ -192,7 +192,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         Map<Long, Map<Long, List<JudgeMilestoneResultEntity>>> resultsMap =
                 judgeMilestoneResultRepository.findByMilestoneId(milestone.getId())
                         .stream()
-                        .filter(jm -> jm.getRound().getState() == RoundState.READY)
+                        .filter(jm -> jm.getRound().getState() == RoundState.OPENED)
                         .collect(Collectors.groupingBy(
                                 jm -> jm.getParticipant().getId(),
                                 Collectors.groupingBy(jmr -> jmr.getRound().getId())
@@ -202,7 +202,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
 
         List<MilestoneResultEntity> createdResults = milestone.getRounds()
                 .stream()
-                .filter(round -> round.getState() == RoundState.READY)
+                .filter(round -> round.getState() == RoundState.OPENED)
                 .flatMap(round -> round.getParticipants().stream()
                         .map(participant -> createMilestoneResult(participant, milestone, round, resultsMap)))
                 .toList();

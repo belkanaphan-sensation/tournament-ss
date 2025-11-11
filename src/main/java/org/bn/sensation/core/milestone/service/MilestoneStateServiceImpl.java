@@ -45,9 +45,6 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
                 Preconditions.checkArgument(milestone.getMilestoneRule() != null
                                 && !milestone.getMilestoneRule().getMilestoneCriteria().isEmpty(),
                         "Нельзя запланировать этап т.к. у него не настроены правила или критерии");
-                Set<RoundState> roundStates = Set.of(RoundState.IN_PROGRESS, RoundState.READY, RoundState.COMPLETED);
-                Preconditions.checkState(milestone.getRounds().stream().noneMatch(round -> roundStates.contains(round.getState())),
-                        "Нельзя планировать этап т.к. его раунды уже в процессе или завершены");
             }
             case START -> {
                 Preconditions.checkState(milestone.getActivity().getState() == ActivityState.IN_PROGRESS,
@@ -62,14 +59,11 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
                                 .getAllJudgesStatusForMilestone(milestone.getId()).stream()
                                 .noneMatch(st -> st.getStatus() == JudgeMilestoneStatus.NOT_READY),
                         "Результаты этапа готовы для подведения итогов не у всех судей");
-                Preconditions.checkState(milestone.getRounds().stream()
-                                .allMatch(r -> r.getState() == RoundState.READY || r.getState() == RoundState.COMPLETED),
-                        "Все раунды этапа должны быть завершены");
             }
             case COMPLETE -> {
                 boolean allRoundsCompleted = milestone.getRounds()
                         .stream()
-                        .allMatch(round -> round.getState() == RoundState.COMPLETED);
+                        .allMatch(round -> round.getState() == RoundState.CLOSED);
                 Preconditions.checkState(allRoundsCompleted, "Не все раунды завершены");
                 int resultsCount = milestone.getResults().size();
                 int participantsCount = milestone.getParticipants().size();

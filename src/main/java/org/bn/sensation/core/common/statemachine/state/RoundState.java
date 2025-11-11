@@ -6,13 +6,9 @@ import java.util.List;
 import org.bn.sensation.core.common.statemachine.BaseState;
 
 public enum RoundState implements BaseState {
-    DRAFT,
-    PLANNED,
-    IN_PROGRESS,
-    READY,
-    COMPLETED;
+    OPENED, CLOSED;
 
     public static List<RoundState> LIFE_ROUND_STATES = Arrays.stream(RoundState.values())
-            .filter(s -> s != DRAFT)
+            .filter(s -> s != CLOSED)
             .toList();
 }
