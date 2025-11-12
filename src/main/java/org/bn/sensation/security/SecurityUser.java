@@ -32,6 +32,8 @@ public class SecurityUser implements UserDetails {
     @Getter
     private final Set<Role> roles;
     @Getter
+    private final Role currentRole;
+    @Getter
     private final Set<EntityLinkDto> organizations;
 
     @Override
@@ -80,6 +82,8 @@ public class SecurityUser implements UserDetails {
                 user.getStatus(),
                 user.getPerson().toBuilder().build(),
                 user.getRoles(),
+                //TODO сделать возможность устанавливать текущую роль или вообще убрать множественные роли
+                user.getRoles().iterator().next(),
                 user.getOrganizations().stream()
                         .map(o -> new EntityLinkDto(o.getId(), o.getName()))
                         .collect(Collectors.toSet()));

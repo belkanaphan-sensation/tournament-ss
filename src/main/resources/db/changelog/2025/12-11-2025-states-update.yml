@@ -8,4 +8,4 @@ databaseChangeLog:
         - sql:
             sql: |
               UPDATE round SET state = 'OPENED' WHERE state <> 'COMPLETED';
-              UPDATE round SET state = 'CLOSED' WHERE state == 'COMPLETED';
+              UPDATE round SET state = 'CLOSED' WHERE state = 'COMPLETED';
