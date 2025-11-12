@@ -136,7 +136,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .startDate(java.time.LocalDate.now().plusDays(1))
                 .endDate(java.time.LocalDate.now().plusDays(2))
                 .organization(testOrganization)
-                .state(OccasionState.DRAFT)
+                .state(OccasionState.PLANNED)
                 .build();
         testOccasion = occasionRepository.save(testOccasion);
 
@@ -145,7 +145,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Activity")
                 .description("Test Activity Description")
                 .occasion(testOccasion)
-                .state(ActivityState.DRAFT)
+                .state(ActivityState.PLANNED)
                 .build();
         testActivity = activityRepository.save(testActivity);
 

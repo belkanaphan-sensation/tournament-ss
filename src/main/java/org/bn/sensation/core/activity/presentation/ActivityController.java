@@ -88,15 +88,6 @@ public class ActivityController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Перевести активность обратно в черновик",
-            description = "доступно для администратора")
-    @PostMapping(path = "/draft/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> draftActivity(@Parameter @PathVariable("id") @NotNull Long id) {
-        activityService.draftActivity(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @Operation(summary = "Запланировать активность по ID",
             description = "доступно для администратора")
     @PostMapping(path = "/plan/{id}")

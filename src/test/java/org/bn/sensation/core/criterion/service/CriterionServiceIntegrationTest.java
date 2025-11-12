@@ -102,7 +102,7 @@ class CriterionServiceIntegrationTest extends AbstractIntegrationTest {
             OccasionEntity testOccasion = OccasionEntity.builder()
                     .name("Test Occasion")
                     .description("Test Description")
-                    .state(OccasionState.DRAFT)
+                    .state(OccasionState.PLANNED)
                     .organization(testOrganization)
                     .build();
             testOccasion = occasionRepository.save(testOccasion);
@@ -111,7 +111,7 @@ class CriterionServiceIntegrationTest extends AbstractIntegrationTest {
             ActivityEntity testActivity = ActivityEntity.builder()
                     .name("Test Activity")
                     .description("Test Activity Description")
-                    .state(ActivityState.DRAFT)
+                    .state(ActivityState.PLANNED)
                     .occasion(testOccasion)
                     .build();
             testActivity = activityRepository.save(testActivity);

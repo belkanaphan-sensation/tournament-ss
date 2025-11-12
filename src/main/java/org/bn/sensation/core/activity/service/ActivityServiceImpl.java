@@ -119,7 +119,7 @@ public class ActivityServiceImpl implements ActivityService {
 
         log.debug("Найдено мероприятие={} для создания активности", occasion.getId());
         ActivityEntity activity = createActivityRequestMapper.toEntity(request);
-        activity.setState(ActivityState.DRAFT);
+        activity.setState(ActivityState.PLANNED);
         activity.setOccasion(occasion);
 
         ActivityEntity saved = activityRepository.save(activity);
@@ -202,15 +202,6 @@ public class ActivityServiceImpl implements ActivityService {
         dto.setCompletedMilestonesCount(completedCount);
         dto.setTotalMilestonesCount(totalCount);
         return dto;
-    }
-
-    @Override
-    @Transactional
-    public void draftActivity(Long id) {
-        log.info("Перевод активности в черновик: id={}", id);
-        ActivityEntity activity = activityRepository.getByIdOrThrow(id);
-        activityStateMachineService.sendEvent(activity, ActivityEvent.DRAFT);
-        log.info("Активность переведена в черновик: id={}", id);
     }
 
     @Override

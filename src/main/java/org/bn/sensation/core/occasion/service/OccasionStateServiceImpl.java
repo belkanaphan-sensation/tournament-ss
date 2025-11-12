@@ -40,16 +40,13 @@ public class OccasionStateServiceImpl implements BaseStateService<OccasionEntity
     @Override
     public Optional<OccasionState> getNextState(OccasionState currentState, OccasionEvent event) {
         OccasionState nextState = switch (currentState) {
-            case DRAFT -> switch (event) {
-                case PLAN -> OccasionState.PLANNED;
-                default -> null;
-            };
             case PLANNED -> switch (event) {
                 case PLAN -> currentState;
                 case START -> OccasionState.IN_PROGRESS;
                 default -> null;
             };
             case IN_PROGRESS -> switch (event) {
+                case PLAN -> OccasionState.PLANNED;
                 case START -> currentState;
                 case COMPLETE -> OccasionState.COMPLETED;
                 default -> null;

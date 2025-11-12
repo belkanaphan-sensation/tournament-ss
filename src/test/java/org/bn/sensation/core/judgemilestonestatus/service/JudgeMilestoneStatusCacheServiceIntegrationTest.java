@@ -146,7 +146,7 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
                 .description("Test Description")
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
-                .state(OccasionState.DRAFT)
+                .state(OccasionState.PLANNED)
                 .organization(testOrganization)
                 .build();
         testOccasion = occasionRepository.save(testOccasion);
@@ -155,7 +155,7 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
         testActivity = ActivityEntity.builder()
                 .name("Test Activity")
                 .description("Test Description")
-                .state(ActivityState.DRAFT)
+                .state(ActivityState.PLANNED)
                 .occasion(testOccasion)
                 .build();
         testActivity = activityRepository.save(testActivity);

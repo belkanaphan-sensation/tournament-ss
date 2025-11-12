@@ -169,7 +169,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Test Description")
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .state(OccasionState.DRAFT)
+                    .state(OccasionState.PLANNED)
                     .organization(testOrganization)
                     .build();
             testOccasion = occasionRepository.save(testOccasion);
@@ -187,7 +187,7 @@ class MilestoneServiceIntegrationTest extends AbstractIntegrationTest {
                             .streetNumber("2")
                             .comment("Activity Address")
                             .build())
-                    .state(ActivityState.DRAFT)
+                    .state(ActivityState.PLANNED)
                     .occasion(testOccasion)
                     .build();
             testActivity = activityRepository.save(testActivity);

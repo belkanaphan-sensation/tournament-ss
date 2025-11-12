@@ -35,32 +35,25 @@ public class ActivityStateMachineConfig extends EnumStateMachineConfigurerAdapte
     public void configure(StateMachineStateConfigurer<ActivityState, ActivityEvent> states) throws Exception {
         states
                 .withStates()
-                .initial(ActivityState.DRAFT)
+                .initial(ActivityState.PLANNED)
                 .states(EnumSet.allOf(ActivityState.class));
     }
 
     @Override
     public void configure(StateMachineTransitionConfigurer<ActivityState, ActivityEvent> transitions) throws Exception {
         transitions
-                // DRAFT -> PLANNED
-                .withExternal()
-                .source(ActivityState.DRAFT)
-                .target(ActivityState.PLANNED)
-                .event(ActivityEvent.PLAN)
-                .action(activityAction)
-                .and()
-                // PLANNED -> DRAFT
-                .withExternal()
-                .source(ActivityState.PLANNED)
-                .target(ActivityState.DRAFT)
-                .event(ActivityEvent.DRAFT)
-                .action(activityAction)
-                .and()
                 // PLANNED -> REGISTRATION_CLOSED
                 .withExternal()
                 .source(ActivityState.PLANNED)
                 .target(ActivityState.REGISTRATION_CLOSED)
                 .event(ActivityEvent.CLOSE_REGISTRATION)
+                .action(activityAction)
+                .and()
+                // REGISTRATION_CLOSED -> PLANNED
+                .withExternal()
+                .source(ActivityState.REGISTRATION_CLOSED)
+                .target(ActivityState.PLANNED)
+                .event(ActivityEvent.PLAN)
                 .action(activityAction)
                 .and()
                 // REGISTRATION_CLOSED -> IN_PROGRESS

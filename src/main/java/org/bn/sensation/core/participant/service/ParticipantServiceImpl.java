@@ -115,8 +115,10 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     @Transactional
     public ParticipantDto update(Long id, UpdateParticipantRequest request) {
-        ParticipantEntity participant = participantRepository.getByIdOrThrow(id);
+        ParticipantEntity participant = participantRepository.getByIdFullOrThrow(id);
 
+        Preconditions.checkState(ActivityState.PLANNED == participant.getActivity().getState(),
+                "Данные об участнике %s не могут быть обновлены т.к. он находится в активности с состоянием %s", request.getActivityId(), participant.getActivity().getState());
         updateParticipantRequestMapper.updateParticipantFromRequest(request, participant);
 
         if (Boolean.TRUE.equals(request.getIsRegistered())) {
@@ -128,13 +130,13 @@ public class ParticipantServiceImpl implements ParticipantService {
             ActivityEntity activity = activityRepository.getByIdOrThrow(request.getActivityId());
             Preconditions.checkArgument(activity.getOccasion().getId().equals(participant.getActivity().getOccasion().getId()),
                     "Участник не может быть привязан к активности %s т.к. она находится в другом мероприятии", request.getActivityId());
-            Preconditions.checkState(Set.of(ActivityState.DRAFT, ActivityState.PLANNED).contains(activity.getState()),
+            Preconditions.checkState(ActivityState.PLANNED == activity.getState(),
                     "Участник не может быть привязан к активности %s т.к. она находится в неподходящем состоянии %s", request.getActivityId(), activity.getState());
             participant.setActivity(activity);
         }
 
         participantRepository.save(participant);
-        return participantDtoMapper.toDto(participantRepository.getByIdFullOrThrow(id));
+        return participantDtoMapper.toDto(participant);
     }
 
     @Override
@@ -152,16 +154,16 @@ public class ParticipantServiceImpl implements ParticipantService {
         ParticipantEntity participant = participantRepository.getByIdFullOrThrow(participantId);
         Preconditions.checkArgument(participant.getIsRegistered(), "Участник не закончил регистрацию");
         RoundEntity round = roundRepository.getByIdOrThrow(roundId);
-
-        Set<Long> milestoneIds = participant.getMilestones().stream().map(MilestoneEntity::getId).collect(Collectors.toSet());
-        Preconditions.checkArgument(milestoneIds.contains(round.getMilestone().getId()),
-                "Участник %s не может быть привязан к раунду %s, т.к. он не привязан к этапу раунда", participantId, roundId);
-
-        Preconditions.checkArgument(!participantRepository.existsByParticipantIdAndMilestoneId(participantId, round.getMilestone().getId()),
-                "Участник %s уже привязан к другому раунду этапа %s", participantId, round.getMilestone().getId());
-
         Preconditions.checkState(round.getState() == RoundState.OPENED,
                 "Нельзя привязать участника к раунду т.к. раунд в состоянии %s", round.getState());
+        Set<Long> milestoneIds = participant.getMilestones().stream().map(MilestoneEntity::getId).collect(Collectors.toSet());
+        if (!milestoneIds.contains(round.getMilestone().getId())) {
+            assignParticipantToMilestone(participant, round.getMilestone());
+        }
+        if (!round.getExtraRound()) {
+            Preconditions.checkArgument(!participantRepository.existsByParticipantIdAndMilestoneId(participantId, round.getMilestone().getId()),
+                    "Участник %s уже привязан к другому раунду этапа %s", participantId, round.getMilestone().getId());
+        }
         participant.getRounds().add(round);
         participantRepository.save(participant);
         List<JudgeRoundStatusEntity> statuses = judgeRoundStatusService.getByRoundId(round.getId());
@@ -193,15 +195,19 @@ public class ParticipantServiceImpl implements ParticipantService {
     public ParticipantDto assignParticipantToMilestone(Long participantId, Long milestoneId) {
         ParticipantEntity participant = participantRepository.getByIdFullOrThrow(participantId);
         Preconditions.checkArgument(participant.getIsRegistered(), "Участник не закончил регистрацию");
-        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
-        Preconditions.checkArgument(participant.getActivity().getId().equals(milestone.getActivity().getId()),
-                "Участник %s не может быть привязан к этапу %s, т.к. этап находится в другой активности", participantId, milestoneId);
+        MilestoneEntity milestone = milestoneRepository.getByIdOrThrow(milestoneId);
+        assignParticipantToMilestone(participant, milestone);
+        return participantDtoMapper.toDto(participant);
+    }
 
-        Preconditions.checkState(!Set.of(MilestoneState.SUMMARIZING, MilestoneState.COMPLETED).contains(milestone.getState()),
+    private void assignParticipantToMilestone(ParticipantEntity participant, MilestoneEntity milestone) {
+        Preconditions.checkArgument(participant.getActivity().getId().equals(milestone.getActivity().getId()),
+                "Участник %s не может быть привязан к этапу %s, т.к. этап находится в другой активности", participant.getId(), milestone.getId());
+
+        Preconditions.checkState(!Set.of(MilestoneState.SUMMARIZING, MilestoneState.COMPLETED, MilestoneState.SKIPPED).contains(milestone.getState()),
                 "Нельзя привязать участника к этапу т.к. этап в состоянии %s", milestone.getState());
         participant.getMilestones().add(milestone);
         participantRepository.save(participant);
-        return participantDtoMapper.toDto(participant);
     }
 
     @Override

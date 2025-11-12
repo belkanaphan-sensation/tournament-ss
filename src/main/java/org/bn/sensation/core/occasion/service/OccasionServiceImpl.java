@@ -81,7 +81,7 @@ public class OccasionServiceImpl implements OccasionService {
 
         // Создаем сущность мероприятия
         OccasionEntity occasion = createOccasionRequestMapper.toEntity(request);
-        occasion.setState(OccasionState.DRAFT);
+        occasion.setState(OccasionState.PLANNED);
         occasion.setOrganization(organization);
 
         OccasionEntity saved = occasionRepository.save(occasion);

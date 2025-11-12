@@ -26,38 +26,38 @@ public class OccasionStateMachineConfig extends EnumStateMachineConfigurerAdapte
     @Override
     public void configure(StateMachineConfigurationConfigurer<OccasionState, OccasionEvent> config) throws Exception {
         config
-            .withConfiguration()
-            .autoStartup(false)
-            .listener(occasionStateMachineListener);
+                .withConfiguration()
+                .autoStartup(false)
+                .listener(occasionStateMachineListener);
     }
 
     @Override
     public void configure(StateMachineStateConfigurer<OccasionState, OccasionEvent> states) throws Exception {
         states
-            .withStates()
-            .initial(OccasionState.DRAFT)
-            .states(EnumSet.allOf(OccasionState.class));
+                .withStates()
+                .initial(OccasionState.PLANNED)
+                .states(EnumSet.allOf(OccasionState.class));
     }
 
     @Override
     public void configure(StateMachineTransitionConfigurer<OccasionState, OccasionEvent> transitions) throws Exception {
         transitions
-            // DRAFT -> PLANNED
-            .withExternal()
-                .source(OccasionState.DRAFT)
-                .target(OccasionState.PLANNED)
-                .event(OccasionEvent.PLAN)
-                .action(occasionAction)
-                .and()
-            // PLANNED -> IN_PROGRESS
-            .withExternal()
+                // PLANNED -> IN_PROGRESS
+                .withExternal()
                 .source(OccasionState.PLANNED)
                 .target(OccasionState.IN_PROGRESS)
                 .event(OccasionEvent.START)
                 .action(occasionAction)
                 .and()
-            // IN_PROGRESS -> COMPLETED
-            .withExternal()
+                // IN_PROGRESS -> PLANNED
+                .withExternal()
+                .source(OccasionState.IN_PROGRESS)
+                .target(OccasionState.PLANNED)
+                .event(OccasionEvent.PLAN)
+                .action(occasionAction)
+                .and()
+                // IN_PROGRESS -> COMPLETED
+                .withExternal()
                 .source(OccasionState.IN_PROGRESS)
                 .target(OccasionState.COMPLETED)
                 .event(OccasionEvent.COMPLETE)

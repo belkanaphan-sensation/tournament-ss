@@ -115,7 +115,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
                 .description("Test Description")
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
-                .state(OccasionState.DRAFT)
+                .state(OccasionState.PLANNED)
                 .organization(testOrganization)
                 .build();
         testOccasion = occasionRepository.save(testOccasion);
@@ -124,7 +124,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
         testActivity = ActivityEntity.builder()
                 .name("Test Activity")
                 .description("Test Activity Description")
-                .state(ActivityState.DRAFT)
+                .state(ActivityState.PLANNED)
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusDays(1))
                 .address(Address.builder()

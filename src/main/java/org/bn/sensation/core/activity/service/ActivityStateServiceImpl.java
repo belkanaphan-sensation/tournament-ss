@@ -1,6 +1,7 @@
 package org.bn.sensation.core.activity.service;
 
 import java.util.Optional;
+import java.util.Set;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
@@ -35,45 +36,31 @@ public class ActivityStateServiceImpl implements BaseStateService<ActivityEntity
     public boolean canTransition(ActivityEntity activity, ActivityEvent event) {
         log.debug("Проверка возможности перехода активности: id={}, событие={}, текущее состояние={}",
                 activity.getId(), event, activity.getState());
-        //TODO
         switch (event) {
-            case DRAFT -> {
-                log.debug("Проверка возможности перевода активности в черновик={}, состояние мероприятия={}",
-                        activity.getId(), activity.getOccasion().getState());
-                Preconditions.checkState(activity.getOccasion().getState() != OccasionState.COMPLETED,
-                        "Нельзя перевести активность в черновик, т.к. мероприятие находится в состоянии %s", activity.getOccasion().getState());
-                //TODO Продумать в каких состояниях должны быть этапы активности
-                log.debug("Проверка возможности перевода активности в черновик завершена");
-            }
             case PLAN -> {
-                log.debug("Проверка возможности запланировать активность={}, состояние мероприятия={}",
-                        activity.getId(), activity.getOccasion().getState());
-                log.debug("Проверка возможности запланировать активность завершена");
+                Preconditions.checkState(activity.getMilestones().stream()
+                                .noneMatch(milestone -> Set.of(
+                                        MilestoneState.IN_PROGRESS, MilestoneState.SUMMARIZING, MilestoneState.COMPLETED
+                                ).contains(milestone.getState())),
+                        "Нельзя перевести активность в запланированную, т.к. ее этап находится в неподходящем состоянии");
             }
             case CLOSE_REGISTRATION -> {
-                log.debug("Проверка возможности закрыть регистрацию на активность={}, состояние мероприятия={}",
-                        activity.getId(), activity.getOccasion().getState());
-                log.debug("Проверка возможности закрыть регистрацию на активность завершена");
+                Preconditions.checkState(activity.getOccasion().getState() == OccasionState.IN_PROGRESS,
+                        "Нельзя закрыть регистрацию, т.к. мероприятие находится в состоянии %s", activity.getOccasion().getState());
             }
             case START -> {
-                log.debug("Проверка возможности старта активность={}, состояние мероприятия={}",
-                        activity.getId(), activity.getOccasion().getState());
                 Preconditions.checkState(activity.getOccasion().getState() == OccasionState.IN_PROGRESS,
                         "Нельзя начать активность, т.к. мероприятие находится в состоянии %s", activity.getOccasion().getState());
-                log.debug("Старт активности разрешен");
             }
             case SUM_UP -> {
-                log.debug("Проверка возможности подведения итогов активности={}", activity.getId());
                 Preconditions.checkState(activity.getMilestones().stream()
                                 .allMatch(ms -> ms.getState() == MilestoneState.COMPLETED || ms.getState() == MilestoneState.SUMMARIZING),
                         "Нельзя завершить активность, т.к. есть незавершенные этапы");
             }
             case COMPLETE -> {
-                log.debug("Проверка возможности завершить активность={}", activity.getId());
                 Preconditions.checkState(activity.getMilestones().stream()
                                 .allMatch(ms -> ms.getState() == MilestoneState.COMPLETED),
                         "Нельзя завершить активность, т.к. есть незавершенные этапы");
-                log.debug("Проверка возможности завершить активность завершена");
             }
         }
         return true;
@@ -82,19 +69,14 @@ public class ActivityStateServiceImpl implements BaseStateService<ActivityEntity
     @Override
     public Optional<ActivityState> getNextState(ActivityState currentState, ActivityEvent event) {
         ActivityState nextState = switch (currentState) {
-            case DRAFT -> switch (event) {
-                case DRAFT -> currentState;
-                case PLAN -> ActivityState.PLANNED;
-                default -> null;
-            };
             case PLANNED -> switch (event) {
-                case DRAFT -> ActivityState.DRAFT;
                 case PLAN -> currentState;
                 case CLOSE_REGISTRATION -> ActivityState.REGISTRATION_CLOSED;
                 default -> null;
             };
             case REGISTRATION_CLOSED -> switch (event) {
                 case CLOSE_REGISTRATION -> currentState;
+                case PLAN -> ActivityState.PLANNED;
                 case START -> ActivityState.IN_PROGRESS;
                 default -> null;
             };

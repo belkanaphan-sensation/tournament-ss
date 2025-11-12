@@ -46,6 +46,11 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
                                 && !milestone.getMilestoneRule().getMilestoneCriteria().isEmpty(),
                         "Нельзя запланировать этап т.к. у него не настроены правила или критерии");
             }
+            case PREPARE_ROUNDS -> {
+                Preconditions.checkState(Set.of(ActivityState.REGISTRATION_CLOSED, ActivityState.IN_PROGRESS)
+                                .contains(milestone.getActivity().getState()),
+                        "Нельзя подготовить раунды, т.к. активность находится в статусе %s", milestone.getActivity().getState());
+            }
             case START -> {
                 Preconditions.checkState(milestone.getActivity().getState() == ActivityState.IN_PROGRESS,
                         "Нельзя стартовать этап, т.к. активность находится в статусе %s", milestone.getActivity().getState());

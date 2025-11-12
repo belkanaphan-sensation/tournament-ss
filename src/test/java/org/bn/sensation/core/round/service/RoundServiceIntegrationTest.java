@@ -141,7 +141,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Occasion")
                 .description("Test Description")
                 .startDate(LocalDate.now())
-                .state(OccasionState.DRAFT)
+                .state(OccasionState.PLANNED)
                 .endDate(LocalDate.now().plusDays(3))
                 .organization(testOrganization)
                 .build();
@@ -151,7 +151,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         testActivity = ActivityEntity.builder()
                 .name("Test Activity")
                 .description("Test Activity Description")
-                .state(ActivityState.DRAFT)
+                .state(ActivityState.PLANNED)
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusDays(1))
                 .address(Address.builder()

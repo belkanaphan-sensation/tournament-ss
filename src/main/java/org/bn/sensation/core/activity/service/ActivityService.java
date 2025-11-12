@@ -23,8 +23,6 @@ public interface ActivityService extends BaseCrudService<
 
     List<ActivityDto> findByOccasionIdInLifeStatesForCurrentUser(@NotNull Long id);
 
-    void draftActivity(Long id);
-
     void planActivity(Long id);
 
     void startActivity(Long id);
