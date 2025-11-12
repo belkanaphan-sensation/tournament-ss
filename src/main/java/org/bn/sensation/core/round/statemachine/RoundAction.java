@@ -1,8 +1,6 @@
-package org.bn.sensation.core.common.statemachine.action;
+package org.bn.sensation.core.round.statemachine;
 
 import org.bn.sensation.core.common.service.BaseStateService;
-import org.bn.sensation.core.common.statemachine.event.RoundEvent;
-import org.bn.sensation.core.common.statemachine.state.RoundState;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.action.Action;

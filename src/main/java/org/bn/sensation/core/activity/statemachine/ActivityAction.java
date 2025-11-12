@@ -1,9 +1,7 @@
-package org.bn.sensation.core.common.statemachine.action;
+package org.bn.sensation.core.activity.statemachine;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.service.BaseStateService;
-import org.bn.sensation.core.common.statemachine.event.ActivityEvent;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
 import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.action.Action;
 import org.springframework.stereotype.Component;

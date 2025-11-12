@@ -1,4 +1,4 @@
-package org.bn.sensation.core.common.statemachine.event;
+package org.bn.sensation.core.milestone.statemachine;
 
 import org.bn.sensation.core.common.statemachine.BaseEvent;
 

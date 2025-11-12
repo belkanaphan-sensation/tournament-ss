@@ -1,4 +1,4 @@
-package org.bn.sensation.core.common.statemachine.state;
+package org.bn.sensation.core.milestone.statemachine;
 
 import java.util.Arrays;
 import java.util.List;

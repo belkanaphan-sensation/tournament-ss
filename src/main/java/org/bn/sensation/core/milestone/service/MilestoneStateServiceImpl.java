@@ -4,17 +4,15 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.bn.sensation.core.common.service.BaseStateService;
-import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
-import org.bn.sensation.core.common.statemachine.state.RoundState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneEvent;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
+import org.bn.sensation.core.round.statemachine.RoundState;
 import org.bn.sensation.core.judgemilestonestatus.model.JudgeMilestoneStatus;
 import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCacheService;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.springframework.stereotype.Service;
-
-import com.google.common.base.Preconditions;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,49 +32,70 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
     }
 
     @Override
-    public boolean canTransition(MilestoneEntity milestone, MilestoneEvent event) {
+    public String canTransition(MilestoneEntity milestone, MilestoneEvent event) {
         switch (event) {
             case DRAFT, SKIP -> {
+                return null;
             }
             case PLAN -> {
-                Preconditions.checkState(Set.of(ActivityState.PLANNED, ActivityState.REGISTRATION_CLOSED, ActivityState.IN_PROGRESS)
-                                .contains(milestone.getActivity().getState()),
-                        "Нельзя запланировать этап, т.к. активность находится в статусе %s", milestone.getActivity().getState());
-                Preconditions.checkArgument(milestone.getMilestoneRule() != null
-                                && !milestone.getMilestoneRule().getMilestoneCriteria().isEmpty(),
-                        "Нельзя запланировать этап т.к. у него не настроены правила или критерии");
+                if (!Set.of(ActivityState.PLANNED, ActivityState.REGISTRATION_CLOSED, ActivityState.IN_PROGRESS)
+                        .contains(milestone.getActivity().getState())) {
+                    return "Нельзя запланировать этап, т.к. активность находится в статусе %s"
+                            .formatted(milestone.getActivity().getState());
+                }
+                if (milestone.getMilestoneRule() == null
+                        || milestone.getMilestoneRule().getMilestoneCriteria().isEmpty()) {
+                    return "Нельзя запланировать этап т.к. у него не настроены правила или критерии";
+                }
+                return null;
             }
             case PREPARE_ROUNDS -> {
-                Preconditions.checkState(Set.of(ActivityState.REGISTRATION_CLOSED, ActivityState.IN_PROGRESS)
-                                .contains(milestone.getActivity().getState()),
-                        "Нельзя подготовить раунды, т.к. активность находится в статусе %s", milestone.getActivity().getState());
+                if (!Set.of(ActivityState.REGISTRATION_CLOSED, ActivityState.IN_PROGRESS)
+                        .contains(milestone.getActivity().getState())) {
+                    return "Нельзя подготовить раунды, т.к. активность находится в статусе %s"
+                            .formatted(milestone.getActivity().getState());
+                }
+                return null;
             }
             case START -> {
-                Preconditions.checkState(milestone.getActivity().getState() == ActivityState.IN_PROGRESS,
-                        "Нельзя стартовать этап, т.к. активность находится в статусе %s", milestone.getActivity().getState());
-                Preconditions.checkArgument(!milestone.getRounds().isEmpty() && !milestone.getParticipants().isEmpty(),
-                        "Нельзя стартовать этап т.к. у него не сформированы раунды или отсутствуют участники");
+                if (milestone.getActivity().getState() != ActivityState.IN_PROGRESS) {
+                    return "Нельзя стартовать этап, т.к. активность находится в статусе %s"
+                            .formatted(milestone.getActivity().getState());
+                }
+                if (milestone.getRounds().isEmpty() || milestone.getParticipants().isEmpty()) {
+                    return "Нельзя стартовать этап т.к. у него не сформированы раунды или отсутствуют участники";
+                }
+                return null;
             }
             case SUM_UP -> {
-                Preconditions.checkState(milestone.getActivity().getState() == ActivityState.IN_PROGRESS,
-                        "Нельзя подводить итоги этапа, т.к. активность находится в статусе %s", milestone.getActivity().getState());
-                Preconditions.checkArgument(judgeMilestoneStatusCacheService
-                                .getAllJudgesStatusForMilestone(milestone.getId()).stream()
-                                .noneMatch(st -> st.getStatus() == JudgeMilestoneStatus.NOT_READY),
-                        "Результаты этапа готовы для подведения итогов не у всех судей");
+                if (milestone.getActivity().getState() != ActivityState.IN_PROGRESS) {
+                    return "Нельзя подводить итоги этапа, т.к. активность находится в статусе %s"
+                            .formatted(milestone.getActivity().getState());
+                }
+                boolean anyJudgeNotReady = judgeMilestoneStatusCacheService
+                        .getAllJudgesStatusForMilestone(milestone.getId()).stream()
+                        .anyMatch(st -> st.getStatus() == JudgeMilestoneStatus.NOT_READY);
+                if (anyJudgeNotReady) {
+                    return "Результаты этапа готовы для подведения итогов не у всех судей";
+                }
+                return null;
             }
             case COMPLETE -> {
                 boolean allRoundsCompleted = milestone.getRounds()
                         .stream()
                         .allMatch(round -> round.getState() == RoundState.CLOSED);
-                Preconditions.checkState(allRoundsCompleted, "Не все раунды завершены");
+                if (!allRoundsCompleted) {
+                    return "Не все раунды завершены";
+                }
                 int resultsCount = milestone.getResults().size();
                 int participantsCount = milestone.getParticipants().size();
-                Preconditions.checkState(resultsCount == participantsCount,
-                        "Результаты готовы не для всех участников");
+                if (resultsCount != participantsCount) {
+                    return "Результаты готовы не для всех участников";
+                }
+                return null;
             }
         }
-        return true;
+        return null;
     }
 
     @Override

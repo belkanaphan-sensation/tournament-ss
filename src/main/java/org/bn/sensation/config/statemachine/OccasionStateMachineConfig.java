@@ -1,11 +1,11 @@
-package org.bn.sensation.core.common.statemachine.config;
+package org.bn.sensation.config.statemachine;
 
 import java.util.EnumSet;
 
-import org.bn.sensation.core.common.statemachine.action.OccasionAction;
-import org.bn.sensation.core.common.statemachine.event.OccasionEvent;
-import org.bn.sensation.core.common.statemachine.listener.OccasionStateMachineListener;
-import org.bn.sensation.core.common.statemachine.state.OccasionState;
+import org.bn.sensation.core.occasion.statemachine.OccasionAction;
+import org.bn.sensation.core.occasion.statemachine.OccasionEvent;
+import org.bn.sensation.core.occasion.statemachine.OccasionStateMachineListener;
+import org.bn.sensation.core.occasion.statemachine.OccasionState;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
 import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter;

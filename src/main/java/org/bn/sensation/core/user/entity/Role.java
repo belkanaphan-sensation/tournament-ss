@@ -4,7 +4,6 @@ public enum Role {
     SUPERADMIN,
     ADMIN,
     MANAGER,
-    ORGANIZER,
     ADMINISTRATOR,
     USER,
     ANNOUNCER,

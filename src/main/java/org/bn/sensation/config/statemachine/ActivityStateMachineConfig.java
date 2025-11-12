@@ -1,11 +1,11 @@
-package org.bn.sensation.core.common.statemachine.config;
+package org.bn.sensation.config.statemachine;
 
 import java.util.EnumSet;
 
-import org.bn.sensation.core.common.statemachine.action.ActivityAction;
-import org.bn.sensation.core.common.statemachine.event.ActivityEvent;
-import org.bn.sensation.core.common.statemachine.listener.ActivityStateMachineListener;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
+import org.bn.sensation.core.activity.statemachine.ActivityAction;
+import org.bn.sensation.core.activity.statemachine.ActivityEvent;
+import org.bn.sensation.core.activity.statemachine.ActivityStateMachineListener;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
 import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter;

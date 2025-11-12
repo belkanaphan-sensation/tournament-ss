@@ -9,7 +9,7 @@ import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 import org.bn.sensation.core.judgemilestoneresult.entity.JudgeMilestoneResultEntity;
 import org.bn.sensation.core.judgemilestoneresult.repository.JudgeMilestoneResultRepository;
 import org.bn.sensation.core.judgemilestoneresult.service.dto.JudgeMilestoneResultDto;

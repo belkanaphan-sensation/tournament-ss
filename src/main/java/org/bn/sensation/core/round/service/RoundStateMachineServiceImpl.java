@@ -1,9 +1,9 @@
 package org.bn.sensation.core.round.service;
 
 import org.bn.sensation.core.common.service.BaseStateService;
-import org.bn.sensation.core.common.statemachine.event.RoundEvent;
-import org.bn.sensation.core.common.statemachine.listener.RoundStateMachineListener;
-import org.bn.sensation.core.common.statemachine.state.RoundState;
+import org.bn.sensation.core.round.statemachine.RoundEvent;
+import org.bn.sensation.core.round.statemachine.RoundStateMachineListener;
+import org.bn.sensation.core.round.statemachine.RoundState;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
@@ -49,8 +49,14 @@ public class RoundStateMachineServiceImpl implements RoundStateMachineService {
                 return; // Состояние не меняется, но переход валиден - просто выходим
             }
 
-            if (roundStateService.canTransition(round, event)) {
-                StateMachine<RoundState, RoundEvent> sm = roundStateMachine.getStateMachine(round.getId().toString());
+            String validationError = roundStateService.canTransition(round, event);
+            if (validationError != null) {
+                log.warn("🚫 [ROUND_EVENT_BLOCKED] Round ID: {} | Event: {} | Reason: {}",
+                        round.getId(), event, validationError);
+                throw new IllegalStateException(validationError);
+            }
+
+            StateMachine<RoundState, RoundEvent> sm = roundStateMachine.getStateMachine(round.getId().toString());
 
                 // Регистрируем связь между State Machine и Round ID
                 RoundStateMachineListener.registerStateMachine(sm.getId(), round.getId());
@@ -85,12 +91,8 @@ public class RoundStateMachineServiceImpl implements RoundStateMachineService {
                         })
                         .blockLast(); // Блокируем до завершения всех операций
 
-                log.info("✅ [ROUND_EVENT_SUCCESS] Round ID: {} | Event: {} | Final State: {}",
-                        round.getId(), event, round.getState());
-            } else {
-                log.warn("🚫 [ROUND_EVENT_BLOCKED] Round ID: {} | Event: {} | Reason: Business logic validation failed",
-                        round.getId(), event);
-            }
+            log.info("✅ [ROUND_EVENT_SUCCESS] Round ID: {} | Event: {} | Final State: {}",
+                    round.getId(), event, round.getState());
         } finally {
             // Очищаем контекст
             RoundStateMachineListener.clearRoundId();

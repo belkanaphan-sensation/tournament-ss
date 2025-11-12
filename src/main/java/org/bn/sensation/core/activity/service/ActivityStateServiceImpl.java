@@ -6,13 +6,11 @@ import java.util.Set;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.service.BaseStateService;
-import org.bn.sensation.core.common.statemachine.event.ActivityEvent;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
-import org.bn.sensation.core.common.statemachine.state.OccasionState;
+import org.bn.sensation.core.activity.statemachine.ActivityEvent;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
+import org.bn.sensation.core.occasion.statemachine.OccasionState;
 import org.springframework.stereotype.Service;
-
-import com.google.common.base.Preconditions;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,37 +31,30 @@ public class ActivityStateServiceImpl implements BaseStateService<ActivityEntity
     }
 
     @Override
-    public boolean canTransition(ActivityEntity activity, ActivityEvent event) {
+    public String canTransition(ActivityEntity activity, ActivityEvent event) {
         log.debug("Проверка возможности перехода активности: id={}, событие={}, текущее состояние={}",
                 activity.getId(), event, activity.getState());
-        switch (event) {
-            case PLAN -> {
-                Preconditions.checkState(activity.getMilestones().stream()
-                                .noneMatch(milestone -> Set.of(
-                                        MilestoneState.IN_PROGRESS, MilestoneState.SUMMARIZING, MilestoneState.COMPLETED
-                                ).contains(milestone.getState())),
-                        "Нельзя перевести активность в запланированную, т.к. ее этап находится в неподходящем состоянии");
-            }
-            case CLOSE_REGISTRATION -> {
-                Preconditions.checkState(activity.getOccasion().getState() == OccasionState.IN_PROGRESS,
-                        "Нельзя закрыть регистрацию, т.к. мероприятие находится в состоянии %s", activity.getOccasion().getState());
-            }
-            case START -> {
-                Preconditions.checkState(activity.getOccasion().getState() == OccasionState.IN_PROGRESS,
-                        "Нельзя начать активность, т.к. мероприятие находится в состоянии %s", activity.getOccasion().getState());
-            }
-            case SUM_UP -> {
-                Preconditions.checkState(activity.getMilestones().stream()
-                                .allMatch(ms -> ms.getState() == MilestoneState.COMPLETED || ms.getState() == MilestoneState.SUMMARIZING),
-                        "Нельзя завершить активность, т.к. есть незавершенные этапы");
-            }
-            case COMPLETE -> {
-                Preconditions.checkState(activity.getMilestones().stream()
-                                .allMatch(ms -> ms.getState() == MilestoneState.COMPLETED),
-                        "Нельзя завершить активность, т.к. есть незавершенные этапы");
-            }
-        }
-        return true;
+        return switch (event) {
+            case PLAN -> activity.getMilestones().stream()
+                    .anyMatch(milestone -> Set.of(
+                            MilestoneState.IN_PROGRESS, MilestoneState.SUMMARIZING, MilestoneState.COMPLETED
+                    ).contains(milestone.getState()))
+                    ? "Нельзя перевести активность в запланированную, т.к. ее этап находится в неподходящем состоянии"
+                    : null;
+            case CLOSE_REGISTRATION, START -> activity.getOccasion().getState() != OccasionState.IN_PROGRESS
+                    ? "Нельзя %s активность, т.к. мероприятие находится в состоянии %s"
+                    .formatted(event == ActivityEvent.CLOSE_REGISTRATION ? "закрыть регистрацию" : "начать",
+                            activity.getOccasion().getState())
+                    : null;
+            case SUM_UP -> activity.getMilestones().stream()
+                    .anyMatch(ms -> ms.getState() != MilestoneState.COMPLETED && ms.getState() != MilestoneState.SUMMARIZING)
+                    ? "Нельзя завершить активность, т.к. есть незавершенные этапы"
+                    : null;
+            case COMPLETE -> activity.getMilestones().stream()
+                    .anyMatch(ms -> ms.getState() != MilestoneState.COMPLETED)
+                    ? "Нельзя завершить активность, т.к. есть незавершенные этапы"
+                    : null;
+        };
     }
 
     @Override

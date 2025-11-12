@@ -1,8 +1,6 @@
-package org.bn.sensation.core.common.statemachine.action;
+package org.bn.sensation.core.occasion.statemachine;
 
 import org.bn.sensation.core.common.service.BaseStateService;
-import org.bn.sensation.core.common.statemachine.event.OccasionEvent;
-import org.bn.sensation.core.common.statemachine.state.OccasionState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.action.Action;

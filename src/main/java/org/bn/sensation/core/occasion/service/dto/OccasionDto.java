@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.bn.sensation.core.common.statemachine.state.OccasionState;
+import org.bn.sensation.core.occasion.statemachine.OccasionState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

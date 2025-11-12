@@ -1,9 +1,9 @@
-package org.bn.sensation.core.common.statemachine.config;
+package org.bn.sensation.config.statemachine;
 
-import org.bn.sensation.core.common.statemachine.action.RoundAction;
-import org.bn.sensation.core.common.statemachine.event.RoundEvent;
-import org.bn.sensation.core.common.statemachine.listener.RoundStateMachineListener;
-import org.bn.sensation.core.common.statemachine.state.RoundState;
+import org.bn.sensation.core.round.statemachine.RoundAction;
+import org.bn.sensation.core.round.statemachine.RoundEvent;
+import org.bn.sensation.core.round.statemachine.RoundStateMachineListener;
+import org.bn.sensation.core.round.statemachine.RoundState;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
 import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter;

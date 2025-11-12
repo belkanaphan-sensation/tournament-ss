@@ -1,9 +1,9 @@
 package org.bn.sensation.core.milestone.service;
 
 import org.bn.sensation.core.common.service.BaseStateService;
-import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
-import org.bn.sensation.core.common.statemachine.listener.MilestoneStateMachineListener;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneEvent;
+import org.bn.sensation.core.milestone.statemachine.MilestoneStateMachineListener;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
@@ -48,8 +48,14 @@ public class MilestoneStateMachineServiceImpl implements MilestoneStateMachineSe
                 return;
             }
 
-            if (milestoneStateService.canTransition(milestone, event)) {
-                StateMachine<MilestoneState, MilestoneEvent> sm = milestoneStateMachine.getStateMachine(milestone.getId().toString());
+            String validationError = milestoneStateService.canTransition(milestone, event);
+            if (validationError != null) {
+                log.warn("🚫 [MILESTONE_EVENT_BLOCKED] Milestone ID: {} | Event: {} | Reason: {}",
+                        milestone.getId(), event, validationError);
+                throw new IllegalStateException(validationError);
+            }
+
+            StateMachine<MilestoneState, MilestoneEvent> sm = milestoneStateMachine.getStateMachine(milestone.getId().toString());
 
                 // Регистрируем связь между State Machine и Milestone ID
                 MilestoneStateMachineListener.registerStateMachine(sm.getId(), milestone.getId());
@@ -84,12 +90,8 @@ public class MilestoneStateMachineServiceImpl implements MilestoneStateMachineSe
                         })
                         .blockLast(); // Блокируем до завершения всех операций
 
-                log.info("✅ [MILESTONE_EVENT_SUCCESS] Milestone ID: {} | Event: {} | Final State: {}",
-                        milestone.getId(), event, milestone.getState());
-            } else {
-                log.warn("🚫 [MILESTONE_EVENT_BLOCKED] Milestone ID: {} | Event: {} | Reason: Business logic validation failed",
-                        milestone.getId(), event);
-            }
+            log.info("✅ [MILESTONE_EVENT_SUCCESS] Milestone ID: {} | Event: {} | Final State: {}",
+                    milestone.getId(), event, milestone.getState());
         } finally {
             // Очищаем контекст
             MilestoneStateMachineListener.clearMilestoneId();

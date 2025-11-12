@@ -1,11 +1,11 @@
-package org.bn.sensation.core.common.statemachine.config;
+package org.bn.sensation.config.statemachine;
 
 import java.util.EnumSet;
 
-import org.bn.sensation.core.common.statemachine.action.MilestoneAction;
-import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
-import org.bn.sensation.core.common.statemachine.listener.MilestoneStateMachineListener;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneAction;
+import org.bn.sensation.core.milestone.statemachine.MilestoneEvent;
+import org.bn.sensation.core.milestone.statemachine.MilestoneStateMachineListener;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
 import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter;

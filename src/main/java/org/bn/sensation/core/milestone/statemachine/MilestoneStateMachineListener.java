@@ -1,12 +1,10 @@
-package org.bn.sensation.core.common.statemachine.listener;
+package org.bn.sensation.core.milestone.statemachine;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
 import org.springframework.messaging.Message;
 import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.StateMachine;

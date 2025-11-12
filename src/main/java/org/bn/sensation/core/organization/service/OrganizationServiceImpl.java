@@ -3,7 +3,7 @@ package org.bn.sensation.core.organization.service;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.common.statemachine.state.OccasionState;
+import org.bn.sensation.core.occasion.statemachine.OccasionState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
 import org.bn.sensation.core.organization.repository.OrganizationRepository;
@@ -135,7 +135,7 @@ public class OrganizationServiceImpl implements OrganizationService {
             for (OccasionEntity occasion : organization.getOccasions()) {
                 log.debug("Проверка мероприятия={} со статусом={}", occasion.getId(), occasion.getState());
 
-                if (occasion.getState() != OccasionState.DRAFT && occasion.getState() != OccasionState.COMPLETED) {
+                if (occasion.getState() != OccasionState.PLANNED && occasion.getState() != OccasionState.COMPLETED) {
                     log.warn("Нельзя удалить организацию={}, мероприятие={} имеет активный статус={}",
                             organization.getId(), occasion.getId(), occasion.getState());
                     throw new IllegalArgumentException("Нельзя удалить организацию, у которой есть активные мероприятия. " +

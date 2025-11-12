@@ -2,9 +2,9 @@ package org.bn.sensation.core.activity.service;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.service.BaseStateService;
-import org.bn.sensation.core.common.statemachine.event.ActivityEvent;
-import org.bn.sensation.core.common.statemachine.listener.ActivityStateMachineListener;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
+import org.bn.sensation.core.activity.statemachine.ActivityEvent;
+import org.bn.sensation.core.activity.statemachine.ActivityStateMachineListener;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
@@ -42,8 +42,13 @@ public class ActivityStateMachineServiceImpl implements ActivityStateMachineServ
                         String.format("Невалидный переход из %s в %s", activity.getState(), event));
             }
 
-            if (activityStateService.canTransition(activity, event)) {
-                StateMachine<ActivityState, ActivityEvent> sm = activityStateMachine.getStateMachine(activity.getId().toString());
+            String validationError = activityStateService.canTransition(activity, event);
+            if (validationError != null) {
+                log.warn("🚫 [ACTIVITY_EVENT_BLOCKED] Activity ID: {} | Event: {} | Reason: {}", activity.getId(), event, validationError);
+                throw new IllegalStateException(validationError);
+            }
+
+            StateMachine<ActivityState, ActivityEvent> sm = activityStateMachine.getStateMachine(activity.getId().toString());
 
                 // Регистрируем связь между State Machine и Activity ID
                 ActivityStateMachineListener.registerStateMachine(sm.getId(), activity.getId());
@@ -79,12 +84,8 @@ public class ActivityStateMachineServiceImpl implements ActivityStateMachineServ
                         })
                         .blockLast(); // Блокируем до завершения всех операций
 
-                log.info("✅ [ACTIVITY_EVENT_SUCCESS] Activity ID: {} | Event: {} | Final State: {}",
-                        activity.getId(), event, activity.getState());
-            } else {
-                log.warn("🚫 [ACTIVITY_EVENT_BLOCKED] Activity ID: {} | Event: {} | Reason: Business logic validation failed",
-                        activity.getId(), event);
-            }
+            log.info("✅ [ACTIVITY_EVENT_SUCCESS] Activity ID: {} | Event: {} | Final State: {}",
+                    activity.getId(), event, activity.getState());
         } finally {
             // Очищаем контекст
             ActivityStateMachineListener.clearActivityId();
