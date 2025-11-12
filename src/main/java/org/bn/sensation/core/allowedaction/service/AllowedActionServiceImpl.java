@@ -6,15 +6,15 @@ import java.util.stream.Collectors;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
-import org.bn.sensation.core.activity.statemachine.ActivityState;
+import org.bn.sensation.core.activity.statemachine.ActivityEvent;
 import org.bn.sensation.core.allowedaction.service.dto.AllowedActionDto;
 import org.bn.sensation.core.common.statemachine.policy.TransitionAvailabilityService;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
-import org.bn.sensation.core.milestone.statemachine.MilestoneState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneEvent;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
-import org.bn.sensation.core.occasion.statemachine.OccasionState;
+import org.bn.sensation.core.occasion.statemachine.OccasionEvent;
 import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.stereotype.Service;
@@ -41,7 +41,7 @@ public class AllowedActionServiceImpl implements AllowedActionService {
         OccasionEntity occasion = occasionRepository.getByIdOrThrow(occasionId);
         log.debug("Calculating allowed actions for occasionId={} role={}", occasionId, currentRole);
 
-        Set<OccasionState> allowedStates = transitionAvailabilityService.findAllowedStates(occasion, currentRole);
+        Set<OccasionEvent> allowedStates = transitionAvailabilityService.findAllowedStates(occasion, currentRole);
 
         return new AllowedActionDto(getEntityName(OccasionEntity.class.getSimpleName()), allowedStates.stream()
                 .map(Enum::name)
@@ -55,7 +55,7 @@ public class AllowedActionServiceImpl implements AllowedActionService {
         ActivityEntity activity = activityRepository.getByIdOrThrow(activityId);
         log.debug("Calculating allowed actions for activityId={} role={}", activityId, currentRole);
 
-        Set<ActivityState> allowedStates = transitionAvailabilityService.findAllowedStates(activity, currentRole);
+        Set<ActivityEvent> allowedStates = transitionAvailabilityService.findAllowedStates(activity, currentRole);
 
         return new AllowedActionDto(getEntityName(ActivityEntity.class.getSimpleName()), allowedStates.stream()
                 .map(Enum::name)
@@ -69,7 +69,7 @@ public class AllowedActionServiceImpl implements AllowedActionService {
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
         log.debug("Calculating allowed actions for milestoneId={} role={}", milestoneId, currentRole);
 
-        Set<MilestoneState> allowedStates = transitionAvailabilityService.findAllowedStates(milestone, currentRole);
+        Set<MilestoneEvent> allowedStates = transitionAvailabilityService.findAllowedStates(milestone, currentRole);
 
         return new AllowedActionDto(getEntityName(MilestoneEntity.class.getSimpleName()), allowedStates.stream()
                 .map(Enum::name)

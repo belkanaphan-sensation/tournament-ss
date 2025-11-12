@@ -18,5 +18,5 @@ import lombok.NoArgsConstructor;
 public class AllowedActionDto {
     private String entityName;
     @Builder.Default
-    private Set<String> allowedStates = new HashSet<>();
+    private Set<String> allowedEvents = new HashSet<>();
 }

@@ -27,14 +27,14 @@ public class TransitionAvailabilityService {
         this.supportByEntity = Collections.unmodifiableMap(map);
     }
 
-    public <T extends BaseEntity, S extends BaseState, E extends BaseEvent> Set<S> findAllowedStates(T entity, Role role) {
+    public <T extends BaseEntity, S extends BaseState, E extends BaseEvent> Set<E> findAllowedStates(T entity, Role role) {
         TransitionSupport<T, S, E> support = findSupport(entity);
         if (support == null) {
             return Collections.emptySet();
         }
 
         S currentState = support.currentState(entity);
-        Set<S> allowedStates = new HashSet<>();
+        Set<E> allowedEvents = new HashSet<>();
         Set<E> allowedEventsForRole = support.transitionPolicy().allowedEvents(role);
 
         for (E event : allowedEventsForRole) {
@@ -50,11 +50,11 @@ public class TransitionAvailabilityService {
 
             String validationError = support.stateService().canTransition(entity, event);
             if (validationError == null) {
-                allowedStates.add(nextState);
+                allowedEvents.add(event);
             }
         }
 
-        return allowedStates;
+        return allowedEvents;
     }
 
     @SuppressWarnings("unchecked")
