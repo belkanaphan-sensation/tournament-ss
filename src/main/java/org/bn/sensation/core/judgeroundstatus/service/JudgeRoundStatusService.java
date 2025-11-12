@@ -17,7 +17,7 @@ public interface JudgeRoundStatusService extends BaseService<JudgeRoundStatusEnt
 
     List<JudgeRoundStatusDto> getByMilestoneIdForCurrentUser(Long milestoneId);
 
-    List<JudgeRoundStatusDto> getByRoundId(@NotNull Long roundId);
+    List<JudgeRoundStatusEntity> getByRoundId(@NotNull Long roundId);
 
     void invalidateForRound(Long roundId);
 }

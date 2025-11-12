@@ -10,7 +10,10 @@ public interface BaseStateService <T extends BaseEntity, S extends BaseState, E 
 
     void saveTransition(T entity, S state);
 
-    boolean canTransition(T entity, E event);
+    /**
+     * @return null when transition allowed, otherwise human-readable reason why it is blocked
+     */
+    String canTransition(T entity, E event);
 
     Optional<S> getNextState(S currentState, E event);
 }

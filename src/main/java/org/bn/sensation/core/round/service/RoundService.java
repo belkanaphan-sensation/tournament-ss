@@ -25,11 +25,4 @@ public interface RoundService extends BaseCrudService<
 
     List<RoundDto> generateRounds(MilestoneEntity milestone, @Nullable List<Long> participantIds, @Nullable Boolean reGenerate);
 
-    void draftRound(Long id);
-
-    void planRound(Long id);
-
-    void startRound(Long id);
-
-    void completeRound(Long id);
 }

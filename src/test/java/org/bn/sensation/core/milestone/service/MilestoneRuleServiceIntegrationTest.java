@@ -10,9 +10,9 @@ import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Person;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
-import org.bn.sensation.core.common.statemachine.state.OccasionState;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
+import org.bn.sensation.core.occasion.statemachine.OccasionState;
 import org.bn.sensation.core.criterion.entity.CriterionEntity;
 import org.bn.sensation.core.criterion.repository.CriterionRepository;
 import org.bn.sensation.core.milestone.entity.AssessmentMode;
@@ -136,7 +136,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .startDate(java.time.LocalDate.now().plusDays(1))
                 .endDate(java.time.LocalDate.now().plusDays(2))
                 .organization(testOrganization)
-                .state(OccasionState.DRAFT)
+                .state(OccasionState.PLANNED)
                 .build();
         testOccasion = occasionRepository.save(testOccasion);
 
@@ -145,7 +145,7 @@ class MilestoneRuleServiceIntegrationTest extends AbstractIntegrationTest {
                 .name("Test Activity")
                 .description("Test Activity Description")
                 .occasion(testOccasion)
-                .state(ActivityState.DRAFT)
+                .state(ActivityState.PLANNED)
                 .build();
         testActivity = activityRepository.save(testActivity);
 

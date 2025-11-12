@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Activity", description = "The Activity API")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER', 'ADMINISTRATOR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'USER', 'ADMINISTRATOR', 'ANNOUNCER')")
 public class ActivityController {
 
     private final ActivityService activityService;
@@ -88,19 +88,10 @@ public class ActivityController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Перевести активность обратно в черновик",
-            description = "доступно для администратора")
-    @PostMapping(path = "/draft/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> draftActivity(@Parameter @PathVariable("id") @NotNull Long id) {
-        activityService.draftActivity(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @Operation(summary = "Запланировать активность по ID",
             description = "доступно для администратора")
     @PostMapping(path = "/plan/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<Void> planActivity(@Parameter @PathVariable("id") @NotNull Long id) {
         activityService.planActivity(id);
         return ResponseEntity.noContent().build();
@@ -109,7 +100,7 @@ public class ActivityController {
     @Operation(summary = "Завершить регистрацию участников в активность по ID",
             description = "доступно для администратора")
     @PostMapping(path = "/close-registration/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'ADMINISTRATOR')")
     public ResponseEntity<Void> closeRegistrationToActivity(@Parameter @PathVariable("id") @NotNull Long id) {
         activityService.closeRegistrationToActivity(id);
         return ResponseEntity.noContent().build();
@@ -118,7 +109,7 @@ public class ActivityController {
     @Operation(summary = "Начать активность по ID",
             description = "доступно для администратора")
     @PostMapping(path = "/start/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<Void> startActivity(@Parameter @PathVariable("id") @NotNull Long id) {
         activityService.startActivity(id);
         return ResponseEntity.noContent().build();
@@ -127,7 +118,7 @@ public class ActivityController {
     @Operation(summary = "Подвести итоги активности по ID",
             description = "доступно для администратора")
     @PostMapping(path = "/sum-up/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<List<ActivityResultDto>> sumUpActivity(@Parameter @PathVariable("id") @NotNull Long id,
                                                                  @Valid @RequestBody List<CreateActivityResultRequest> request) {
         List<ActivityResultDto> dtos = activityService.sumUpActivity(id, request);
@@ -137,7 +128,7 @@ public class ActivityController {
     @Operation(summary = "Завершить активность по ID",
             description = "доступно для администратора")
     @PostMapping(path = "/complete/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<Void> completeActivity(@Parameter @PathVariable("id") @NotNull Long id) {
         activityService.completeActivity(id);
         return ResponseEntity.noContent().build();
@@ -145,7 +136,7 @@ public class ActivityController {
 
     @GetMapping(path = "/{id}/report")
     @Operation(summary = "Скачать Excel-отчет по активности")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<Resource> downloadReport(
             @Parameter(description = "ID активности")
             @PathVariable("id") @NotNull Long id) {

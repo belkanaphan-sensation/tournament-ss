@@ -9,8 +9,8 @@ import java.util.stream.Collectors;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
-import org.bn.sensation.core.common.statemachine.state.RoundState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
+import org.bn.sensation.core.round.statemachine.RoundState;
 import org.bn.sensation.core.judgemilestoneresult.entity.JudgeMilestoneResultEntity;
 import org.bn.sensation.core.judgemilestoneresult.repository.JudgeMilestoneResultRepository;
 import org.bn.sensation.core.milestone.entity.AssessmentMode;
@@ -127,7 +127,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         } else {
             log.info("Обновление результатов для этапа по дополнительному раунду={}", milestone.getId());
             List<RoundEntity> extraRounds = milestone.getRounds().stream()
-                    .filter(r -> r.getState() == RoundState.READY)
+                    .filter(r -> r.getState() == RoundState.OPENED)
                     .filter(r -> Boolean.TRUE.equals(r.getExtraRound()))
                     .toList();
             if (!extraRounds.isEmpty()) {
@@ -192,7 +192,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         Map<Long, Map<Long, List<JudgeMilestoneResultEntity>>> resultsMap =
                 judgeMilestoneResultRepository.findByMilestoneId(milestone.getId())
                         .stream()
-                        .filter(jm -> jm.getRound().getState() == RoundState.READY)
+                        .filter(jm -> jm.getRound().getState() == RoundState.OPENED)
                         .collect(Collectors.groupingBy(
                                 jm -> jm.getParticipant().getId(),
                                 Collectors.groupingBy(jmr -> jmr.getRound().getId())
@@ -202,7 +202,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
 
         List<MilestoneResultEntity> createdResults = milestone.getRounds()
                 .stream()
-                .filter(round -> round.getState() == RoundState.READY)
+                .filter(round -> round.getState() == RoundState.OPENED)
                 .flatMap(round -> round.getParticipants().stream()
                         .map(participant -> createMilestoneResult(participant, milestone, round, resultsMap)))
                 .toList();

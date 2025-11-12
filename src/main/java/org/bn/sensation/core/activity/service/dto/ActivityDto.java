@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

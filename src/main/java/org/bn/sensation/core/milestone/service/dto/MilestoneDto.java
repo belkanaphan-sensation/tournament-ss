@@ -2,7 +2,7 @@ package org.bn.sensation.core.milestone.service.dto;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

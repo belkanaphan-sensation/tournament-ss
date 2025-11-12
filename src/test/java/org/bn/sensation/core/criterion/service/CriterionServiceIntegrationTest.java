@@ -8,9 +8,9 @@ import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.PartnerSide;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
-import org.bn.sensation.core.common.statemachine.state.OccasionState;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
+import org.bn.sensation.core.occasion.statemachine.OccasionState;
 import org.bn.sensation.core.criterion.entity.CriterionEntity;
 import org.bn.sensation.core.criterion.repository.CriterionRepository;
 import org.bn.sensation.core.criterion.service.dto.CriterionDto;
@@ -102,7 +102,7 @@ class CriterionServiceIntegrationTest extends AbstractIntegrationTest {
             OccasionEntity testOccasion = OccasionEntity.builder()
                     .name("Test Occasion")
                     .description("Test Description")
-                    .state(OccasionState.DRAFT)
+                    .state(OccasionState.PLANNED)
                     .organization(testOrganization)
                     .build();
             testOccasion = occasionRepository.save(testOccasion);
@@ -111,7 +111,7 @@ class CriterionServiceIntegrationTest extends AbstractIntegrationTest {
             ActivityEntity testActivity = ActivityEntity.builder()
                     .name("Test Activity")
                     .description("Test Activity Description")
-                    .state(ActivityState.DRAFT)
+                    .state(ActivityState.PLANNED)
                     .occasion(testOccasion)
                     .build();
             testActivity = activityRepository.save(testActivity);

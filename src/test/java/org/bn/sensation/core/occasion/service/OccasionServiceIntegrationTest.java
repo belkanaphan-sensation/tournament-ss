@@ -11,8 +11,8 @@ import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Person;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
-import org.bn.sensation.core.common.statemachine.state.OccasionState;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
+import org.bn.sensation.core.occasion.statemachine.OccasionState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.occasion.service.dto.CreateOccasionRequest;
@@ -301,7 +301,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         // Проверяем, что статус установлен по умолчанию (DRAFT)
         Optional<OccasionEntity> savedOccasion = occasionRepository.findById(result.getId());
         assertTrue(savedOccasion.isPresent());
-        assertEquals(OccasionState.DRAFT, savedOccasion.get().getState());
+        assertEquals(OccasionState.PLANNED, savedOccasion.get().getState());
     }
 
     @Test
@@ -333,7 +333,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
                     .description(description)
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .state(OccasionState.DRAFT)
+                    .state(OccasionState.PLANNED)
                     .organization(testOrganization)
                     .build();
             return occasionRepository.save(occasion);
@@ -349,7 +349,7 @@ class OccasionServiceIntegrationTest extends AbstractIntegrationTest {
         ActivityEntity completedActivity = createTestActivity(occasion, "Completed Activity", ActivityState.COMPLETED);
         ActivityEntity activeActivity = createTestActivity(occasion, "Active Activity", ActivityState.IN_PROGRESS);
         ActivityEntity readyActivity = createTestActivity(occasion, "Ready Activity", ActivityState.PLANNED);
-        ActivityEntity draftActivity = createTestActivity(occasion, "Draft Activity", ActivityState.DRAFT);
+        ActivityEntity draftActivity = createTestActivity(occasion, "Draft Activity", ActivityState.PLANNED);
 
         occasion.getActivities().addAll(Set.of(completedActivity, activeActivity, readyActivity, draftActivity));
         occasionRepository.save(occasion);

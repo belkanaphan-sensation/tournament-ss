@@ -4,9 +4,9 @@ public enum Role {
     SUPERADMIN,
     ADMIN,
     MANAGER,
-    ORGANIZER,
     ADMINISTRATOR,
     USER,
+    ANNOUNCER,
     READER;
 
     public boolean isAdmin() {

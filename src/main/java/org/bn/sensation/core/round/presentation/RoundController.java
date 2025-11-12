@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Round", description = "The Round API")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'USER', 'ADMINISTRATOR', 'ANNOUNCER')")
 public class RoundController {
 
     private final RoundService roundService;
@@ -43,14 +43,14 @@ public class RoundController {
 
     @Operation(summary = "Получить все раунды с пагинацией")
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<Page<RoundDto>> getAll(Pageable pageable) {
         return ResponseEntity.ok(roundService.findAll(pageable));
     }
 
     @Operation(summary = "Создать новый раунд")
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<RoundDto> create(@Valid @RequestBody CreateRoundRequest request) {
         RoundDto created = roundService.create(request);
         return ResponseEntity.ok(created);
@@ -58,7 +58,7 @@ public class RoundController {
 
     @Operation(summary = "Обновить раунд по ID")
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<RoundDto> update(@PathVariable("id") @NotNull Long id,
                                            @Valid @RequestBody UpdateRoundRequest request) {
         RoundDto updated = roundService.update(id, request);
@@ -67,7 +67,7 @@ public class RoundController {
 
     @Operation(summary = "Удалить раунд по ID")
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         roundService.deleteById(id);
         return ResponseEntity.noContent().build();
@@ -83,43 +83,6 @@ public class RoundController {
     @GetMapping(path = "/milestone/{id}/life")
     public ResponseEntity<List<RoundWithJRStatusDto>> getByMilestoneIdInLifeStates(@Parameter @PathVariable("id") @NotNull Long id) {
         return ResponseEntity.ok(roundService.findByMilestoneIdInLifeStates(id));
-    }
-
-    @Operation(summary = "Перевести раунд обратно в черновик",
-            description = "доступно для администратора. " +
-                    "Переводит все статусы раунда и этапа в NOT_READY")
-    @PostMapping(path = "/draft/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> draftRound(@Parameter @PathVariable("id") @NotNull Long id) {
-        roundService.draftRound(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "Запланировать раунд по ID",
-            description = "Запланировать раунд может администратор")
-    @PostMapping(path = "/plan/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> planRound(@Parameter @PathVariable("id") @NotNull Long id) {
-        roundService.planRound(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "Начать раунд по ID",
-            description = "Начать раунд может администратор")
-    @PostMapping(path = "/start/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> startRound(@Parameter @PathVariable("id") @NotNull Long id) {
-        roundService.startRound(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "Завершить раунд по ID",
-            description = "Завершить раунд может администратор")
-    @PostMapping(path = "/complete/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<Void> completeRound(@Parameter @PathVariable("id") @NotNull Long id) {
-        roundService.completeRound(id);
-        return ResponseEntity.noContent().build();
     }
 
 }

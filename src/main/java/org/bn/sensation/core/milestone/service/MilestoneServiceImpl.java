@@ -10,10 +10,10 @@ import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.common.service.BaseStateService;
-import org.bn.sensation.core.common.statemachine.event.MilestoneEvent;
-import org.bn.sensation.core.common.statemachine.event.RoundEvent;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
-import org.bn.sensation.core.common.statemachine.state.RoundState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneEvent;
+import org.bn.sensation.core.round.statemachine.RoundEvent;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
+import org.bn.sensation.core.round.statemachine.RoundState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
@@ -205,7 +205,7 @@ public class MilestoneServiceImpl implements MilestoneService {
         MilestoneDto dto = milestoneDtoMapper.toDto(milestone);
 
         int completedCount = (int) milestone.getRounds().stream()
-                .filter(round -> round.getState() == RoundState.COMPLETED)
+                .filter(round -> round.getState() == RoundState.CLOSED)
                 .count();
         int totalCount = milestone.getRounds().size();
 
@@ -361,9 +361,9 @@ public class MilestoneServiceImpl implements MilestoneService {
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(id);
         milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.SUM_UP);
         List<MilestoneResultDto> milestoneResultDtos = milestoneResultService.calculateResults(milestone);
-        milestone.getRounds().stream().filter(round -> round.getState() != RoundState.COMPLETED)
+        milestone.getRounds().stream().filter(round -> round.getState() != RoundState.CLOSED)
                 .forEach(round -> {
-                    roundStateMachineService.sendEvent(round, RoundEvent.COMPLETE);
+                    roundStateMachineService.sendEvent(round, RoundEvent.CLOSE);
                 });
         log.info("Предварительные итоги этапа подведены: id={}", id);
         return milestoneResultDtos;

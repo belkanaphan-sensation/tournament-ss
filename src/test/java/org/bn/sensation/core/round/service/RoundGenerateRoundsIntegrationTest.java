@@ -15,10 +15,10 @@ import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.Person;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
-import org.bn.sensation.core.common.statemachine.state.OccasionState;
-import org.bn.sensation.core.common.statemachine.state.RoundState;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
+import org.bn.sensation.core.occasion.statemachine.OccasionState;
+import org.bn.sensation.core.round.statemachine.RoundState;
 import org.bn.sensation.core.milestone.entity.AssessmentMode;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
@@ -115,7 +115,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
                 .description("Test Description")
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
-                .state(OccasionState.DRAFT)
+                .state(OccasionState.PLANNED)
                 .organization(testOrganization)
                 .build();
         testOccasion = occasionRepository.save(testOccasion);
@@ -124,7 +124,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
         testActivity = ActivityEntity.builder()
                 .name("Test Activity")
                 .description("Test Activity Description")
-                .state(ActivityState.DRAFT)
+                .state(ActivityState.PLANNED)
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusDays(1))
                 .address(Address.builder()
@@ -215,14 +215,14 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
         // Проверяем первый раунд
         RoundDto round1 = result.get(0);
         assertEquals("Раунд 1", round1.getName());
-        assertEquals(RoundState.DRAFT, round1.getState());
+        assertEquals(RoundState.OPENED, round1.getState());
         assertEquals(0, round1.getRoundOrder());
         assertEquals(6, round1.getParticipants().size()); // 3 лидера + 3 последователя
 
         // Проверяем второй раунд
         RoundDto round2 = result.get(1);
         assertEquals("Раунд 2", round2.getName());
-        assertEquals(RoundState.DRAFT, round2.getState());
+        assertEquals(RoundState.OPENED, round2.getState());
         assertEquals(1, round2.getRoundOrder());
         assertEquals(4, round2.getParticipants().size()); // 2 лидера + 2 последователя
 

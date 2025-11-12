@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Judge milestone Result", description = "The Judge milestone result API")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'USER', 'ANNOUNCER')")
 public class JudgeMilestoneResultController {
 
     private final JudgeMilestoneResultService judgeMilestoneResultService;
@@ -108,7 +108,7 @@ public class JudgeMilestoneResultController {
 
     @Operation(summary = "Удалить результат судьи по ID")
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         judgeMilestoneResultService.deleteById(id);
         return ResponseEntity.noContent().build();

@@ -11,7 +11,7 @@ import org.bn.sensation.AbstractIntegrationTest;
 import org.bn.sensation.core.common.dto.AddressDto;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.Person;
-import org.bn.sensation.core.common.statemachine.state.OccasionState;
+import org.bn.sensation.core.occasion.statemachine.OccasionState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.organization.entity.OrganizationEntity;
@@ -488,7 +488,7 @@ class OrganizationServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Draft Description")
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .state(OccasionState.DRAFT)
+                    .state(OccasionState.PLANNED)
                     .organization(orgRef)
                     .build();
             occasionRepository.save(draftOccasion);

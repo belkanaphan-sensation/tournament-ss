@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 

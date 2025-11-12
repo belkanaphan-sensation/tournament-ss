@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Milestone Criterion Assignment", description = "The Milestone Criterion Assignment API")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'USER', 'ANNOUNCER')")
 public class MilestoneCriterionController {
 
     private final MilestoneCriterionService milestoneCriterionService;
@@ -103,6 +103,7 @@ public class MilestoneCriterionController {
 
     @Operation(summary = "Создать новое назначение")
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<MilestoneCriterionDto> create(@Valid @RequestBody CreateMilestoneCriterionRequest request) {
         MilestoneCriterionDto created = milestoneCriterionService.create(request);
         return ResponseEntity.ok(created);
@@ -110,6 +111,7 @@ public class MilestoneCriterionController {
 
     @Operation(summary = "Обновить назначение по ID")
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<MilestoneCriterionDto> update(@PathVariable("id") @NotNull Long id,
                                                         @Valid @RequestBody UpdateMilestoneCriterionRequest request) {
         MilestoneCriterionDto updated = milestoneCriterionService.update(id, request);
@@ -118,6 +120,7 @@ public class MilestoneCriterionController {
 
     @Operation(summary = "Удалить назначение по ID")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         milestoneCriterionService.deleteById(id);
         return ResponseEntity.noContent().build();

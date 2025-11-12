@@ -4,9 +4,9 @@ import java.util.Optional;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.common.statemachine.event.OccasionEvent;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
-import org.bn.sensation.core.common.statemachine.state.OccasionState;
+import org.bn.sensation.core.occasion.statemachine.OccasionEvent;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
+import org.bn.sensation.core.occasion.statemachine.OccasionState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.core.occasion.service.dto.CreateOccasionRequest;
@@ -81,7 +81,7 @@ public class OccasionServiceImpl implements OccasionService {
 
         // Создаем сущность мероприятия
         OccasionEntity occasion = createOccasionRequestMapper.toEntity(request);
-        occasion.setState(OccasionState.DRAFT);
+        occasion.setState(OccasionState.PLANNED);
         occasion.setOrganization(organization);
 
         OccasionEntity saved = occasionRepository.save(occasion);

@@ -5,6 +5,7 @@ import java.util.List;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judgeroundstatus.service.JudgeRoundStatusService;
 import org.bn.sensation.core.judgeroundstatus.service.dto.JudgeRoundStatusDto;
+import org.bn.sensation.core.judgeroundstatus.service.mapper.JudgeRoundStatusDtoMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -23,10 +24,11 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Judge Round Status", description = "The Judge Round Status API")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'USER', 'ANNOUNCER')")
 public class JudgeRoundStatusController {
 
     private final JudgeRoundStatusService judgeRoundStatusService;
+    private final JudgeRoundStatusDtoMapper judgeRoundStatusDtoMapper;
 
     //Меняется при отправлении результатов
 /*    @Operation(summary = "Принять результаты раунда",
@@ -53,9 +55,9 @@ public class JudgeRoundStatusController {
     @Operation(summary = "Получить статусы раунда по судьям",
             description = "Получить статусы раунда по судьям")
     @GetMapping(path = "/round/{roundId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN')")
     public ResponseEntity<List<JudgeRoundStatusDto>> getByRoundId(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
-        return ResponseEntity.ok(judgeRoundStatusService.getByRoundId(roundId));
+        return ResponseEntity.ok(judgeRoundStatusService.getByRoundId(roundId)
+                .stream().map(judgeRoundStatusDtoMapper::toDto).toList());
     }
 
     @Operation(summary = "Получить статусы всех раундов текущего пользователя по id этапа",

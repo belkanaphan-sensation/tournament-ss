@@ -15,9 +15,9 @@ import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
 import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.PartnerSide;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
-import org.bn.sensation.core.common.statemachine.state.OccasionState;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
+import org.bn.sensation.core.occasion.statemachine.OccasionState;
 import org.bn.sensation.core.criterion.entity.CriterionEntity;
 import org.bn.sensation.core.criterion.repository.CriterionRepository;
 import org.bn.sensation.core.milestone.entity.AssessmentMode;
@@ -153,7 +153,7 @@ class MilestoneCriterionServiceIntegrationTest extends AbstractIntegrationTest {
                     .description("Test Description")
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(3))
-                    .state(OccasionState.DRAFT)
+                    .state(OccasionState.PLANNED)
                     .organization(testOrganization)
                     .build();
             testOccasion = occasionRepository.save(testOccasion);
@@ -171,7 +171,7 @@ class MilestoneCriterionServiceIntegrationTest extends AbstractIntegrationTest {
                             .streetNumber("2")
                             .comment("Activity Address")
                             .build())
-                    .state(ActivityState.DRAFT)
+                    .state(ActivityState.PLANNED)
                     .occasion(testOccasion)
                     .build();
             testActivity = activityRepository.save(testActivity);
@@ -812,7 +812,7 @@ class MilestoneCriterionServiceIntegrationTest extends AbstractIntegrationTest {
                         .streetNumber("3")
                         .comment("Different Address")
                         .build())
-                .state(ActivityState.DRAFT)
+                .state(ActivityState.PLANNED)
                 .occasion(testMilestone.getActivity().getOccasion())
                 .build();
         differentActivity = activityRepository.save(differentActivity);

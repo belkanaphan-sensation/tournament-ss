@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Occasion", description = "The Occasion API")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER', 'ADMINISTRATOR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'USER', 'ADMINISTRATOR', 'ANNOUNCER')")
 public class OccasionController {
 
     private final OccasionService occasionService;
@@ -87,7 +87,7 @@ public class OccasionController {
     @Operation(summary = "Запланировать мероприятие по ID",
             description = "Запланировать мероприятие может администратор")
     @PostMapping(path = "/plan/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<Void> planOccasion(@Parameter @PathVariable("id") @NotNull Long id) {
         occasionService.planOccasion(id);
         return ResponseEntity.noContent().build();
@@ -96,7 +96,7 @@ public class OccasionController {
     @Operation(summary = "Начать мероприятие по ID",
             description = "Начать мероприятие может администратор")
     @PostMapping(path = "/start/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<Void> startOccasion(@Parameter @PathVariable("id") @NotNull Long id) {
         occasionService.startOccasion(id);
         return ResponseEntity.noContent().build();
@@ -105,7 +105,7 @@ public class OccasionController {
     @Operation(summary = "Завершить мероприятие по ID",
             description = "Завершить мероприятие может администратор")
     @PostMapping(path = "/complete/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<Void> completeOccasion(@Parameter @PathVariable("id") @NotNull Long id) {
         occasionService.completeOccasion(id);
         return ResponseEntity.noContent().build();

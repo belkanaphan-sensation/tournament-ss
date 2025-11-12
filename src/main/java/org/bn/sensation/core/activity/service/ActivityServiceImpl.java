@@ -18,9 +18,9 @@ import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.common.statemachine.event.ActivityEvent;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
+import org.bn.sensation.core.activity.statemachine.ActivityEvent;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
 import org.bn.sensation.security.CurrentUser;
@@ -119,7 +119,7 @@ public class ActivityServiceImpl implements ActivityService {
 
         log.debug("Найдено мероприятие={} для создания активности", occasion.getId());
         ActivityEntity activity = createActivityRequestMapper.toEntity(request);
-        activity.setState(ActivityState.DRAFT);
+        activity.setState(ActivityState.PLANNED);
         activity.setOccasion(occasion);
 
         ActivityEntity saved = activityRepository.save(activity);
@@ -202,15 +202,6 @@ public class ActivityServiceImpl implements ActivityService {
         dto.setCompletedMilestonesCount(completedCount);
         dto.setTotalMilestonesCount(totalCount);
         return dto;
-    }
-
-    @Override
-    @Transactional
-    public void draftActivity(Long id) {
-        log.info("Перевод активности в черновик: id={}", id);
-        ActivityEntity activity = activityRepository.getByIdOrThrow(id);
-        activityStateMachineService.sendEvent(activity, ActivityEvent.DRAFT);
-        log.info("Активность переведена в черновик: id={}", id);
     }
 
     @Override

@@ -16,10 +16,10 @@ import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.Person;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
-import org.bn.sensation.core.common.statemachine.state.OccasionState;
-import org.bn.sensation.core.common.statemachine.state.RoundState;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
+import org.bn.sensation.core.occasion.statemachine.OccasionState;
+import org.bn.sensation.core.round.statemachine.RoundState;
 import org.bn.sensation.core.criterion.entity.CriterionEntity;
 import org.bn.sensation.core.criterion.repository.CriterionRepository;
 import org.bn.sensation.core.judgemilestonestatus.dto.JudgeMilestoneStatusDto;
@@ -146,7 +146,7 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
                 .description("Test Description")
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
-                .state(OccasionState.DRAFT)
+                .state(OccasionState.PLANNED)
                 .organization(testOrganization)
                 .build();
         testOccasion = occasionRepository.save(testOccasion);
@@ -155,7 +155,7 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
         testActivity = ActivityEntity.builder()
                 .name("Test Activity")
                 .description("Test Description")
-                .state(ActivityState.DRAFT)
+                .state(ActivityState.PLANNED)
                 .occasion(testOccasion)
                 .build();
         testActivity = activityRepository.save(testActivity);
@@ -235,7 +235,7 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
         // Create test rounds
         testRound1 = RoundEntity.builder()
                 .name("Test Round 1")
-                .state(RoundState.IN_PROGRESS)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .roundOrder(0)
                 .build();
@@ -243,7 +243,7 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
 
         testRound2 = RoundEntity.builder()
                 .name("Test Round 2")
-                .state(RoundState.IN_PROGRESS)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .roundOrder(1)
                 .build();
@@ -251,7 +251,7 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
 
         testRound3 = RoundEntity.builder()
                 .name("Test Round 3")
-                .state(RoundState.IN_PROGRESS)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .roundOrder(2)
                 .build();

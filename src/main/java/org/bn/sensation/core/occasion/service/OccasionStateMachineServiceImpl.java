@@ -1,9 +1,9 @@
 package org.bn.sensation.core.occasion.service;
 
 import org.bn.sensation.core.common.service.BaseStateService;
-import org.bn.sensation.core.common.statemachine.event.OccasionEvent;
-import org.bn.sensation.core.common.statemachine.listener.OccasionStateMachineListener;
-import org.bn.sensation.core.common.statemachine.state.OccasionState;
+import org.bn.sensation.core.occasion.statemachine.OccasionEvent;
+import org.bn.sensation.core.occasion.statemachine.OccasionStateMachineListener;
+import org.bn.sensation.core.occasion.statemachine.OccasionState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
@@ -42,8 +42,14 @@ public class OccasionStateMachineServiceImpl implements OccasionStateMachineServ
                         String.format("Невалидный переход из %s в %s", occasion.getState(), event));
             }
 
-            if (occasionStateService.canTransition(occasion, event)) {
-                StateMachine<OccasionState, OccasionEvent> sm = occasionStateMachine.getStateMachine(occasion.getId().toString());
+            String validationError = occasionStateService.canTransition(occasion, event);
+            if (validationError != null) {
+                log.warn("🚫 [OCCASION_EVENT_BLOCKED] Occasion ID: {} | Event: {} | Reason: {}",
+                        occasion.getId(), event, validationError);
+                throw new IllegalStateException(validationError);
+            }
+
+            StateMachine<OccasionState, OccasionEvent> sm = occasionStateMachine.getStateMachine(occasion.getId().toString());
 
                 // Регистрируем связь между State Machine и Occasion ID
                 OccasionStateMachineListener.registerStateMachine(sm.getId(), occasion.getId());
@@ -79,12 +85,8 @@ public class OccasionStateMachineServiceImpl implements OccasionStateMachineServ
                         })
                         .blockLast(); // Блокируем до завершения всех операций
 
-                log.info("✅ [OCCASION_EVENT_SUCCESS] Occasion ID: {} | Event: {} | Final State: {}",
-                        occasion.getId(), event, occasion.getState());
-            } else {
-                log.warn("🚫 [OCCASION_EVENT_BLOCKED] Occasion ID: {} | Event: {} | Reason: Business logic validation failed",
-                        occasion.getId(), event);
-            }
+            log.info("✅ [OCCASION_EVENT_SUCCESS] Occasion ID: {} | Event: {} | Final State: {}",
+                    occasion.getId(), event, occasion.getState());
         } finally {
             // Очищаем контекст
             OccasionStateMachineListener.clearOccasionId();

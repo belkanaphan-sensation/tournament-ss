@@ -17,10 +17,10 @@ import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.Person;
-import org.bn.sensation.core.common.statemachine.state.ActivityState;
-import org.bn.sensation.core.common.statemachine.state.MilestoneState;
-import org.bn.sensation.core.common.statemachine.state.OccasionState;
-import org.bn.sensation.core.common.statemachine.state.RoundState;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
+import org.bn.sensation.core.occasion.statemachine.OccasionState;
+import org.bn.sensation.core.round.statemachine.RoundState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
@@ -124,7 +124,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         testOccasion = OccasionEntity.builder()
                 .name("Test Occasion")
                 .description("Test Description")
-                .state(OccasionState.DRAFT)
+                .state(OccasionState.PLANNED)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(3))
                 .organization(testOrganization)
@@ -135,7 +135,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         testActivity = ActivityEntity.builder()
                 .name("Test Activity")
                 .description("Test Activity Description")
-                .state(ActivityState.DRAFT)
+                .state(ActivityState.PLANNED)
                 .startDateTime(LocalDateTime.now())
                 .endDateTime(LocalDateTime.now().plusDays(1))
                 .address(Address.builder()
@@ -159,7 +159,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
         // Create test rounds
         testRound = RoundEntity.builder()
                 .name("Test Round")
-                .state(RoundState.DRAFT)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .roundOrder(0)
                 .build();
@@ -177,7 +177,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
 
         testRound1 = RoundEntity.builder()
                 .name("Test Round 1")
-                .state(RoundState.DRAFT)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone2)
                 .roundOrder(1)
                 .build();
@@ -466,7 +466,7 @@ class ParticipantServiceIntegrationTest extends AbstractIntegrationTest {
 
         final RoundEntity testRound2 = roundRepository.save(RoundEntity.builder()
                 .name("Test Round 2")
-                .state(RoundState.DRAFT)
+                .state(RoundState.OPENED)
                 .milestone(testMilestone)
                 .participants(new HashSet<>())
                 .roundOrder(1)
