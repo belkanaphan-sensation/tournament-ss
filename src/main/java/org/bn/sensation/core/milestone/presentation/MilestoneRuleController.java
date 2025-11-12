@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Milestone Rule", description = "The Milestone Rule API")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'USER', 'ANNOUNCER')")
 public class MilestoneRuleController {
 
     private final MilestoneRuleService milestoneRuleService;

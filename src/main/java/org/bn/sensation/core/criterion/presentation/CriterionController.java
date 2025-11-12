@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Criterion", description = "The Criterion API")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'USER', 'ADMINISTRATOR', 'ANNOUNCER')")
 public class CriterionController {
 
     private final CriterionService criterionService;

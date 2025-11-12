@@ -7,6 +7,7 @@ public enum Role {
     ORGANIZER,
     ADMINISTRATOR,
     USER,
+    ANNOUNCER,
     READER;
 
     public boolean isAdmin() {

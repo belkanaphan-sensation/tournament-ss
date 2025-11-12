@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Judge Round Status", description = "The Judge Round Status API")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'USER', 'ANNOUNCER')")
 public class JudgeRoundStatusController {
 
     private final JudgeRoundStatusService judgeRoundStatusService;
@@ -55,7 +55,6 @@ public class JudgeRoundStatusController {
     @Operation(summary = "Получить статусы раунда по судьям",
             description = "Получить статусы раунда по судьям")
     @GetMapping(path = "/round/{roundId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN')")
     public ResponseEntity<List<JudgeRoundStatusDto>> getByRoundId(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
         return ResponseEntity.ok(judgeRoundStatusService.getByRoundId(roundId)
                 .stream().map(judgeRoundStatusDtoMapper::toDto).toList());

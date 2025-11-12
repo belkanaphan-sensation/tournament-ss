@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Activity User Assignment", description = "The Activity User Assignment API")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'USER', 'ANNOUNCER')")
 public class ActivityUserController {
 
     private final ActivityUserService activityUserService;

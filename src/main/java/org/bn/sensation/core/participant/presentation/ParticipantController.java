@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Participant", description = "The Participant API")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER', 'ADMINISTRATOR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'USER', 'ADMINISTRATOR', 'ANNOUNCER')")
 public class ParticipantController {
 
     private final ParticipantService participantService;
@@ -49,6 +49,7 @@ public class ParticipantController {
 
     @Operation(summary = "Создать нового участника")
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'ADMINISTRATOR')")
     public ResponseEntity<ParticipantDto> create(@Valid @RequestBody CreateParticipantRequest request) {
         ParticipantDto created = participantService.create(request);
         return ResponseEntity.ok(created);
@@ -56,6 +57,7 @@ public class ParticipantController {
 
     @Operation(summary = "Обновить участника по ID")
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'ADMINISTRATOR')")
     public ResponseEntity<ParticipantDto> update(@PathVariable("id") @NotNull Long id,
                                                  @Valid @RequestBody UpdateParticipantRequest request) {
         ParticipantDto updated = participantService.update(id, request);
@@ -64,6 +66,7 @@ public class ParticipantController {
 
     @Operation(summary = "Удалить участника по ID")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'ADMINISTRATOR')")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         participantService.deleteById(id);
         return ResponseEntity.noContent().build();
@@ -95,6 +98,7 @@ public class ParticipantController {
 
     @Operation(summary = "Привязать участника к раунду")
     @PostMapping("/{participantId}/rounds/{roundId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<ParticipantDto> addParticipantToRound(@PathVariable Long participantId,
                                                                 @PathVariable Long roundId) {
         ParticipantDto updated = participantService.assignParticipantToRound(participantId, roundId);
@@ -103,6 +107,7 @@ public class ParticipantController {
 
     @Operation(summary = "Отвязать участника от раунда")
     @DeleteMapping("/{participantId}/rounds/{roundId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<ParticipantDto> removeParticipantFromRound(@PathVariable Long participantId,
                                                                      @PathVariable Long roundId) {
         ParticipantDto updated = participantService.removeParticipantFromRound(participantId, roundId);
@@ -111,6 +116,7 @@ public class ParticipantController {
 
     @Operation(summary = "Привязать участника к этапу")
     @PostMapping("/{participantId}/milestones/{milestoneId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<ParticipantDto> addParticipantToMilestone(@PathVariable Long participantId,
                                                                 @PathVariable Long milestoneId) {
         ParticipantDto updated = participantService.assignParticipantToMilestone(participantId, milestoneId);
@@ -119,6 +125,7 @@ public class ParticipantController {
 
     @Operation(summary = "Отвязать участника от этапа")
     @DeleteMapping("/{participantId}/milestones/{milestoneId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<ParticipantDto> removeParticipantFromMilestone(@PathVariable Long participantId,
                                                                      @PathVariable Long milestoneId) {
         ParticipantDto updated = participantService.removeParticipantFromMilestone(participantId, milestoneId);
@@ -127,6 +134,7 @@ public class ParticipantController {
 
     @Operation(summary = "Зарегистрировать участника")
     @PostMapping("/{participantId}/register/{number}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'ADMINISTRATOR')")
     public ResponseEntity<ParticipantDto> registerParticipant(@PathVariable @NotNull Long participantId,
                                                                     @PathVariable @NotNull String number) {
         UpdateParticipantRequest request = UpdateParticipantRequest.builder()
@@ -139,6 +147,7 @@ public class ParticipantController {
 
     @Operation(summary = "Снять с регистрации участника")
     @PostMapping("/{participantId}/unregister")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'ADMINISTRATOR')")
     public ResponseEntity<ParticipantDto> unregisterParticipant(@PathVariable @NotNull Long participantId) {
         UpdateParticipantRequest request = UpdateParticipantRequest.builder()
                 .isRegistered(false)
@@ -149,6 +158,7 @@ public class ParticipantController {
 
     @Operation(summary = "Переместить участника в другую активность")
     @PostMapping("/{participantId}/activity/{activityId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'ADMINISTRATOR')")
     public ResponseEntity<ParticipantDto> changeActivity(@PathVariable @NotNull Long participantId,
                                                                 @PathVariable @NotNull Long activityId) {
         UpdateParticipantRequest request = UpdateParticipantRequest.builder()

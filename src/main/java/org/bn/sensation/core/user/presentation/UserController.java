@@ -26,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "User", description = "The User API")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER', 'ADMINISTRATOR')")
 public class UserController {
 
     private final UserService userService;
@@ -49,12 +48,14 @@ public class UserController {
 
     @Operation(summary = "Получить всех пользователей с пагинацией")
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Page<UserDto>> getAll(Pageable pageable) {
         return ResponseEntity.ok(userService.findAll(pageable));
     }
 
     @Operation(summary = "Создать нового пользователя")
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<UserDto> create(@Valid @RequestBody CreateUserRequest request) {
         UserDto created = userService.create(request);
         return ResponseEntity.ok(created);
@@ -62,6 +63,7 @@ public class UserController {
 
     @Operation(summary = "Обновить пользователя по ID")
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<UserDto> update(@PathVariable("id") @NotNull Long id,
                                         @Valid @RequestBody UpdateUserRequest request) {
         UserDto updated = userService.update(id, request);
@@ -70,6 +72,7 @@ public class UserController {
 
     @Operation(summary = "Удалить пользователя по ID")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         userService.deleteById(id);
         return ResponseEntity.noContent().build();
@@ -77,6 +80,7 @@ public class UserController {
 
     @Operation(summary = "Привязать организацию к пользователю")
     @PostMapping("/{userId}/organizations/{orgId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<UserDto> addUserToOrganization(@PathVariable Long userId,
                                                       @PathVariable Long orgId) {
         UserDto updated = userService.assignUserToOrganization(userId, orgId);

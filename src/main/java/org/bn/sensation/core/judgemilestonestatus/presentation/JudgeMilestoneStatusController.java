@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Judge Milestone Status", description = "The Judge Milestone Status API")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'USER', 'ANNOUNCER')")
 public class JudgeMilestoneStatusController {
 
     private final JudgeMilestoneStatusCacheService judgeMilestoneStatusCacheService;

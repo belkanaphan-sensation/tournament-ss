@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @SecurityRequirement(name = "cookieAuth")
 @Tag(name = "Organization", description = "The Organization API")
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'OCCASION_ADMIN', 'USER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'USER', 'ADMINISTRATOR', 'ANNOUNCER')")
 public class OrganizationController {
 
     private final OrganizationService organizationService;
@@ -46,6 +46,7 @@ public class OrganizationController {
 
     @Operation(summary = "Создать новую организацию")
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<OrganizationDto> create(@Valid @RequestBody CreateOrganizationRequest request) {
         OrganizationDto created = organizationService.create(request);
         return ResponseEntity.ok(created);
@@ -53,6 +54,7 @@ public class OrganizationController {
 
     @Operation(summary = "Обновить организацию по ID")
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<OrganizationDto> update(@PathVariable("id") @NotNull Long id,
                                                 @Valid @RequestBody UpdateOrganizationRequest request) {
         OrganizationDto updated = organizationService.update(id, request);
@@ -61,6 +63,7 @@ public class OrganizationController {
 
     @Operation(summary = "Удалить организацию по ID")
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         organizationService.deleteById(id);
         return ResponseEntity.noContent().build();
