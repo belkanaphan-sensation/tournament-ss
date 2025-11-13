@@ -2,19 +2,19 @@ package org.bn.sensation.core.participant.service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
 import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
 import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
+import org.bn.sensation.core.common.dto.PersonDto;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.activity.statemachine.ActivityState;
-import org.bn.sensation.core.milestone.statemachine.MilestoneState;
-import org.bn.sensation.core.round.statemachine.RoundState;
 import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCacheService;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
@@ -22,6 +22,7 @@ import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusReposit
 import org.bn.sensation.core.judgeroundstatus.service.JudgeRoundStatusService;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.participant.service.dto.CreateParticipantRequest;
@@ -34,6 +35,7 @@ import org.bn.sensation.core.participant.service.mapper.RoundParticipantsDtoMapp
 import org.bn.sensation.core.participant.service.mapper.UpdateParticipantRequestMapper;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
+import org.bn.sensation.core.round.statemachine.RoundState;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -83,17 +85,14 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     @Transactional(readOnly = true)
     public List<ParticipantDto> findByRoundId(Long roundId) {
-        return participantRepository.findByRoundId(roundId).stream()
-                .map(p -> participantDtoMapper.toDto(p))
-                .toList();
+        return getSortedParticipantDtos(participantRepository.findByRoundId(roundId));
     }
+
 
     @Override
     @Transactional(readOnly = true)
     public List<ParticipantDto> findByActivityId(Long activityId) {
-        return participantRepository.findByActivityId(activityId).stream()
-                .map(p -> participantDtoMapper.toDto(p))
-                .toList();
+        return getSortedParticipantDtos(participantRepository.findByActivityId(activityId));
     }
 
     @Override
@@ -258,9 +257,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         log.debug("Найдено {} участников для раунда={} после фильтрации", participants.size(), roundId);
 
-        return participants.stream()
-                .map(p -> participantDtoMapper.toDto(p))
-                .toList();
+        return getSortedParticipantDtos(participants);
     }
 
     @Override
@@ -285,5 +282,17 @@ public class ParticipantServiceImpl implements ParticipantService {
                             .sorted(Comparator.comparing(p -> p.getNumber())).toList();
                     return roundParticipantsDtoMapper.toDto(re, participants);
                 }).toList();
+    }
+
+    private List<ParticipantDto> getSortedParticipantDtos(List<ParticipantEntity> entities) {
+        return entities.stream()
+                .map(p -> participantDtoMapper.toDto(p))
+                .sorted(Comparator.comparing(
+                        dto -> Optional.ofNullable(dto.getPerson())
+                                .map(PersonDto::getSurname)
+                                .map(String::toLowerCase)
+                                .orElse(null),
+                        Comparator.nullsLast(String::compareToIgnoreCase)))
+                .toList();
     }
 }
