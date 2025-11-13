@@ -50,8 +50,7 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
                 return null;
             }
             case PREPARE_ROUNDS -> {
-                if (!Set.of(ActivityState.REGISTRATION_CLOSED, ActivityState.IN_PROGRESS)
-                        .contains(milestone.getActivity().getState())) {
+                if (ActivityState.IN_PROGRESS != milestone.getActivity().getState()) {
                     return "Нельзя подготовить раунды, т.к. активность находится в статусе %s"
                             .formatted(milestone.getActivity().getState());
                 }
