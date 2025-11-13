@@ -48,6 +48,10 @@ public class UpdateParticipantRequest extends EmptyDto {
     @Schema(description = "Стартовый номер участника", example = "A-102")
     private String number;
 
+    @Size(max = 255)
+    @Schema(description = "Название школы", example = "Sense")
+    private String school;
+
     @Schema(description = "Сторона участника в соревновании", example = "LEADER")
     private PartnerSide partnerSide;
 

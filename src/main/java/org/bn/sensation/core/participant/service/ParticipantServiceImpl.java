@@ -99,12 +99,16 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Transactional
     public ParticipantDto create(CreateParticipantRequest request) {
         ActivityEntity activity = activityRepository.getByIdOrThrow(request.getActivityId());
+        Preconditions.checkState(ActivityState.PLANNED == activity.getState(),
+                "Данные об участнике не могут быть созданы т.к. активность с состоянием %s", activity.getState());
 
         ParticipantEntity participant = createParticipantRequestMapper.toEntity(request);
         participant.setActivity(activity);
 
         if (Boolean.TRUE.equals(participant.getIsRegistered())) {
             Preconditions.checkArgument(Strings.isNotBlank(participant.getNumber()), "Участник должен иметь стартовый номер");
+        } else {
+            participant.setIsRegistered(false);
         }
 
         ParticipantEntity saved = participantRepository.save(participant);
