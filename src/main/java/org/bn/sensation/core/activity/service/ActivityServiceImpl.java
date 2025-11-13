@@ -11,15 +11,16 @@ import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.activity.service.mapper.ActivityDtoMapper;
 import org.bn.sensation.core.activity.service.mapper.CreateActivityRequestMapper;
 import org.bn.sensation.core.activity.service.mapper.UpdateActivityRequestMapper;
+import org.bn.sensation.core.activity.statemachine.ActivityEvent;
+import org.bn.sensation.core.activity.statemachine.ActivityState;
 import org.bn.sensation.core.activityresult.ActivityResultService;
 import org.bn.sensation.core.activityresult.service.dto.ActivityResultDto;
 import org.bn.sensation.core.activityresult.service.dto.CreateActivityResultRequest;
 import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.activity.statemachine.ActivityEvent;
-import org.bn.sensation.core.activity.statemachine.ActivityState;
 import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
@@ -79,6 +80,15 @@ public class ActivityServiceImpl implements ActivityService {
                 .toList();
         log.debug("Найдено {} активностей для мероприятия={}", result.size(), id);
         return result;
+    }
+
+    @Override
+    public List<EntityLinkDto> findPlannedByOccasionId(Long id) {
+        return activityRepository.findByOccasionId(id)
+                .stream()
+                .filter(a -> a.getState() == ActivityState.PLANNED)
+                .map(a -> new EntityLinkDto(a.getId(), a.getName()))
+                .toList();
     }
 
     @Override

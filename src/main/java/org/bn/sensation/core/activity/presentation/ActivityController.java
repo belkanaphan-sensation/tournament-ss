@@ -9,6 +9,7 @@ import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.activityresult.service.dto.ActivityResultDto;
 import org.bn.sensation.core.activityresult.service.dto.CreateActivityResultRequest;
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -52,6 +53,12 @@ public class ActivityController {
     @GetMapping(path = "/occasion/{id}")
     public ResponseEntity<List<ActivityDto>> getByOccasionId(@Parameter @PathVariable("id") @NotNull Long id) {
         return ResponseEntity.ok(activityService.findByOccasionId(id));
+    }
+
+    @Operation(summary = "Получить запланированные активности по ID мероприятия")
+    @GetMapping(path = "/planned/occasion/{id}")
+    public ResponseEntity<List<EntityLinkDto>> getPlannedByOccasionId(@Parameter @PathVariable("id") @NotNull Long id) {
+        return ResponseEntity.ok(activityService.findPlannedByOccasionId(id));
     }
 
     @Operation(summary = "Получить активности по ID мероприятия в лайфстейтах")

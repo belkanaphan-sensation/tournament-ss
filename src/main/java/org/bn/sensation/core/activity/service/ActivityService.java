@@ -8,6 +8,7 @@ import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.activityresult.service.dto.ActivityResultDto;
 import org.bn.sensation.core.activityresult.service.dto.CreateActivityResultRequest;
+import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.service.BaseCrudService;
 
 import jakarta.validation.Valid;
@@ -20,6 +21,8 @@ public interface ActivityService extends BaseCrudService<
         UpdateActivityRequest>{
 
     List<ActivityDto> findByOccasionId(@NotNull Long id);
+
+    List<EntityLinkDto> findPlannedByOccasionId(@NotNull Long id);
 
     List<ActivityDto> findByOccasionIdInLifeStatesForCurrentUser(@NotNull Long id);
 

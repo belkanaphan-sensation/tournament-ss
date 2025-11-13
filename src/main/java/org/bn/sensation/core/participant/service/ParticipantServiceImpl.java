@@ -85,9 +85,11 @@ public class ParticipantServiceImpl implements ParticipantService {
     @Override
     @Transactional(readOnly = true)
     public List<ParticipantDto> findByRoundId(Long roundId) {
-        return getSortedParticipantDtos(participantRepository.findByRoundId(roundId));
+        return participantRepository.findByRoundId(roundId).stream()
+                .map(p -> participantDtoMapper.toDto(p))
+                .sorted(Comparator.comparing(ParticipantDto::getNumber))
+                .toList();
     }
-
 
     @Override
     @Transactional(readOnly = true)
