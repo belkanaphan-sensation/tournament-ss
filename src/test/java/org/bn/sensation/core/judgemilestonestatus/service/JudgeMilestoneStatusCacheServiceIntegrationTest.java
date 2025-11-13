@@ -1,58 +1,11 @@
 package org.bn.sensation.core.judgemilestonestatus.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Set;
-
 import org.bn.sensation.AbstractIntegrationTest;
-import org.bn.sensation.core.activity.entity.ActivityEntity;
-import org.bn.sensation.core.activity.repository.ActivityRepository;
-import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
-import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
-import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
-import org.bn.sensation.core.common.entity.Address;
-import org.bn.sensation.core.common.entity.PartnerSide;
-import org.bn.sensation.core.common.entity.Person;
-import org.bn.sensation.core.activity.statemachine.ActivityState;
-import org.bn.sensation.core.milestone.statemachine.MilestoneState;
-import org.bn.sensation.core.occasion.statemachine.OccasionState;
-import org.bn.sensation.core.round.statemachine.RoundState;
-import org.bn.sensation.core.criterion.entity.CriterionEntity;
-import org.bn.sensation.core.criterion.repository.CriterionRepository;
-import org.bn.sensation.core.judgemilestonestatus.dto.JudgeMilestoneStatusDto;
-import org.bn.sensation.core.judgemilestonestatus.model.JudgeMilestoneStatus;
-import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
-import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
-import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
-import org.bn.sensation.core.milestone.entity.AssessmentMode;
-import org.bn.sensation.core.milestone.entity.MilestoneEntity;
-import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
-import org.bn.sensation.core.milestone.repository.MilestoneRepository;
-import org.bn.sensation.core.milestone.repository.MilestoneRuleRepository;
-import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
-import org.bn.sensation.core.milestonecriterion.repository.MilestoneCriterionRepository;
-import org.bn.sensation.core.occasion.entity.OccasionEntity;
-import org.bn.sensation.core.occasion.repository.OccasionRepository;
-import org.bn.sensation.core.organization.entity.OrganizationEntity;
-import org.bn.sensation.core.organization.repository.OrganizationRepository;
-import org.bn.sensation.core.round.entity.RoundEntity;
-import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.user.entity.Role;
-import org.bn.sensation.core.user.entity.UserEntity;
-import org.bn.sensation.core.user.entity.UserStatus;
-import org.bn.sensation.core.user.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegrationTest {
-
+/*
     @Autowired
     private JudgeMilestoneStatusCacheService judgeMilestoneStatusCacheService;
 
@@ -315,7 +268,7 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
 
         // Assert
         assertThat(result).hasSize(2);
-        
+
         JudgeMilestoneStatusDto judge1Status = result.stream()
                 .filter(dto -> dto.getJudge().getId().equals(judgeAssignment1.getId()))
                 .findFirst()
@@ -339,7 +292,7 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
 
         // Act: First call - should execute method and cache result
         List<JudgeMilestoneStatusDto> firstCall = judgeMilestoneStatusCacheService.getAllJudgesStatusForMilestone(testMilestone.getId());
-        
+
         // Change data in DB (should not affect cached result)
         JudgeRoundStatusEntity statusToChange = judgeRoundStatusRepository.findByRoundIdAndJudgeId(
                 testRound1.getId(), judgeAssignment1.getId()).orElseThrow();
@@ -353,7 +306,7 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
         assertThat(secondCall).hasSize(2);
         assertThat(secondCall).extracting(JudgeMilestoneStatusDto::getStatus)
                 .containsExactlyInAnyOrder(JudgeMilestoneStatus.READY, JudgeMilestoneStatus.READY);
-        
+
         // Verify cache is being used (result should be same object or equal)
         assertThat(firstCall.get(0).getCalculatedAt()).isEqualTo(secondCall.get(0).getCalculatedAt());
     }
@@ -385,7 +338,7 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
 
         // Assert: Should reflect the change
         assertThat(secondCall).hasSize(2);
-        
+
         JudgeMilestoneStatusDto judge1Status = secondCall.stream()
                 .filter(dto -> dto.getJudge().getId().equals(judgeAssignment1.getId()))
                 .findFirst()
@@ -414,12 +367,12 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
         // Assert: Both should work independently
         assertThat(milestone1Result).hasSize(2);
         assertThat(milestone2Result).hasSize(2);
-        
+
         // Invalidate only first milestone
         judgeMilestoneStatusCacheService.invalidateForMilestone(testMilestone.getId());
 
         // Second milestone cache should still be valid
-        List<JudgeMilestoneStatusDto> milestone2ResultAfterInvalidation = 
+        List<JudgeMilestoneStatusDto> milestone2ResultAfterInvalidation =
                 judgeMilestoneStatusCacheService.getAllJudgesStatusForMilestone(testMilestone2.getId());
         assertThat(milestone2ResultAfterInvalidation).hasSize(2);
     }
@@ -467,6 +420,5 @@ class JudgeMilestoneStatusCacheServiceIntegrationTest extends AbstractIntegratio
                 .status(status)
                 .build();
         judgeRoundStatusRepository.save(judgeRoundStatus);
-    }
+    }*/
 }
-

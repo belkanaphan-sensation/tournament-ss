@@ -58,8 +58,8 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
 
         Preconditions.checkArgument(request.getMilestoneId() != null, "Milestone ID не может быть null");
 
-        // Валидация roundParticipantLimit
-        validateRoundParticipantLimit(request.getParticipantLimit(), request.getRoundParticipantLimit());
+        // Валидация roundContestantLimit
+        validateRoundContestantLimit(request.getContestantLimit(), request.getRoundContestantLimit());
 
         MilestoneEntity milestone = milestoneRepository.getByIdOrThrow(request.getMilestoneId());
 
@@ -89,12 +89,12 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
 
         MilestoneRuleEntity rule = milestoneRuleRepository.getByIdOrThrow(id);
 
-        Integer participantLimit = request.getParticipantLimit() != null ?
-            request.getParticipantLimit() : rule.getParticipantLimit();
-        Integer roundParticipantLimit = request.getRoundParticipantLimit() != null ?
-            request.getRoundParticipantLimit() : rule.getRoundParticipantLimit();
+        Integer participantLimit = request.getContestantLimit() != null ?
+            request.getContestantLimit() : rule.getContestantLimit();
+        Integer roundParticipantLimit = request.getRoundContestantLimit() != null ?
+            request.getRoundContestantLimit() : rule.getRoundContestantLimit();
 
-        validateRoundParticipantLimit(participantLimit, roundParticipantLimit);
+        validateRoundContestantLimit(participantLimit, roundParticipantLimit);
 
         updateMilestoneRuleRequestMapper.updateMilestoneRuleFromRequest(request, rule);
 
@@ -127,15 +127,15 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
         return milestoneRuleDtoMapper.toDto(rule);
     }
 
-    private void validateRoundParticipantLimit(Integer participantLimit, Integer roundParticipantLimit) {
+    private void validateRoundContestantLimit(Integer contestantLimit, Integer roundContestantLimit) {
         log.debug("Валидация лимитов участников: лимит этапа={}, лимит раунда={}",
-                participantLimit, roundParticipantLimit);
+                contestantLimit, roundContestantLimit);
 
-        if (participantLimit != null && roundParticipantLimit != null &&
-            roundParticipantLimit > participantLimit) {
+        if (contestantLimit != null && roundContestantLimit != null &&
+            roundContestantLimit > contestantLimit) {
             log.warn("Недопустимые лимиты: лимит раунда={} больше лимита этапа={}",
-                    roundParticipantLimit, participantLimit);
-            throw new IllegalArgumentException("roundParticipantLimit должен быть меньше или равен participantLimit");
+                    roundContestantLimit, contestantLimit);
+            throw new IllegalArgumentException("roundContestantLimit должен быть меньше или равен contestantLimit");
         }
 
         log.debug("Валидация лимитов участников прошла успешно");

@@ -7,7 +7,7 @@
 SUMMARIZING, COMPLETED)
 (допустимые состояния активности для создания этапа: DRAFT)
 
-Создаем правила для этапов. MilestoneRule. 
+Создаем правила для этапов. MilestoneRule.
 Создаем Критерии для MilestoneRule - MilestoneCriterionEntity
 (допустимые состояния этапа: DRAFT).
 Этап не может быть переведен в PLANNED если у него отсутствует MilestoneRule или у правила не определен хотя бы один критерий или Activity в DRAFT или COMPLETED.

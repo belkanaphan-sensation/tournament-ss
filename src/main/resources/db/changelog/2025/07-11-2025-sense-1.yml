@@ -177,7 +177,7 @@ databaseChangeLog:
             sql: |
               INSERT INTO milestone (name, description, state, activity_id, milestone_order, created_at, created_by, modified_at, modified_by) VALUES
               -- Дебютанты
-              -- ('Отборочный Дебютанты', 'Отборочный этап', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('Отборочный Дебютанты', 'Отборочный этап', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 2, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Полуфинал Дебютанты', 'Полуфинал', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Финал Дебютанты', 'Финал', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 0, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Начинающие
@@ -200,23 +200,23 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              INSERT INTO milestone_rule (assessment_mode, participant_limit, round_participant_limit, milestone_id, created_at, created_by, modified_at, modified_by) VALUES
+              INSERT INTO milestone_rule (assessment_mode, contestant_type, contestant_limit, round_contestant_limit, strict_pass_mode, milestone_id, created_at, created_by, modified_at, modified_by) VALUES
               -- Дебютанты
-              -- ('PASS', 8, 8, (SELECT id FROM milestone WHERE name = 'Отборочный Дебютанты'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('PASS', 8, 8, (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('SCORE', 3, 3, (SELECT id FROM milestone WHERE name = 'Финал Дебютанты'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('PASS', 'SINGLE', 8, 8, false, (SELECT id FROM milestone WHERE name = 'Отборочный Дебютанты'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('PASS', 'SINGLE', 8, 8, false, (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('SCORE', 'SINGLE', 3, 3, false, (SELECT id FROM milestone WHERE name = 'Финал Дебютанты'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Начинающие
-              -- ('PASS', 12, 12, (SELECT id FROM milestone WHERE name = 'Отборочный Начинающие'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('PASS', 12, 4, (SELECT id FROM milestone WHERE name = 'Полуфинал Начинающие'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('SCORE', 3, 3, (SELECT id FROM milestone WHERE name = 'Финал Начинающие'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ('PASS', 'SINGLE', 12, 12, false, (SELECT id FROM milestone WHERE name = 'Отборочный Начинающие'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('PASS', 'SINGLE', 12, 4, false, (SELECT id FROM milestone WHERE name = 'Полуфинал Начинающие'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('SCORE', 'SINGLE', 3, 3, false, (SELECT id FROM milestone WHERE name = 'Финал Начинающие'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Любители
-              -- ('PASS', 12, 12, (SELECT id FROM milestone WHERE name = 'Отборочный Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('PASS', 12, 6, (SELECT id FROM milestone WHERE name = 'Полуфинал Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('SCORE', 3, 3, (SELECT id FROM milestone WHERE name = 'Финал Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- ('PASS', 'SINGLE', 12, 12, false, (SELECT id FROM milestone WHERE name = 'Отборочный Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('PASS', 'SINGLE', 12, 6, false, (SELECT id FROM milestone WHERE name = 'Полуфинал Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('SCORE', 'SINGLE', 3, 3, false, (SELECT id FROM milestone WHERE name = 'Финал Любители'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Профессионалы
-              -- ('PASS', 12, 12, (SELECT id FROM milestone WHERE name = 'Отборочный Профессионалы'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('PASS', 12, 7, (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('SCORE', 3, 3, (SELECT id FROM milestone WHERE name = 'Финал Профессионалы'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
+              -- ('PASS', 'SINGLE', 12, 12, false, (SELECT id FROM milestone WHERE name = 'Отборочный Профессионалы'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('PASS', 'SINGLE', 12, 7, false, (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('SCORE', 'SINGLE', 3, 3, false, (SELECT id FROM milestone WHERE name = 'Финал Профессионалы'), '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
   # Test data for criterion assignments
   - changeSet:
       id: 2025-11-07-11
@@ -228,7 +228,7 @@ databaseChangeLog:
               INSERT INTO milestone_criterion (milestone_rule_id, criterion_id, partner_side, weight, scale, created_at, created_by, modified_at, modified_by) VALUES
               -- Дебютанты
               -- Этап 1
-              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Отборочный Дебютанты')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Отборочный Дебютанты')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Этап 2
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
 

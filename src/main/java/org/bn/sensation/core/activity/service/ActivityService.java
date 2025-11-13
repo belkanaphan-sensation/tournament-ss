@@ -10,6 +10,7 @@ import org.bn.sensation.core.activityresult.service.dto.ActivityResultDto;
 import org.bn.sensation.core.activityresult.service.dto.CreateActivityResultRequest;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.service.BaseCrudService;
+import org.bn.sensation.core.contestant.service.dto.ContestantDto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -30,7 +31,7 @@ public interface ActivityService extends BaseCrudService<
 
     void startActivity(Long id);
 
-    void closeRegistrationToActivity(Long id);
+    List<ContestantDto> closeRegistrationToActivity(Long id);
 
     void completeActivity(Long id);
 

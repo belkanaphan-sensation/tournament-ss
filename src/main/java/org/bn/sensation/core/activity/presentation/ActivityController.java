@@ -10,12 +10,9 @@ import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
 import org.bn.sensation.core.activityresult.service.dto.ActivityResultDto;
 import org.bn.sensation.core.activityresult.service.dto.CreateActivityResultRequest;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
+import org.bn.sensation.core.contestant.service.dto.ContestantDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -108,7 +105,7 @@ public class ActivityController {
             description = "доступно для администратора")
     @PostMapping(path = "/close-registration/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'ADMINISTRATOR')")
-    public ResponseEntity<Void> closeRegistrationToActivity(@Parameter @PathVariable("id") @NotNull Long id) {
+    public ResponseEntity<List<ContestantDto>> closeRegistrationToActivity(@Parameter @PathVariable("id") @NotNull Long id) {
         activityService.closeRegistrationToActivity(id);
         return ResponseEntity.noContent().build();
     }
@@ -141,7 +138,7 @@ public class ActivityController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(path = "/{id}/report")
+/*    @GetMapping(path = "/{id}/report")
     @Operation(summary = "Скачать Excel-отчет по активности")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
     public ResponseEntity<Resource> downloadReport(
@@ -157,5 +154,5 @@ public class ActivityController {
                 .contentType(MediaType.parseMediaType(activityReportService.getContentType()))
                 .contentLength(report.length)
                 .body(resource);
-    }
+    }*/
 }

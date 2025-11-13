@@ -10,7 +10,7 @@ import jakarta.persistence.EntityNotFoundException;
 
 public interface MilestoneResultRepository extends BaseRepository<MilestoneResultEntity> {
 
-    @EntityGraph(attributePaths = {"milestone", "participant", "roundResults.round"})
+    @EntityGraph(attributePaths = {"milestone", "contestant", "roundResults.round"})
     List<MilestoneResultEntity> findAllByMilestoneId(Long milestoneId);
 
     default MilestoneResultEntity getByIdOrThrow(Long id) {

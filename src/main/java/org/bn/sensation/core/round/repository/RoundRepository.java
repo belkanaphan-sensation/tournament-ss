@@ -23,7 +23,7 @@ public interface RoundRepository extends BaseRepository<RoundEntity> {
         return findByIdWithUser(id).orElseThrow(() -> new EntityNotFoundException("Раунд не найден: " + id));
     }
 
-    @EntityGraph(attributePaths = {"milestone.activity.activityUsers.user", "milestone.milestoneRule.milestoneCriteria", "participants"})
+    @EntityGraph(attributePaths = {"milestone.activity.activityUsers.user", "milestone.milestoneRule.milestoneCriteria", "contestants"})
     @Query("SELECT r FROM RoundEntity r WHERE r.id = :id")
     Optional<RoundEntity> findByIdFull(@Param("id") Long id);
 

@@ -16,7 +16,7 @@ public interface RoundWithJRStatusMapper {
     @Mapping(target = "name", source = "roundEntity.name")
     @Mapping(target = "activity", source = "roundEntity.milestone.activity")
     @Mapping(target = "milestone", source = "roundEntity.milestone")
-    @Mapping(target = "participants", source = "roundEntity.participants")
+    @Mapping(target = "contestants", source = "roundEntity.contestants")
     @Mapping(target = "state", source = "roundEntity.state")
     @Mapping(target = "isExtraRound", source = "roundEntity.extraRound")
     @Mapping(target = "judgeRoundStatus", source = "judgeRoundStatusEntity.status", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

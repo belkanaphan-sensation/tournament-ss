@@ -62,4 +62,3 @@ public class TransitionAvailabilityService {
         return (TransitionSupport<T, S, E>) supportByEntity.get(entity.getClass());
     }
 }
-

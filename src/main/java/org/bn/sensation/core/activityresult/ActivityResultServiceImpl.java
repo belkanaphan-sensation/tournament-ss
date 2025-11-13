@@ -1,10 +1,6 @@
 package org.bn.sensation.core.activityresult;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activityresult.entity.ActivityResultEntity;
@@ -14,13 +10,9 @@ import org.bn.sensation.core.activityresult.service.dto.CreateActivityResultRequ
 import org.bn.sensation.core.activityresult.service.mapper.ActivityResultDtoMapper;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.participant.entity.ParticipantEntity;
-import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.base.Preconditions;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +24,6 @@ public class ActivityResultServiceImpl implements ActivityResultService {
 
     private final ActivityResultRepository activityResultRepository;
     private final ActivityResultDtoMapper activityResultDtoMapper;
-    private final ParticipantRepository participantRepository;
 
     @Override
     public BaseRepository<ActivityResultEntity> getRepository() {
@@ -47,7 +38,8 @@ public class ActivityResultServiceImpl implements ActivityResultService {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public List<ActivityResultDto> createActivityResults(ActivityEntity activity, List<CreateActivityResultRequest> requests) {
-        Map<Long, ParticipantEntity> participantMap = participantRepository.findAllByIdWithActivity(requests.stream().map(CreateActivityResultRequest::getParticipantId).toList())
+        return List.of();
+        /*Map<Long, ParticipantEntity> participantMap = participantRepository.findAllByIdWithActivity(requests.stream().map(CreateActivityResultRequest::getParticipantId).toList())
                 .stream().collect(Collectors.toMap(p -> p.getId(), p -> p));
         List<ActivityResultEntity> results = requests.stream()
                 .map(req -> {
@@ -66,6 +58,6 @@ public class ActivityResultServiceImpl implements ActivityResultService {
         return saved.stream()
                 .sorted(Comparator.comparing(ActivityResultEntity::getPlace))
                 .map(activityResultDtoMapper::toDto)
-                .toList();
+                .toList();*/
     }
 }

@@ -2,12 +2,15 @@ package org.bn.sensation.core.judgemilestoneresult.entity;
 
 import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
 import org.bn.sensation.core.common.entity.BaseEntity;
+import org.bn.sensation.core.contestant.entity.ContestantEntity;
 import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
-import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.round.entity.RoundEntity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
@@ -22,15 +25,12 @@ public class JudgeMilestoneResultEntity extends BaseEntity {
     @Column(name = "score")
     private Integer score;
 
-    @Column(name = "is_favorite")
-    private Boolean isFavorite;
-
     @Column(name = "is_candidate")
     private Boolean isCandidate;
 
     @ManyToOne
-    @JoinColumn(name = "participant_id")
-    private ParticipantEntity participant;
+    @JoinColumn(name = "contestant_id")
+    private ContestantEntity contestant;
 
     @ManyToOne
     @JoinColumn(name = "round_id")

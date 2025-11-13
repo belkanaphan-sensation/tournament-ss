@@ -140,8 +140,7 @@ databaseChangeLog:
         - sql:
             sql: |
               DROP TABLE IF EXISTS activity;
-
-  # Activity Rule table
+  # Create contestant table
   - changeSet:
       id: 2025-02-01-7
       author: belkanaphan
@@ -150,8 +149,10 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              CREATE TABLE IF NOT EXISTS activity_rule (
+              CREATE TABLE IF NOT EXISTS contestant (
                 id BIGSERIAL PRIMARY KEY,
+                number VARCHAR(255) NOT NULL,
+                contestant_type VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
@@ -160,8 +161,7 @@ databaseChangeLog:
       rollback:
         - sql:
             sql: |
-              DROP TABLE IF EXISTS activity_rule;
-
+              DROP TABLE IF EXISTS contestant;
   # Milestone table
   - changeSet:
       id: 2025-02-01-8
@@ -200,10 +200,11 @@ databaseChangeLog:
             sql: |
               CREATE TABLE IF NOT EXISTS milestone_rule (
                 id BIGSERIAL PRIMARY KEY,
-                assessment_mode VARCHAR(50) NOT NULL,
-                participant_limit INTEGER NOT NULL,
-                round_participant_limit INTEGER NOT NULL,
-                strict_pass_mode BOOLEAN DEFAULT false,
+                assessment_mode VARCHAR(255) NOT NULL,
+                contestant_type VARCHAR(255) NOT NULL,
+                contestant_limit INTEGER NOT NULL,
+                round_contestant_limit INTEGER NOT NULL,
+                strict_pass_mode BOOLEAN NOT NULL DEFAULT false,
                 milestone_id BIGINT,
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),

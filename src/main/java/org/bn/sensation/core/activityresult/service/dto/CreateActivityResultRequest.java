@@ -24,7 +24,7 @@ public class CreateActivityResultRequest extends EmptyDto {
 
     @NotNull
     @Schema(description = "ID участника", example = "1")
-    private Long participantId;
+    private Long contestantId;
 
     @NotNull
     @Positive

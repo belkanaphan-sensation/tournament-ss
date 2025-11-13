@@ -32,4 +32,3 @@ public class MilestoneTransitionPolicy implements TransitionPolicy<MilestoneEven
         return rolePermissions.getOrDefault(role, Collections.emptySet());
     }
 }
-

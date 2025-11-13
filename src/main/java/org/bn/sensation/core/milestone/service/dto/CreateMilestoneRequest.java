@@ -1,7 +1,5 @@
 package org.bn.sensation.core.milestone.service.dto;
 
-import java.util.List;
-
 import org.bn.sensation.core.common.dto.EmptyDto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -43,6 +41,4 @@ public class CreateMilestoneRequest extends EmptyDto {
     @Schema(description = "Порядок этапа в рамках активности (если не указан, будет рассчитан автоматически)", example = "1")
     private Integer milestoneOrder;
 
-    @Schema(description = "Список ID участников для этапа. Доступно только для суперадмина")
-    private List<Long> participantIds;
 }

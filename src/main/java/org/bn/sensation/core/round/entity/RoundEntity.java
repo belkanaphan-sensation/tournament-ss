@@ -4,9 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
+import org.bn.sensation.core.contestant.entity.ContestantEntity;
 import org.bn.sensation.core.round.statemachine.RoundState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
-import org.bn.sensation.core.participant.entity.ParticipantEntity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -40,5 +40,5 @@ public class RoundEntity extends BaseEntity {
 
     @ManyToMany(mappedBy = "rounds")
     @Builder.Default
-    private Set<ParticipantEntity> participants = new HashSet<>();
+    private Set<ContestantEntity> contestants = new HashSet<>();
 }

@@ -11,13 +11,13 @@ databaseChangeLog:
               CREATE TABLE IF NOT EXISTS activity_result (
                 id BIGSERIAL PRIMARY KEY,
                 place INTEGER,
-                participant_id BIGINT NOT NULL,
+                contestant_id BIGINT NOT NULL,
                 activity_id BIGINT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 modified_by VARCHAR(255),
-                FOREIGN KEY (participant_id) REFERENCES participant(id) ON DELETE CASCADE,
+                FOREIGN KEY (contestant_id) REFERENCES contestant(id) ON DELETE CASCADE,
                 FOREIGN KEY (activity_id) REFERENCES activity(id) ON DELETE CASCADE
               );
       rollback:
@@ -36,14 +36,14 @@ databaseChangeLog:
             sql: |
               CREATE TABLE IF NOT EXISTS milestone_result (
                 id BIGSERIAL PRIMARY KEY,
-                participant_id BIGINT NOT NULL,
+                contestant_id BIGINT NOT NULL,
                 finally_approved BOOLEAN NOT NULL DEFAULT FALSE,
                 milestone_id BIGINT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 modified_by VARCHAR(255),
-                FOREIGN KEY (participant_id) REFERENCES participant(id) ON DELETE CASCADE,
+                FOREIGN KEY (contestant_id) REFERENCES contestant(id) ON DELETE CASCADE,
                 FOREIGN KEY (milestone_id) REFERENCES milestone(id) ON DELETE CASCADE
               );
       rollback:
@@ -65,7 +65,7 @@ databaseChangeLog:
                 score INTEGER,
                 is_favorite BOOLEAN DEFAULT FALSE,
                 is_candidate BOOLEAN DEFAULT FALSE,
-                participant_id BIGINT NOT NULL,
+                contestant_id BIGINT NOT NULL,
                 round_id BIGINT NOT NULL,
                 milestone_criterion_id BIGINT NOT NULL,
                 activity_user_id BIGINT NOT NULL,
@@ -73,7 +73,7 @@ databaseChangeLog:
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 modified_by VARCHAR(255),
-                FOREIGN KEY (participant_id) REFERENCES participant(id) ON DELETE CASCADE,
+                FOREIGN KEY (contestant_id) REFERENCES contestant(id) ON DELETE CASCADE,
                 FOREIGN KEY (round_id) REFERENCES round(id) ON DELETE CASCADE,
                 FOREIGN KEY (milestone_criterion_id) REFERENCES milestone_criterion(id) ON DELETE CASCADE,
                 FOREIGN KEY (activity_user_id) REFERENCES activity_user(id) ON DELETE CASCADE

@@ -1,32 +1,6 @@
 package org.bn.sensation.core.activity.service;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.time.ZoneId;
-import java.util.*;
-
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.bn.sensation.core.activity.entity.ActivityEntity;
-import org.bn.sensation.core.activity.repository.ActivityRepository;
-import org.bn.sensation.core.activityresult.entity.ActivityResultEntity;
-import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
-import org.bn.sensation.core.common.entity.PartnerSide;
-import org.bn.sensation.core.common.entity.Person;
-import org.bn.sensation.core.judgemilestoneresult.entity.JudgeMilestoneResultEntity;
-import org.bn.sensation.core.judgemilestoneresult.repository.JudgeMilestoneResultRepository;
-import org.bn.sensation.core.milestone.entity.MilestoneEntity;
-import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
-import org.bn.sensation.core.milestoneresult.entity.MilestoneResultEntity;
-import org.bn.sensation.core.milestoneresult.entity.MilestoneRoundResultEntity;
-import org.bn.sensation.core.milestoneresult.repository.MilestoneResultRepository;
-import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.base.Preconditions;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class ActivityReportService {
-
+/*
     private static final String EXCEL_CONTENT_TYPE =
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
@@ -476,11 +450,11 @@ public class ActivityReportService {
     private Map<Long, Map<Long, Map<Long, Integer>>> aggregateJudgeScores(List<JudgeMilestoneResultEntity> judgeResults) {
         Map<Long, Map<Long, Map<Long, Integer>>> participantScores = new HashMap<>();
         for (JudgeMilestoneResultEntity result : judgeResults) {
-            if (result.getParticipant() == null || result.getActivityUser() == null || result.getMilestoneCriterion() == null) {
+            if (result.getContestant() == null || result.getActivityUser() == null || result.getMilestoneCriterion() == null) {
                 continue;
             }
 
-            Long participantId = result.getParticipant().getId();
+            Long participantId = result.getContestant().getId();
             Long judgeId = result.getActivityUser().getId();
             Long criterionId = result.getMilestoneCriterion().getId();
 
@@ -734,6 +708,5 @@ public class ActivityReportService {
 
     private Date toDate(java.time.LocalDateTime dateTime) {
         return Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
-    }
+    }*/
 }
-

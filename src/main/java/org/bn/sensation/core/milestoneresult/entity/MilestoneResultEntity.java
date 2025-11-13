@@ -4,8 +4,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
+import org.bn.sensation.core.contestant.entity.ContestantEntity;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
-import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -27,8 +27,8 @@ public class MilestoneResultEntity extends BaseEntity {
     private MilestoneEntity milestone;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "participant_id")
-    private ParticipantEntity participant;
+    @JoinColumn(name = "contestant_id")
+    private ContestantEntity contestant;
 
     @Column(name = "finally_approved")
     private Boolean finallyApproved;

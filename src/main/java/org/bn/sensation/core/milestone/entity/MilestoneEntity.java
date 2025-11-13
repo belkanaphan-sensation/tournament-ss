@@ -5,9 +5,9 @@ import java.util.Set;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.entity.BaseEntity;
+import org.bn.sensation.core.contestant.entity.ContestantEntity;
 import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 import org.bn.sensation.core.milestoneresult.entity.MilestoneResultEntity;
-import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -56,5 +56,5 @@ public class MilestoneEntity extends BaseEntity {
 
     @ManyToMany(mappedBy = "milestones")
     @Builder.Default
-    private Set<ParticipantEntity> participants = new HashSet<>();
+    private Set<ContestantEntity> contestants = new HashSet<>();
 }

@@ -20,16 +20,16 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Результат этапа для участника")
+@Schema(description = "Результат этапа для конкурсанта")
 public class MilestoneResultDto extends BaseDto {
 
     @Schema(description = "Этап")
     private EntityLinkDto milestone;
 
-    @Schema(description = "Участник")
-    private EntityLinkDto participant;
+    @Schema(description = "Конкурсант")
+    private EntityLinkDto contestant;
 
-    @Schema(description = "Прошел участник в следующий этап или нет по решению организатора")
+    @Schema(description = "Прошел конкурсант в следующий этап или нет по решению организатора")
     private Boolean finallyApproved;
 
     @Schema(description = "Результаты раундов для этапа")

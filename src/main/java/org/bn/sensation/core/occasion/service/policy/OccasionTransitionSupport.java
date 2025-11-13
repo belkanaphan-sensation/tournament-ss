@@ -39,4 +39,3 @@ public class OccasionTransitionSupport implements TransitionSupport<OccasionEnti
         return entity.getState();
     }
 }
-

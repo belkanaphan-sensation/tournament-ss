@@ -13,4 +13,3 @@ public interface TransitionPolicy<E extends BaseEvent> {
         return allowedEvents(role).contains(event);
     }
 }
-
