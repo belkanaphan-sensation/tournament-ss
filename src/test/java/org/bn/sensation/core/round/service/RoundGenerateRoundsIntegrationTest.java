@@ -206,7 +206,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testGenerateRounds_AllParticipants_Success() {
         // When
-        List<RoundDto> result = roundService.generateRounds(testMilestone, null, false);
+        List<RoundDto> result = roundService.generateRounds(testMilestone, null, false, 3);
 
         // Then
         assertNotNull(result);
@@ -242,7 +242,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
         List<Long> specificParticipantIds = Arrays.asList(leader1.getId(), leader2.getId(), leader3.getId(), follower1.getId(), follower2.getId());
 
         // When
-        List<RoundDto> result = roundService.generateRounds(testMilestone, specificParticipantIds, false);
+        List<RoundDto> result = roundService.generateRounds(testMilestone, specificParticipantIds, false, 3);
 
         // Then
         assertNotNull(result);
@@ -270,10 +270,10 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testGenerateRounds_ReGenerate_Success() {
         // Given - сначала создаем раунды
-        roundService.generateRounds(testMilestone, null, false);
+        roundService.generateRounds(testMilestone, null, false, 3);
 
         // When - перегенерируем
-        List<RoundDto> result = roundService.generateRounds(testMilestone, null, true);
+        List<RoundDto> result = roundService.generateRounds(testMilestone, null, true, 3);
 
         // Then
         assertNotNull(result);
@@ -286,7 +286,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
         participantRepository.deleteAll();
 
         // When
-        List<RoundDto> result = roundService.generateRounds(testMilestone, null, false);
+        List<RoundDto> result = roundService.generateRounds(testMilestone, null, false, 3);
 
         // Then
         assertNotNull(result);
@@ -303,7 +303,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
         participantRepository.delete(follower5);
 
         // When
-        List<RoundDto> result = roundService.generateRounds(testMilestone, null, false);
+        List<RoundDto> result = roundService.generateRounds(testMilestone, null, false, 3);
 
         // Then
         assertNotNull(result);
@@ -321,7 +321,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
 
         // When & Then
         assertThrows(IllegalArgumentException.class, () -> {
-            roundService.generateRounds(testMilestone, null, false);
+            roundService.generateRounds(testMilestone, null, false, 3);
         });
     }
 
@@ -332,7 +332,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
 
         // When & Then
         assertThrows(IllegalArgumentException.class, () -> {
-            roundService.generateRounds(testMilestone, nonExistentParticipantIds, false);
+            roundService.generateRounds(testMilestone, nonExistentParticipantIds, false, 3);
         });
     }
 
@@ -343,7 +343,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
 
         // When & Then
         assertThrows(IllegalArgumentException.class, () -> {
-            roundService.generateRounds(testMilestone, participantIds, false);
+            roundService.generateRounds(testMilestone, participantIds, false, 3);
         });
     }
 
@@ -356,7 +356,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
         }
 
         // When
-        List<RoundDto> result = roundService.generateRounds(testMilestone, null, false);
+        List<RoundDto> result = roundService.generateRounds(testMilestone, null, false, 3);
 
         // Then
         assertNotNull(result);
@@ -374,7 +374,7 @@ class RoundGenerateRoundsIntegrationTest extends AbstractIntegrationTest {
     @Test
     void testGenerateRounds_ParticipantDistribution_LeadersAndFollowers() {
         // When
-        List<RoundDto> result = roundService.generateRounds(testMilestone, null, false);
+        List<RoundDto> result = roundService.generateRounds(testMilestone, null, false, 3);
 
         // Then
         assertNotNull(result);

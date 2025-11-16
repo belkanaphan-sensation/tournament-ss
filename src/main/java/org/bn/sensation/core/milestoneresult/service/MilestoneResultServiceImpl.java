@@ -78,12 +78,12 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
         Preconditions.checkState(milestone.getState() == MilestoneState.IN_PROGRESS || milestone.getState() == MilestoneState.SUMMARIZING,
                 "Недопустимое состояние этапа %s для обновления результатов".formatted(milestone.getState()));
-        return acceptResults(milestone, request);
+        return acceptResults(milestone, request).stream().map(milestoneResultDtoMapper::toDto).toList();
     }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public List<MilestoneResultDto> acceptResults(MilestoneEntity milestone, List<UpdateMilestoneResultRequest> request) {
+    public List<MilestoneResultEntity> acceptResults(MilestoneEntity milestone, List<UpdateMilestoneResultRequest> request) {
         log.info("Принятие результатов этапа: milestoneId={}, количество запросов={}", milestone.getId(), request.size());
 
         Map<Long, MilestoneResultEntity> resultEntityMap = milestone.getResults().stream()
@@ -112,7 +112,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         milestoneResultRepository.saveAll(toSave);
         log.info("Сохранено {} результатов этапа milestoneId={}", toSave.size(), milestone.getId());
 
-        return milestoneResultRepository.findAllByMilestoneId(milestone.getId()).stream().map(milestoneResultDtoMapper::toDto).toList();
+        return milestoneResultRepository.findAllByMilestoneId(milestone.getId());
     }
 
     @Override

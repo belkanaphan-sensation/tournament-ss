@@ -9,8 +9,6 @@ import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.milestone.statemachine.MilestoneState;
-import org.bn.sensation.core.round.statemachine.RoundState;
 import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCacheService;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
@@ -18,7 +16,7 @@ import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusReposit
 import org.bn.sensation.core.judgeroundstatus.service.JudgeRoundStatusService;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
-import org.bn.sensation.core.milestoneresult.entity.MilestoneResultEntity;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 import org.bn.sensation.core.milestoneresult.repository.MilestoneResultRepository;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
@@ -32,6 +30,7 @@ import org.bn.sensation.core.round.service.mapper.CreateRoundRequestMapper;
 import org.bn.sensation.core.round.service.mapper.RoundDtoMapper;
 import org.bn.sensation.core.round.service.mapper.RoundWithJRStatusMapper;
 import org.bn.sensation.core.round.service.mapper.UpdateRoundRequestMapper;
+import org.bn.sensation.core.round.statemachine.RoundState;
 import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
@@ -223,27 +222,29 @@ public class RoundServiceImpl implements RoundService {
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public List<RoundDto> generateRounds(@NotNull MilestoneEntity milestone, List<Long> participantIds, Boolean reGenerate) {
-        if (!Boolean.TRUE.equals(reGenerate)) {
+    public List<RoundDto> generateRounds(@NotNull MilestoneEntity milestone, List<Long> participantIds, boolean reGenerate, Integer roundParticipantLimit) {
+        if (!reGenerate) {
             Preconditions.checkArgument(milestone.getParticipants().isEmpty() && milestone.getRounds().isEmpty(),
                     "Этап уже содержит участников или раунды");
         } else {
-            milestone.getParticipants().clear();
             roundRepository.deleteAll(milestone.getRounds());
             milestone.getRounds().clear();
         }
-
+        MilestoneEntity previousMilestone = milestoneRepository.findByActivityIdAndMilestoneOrder(milestone.getActivity().getId(), milestone.getMilestoneOrder() + 1).orElse(null);
         List<ParticipantEntity> participants;
         if (participantIds != null && !participantIds.isEmpty()) {
             log.info("Генерация раундов для конкретных участников: {}", participantIds);
+            Set<Long> milestoneParticipants = milestone.getParticipants().stream().map(ParticipantEntity::getId).collect(Collectors.toSet());
             participants = participantRepository.findByActivityIdAndIdIn(milestone.getActivity().getId(), participantIds)
                     .stream()
                     .peek(participant -> {
                         Preconditions.checkArgument(participant.getIsRegistered(), "Участник с ID %s не зарегистрирован".formatted(participant.getId()));
+                        if (previousMilestone != null && previousMilestone.getState() != MilestoneState.SKIPPED) {
+                            Preconditions.checkArgument(milestoneParticipants.contains(participant.getId()), "Участник с ID %s не зарегистрирован в этапе %s".formatted(participant.getId(), milestone.getId()));
+                        }
                     })
                     .sorted(Comparator.comparing(ParticipantEntity::getNumber).reversed())
                     .toList();
-
             if (participants.size() != participantIds.size()) {
                 Set<Long> participantIdsCopy = new HashSet<>(participantIds);
                 participants.stream().map(ParticipantEntity::getId).forEach(participantIdsCopy::remove);
@@ -251,7 +252,6 @@ public class RoundServiceImpl implements RoundService {
                         .formatted(milestone.getActivity().getId(), participantIdsCopy));
             }
         } else {
-            MilestoneEntity previousMilestone = milestoneRepository.findByActivityIdAndMilestoneOrder(milestone.getActivity().getId(), milestone.getMilestoneOrder() + 1).orElse(null);
             if (previousMilestone == null || previousMilestone.getState() == MilestoneState.SKIPPED) {
                 log.info("Этап {} является первым (или первым непропущенным) этапом в активности {}. Генерация раундов для всех зарегистрированных участников активности",
                         milestone.getId(), milestone.getActivity().getId());
@@ -262,12 +262,7 @@ public class RoundServiceImpl implements RoundService {
                         .toList();
             } else {
                 log.info("Генерация раундов для участников прошедших в следующий этап");
-                participants = milestoneResultRepository.findAllByMilestoneId(previousMilestone.getId())
-                        .stream()
-                        .filter(mr -> Boolean.TRUE.equals(mr.getFinallyApproved()))
-                        .map(MilestoneResultEntity::getParticipant)
-                        .sorted(Comparator.comparing(ParticipantEntity::getNumber).reversed())
-                        .toList();
+                participants = List.copyOf(milestone.getParticipants());
             }
         }
 
@@ -278,22 +273,25 @@ public class RoundServiceImpl implements RoundService {
         }
 
         // Обновляем обе стороны связи ManyToMany: добавляем milestone в participant.milestones
-        participants.forEach(participant -> participant.getMilestones().add(milestone));
-        milestone.getParticipants().addAll(participants);
+        if (milestone.getParticipants().isEmpty()) {
+            participants.forEach(participant -> participant.getMilestones().add(milestone));
+            milestone.getParticipants().addAll(participants);
+            milestoneRepository.save(milestone);
+        }
 
-        List<RoundEntity> rounds = roundRepository.saveAll(generate(participants, milestone));
+        int roundLimit = roundParticipantLimit == null ? milestone.getMilestoneRule().getRoundParticipantLimit().intValue() : roundParticipantLimit;
+        List<RoundEntity> rounds = roundRepository.saveAll(generate(participants, milestone, roundLimit));
         milestone.getRounds().addAll(rounds);
 
         // Сохраняем участников с обновленными связями
         participantRepository.saveAll(participants);
-        milestoneRepository.save(milestone);
         rounds.forEach(r -> createJudgeStatusesForRound(milestone, r));
 
         log.info("Успешно сгенерировано {} раундов для этапа ID={}", rounds.size(), milestone.getId());
         return rounds.stream().map(roundDtoMapper::toDto).toList();
     }
 
-    private List<RoundEntity> generate(List<ParticipantEntity> participants, MilestoneEntity milestone) {
+    private List<RoundEntity> generate(List<ParticipantEntity> participants, MilestoneEntity milestone, int roundLimit) {
         log.debug("Начало генерации раундов для {} участников", participants.size());
         if (milestone.getMilestoneOrder().equals(0)) {
             log.debug("Генерация финального раунда. Количество участников {} лимит финального этапа {}",
@@ -321,7 +319,6 @@ public class RoundServiceImpl implements RoundService {
         log.debug("Разделение участников: лидеров={}, последователей={}", leaders.size(), followers.size());
 
         boolean distribute = false;
-        int roundLimit = milestone.getMilestoneRule().getRoundParticipantLimit().intValue();
         log.debug("Лимит участников на раунд: {}", roundLimit);
 
         int dividend = Math.max(leaders.size(), followers.size());

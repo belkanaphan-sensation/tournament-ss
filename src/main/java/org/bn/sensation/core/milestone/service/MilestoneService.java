@@ -29,7 +29,9 @@ public interface MilestoneService extends BaseCrudService<
 
     void planMilestone(Long id);
 
-    List<RoundDto> prepareRounds(Long milestoneId, @Valid PrepareRoundsRequest request);
+    List<RoundDto> prepareRounds(@NotNull Long milestoneId, @Valid PrepareRoundsRequest request);
+
+    List<RoundDto> regenerateRounds(@NotNull Long milestoneId, @Valid PrepareRoundsRequest request);
 
     void startMilestone(Long id);
 
