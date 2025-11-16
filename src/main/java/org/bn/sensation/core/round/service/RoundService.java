@@ -23,6 +23,6 @@ public interface RoundService extends BaseCrudService<
 
     List<RoundWithJRStatusDto> findByMilestoneIdInLifeStates(@NotNull Long id);
 
-    List<RoundDto> generateRounds(MilestoneEntity milestone, @Nullable List<Long> participantIds, @Nullable Boolean reGenerate);
+    List<RoundDto> generateRounds(MilestoneEntity milestone, @Nullable List<Long> participantIds, boolean reGenerate, @Nullable Integer roundParticipantLimit);
 
 }

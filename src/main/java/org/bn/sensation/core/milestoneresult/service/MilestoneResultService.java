@@ -19,7 +19,7 @@ public interface MilestoneResultService extends BaseCrudService<
 
     List<MilestoneResultDto> acceptResults(Long milestoneId, List<UpdateMilestoneResultRequest> request);
 
-    List<MilestoneResultDto> acceptResults(MilestoneEntity milestone, List<UpdateMilestoneResultRequest> request);
+    List<MilestoneResultEntity> acceptResults(MilestoneEntity milestone, List<UpdateMilestoneResultRequest> request);
 
     MilestoneRoundResultDto createMilestoneRoundResult(CreateMilestoneRoundResultRequest request);
 

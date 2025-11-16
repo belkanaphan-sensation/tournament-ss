@@ -34,7 +34,14 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
     @Override
     public String canTransition(MilestoneEntity milestone, MilestoneEvent event) {
         switch (event) {
-            case DRAFT, SKIP -> {
+            case DRAFT -> {
+                return null;
+            }
+            case SKIP -> {
+                Optional<MilestoneEntity> previous = milestoneRepository.findByActivityIdAndMilestoneOrder(milestone.getActivity().getId(), milestone.getMilestoneOrder() + 1);
+                if (previous.isPresent()) {
+                    return "Нельзя пропустить этап т.к. у него имеется предыдущий этап %s".formatted(previous.get().getId());
+                }
                 return null;
             }
             case PLAN -> {
@@ -53,6 +60,11 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
                 if (ActivityState.IN_PROGRESS != milestone.getActivity().getState()) {
                     return "Нельзя подготовить раунды, т.к. активность находится в статусе %s"
                             .formatted(milestone.getActivity().getState());
+                }
+                Optional<MilestoneEntity> previous = milestoneRepository.findByActivityIdAndMilestoneOrder(milestone.getActivity().getId(), milestone.getMilestoneOrder() + 1);
+                if (previous.isPresent() && previous.get().getState() != MilestoneState.SKIPPED && previous.get().getState() != MilestoneState.COMPLETED) {
+                    return "Нельзя подготовить раунды, т.к. предыдущий этап находится в состоянии %s"
+                            .formatted(previous.get().getState());
                 }
                 return null;
             }

@@ -764,7 +764,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         List<Long> participantIds = List.of(participant1.getId(), participant2.getId());
 
         // When - Generate rounds for final milestone
-        List<RoundDto> rounds = roundService.generateRounds(finalMilestone, participantIds, false);
+        List<RoundDto> rounds = roundService.generateRounds(finalMilestone, participantIds, false, 5);
 
         // Then - Verify only one round created with name "Финал"
         assertNotNull(rounds);
@@ -827,7 +827,7 @@ class RoundServiceIntegrationTest extends AbstractIntegrationTest {
         }
 
         // When - Generate rounds for final milestone
-        List<RoundDto> rounds = roundService.generateRounds(finalMilestone, participantIds, false);
+        List<RoundDto> rounds = roundService.generateRounds(finalMilestone, participantIds, false, 5);
 
         // Then - Verify only one round created (final round ignores limit)
         assertNotNull(rounds);

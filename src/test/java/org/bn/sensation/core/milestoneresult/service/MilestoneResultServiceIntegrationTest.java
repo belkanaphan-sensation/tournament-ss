@@ -21,6 +21,7 @@ import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.entity.Person;
 import org.bn.sensation.core.activity.statemachine.ActivityState;
 import org.bn.sensation.core.milestone.statemachine.MilestoneState;
+import org.bn.sensation.core.milestoneresult.entity.MilestoneResultEntity;
 import org.bn.sensation.core.occasion.statemachine.OccasionState;
 import org.bn.sensation.core.round.statemachine.RoundState;
 import org.bn.sensation.core.criterion.entity.CriterionEntity;
@@ -1029,7 +1030,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
                         .collect(Collectors.toList());
         
         // When
-        List<MilestoneResultDto> acceptedResults = milestoneResultService.acceptResults(testMilestone, requests);
+        List<MilestoneResultEntity> acceptedResults = milestoneResultService.acceptResults(testMilestone, requests);
         
         // Then
         assertNotNull(acceptedResults);
@@ -1067,21 +1068,21 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
                         .collect(Collectors.toList());
         
         // When
-        List<MilestoneResultDto> acceptedResults = milestoneResultService.acceptResults(testMilestone, requests);
+        List<MilestoneResultEntity> acceptedResults = milestoneResultService.acceptResults(testMilestone, requests);
         
         // Then
         assertNotNull(acceptedResults);
         assertEquals(calculatedResults.size(), acceptedResults.size());
         
         // Verify first two results have finallyApproved = true
-        List<MilestoneResultDto> notApprovedResults = acceptedResults.stream()
+        List<MilestoneResultEntity> notApprovedResults = acceptedResults.stream()
                 .filter(r -> requests.stream().anyMatch(req -> req.getId().equals(r.getId())))
                 .toList();
         assertEquals(2, notApprovedResults.size());
         notApprovedResults.forEach(result -> assertFalse(result.getFinallyApproved()));
         
         // Verify remaining results have finallyApproved = false (or null)
-        List<MilestoneResultDto> approvedResults = acceptedResults.stream()
+        List<MilestoneResultEntity> approvedResults = acceptedResults.stream()
                 .filter(r -> requests.stream().noneMatch(req -> req.getId().equals(r.getId())))
                 .toList();
         assertEquals(1, approvedResults.size());
@@ -1114,7 +1115,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         
         // When & Then - Should not throw exception
         assertDoesNotThrow(() -> {
-            List<MilestoneResultDto> acceptedResults = milestoneResultService.acceptResults(testMilestone, requests);
+            List<MilestoneResultEntity> acceptedResults = milestoneResultService.acceptResults(testMilestone, requests);
             assertNotNull(acceptedResults);
             
             // Verify exactly 2 results are approved
@@ -1181,7 +1182,7 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         
         // When & Then - Should not throw exception (no validation when strictPassMode is false)
         assertDoesNotThrow(() -> {
-            List<MilestoneResultDto> acceptedResults = milestoneResultService.acceptResults(testMilestone, requests);
+            List<MilestoneResultEntity> acceptedResults = milestoneResultService.acceptResults(testMilestone, requests);
             assertNotNull(acceptedResults);
             
             // Verify all results are approved
@@ -1243,28 +1244,28 @@ class MilestoneResultServiceIntegrationTest extends AbstractIntegrationTest {
         );
         
         // When
-        List<MilestoneResultDto> acceptedResults = milestoneResultService.acceptResults(testMilestone, requests);
+        List<MilestoneResultEntity> acceptedResults = milestoneResultService.acceptResults(testMilestone, requests);
         
         // Then
         assertNotNull(acceptedResults);
         assertEquals(3, acceptedResults.size());
         
         // Verify first result is approved
-        MilestoneResultDto firstResult = acceptedResults.stream()
+        MilestoneResultEntity firstResult = acceptedResults.stream()
                 .filter(r -> r.getId().equals(calculatedResults.get(0).getId()))
                 .findFirst()
                 .orElseThrow();
         assertTrue(firstResult.getFinallyApproved());
         
         // Verify second result is not approved
-        MilestoneResultDto secondResult = acceptedResults.stream()
+        MilestoneResultEntity secondResult = acceptedResults.stream()
                 .filter(r -> r.getId().equals(calculatedResults.get(1).getId()))
                 .findFirst()
                 .orElseThrow();
         assertFalse(secondResult.getFinallyApproved());
         
         // Verify third result is approved
-        MilestoneResultDto thirdResult = acceptedResults.stream()
+        MilestoneResultEntity thirdResult = acceptedResults.stream()
                 .filter(r -> r.getId().equals(calculatedResults.get(2).getId()))
                 .findFirst()
                 .orElseThrow();

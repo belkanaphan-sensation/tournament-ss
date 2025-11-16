@@ -23,7 +23,7 @@ public class PrepareRoundsRequest {
             "зарегистрированные в активности, которой принадлежит этап")
     private List<Long> participantIds;
 
-    @Schema(description = "Признак, что для данного этапа нужно переформировать раунды" +
-            " (удалить старые и создать новые с новыми данными)")
-    private Boolean reGenerate;
+    @Schema(description = "Количество участников в заходе (раунде)" +
+            " (если оно отличается от того что было задано изначально)")
+    private Integer roundParticipantLimit;
 }

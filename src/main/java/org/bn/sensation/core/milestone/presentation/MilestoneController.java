@@ -112,6 +112,15 @@ public class MilestoneController {
         return ResponseEntity.ok(rounds);
     }
 
+    @Operation(summary = "Перегенерировать раунды")
+    @PostMapping(path = "/regenerate-rounds/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPERADMIN')")
+    public ResponseEntity<List<RoundDto>> regenerateRoundsForMilestone(@Parameter @PathVariable("id") @NotNull Long id,
+                                                                    @Valid @RequestBody PrepareRoundsRequest request) {
+        List<RoundDto> rounds = milestoneService.regenerateRounds(id, request);
+        return ResponseEntity.ok(rounds);
+    }
+
     @Operation(summary = "Начать этап по ID",
             description = "Начать этап может администратор")
     @PostMapping(path = "/start/{id}")
