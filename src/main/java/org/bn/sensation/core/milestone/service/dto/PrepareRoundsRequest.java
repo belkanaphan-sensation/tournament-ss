@@ -1,7 +1,5 @@
 package org.bn.sensation.core.milestone.service.dto;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,15 +13,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Запрос на формирование раундов с участниками")
+@Schema(description = "Запрос на формирование раундов с конкурсантами")
 public class PrepareRoundsRequest {
 
-    @Schema(description = "Список ID участников. Если он присутствует, " +
-            "то участники добавляются из данного списка, если нет, то все участники, " +
-            "зарегистрированные в активности, которой принадлежит этап")
-    private List<Long> participantIds;
+//    @Schema(description = "Список ID конкурсантов. Если он присутствует, " +
+//            "то конкурсанты добавляются из данного списка, если нет, то все конкурсанты, " +
+//            "зарегистрированные в активности, которой принадлежит этап")
+//    private List<Long> contestantIds;
 
-    @Schema(description = "Количество участников в заходе (раунде)" +
+    @Schema(description = "Количество конкурсантов в заходе (раунде)" +
             " (если оно отличается от того что было задано изначально)")
-    private Integer roundParticipantLimit;
+    private Integer roundContestantLimit;
 }

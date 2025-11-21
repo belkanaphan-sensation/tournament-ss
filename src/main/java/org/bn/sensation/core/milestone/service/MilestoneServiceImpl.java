@@ -1,16 +1,20 @@
 package org.bn.sensation.core.milestone.service;
 
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
+import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.common.service.BaseStateService;
+import org.bn.sensation.core.contestant.entity.ContestantEntity;
+import org.bn.sensation.core.contestant.entity.ContestantType;
+import org.bn.sensation.core.contestant.repository.ContestantRepository;
+import org.bn.sensation.core.contestant.service.ContestantService;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.service.dto.CreateMilestoneRequest;
@@ -33,8 +37,6 @@ import org.bn.sensation.core.round.service.RoundStateMachineService;
 import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.bn.sensation.core.round.statemachine.RoundEvent;
 import org.bn.sensation.core.round.statemachine.RoundState;
-import org.bn.sensation.core.user.entity.Role;
-import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -52,9 +54,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class MilestoneServiceImpl implements MilestoneService {
 
-    private final CurrentUser currentUser;
     private final ActivityRepository activityRepository;
-    private final BaseStateService<MilestoneEntity, MilestoneState, MilestoneEvent> milestoneStateService;
     private final CreateMilestoneRequestMapper createMilestoneRequestMapper;
     private final MilestoneDtoMapper milestoneDtoMapper;
     private final MilestoneRepository milestoneRepository;
@@ -64,6 +64,8 @@ public class MilestoneServiceImpl implements MilestoneService {
     private final RoundService roundService;
     private final RoundStateMachineService roundStateMachineService;
     private final UpdateMilestoneRequestMapper updateMilestoneRequestMapper;
+    private final ContestantService contestantService;
+    private final ContestantRepository contestantRepository;
 
     @Override
     public BaseRepository<MilestoneEntity> getRepository() {
@@ -130,7 +132,6 @@ public class MilestoneServiceImpl implements MilestoneService {
             reorderMilestones(request.getActivityId(), null, request.getMilestoneOrder());
         }
 
-        addParticipants(request.getParticipantIds(), activity, milestone);
         MilestoneEntity saved = milestoneRepository.save(milestone);
         log.info("Этап успешно создан: id={}, название={}", saved.getId(), saved.getName());
 
@@ -158,7 +159,6 @@ public class MilestoneServiceImpl implements MilestoneService {
         }
 
         updateMilestoneRequestMapper.updateMilestoneFromRequest(request, milestone);
-        addParticipants(request.getParticipantIds(), milestone.getActivity(), milestone);
 
         MilestoneEntity saved = milestoneRepository.save(milestone);
         log.info("Этап успешно обновлен: id={}", saved.getId());
@@ -292,32 +292,17 @@ public class MilestoneServiceImpl implements MilestoneService {
         return nextOrder;
     }
 
-    /**
-     * Не должно применяться в нормальном флоу. Нужно на экстренный случай
-     */
-    private void addParticipants(List<Long> participantIds, ActivityEntity activity, MilestoneEntity milestone) {
-        if (participantIds != null && !participantIds.isEmpty()) {
-            log.warn("Добавление участников в этап вне нормального флоу: milestone={}, activity={}, participantIds={}", milestone.getId(), activity.getId(), participantIds);
-            Preconditions.checkArgument(currentUser.getSecurityUser().getRoles().contains(Role.SUPERADMIN), "Только суперадмин может привязывать участников напрямую");
-            Set<ParticipantEntity> participants = participantRepository.findAllByIdWithActivity(participantIds)
-                    .stream()
-                    .peek(participant -> {
-                        Preconditions.checkArgument(participant.getIsRegistered(), "Может быть добавлен только зарегистрированный участник");
-                        Preconditions.checkArgument(participant.getActivity().getId().equals(activity.getId()),
-                                "Участник с ID %s не принадлежит активности %s", participant.getId(), activity.getId());
-                    })
-                    .collect(Collectors.toSet());
-            milestone.getParticipants().addAll(participants);
-        }
-    }
-
     @Override
     @Transactional
-    //TODO
     public void skipMilestone(Long id) {
         log.info("Пропуск этапа: id={}", id);
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(id);
         milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.SKIP);
+        if (milestone.getMilestoneOrder() != 0) {
+            MilestoneEntity nextMilestone = milestoneRepository.getByActivityIdAndMilestoneOrderOrThrow(milestone.getActivity().getId(), milestone.getMilestoneOrder() - 1);
+            nextMilestone.setContestants(milestone.getContestants());
+            milestoneRepository.save(nextMilestone);
+        }
         log.info("Пропуск запущен: id={}", id);
     }
 
@@ -342,25 +327,25 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     @Transactional
     public List<RoundDto> prepareRounds(Long milestoneId, PrepareRoundsRequest request) {
-        log.info("Начало подготовки раундов для этапа ID={}, количество участников в раунде={}",
-                milestoneId, request.getRoundParticipantLimit());
+        log.info("Начало подготовки раундов для этапа ID={}, количество конкурсантов в раунде={}",
+                milestoneId, request.getRoundContestantLimit());
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
         log.debug("Этап найден: ID={}, состояние={}, активность ID={}",
                 milestone.getId(), milestone.getState(), milestone.getActivity().getId());
         milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.PREPARE_ROUNDS);
-        List<RoundDto> rounds = roundService.generateRounds(milestone, request.getParticipantIds(), false, request.getRoundParticipantLimit());
+        List<RoundDto> rounds = roundService.generateRounds(milestone,false, request.getRoundContestantLimit());
         milestoneRepository.save(milestone);
         return rounds;
     }
 
     @Override
     public List<RoundDto> regenerateRounds(Long milestoneId, PrepareRoundsRequest request) {
-        log.info("Перегенерация раундов для этапа ID={}, количество участников в раунде={}",
-                milestoneId, request.getRoundParticipantLimit());
+        log.info("Перегенерация раундов для этапа ID={}, количество конкурсантов в раунде={}",
+                milestoneId, request.getRoundContestantLimit());
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
         log.debug("Этап найден: ID={}, состояние={}", milestone.getId(), milestone.getState());
         Preconditions.checkState(milestone.getState() == MilestoneState.PENDING, "Перегенерация раундов невозможна, т.к. этап в состоянии %s ", milestone.getState());
-        List<RoundDto> rounds = roundService.generateRounds(milestone, request.getParticipantIds(), true, request.getRoundParticipantLimit());
+        List<RoundDto> rounds = roundService.generateRounds(milestone,true, request.getRoundContestantLimit());
         milestoneRepository.save(milestone);
         return rounds;
     }
@@ -397,10 +382,10 @@ public class MilestoneServiceImpl implements MilestoneService {
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
         log.debug("Найден этап={} для завершения, количество раундов={}", milestoneId, milestone.getRounds().size());
         List<MilestoneResultEntity> milestoneResults = milestoneResultService.acceptResults(milestone, request);
+        milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.COMPLETE);
         if (milestone.getMilestoneOrder().intValue() != 0) {
             assignToNextMilestone(milestone, milestoneResults);
         }
-        milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.COMPLETE);
         log.info("Этап успешно завершен: id={}", milestoneId);
     }
 
@@ -408,25 +393,41 @@ public class MilestoneServiceImpl implements MilestoneService {
         MilestoneEntity nextMilestone = milestoneRepository.findByActivityIdAndMilestoneOrder(milestone.getActivity().getId(), milestone.getMilestoneOrder() - 1)
                 .orElseThrow(() -> new IllegalArgumentException("Нет следующего этапа после этапа ID %s, порядковый номер %s".formatted(milestone.getId(), milestone.getMilestoneOrder())));
 
-        List<ParticipantEntity> participants = milestoneResults
+        Set<ContestantEntity> contestants = milestoneResults
                 .stream()
                 .filter(mr -> Boolean.TRUE.equals(mr.getFinallyApproved()))
-                .map(MilestoneResultEntity::getParticipant)
-                .sorted(Comparator.comparing(ParticipantEntity::getNumber).reversed())
-                .toList();
+                .map(MilestoneResultEntity::getContestant)
+                .collect(Collectors.toSet());
+        log.info("Найдено конкурсантов для перевода в следующий этап: {}", contestants.size());
+        Preconditions.checkArgument(!contestants.isEmpty(), "Нет конкурсантов для перевода в следующий этап");
 
-
-        log.info("Найдено участников для перевода в следующий этап: {}", participants.size());
-        if (participants.isEmpty()) {
-            log.warn("Нет участников для перевода в следующий этап");
+        ContestantType type = milestone.getMilestoneRule().getContestantType();
+        ContestantType nextType = nextMilestone.getMilestoneRule().getContestantType();
+        if (type == nextType && nextType.isPersistent()) {
+            nextMilestone.setContestants(contestants);
+            contestants.forEach(c -> c.getMilestones().add(nextMilestone));
+            contestantRepository.saveAll(contestants);
+        } else {
+            List<ParticipantEntity> participants = contestants.stream()
+                    .flatMap(c -> c.getParticipants().stream())
+                    .toList();
+            contestantService.createContestants(nextMilestone, participants);
+            participantRepository.saveAll(participants);
         }
 
-        // Обновляем обе стороны связи ManyToMany: добавляем milestone в participant.milestones
-        participants.forEach(participant -> participant.getMilestones().add(nextMilestone));
-        nextMilestone.getParticipants().addAll(participants);
-
-        // Сохраняем участников с обновленными связями
-        participantRepository.saveAll(participants);
+        if (milestone.getMilestoneRule().getStrictPassMode()) {
+            if (nextType.hasPartnerSide()) {
+                Map<PartnerSide, List<ParticipantEntity>> sides = nextMilestone.getContestants().stream()
+                        .flatMap(c -> c.getParticipants().stream())
+                        .collect(Collectors.groupingBy(ParticipantEntity::getPartnerSide));
+                Preconditions.checkArgument(Math.max(sides.getOrDefault(PartnerSide.FOLLOWER, List.of()).size(), sides.getOrDefault(PartnerSide.LEADER, List.of()).size())
+                                <= milestone.getMilestoneRule().getContestantLimit().intValue(),
+                        "Количество прошедших конкурсантов не может быть больше %s", milestone.getMilestoneRule().getContestantLimit());
+            } else {
+                Preconditions.checkArgument(nextMilestone.getContestants().size() <= milestone.getMilestoneRule().getContestantLimit().intValue(),
+                        "Количество прошедших конкурсантов не может быть больше %s", milestone.getMilestoneRule().getContestantLimit());
+            }
+        }
         milestoneRepository.save(nextMilestone);
     }
 }

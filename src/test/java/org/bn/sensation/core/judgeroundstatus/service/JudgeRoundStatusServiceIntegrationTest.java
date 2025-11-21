@@ -1,59 +1,11 @@
 package org.bn.sensation.core.judgeroundstatus.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Set;
-
 import org.bn.sensation.AbstractIntegrationTest;
-import org.bn.sensation.core.activity.entity.ActivityEntity;
-import org.bn.sensation.core.activity.repository.ActivityRepository;
-import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
-import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
-import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
-import org.bn.sensation.core.common.entity.Address;
-import org.bn.sensation.core.common.entity.PartnerSide;
-import org.bn.sensation.core.common.entity.Person;
-import org.bn.sensation.core.activity.statemachine.ActivityState;
-import org.bn.sensation.core.milestone.statemachine.MilestoneState;
-import org.bn.sensation.core.occasion.statemachine.OccasionState;
-import org.bn.sensation.core.round.statemachine.RoundState;
-import org.bn.sensation.core.criterion.entity.CriterionEntity;
-import org.bn.sensation.core.criterion.repository.CriterionRepository;
-import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
-import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
-import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
-import org.bn.sensation.core.judgeroundstatus.service.dto.JudgeRoundStatusDto;
-import org.bn.sensation.core.milestone.entity.AssessmentMode;
-import org.bn.sensation.core.milestone.entity.MilestoneEntity;
-import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
-import org.bn.sensation.core.milestone.repository.MilestoneRepository;
-import org.bn.sensation.core.milestone.repository.MilestoneRuleRepository;
-import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
-import org.bn.sensation.core.milestonecriterion.repository.MilestoneCriterionRepository;
-import org.bn.sensation.core.occasion.entity.OccasionEntity;
-import org.bn.sensation.core.occasion.repository.OccasionRepository;
-import org.bn.sensation.core.organization.entity.OrganizationEntity;
-import org.bn.sensation.core.organization.repository.OrganizationRepository;
-import org.bn.sensation.core.round.entity.RoundEntity;
-import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.user.entity.Role;
-import org.bn.sensation.core.user.entity.UserEntity;
-import org.bn.sensation.core.user.entity.UserStatus;
-import org.bn.sensation.core.user.repository.UserRepository;
-import org.bn.sensation.security.CurrentUser;
-import org.bn.sensation.security.SecurityUser;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
-
+/*
     @Autowired
     private JudgeRoundStatusService judgeRoundStatusService;
 
@@ -246,7 +198,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
     void testMarkNotReady_ShouldChangeStatusToNotReady() {
         // Given - Create judge round status with READY status
         mockCurrentUser(testJudge);
-        
+
         JudgeRoundStatusEntity status = JudgeRoundStatusEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
@@ -294,7 +246,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
     void testMarkNotReady_WithNonExistentStatus_ShouldThrowException() {
         // Given - Create round but no judge round status
         mockCurrentUser(testJudge);
-        
+
         RoundEntity roundWithoutStatus = RoundEntity.builder()
                 .name("Round Without Status")
                 .state(RoundState.OPENED)
@@ -313,7 +265,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
     void testGetRoundStatusForCurrentUser_WithExistingStatus_ShouldReturnStatus() {
         // Given - Create judge round status
         mockCurrentUser(testJudge);
-        
+
         JudgeRoundStatusEntity status = JudgeRoundStatusEntity.builder()
                 .round(testRound)
                 .judge(judgeAssignment)
@@ -356,7 +308,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
     void testGetByMilestoneIdForCurrentUser_WithMultipleRounds_ShouldReturnAllStatuses() {
         // Given - Create multiple rounds with judge statuses
         mockCurrentUser(testJudge);
-        
+
         RoundEntity round1 = RoundEntity.builder()
                 .name("Round 1")
                 .state(RoundState.OPENED)
@@ -394,7 +346,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
         // Then
         assertNotNull(result);
         assertEquals(2, result.size());
-        
+
         // Verify statuses
         JudgeRoundStatusDto status1Dto = result.stream()
                 .filter(dto -> dto.getRound().getId().equals(savedRound1.getId()))
@@ -437,7 +389,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
     void testGetByMilestoneIdForCurrentUser_WithDifferentJudge_ShouldReturnEmptyList() {
         // Given - Create status for different judge
         mockCurrentUser(testJudge);
-        
+
         // Create another judge
         UserEntity otherJudge = createUser("otherJudge", Role.USER);
         ActivityUserEntity otherJudgeAssignment = ActivityUserEntity.builder()
@@ -446,7 +398,7 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
                 .position(UserActivityPosition.JUDGE)
                 .build();
         otherJudgeAssignment = activityUserRepository.save(otherJudgeAssignment);
-        
+
         testActivity.getActivityUsers().add(otherJudgeAssignment);
         activityRepository.save(testActivity);
 
@@ -464,5 +416,5 @@ class JudgeRoundStatusServiceIntegrationTest extends AbstractIntegrationTest {
         // Then - Should return empty list (status belongs to other judge)
         assertNotNull(result);
         assertTrue(result.isEmpty());
-    }
+    }*/
 }

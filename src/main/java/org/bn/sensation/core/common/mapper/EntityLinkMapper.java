@@ -2,6 +2,7 @@ package org.bn.sensation.core.common.mapper;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.contestant.entity.ContestantEntity;
 import org.bn.sensation.core.criterion.entity.CriterionEntity;
 import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
@@ -66,4 +67,8 @@ public interface EntityLinkMapper {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "value", source = "status")
     EntityLinkDto toEntityLinkDto(JudgeRoundStatusEntity entity);
+
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "value", source = "number")
+    EntityLinkDto toEntityLinkDto(ContestantEntity entity);
 }

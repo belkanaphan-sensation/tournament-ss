@@ -3,12 +3,8 @@ package org.bn.sensation.core.round.presentation;
 import java.util.List;
 
 import org.bn.sensation.core.round.service.RoundService;
-import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
 import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.bn.sensation.core.round.service.dto.RoundWithJRStatusDto;
-import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -18,7 +14,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
@@ -39,30 +34,6 @@ public class RoundController {
         return roundService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).build());
-    }
-
-    @Operation(summary = "Получить все раунды с пагинацией")
-    @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
-    public ResponseEntity<Page<RoundDto>> getAll(Pageable pageable) {
-        return ResponseEntity.ok(roundService.findAll(pageable));
-    }
-
-    @Operation(summary = "Создать новый раунд")
-    @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
-    public ResponseEntity<RoundDto> create(@Valid @RequestBody CreateRoundRequest request) {
-        RoundDto created = roundService.create(request);
-        return ResponseEntity.ok(created);
-    }
-
-    @Operation(summary = "Обновить раунд по ID")
-    @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
-    public ResponseEntity<RoundDto> update(@PathVariable("id") @NotNull Long id,
-                                           @Valid @RequestBody UpdateRoundRequest request) {
-        RoundDto updated = roundService.update(id, request);
-        return ResponseEntity.ok(updated);
     }
 
     @Operation(summary = "Удалить раунд по ID")

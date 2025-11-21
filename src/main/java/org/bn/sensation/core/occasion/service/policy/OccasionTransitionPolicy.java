@@ -32,4 +32,3 @@ public class OccasionTransitionPolicy implements TransitionPolicy<OccasionEvent>
         return rolePermissions.getOrDefault(role, Collections.emptySet());
     }
 }
-

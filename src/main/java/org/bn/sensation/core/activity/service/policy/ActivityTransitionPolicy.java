@@ -33,4 +33,3 @@ public class ActivityTransitionPolicy implements TransitionPolicy<ActivityEvent>
         return rolePermissions.getOrDefault(role, Collections.emptySet());
     }
 }
-

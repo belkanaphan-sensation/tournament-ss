@@ -39,7 +39,7 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
             }
             case SKIP -> {
                 Optional<MilestoneEntity> previous = milestoneRepository.findByActivityIdAndMilestoneOrder(milestone.getActivity().getId(), milestone.getMilestoneOrder() + 1);
-                if (previous.isPresent()) {
+                if (previous.isPresent() && previous.get().getState() != MilestoneState.SKIPPED) {
                     return "Нельзя пропустить этап т.к. у него имеется предыдущий этап %s".formatted(previous.get().getId());
                 }
                 return null;
@@ -47,7 +47,7 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
             case PLAN -> {
                 if (!Set.of(ActivityState.PLANNED, ActivityState.REGISTRATION_CLOSED, ActivityState.IN_PROGRESS)
                         .contains(milestone.getActivity().getState())) {
-                    return "Нельзя запланировать этап, т.к. активность находится в статусе %s"
+                    return "Нельзя запланировать этап, т.к. активность находится в состоянии %s"
                             .formatted(milestone.getActivity().getState());
                 }
                 if (milestone.getMilestoneRule() == null
@@ -58,7 +58,7 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
             }
             case PREPARE_ROUNDS -> {
                 if (ActivityState.IN_PROGRESS != milestone.getActivity().getState()) {
-                    return "Нельзя подготовить раунды, т.к. активность находится в статусе %s"
+                    return "Нельзя подготовить раунды, т.к. активность находится в состоянии %s"
                             .formatted(milestone.getActivity().getState());
                 }
                 Optional<MilestoneEntity> previous = milestoneRepository.findByActivityIdAndMilestoneOrder(milestone.getActivity().getId(), milestone.getMilestoneOrder() + 1);
@@ -73,14 +73,14 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
                     return "Нельзя стартовать этап, т.к. активность находится в статусе %s"
                             .formatted(milestone.getActivity().getState());
                 }
-                if (milestone.getRounds().isEmpty() || milestone.getParticipants().isEmpty()) {
-                    return "Нельзя стартовать этап т.к. у него не сформированы раунды или отсутствуют участники";
+                if (milestone.getRounds().isEmpty()) {
+                    return "Нельзя стартовать этап т.к. у него не сформированы раунды";
                 }
                 return null;
             }
             case SUM_UP -> {
                 if (milestone.getActivity().getState() != ActivityState.IN_PROGRESS) {
-                    return "Нельзя подводить итоги этапа, т.к. активность находится в статусе %s"
+                    return "Нельзя подводить итоги этапа, т.к. активность находится в состоянии %s"
                             .formatted(milestone.getActivity().getState());
                 }
                 boolean anyJudgeNotReady = judgeMilestoneStatusCacheService
@@ -99,8 +99,8 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
                     return "Не все раунды завершены";
                 }
                 int resultsCount = milestone.getResults().size();
-                int participantsCount = milestone.getParticipants().size();
-                if (resultsCount != participantsCount) {
+                int contestantCount = milestone.getContestants().size();
+                if (resultsCount != contestantCount) {
                     return "Результаты готовы не для всех участников";
                 }
                 return null;

@@ -9,7 +9,6 @@ import org.mapstruct.Mapping;
 @Mapper(config = BaseDtoMapper.class)
 public interface CreateParticipantRequestMapper extends BaseDtoMapper<ParticipantEntity, CreateParticipantRequest> {
     @Override
-    @Mapping(target = "rounds", ignore = true)
     @Mapping(target = "activity", ignore = true)
     @Mapping(target = "person.name", source = "name")
     @Mapping(target = "person.surname", source = "surname")

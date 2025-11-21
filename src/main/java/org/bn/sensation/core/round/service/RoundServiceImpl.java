@@ -9,32 +9,26 @@ import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.contestant.entity.ContestantEntity;
+import org.bn.sensation.core.contestant.repository.ContestantRepository;
 import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCacheService;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
 import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
 import org.bn.sensation.core.judgeroundstatus.service.JudgeRoundStatusService;
+import org.bn.sensation.core.milestone.entity.AssessmentMode;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.statemachine.MilestoneState;
-import org.bn.sensation.core.milestoneresult.repository.MilestoneResultRepository;
-import org.bn.sensation.core.participant.entity.ParticipantEntity;
-import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
 import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.bn.sensation.core.round.service.dto.RoundWithJRStatusDto;
-import org.bn.sensation.core.round.service.dto.UpdateRoundRequest;
-import org.bn.sensation.core.round.service.mapper.CreateRoundRequestMapper;
 import org.bn.sensation.core.round.service.mapper.RoundDtoMapper;
 import org.bn.sensation.core.round.service.mapper.RoundWithJRStatusMapper;
-import org.bn.sensation.core.round.service.mapper.UpdateRoundRequestMapper;
 import org.bn.sensation.core.round.statemachine.RoundState;
-import org.bn.sensation.core.user.entity.Role;
 import org.bn.sensation.security.CurrentUser;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,17 +47,14 @@ import lombok.extern.slf4j.Slf4j;
 public class RoundServiceImpl implements RoundService {
 
     private final CurrentUser currentUser;
-    private final CreateRoundRequestMapper createRoundRequestMapper;
     private final JudgeMilestoneStatusCacheService judgeMilestoneStatusCacheService;
     private final JudgeRoundStatusRepository judgeRoundStatusRepository;
     private final JudgeRoundStatusService judgeRoundStatusService;
     private final MilestoneRepository milestoneRepository;
-    private final MilestoneResultRepository milestoneResultRepository;
-    private final ParticipantRepository participantRepository;
     private final RoundDtoMapper roundDtoMapper;
     private final RoundRepository roundRepository;
     private final RoundWithJRStatusMapper roundWithJRStatusMapper;
-    private final UpdateRoundRequestMapper updateRoundRequestMapper;
+    private final ContestantRepository contestantRepository;
 
     @Override
     public BaseRepository<RoundEntity> getRepository() {
@@ -76,38 +67,31 @@ public class RoundServiceImpl implements RoundService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Page<RoundDto> findAll(Pageable pageable) {
-        return roundRepository.findAll(pageable).map(roundDtoMapper::toDto);
-    }
-
-    @Override
     @Transactional
-    public RoundDto create(CreateRoundRequest request) {
+    public RoundDto createExtraRound(CreateRoundRequest request) {
         log.info("Создание раунда: название={}, этап={}", request.getName(), request.getMilestoneId());
 
         // Проверяем существование этапа
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(request.getMilestoneId());
         log.debug("Найден этап={} для создания раунда", milestone.getId());
+        Preconditions.checkState(milestone.getState() == MilestoneState.SUMMARIZING,
+                "Невозможно создать дополнительный раунд, т.к. этап в состоянии %s".formatted(milestone.getState()));
         if (milestone.getMilestoneOrder().equals(0) && !milestone.getRounds().isEmpty()) {
             throw new IllegalArgumentException("Раунд не может быть создан для этапа %s, т.к этап финальный и уже имеет раунд".formatted(milestone.getId()));
         }
 
         // Создаем сущность раунда
-        RoundEntity round = createRoundRequestMapper.toEntity(request);
-        if (Strings.isNullOrEmpty(round.getName())) {
-            round.setName("Раунд " + (milestone.getRounds().size() + 1));
-        }
+        RoundEntity round = new RoundEntity();
+        String name = Strings.isNullOrEmpty(request.getName())
+                ? "*Раунд " + (milestone.getRounds().size() + 1)
+                : request.getName();
+        round.setName(name);
+        round.setExtraRound(true);
         round.setState(RoundState.OPENED);
         round.setMilestone(milestone);
-
         round.setRoundOrder(roundRepository.getLastRoundOrder(milestone.getId()).orElse(0) + 1);
-        if (round.getExtraRound()) {
-            Preconditions.checkArgument(request.getParticipantIds() != null && !request.getParticipantIds().isEmpty(),
-                    "Для создания дополнительного раунда требуется список участников");
-            checkParticipants(request.getParticipantIds(), milestone);
-        }
-        addParticipants(request.getParticipantIds(), milestone, round);
+        checkContestants(request.getContestantIds(), milestone);
+        addContestants(request.getContestantIds(), milestone, round);
 
         RoundEntity saved = roundRepository.save(round);
         log.info("Сохранен раунд с id={}", saved.getId());
@@ -123,35 +107,32 @@ public class RoundServiceImpl implements RoundService {
         return roundDtoMapper.toDto(saved);
     }
 
-    private void checkParticipants(@NotNull List<Long> participantIds, MilestoneEntity milestone) {
-        participantIds.forEach(pId -> {
+    private void checkContestants(@NotNull List<Long> contestantIds, MilestoneEntity milestone) {
+        contestantIds.forEach(pId -> {
             Boolean finallyApproved = Optional.ofNullable(milestone.getResults()
                     .stream().collect(Collectors.toMap(
-                            res -> res.getParticipant().getId(),
+                            res -> res.getContestant().getId(),
                             res -> res.getFinallyApproved()))
-                    .get(pId)).orElseThrow(() -> new IllegalArgumentException("Для участника с ID не существует результата этапа %s".formatted(pId)));
+                    .get(pId)).orElseThrow(() -> new IllegalArgumentException("Для конкурсанта с ID %s не существует результата этапа".formatted(pId)));
             Preconditions.checkArgument(!Boolean.TRUE.equals(finallyApproved),
-                    "Участник %s прошел в следующий этап по результатам основного раунда и не может быть добавлен в дополнительный"
+                    "Конкурсант %s прошел в следующий этап по результатам основного раунда и не может быть добавлен в дополнительный"
                             .formatted(pId));
         });
     }
 
-    @Override
-    @Transactional
-    public RoundDto update(Long id, UpdateRoundRequest request) {
-        RoundEntity round = roundRepository.getByIdOrThrow(id);
-        if (request.getName() != null) {
-            Preconditions.checkArgument(!request.getName().trim().isEmpty(), "Название раунда не может быть пустым");
-        }
-        updateRoundRequestMapper.updateRoundFromRequest(request, round);
-
-        if (round.getExtraRound() && request.getParticipantIds() != null) {
-            checkParticipants(request.getParticipantIds(), round.getMilestone());
-        }
-        addParticipants(request.getParticipantIds(), round.getMilestone(), round);
-
-        RoundEntity saved = roundRepository.save(round);
-        return roundDtoMapper.toDto(saved);
+    private void addContestants(List<Long> contestantIds, MilestoneEntity milestone, RoundEntity round) {
+        log.warn("Добавление конкурсантов в раунд: milestone={}, round={}, contestantIds={}", milestone.getId(), round.getId(), contestantIds);
+        Set<ContestantEntity> contestants = contestantRepository.findAllByIdFull(contestantIds)
+                .stream()
+                .peek(contestant -> {
+                    Preconditions.checkArgument(contestant.getMilestones().stream().anyMatch(m -> m.getId().equals(milestone.getId())),
+                            "Конкурсант с ID %s должен быть сначала добавлен в этап раунда с ID: %s", contestant.getId(), milestone.getId());
+                })
+                .collect(Collectors.toSet());
+        Preconditions.checkArgument(contestantIds.size() == contestants.size(), "Не все из заявленных конкурсантов найдены");
+        // Обновляем обе стороны связи ManyToMany: добавляем round в participant.rounds
+        contestants.forEach(contestant -> contestant.getRounds().add(round));
+        round.getContestants().addAll(contestants);
     }
 
     @Override
@@ -222,109 +203,67 @@ public class RoundServiceImpl implements RoundService {
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public List<RoundDto> generateRounds(@NotNull MilestoneEntity milestone, List<Long> participantIds, boolean reGenerate, Integer roundParticipantLimit) {
+    public List<RoundDto> generateRounds(@NotNull MilestoneEntity milestone, boolean reGenerate, Integer roundParticipantLimit) {
+        Preconditions.checkArgument(!milestone.getContestants().isEmpty(), "Отсутствуют конкурсанты для генерации раундов");
         if (!reGenerate) {
-            Preconditions.checkArgument(milestone.getParticipants().isEmpty() && milestone.getRounds().isEmpty(),
-                    "Этап уже содержит участников или раунды");
+            Preconditions.checkArgument(milestone.getRounds().isEmpty(), "Этап уже содержит раунды");
         } else {
             roundRepository.deleteAll(milestone.getRounds());
             milestone.getRounds().clear();
         }
-        MilestoneEntity previousMilestone = milestoneRepository.findByActivityIdAndMilestoneOrder(milestone.getActivity().getId(), milestone.getMilestoneOrder() + 1).orElse(null);
-        List<ParticipantEntity> participants;
-        if (participantIds != null && !participantIds.isEmpty()) {
-            log.info("Генерация раундов для конкретных участников: {}", participantIds);
-            Set<Long> milestoneParticipants = milestone.getParticipants().stream().map(ParticipantEntity::getId).collect(Collectors.toSet());
-            participants = participantRepository.findByActivityIdAndIdIn(milestone.getActivity().getId(), participantIds)
-                    .stream()
-                    .peek(participant -> {
-                        Preconditions.checkArgument(participant.getIsRegistered(), "Участник с ID %s не зарегистрирован".formatted(participant.getId()));
-                        if (previousMilestone != null && previousMilestone.getState() != MilestoneState.SKIPPED) {
-                            Preconditions.checkArgument(milestoneParticipants.contains(participant.getId()), "Участник с ID %s не зарегистрирован в этапе %s".formatted(participant.getId(), milestone.getId()));
-                        }
-                    })
-                    .sorted(Comparator.comparing(ParticipantEntity::getNumber).reversed())
-                    .toList();
-            if (participants.size() != participantIds.size()) {
-                Set<Long> participantIdsCopy = new HashSet<>(participantIds);
-                participants.stream().map(ParticipantEntity::getId).forEach(participantIdsCopy::remove);
-                throw new IllegalArgumentException("Не все участники из запроса найдены для активности ID %s. Не найдены: %s"
-                        .formatted(milestone.getActivity().getId(), participantIdsCopy));
-            }
-        } else {
-            if (previousMilestone == null || previousMilestone.getState() == MilestoneState.SKIPPED) {
-                log.info("Этап {} является первым (или первым непропущенным) этапом в активности {}. Генерация раундов для всех зарегистрированных участников активности",
-                        milestone.getId(), milestone.getActivity().getId());
-                participants = participantRepository.findByActivityId(milestone.getActivity().getId())
-                        .stream()
-                        .filter(participant -> participant.getIsRegistered())
-                        .sorted(Comparator.comparing(ParticipantEntity::getNumber).reversed())
-                        .toList();
-            } else {
-                log.info("Генерация раундов для участников прошедших в следующий этап");
-                participants = List.copyOf(milestone.getParticipants());
-            }
-        }
 
-        log.info("Найдено участников для генерации: {}", participants.size());
-        if (participants.isEmpty()) {
-            log.warn("Нет зарегистрированных участников для генерации раундов");
-            return Collections.emptyList();
-        }
-
-        // Обновляем обе стороны связи ManyToMany: добавляем milestone в participant.milestones
-        if (milestone.getParticipants().isEmpty()) {
-            participants.forEach(participant -> participant.getMilestones().add(milestone));
-            milestone.getParticipants().addAll(participants);
-            milestoneRepository.save(milestone);
-        }
-
-        int roundLimit = roundParticipantLimit == null ? milestone.getMilestoneRule().getRoundParticipantLimit().intValue() : roundParticipantLimit;
-        List<RoundEntity> rounds = roundRepository.saveAll(generate(participants, milestone, roundLimit));
+        int roundLimit = roundParticipantLimit == null ? milestone.getMilestoneRule().getRoundContestantLimit().intValue() : roundParticipantLimit;
+        List<RoundEntity> rounds = roundRepository.saveAll(generate(milestone, roundLimit));
         milestone.getRounds().addAll(rounds);
 
         // Сохраняем участников с обновленными связями
-        participantRepository.saveAll(participants);
+        contestantRepository.saveAll(milestone.getContestants());
         rounds.forEach(r -> createJudgeStatusesForRound(milestone, r));
 
         log.info("Успешно сгенерировано {} раундов для этапа ID={}", rounds.size(), milestone.getId());
         return rounds.stream().map(roundDtoMapper::toDto).toList();
     }
 
-    private List<RoundEntity> generate(List<ParticipantEntity> participants, MilestoneEntity milestone, int roundLimit) {
-        log.debug("Начало генерации раундов для {} участников", participants.size());
-        if (milestone.getMilestoneOrder().equals(0)) {
-            log.debug("Генерация финального раунда. Количество участников {} лимит финального этапа {}",
-                    participants.size(), milestone.getMilestoneRule().getParticipantLimit());
+    private List<RoundEntity> generate(MilestoneEntity milestone, int roundLimit) {
+        log.debug("Начало генерации раундов для {} конкурсантов", milestone.getContestants().size());
+        //TODO ограничение для strictPassMode
+        if (milestone.getMilestoneOrder().equals(0) || milestone.getMilestoneRule().getStrictPassMode() || milestone.getMilestoneRule().getAssessmentMode() == AssessmentMode.PLACE) {
+            log.debug("Генерация финального раунда. Количество конкурсантов {} лимит финального этапа {}",
+                    milestone.getContestants().size(), milestone.getMilestoneRule().getContestantLimit());
             RoundEntity finalRound = RoundEntity.builder()
                     .roundOrder(0)
                     .extraRound(false)
                     .milestone(milestone)
                     .state(RoundState.OPENED)
-                    .name("Финал")
-                    .participants(new HashSet<>(participants))
+                    .name(milestone.getName())
+                    .contestants(new HashSet<>(milestone.getContestants()))
                     .build();
             // Обновляем обе стороны связи ManyToMany: добавляем round в participant.rounds
-            participants.forEach(participant -> participant.getRounds().add(finalRound));
+            milestone.getContestants().forEach(contestant -> contestant.getRounds().add(finalRound));
             return List.of(finalRound);
         }
 
-        List<ParticipantEntity> leaders = new ArrayList<>(participants.stream()
-                .filter(p -> p.getPartnerSide() == PartnerSide.LEADER)
-                .toList());
-        List<ParticipantEntity> followers = new ArrayList<>(participants.stream()
-                .filter(p -> p.getPartnerSide() == PartnerSide.FOLLOWER)
-                .toList());
-
-        log.debug("Разделение участников: лидеров={}, последователей={}", leaders.size(), followers.size());
-
         boolean distribute = false;
-        log.debug("Лимит участников на раунд: {}", roundLimit);
+        log.debug("Лимит конкурсантов на раунд: {}", roundLimit);
+        List<ContestantEntity> contestants = new ArrayList<>(milestone.getContestants());
+        List<ContestantEntity> leaders = new ArrayList<>();
+        List<ContestantEntity> followers = new ArrayList<>();
+        if (milestone.getMilestoneRule().getContestantType().hasPartnerSide()) {
+            leaders.addAll(contestants.stream()
+                    .filter(c -> c.getParticipants().iterator().next().getPartnerSide() == PartnerSide.LEADER)
+                    .toList());
+            followers.addAll(contestants.stream()
+                    .filter(c -> c.getParticipants().iterator().next().getPartnerSide() == PartnerSide.FOLLOWER)
+                    .toList());
+            log.debug("Разделение конкурсантов: лидеров={}, последователей={}", leaders.size(), followers.size());
+        }
 
-        int dividend = Math.max(leaders.size(), followers.size());
+        int dividend = milestone.getMilestoneRule().getContestantType().hasPartnerSide()
+                ? Math.max(leaders.size(), followers.size())
+                : contestants.size();
         int roundCount = dividend / roundLimit;
         int remainder = dividend % roundLimit;
-        log.debug("Расчет раундов: всего участников={}, раундов={}, остаток={}",
+        log.debug("Расчет раундов: всего конкурсантов={}, раундов={}, остаток={}",
                 dividend, roundCount, remainder);
         if (remainder <= roundLimit / 2 && remainder <= roundCount) {
             distribute = true;
@@ -347,40 +286,42 @@ public class RoundServiceImpl implements RoundService {
 
             log.debug("Создание раунда {}", round.getName());
             int j = 0;
-            while (j < roundLimit && (!leaders.isEmpty() || !followers.isEmpty())) {
-                addToRound(leaders, followers, round);
-                j++;
-                log.trace("Добавлен участник в раунд {}, всего участников: {}", i + 1, round.getParticipants().size());
+            if (milestone.getMilestoneRule().getContestantType().hasPartnerSide()) {
+                while (j < roundLimit && (!leaders.isEmpty() || !followers.isEmpty())) {
+                    addToRound(leaders, round);
+                    addToRound(followers, round);
+                    j++;
+                    log.trace("Добавлены конкурсанты в раунд {}, всего конкурсантов распределенных по сторонам: {}", i + 1, round.getContestants().size());
+                }
+                if (distribute) {
+                    addToRound(leaders, round);
+                    addToRound(followers, round);
+                    log.debug("Добавлен дополнительный конкурсант в раунд {} (распределение остатка)", i + 1);
+                }
+            } else {
+                while (j < roundLimit && !contestants.isEmpty()) {
+                    addToRound(contestants, round);
+                    j++;
+                    log.trace("Добавлен конкурсант в раунд {}, всего конкурсантов: {}", i + 1, round.getContestants().size());
+                }
+                if (distribute) {
+                    addToRound(contestants, round);
+                    log.debug("Добавлен дополнительный конкурсант в раунд {} (распределение остатка)", i + 1);
+                }
             }
-            if (distribute) {
-                addToRound(leaders, followers, round);
-                log.debug("Добавлен дополнительный участник в раунд {} (распределение остатка)", i + 1);
-            }
-
-            log.debug("Раунд {} сформирован: {} участников", i, round.getParticipants().size());
+            log.debug("Раунд {} сформирован: {} конкурсантов", i, round.getContestants().size());
             roundEntities.add(round);
         }
-
         log.info("Генерация завершена: создано {} раундов", roundEntities.size());
         return roundEntities;
     }
 
-    private void addToRound(List<ParticipantEntity> leaders, List<ParticipantEntity> followers, RoundEntity round) {
-        if (!leaders.isEmpty()) {
-            ParticipantEntity leader = leaders.get(leaders.size() - 1);
-            // Обновляем обе стороны связи ManyToMany: добавляем round в participant.rounds
-            leader.getRounds().add(round);
-            round.getParticipants().add(leader);
-            leaders.remove(leaders.size() - 1);
-            log.trace("Добавлен лидер ID={} в раунд {}", leader.getId(), round.getName());
-        }
-        if (!followers.isEmpty()) {
-            ParticipantEntity follower = followers.get(followers.size() - 1);
-            // Обновляем обе стороны связи ManyToMany: добавляем round в participant.rounds
-            follower.getRounds().add(round);
-            round.getParticipants().add(follower);
-            followers.remove(followers.size() - 1);
-            log.trace("Добавлен последователь ID={} в раунд {}", follower.getId(), round.getName());
+    private void addToRound(List<ContestantEntity> contestants, RoundEntity round) {
+        if (!contestants.isEmpty()) {
+            ContestantEntity contestant = contestants.remove(0);
+            contestant.getRounds().add(round);
+            round.getContestants().add(contestant);
+            log.trace("Добавлен конкурсант ID={} в раунд {}", contestant.getId(), round.getName());
         }
     }
 
@@ -390,8 +331,8 @@ public class RoundServiceImpl implements RoundService {
         for (ActivityUserEntity au : milestone.getActivity().getActivityUsers()) {
             if (au.getPosition().isJudge()) {
                 JudgeRoundStatus status = JudgeRoundStatus.NOT_READY;
-                if (au.getPartnerSide() != null
-                        && round.getParticipants().stream().filter(p -> p.getPartnerSide() == au.getPartnerSide()).count() == 0) {
+                if (au.getPartnerSide() != null && milestone.getMilestoneRule().getContestantType().hasPartnerSide()
+                        && round.getContestants().stream().filter(c -> c.getParticipants().iterator().next().getPartnerSide() == au.getPartnerSide()).count() == 0) {
                     status = JudgeRoundStatus.READY;
                 }
                 JudgeRoundStatusEntity judgeRoundStatus = JudgeRoundStatusEntity.builder()
@@ -408,30 +349,4 @@ public class RoundServiceImpl implements RoundService {
         log.debug("Инвалидирован кэш статуса раунда roundId={}", round.getId());
         log.info("Создано {} статусов судей для раунда={}", judgeStatusCount, round.getId());
     }
-
-    /**
-     * Не должно применяться в нормальном флоу. Нужно на экстренный случай
-     */
-    private void addParticipants(List<Long> participantIds, MilestoneEntity milestone, RoundEntity round) {
-        if (participantIds != null && !participantIds.isEmpty()) {
-            log.warn("Добавление участников в раунд: milestone={}, round={}, participantIds={}", milestone.getId(), round.getId(), participantIds);
-            Preconditions.checkArgument(round.getExtraRound()
-                            || currentUser.getSecurityUser().getRoles().contains(Role.SUPERADMIN),
-                    "Раунд должен быть дополнительным или только суперадмин может привязывать участников напрямую");
-            Set<ParticipantEntity> participants = participantRepository.findAllByIdFull(participantIds)
-                    .stream()
-                    .peek(participant -> {
-                        Preconditions.checkArgument(participant.getIsRegistered(), "Может быть добавлен только зарегистрированный участник");
-                        Preconditions.checkArgument(participant.getActivity().getId().equals(milestone.getActivity().getId()),
-                                "Участник с ID %s не принадлежит активности %s", participant.getId(), milestone.getActivity().getId());
-                        Preconditions.checkArgument(participant.getMilestones().stream().anyMatch(m -> m.getId().equals(milestone.getId())),
-                                "Участник с ID %s должен быть сначала добавлен в этап раунда с ID: %s", participant.getId(), milestone.getId());
-                    })
-                    .collect(Collectors.toSet());
-            // Обновляем обе стороны связи ManyToMany: добавляем round в participant.rounds
-            participants.forEach(participant -> participant.getRounds().add(round));
-            round.getParticipants().addAll(participants);
-        }
-    }
-
 }

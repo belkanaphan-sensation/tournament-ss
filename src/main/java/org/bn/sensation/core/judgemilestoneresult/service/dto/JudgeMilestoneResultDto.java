@@ -18,11 +18,11 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Результат этапа по судьям и критериям для участника")
+@Schema(description = "Результат этапа по судьям и критериям для конкурсанта")
 public class JudgeMilestoneResultDto extends BaseDto {
 
-    @Schema(description = "Участник")
-    private EntityLinkDto participant;
+    @Schema(description = "Конкурсант")
+    private EntityLinkDto contestant;
 
     @Schema(description = "Раунд")
     private EntityLinkDto round;
@@ -33,12 +33,9 @@ public class JudgeMilestoneResultDto extends BaseDto {
     @Schema(description = "Судья")
     private EntityLinkDto activityUser;
 
-    @Schema(description = "Значение оценки для данного участника данным судьей по данному критерию", example = "5")
+    @Schema(description = "Значение оценки для данного конкурсанта данным судьей по данному критерию", example = "5")
     private Integer score;
 
-    @Schema(description = "Добавление участника в избранные (возможные кандидаты)", example = "true", defaultValue = "false")
-    private Boolean isFavorite;
-
-    @Schema(description = "Участник - возможный кандидат для выбора в этапе", example = "true", defaultValue = "false")
+    @Schema(description = "Конкурсант - возможный кандидат для выбора в этапе", example = "true", defaultValue = "false")
     private Boolean isCandidate;
 }

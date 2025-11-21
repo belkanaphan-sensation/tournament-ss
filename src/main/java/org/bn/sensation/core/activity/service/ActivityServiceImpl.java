@@ -1,5 +1,6 @@
 package org.bn.sensation.core.activity.service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,9 +22,17 @@ import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.contestant.entity.ContestantEntity;
+import org.bn.sensation.core.contestant.service.ContestantService;
+import org.bn.sensation.core.contestant.service.dto.ContestantDto;
+import org.bn.sensation.core.contestant.service.mapper.ContestantDtoMapper;
+import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.repository.MilestoneRepository;
 import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 import org.bn.sensation.core.occasion.entity.OccasionEntity;
 import org.bn.sensation.core.occasion.repository.OccasionRepository;
+import org.bn.sensation.core.participant.entity.ParticipantEntity;
+import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -50,6 +59,10 @@ public class ActivityServiceImpl implements ActivityService {
     private final ActivityUserRepository activityUserRepository;
     private final CurrentUser currentUser;
     private final ActivityStateMachineService activityStateMachineService;
+    private final ParticipantRepository participantRepository;
+    private final ContestantService contestantService;
+    private final ContestantDtoMapper contestantDtoMapper;
+    private final MilestoneRepository milestoneRepository;
 
     @Override
     public BaseRepository<ActivityEntity> getRepository() {
@@ -225,11 +238,27 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     @Transactional
-    public void closeRegistrationToActivity(Long id) {
+    public List<ContestantDto> closeRegistrationToActivity(Long id) {
         log.info("Закрытие регистрации в активность: id={}", id);
         ActivityEntity activity = activityRepository.getByIdOrThrow(id);
         activityStateMachineService.sendEvent(activity, ActivityEvent.CLOSE_REGISTRATION);
+        List<ContestantDto> dtos = assignToMilestone(activity).stream().map(contestantDtoMapper::toDto).toList();
         log.info("Регистрация в активность закрыта: id={}", id);
+        return dtos;
+    }
+
+    private List<ContestantEntity> assignToMilestone(ActivityEntity activity) {
+        List<ParticipantEntity> participants = participantRepository.findByActivityId(activity.getId())
+                .stream().filter(ParticipantEntity::getIsRegistered).toList();
+        MilestoneEntity firstMilestone = activity.getMilestones().stream()
+                .filter(m -> m.getState() != MilestoneState.SKIPPED)
+                .sorted(Comparator.comparing(MilestoneEntity::getMilestoneOrder).reversed())
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Не найдено ни одного этапа для активности"));
+        List<ContestantEntity> contestants = contestantService.createContestants(firstMilestone, participants);
+        participantRepository.saveAll(participants);
+        milestoneRepository.save(firstMilestone);
+        return contestants;
     }
 
     @Override

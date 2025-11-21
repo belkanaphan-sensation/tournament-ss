@@ -16,12 +16,20 @@ public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
 
     List<MilestoneEntity> findByActivityIdOrderByMilestoneOrderDesc(Long activityId);
 
-    @EntityGraph(attributePaths = {"activity.activityUsers.user", "rounds.participants", "milestoneRule", "participants", "results"})
+    @EntityGraph(attributePaths = {"activity.activityUsers.user", "rounds.contestants", "milestoneRule", "contestants", "results"})
     @Query("SELECT m FROM MilestoneEntity m WHERE m.id = :id")
     Optional<MilestoneEntity> findByIdFull(@Param("id") Long id);
 
     default MilestoneEntity getByIdFullOrThrow(Long id) {
         return findByIdFull(id).orElseThrow(() -> new EntityNotFoundException("Этап не найден: " + id));
+    }
+
+    @EntityGraph(attributePaths = {"milestoneRule"})
+    @Query("SELECT m FROM MilestoneEntity m WHERE m.id = :id")
+    Optional<MilestoneEntity> findByIdWithRule(@Param("id") Long id);
+
+    default MilestoneEntity getByIdWithRuleOrThrow(Long id) {
+        return findByIdWithRule(id).orElseThrow(() -> new EntityNotFoundException("Этап не найден: " + id));
     }
 
     @EntityGraph(attributePaths = {"milestoneRule", "results"})
@@ -44,10 +52,10 @@ public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
     @Query("SELECT m FROM MilestoneEntity m WHERE m.activity.id = :activityId AND m.state IN :states")
     List<MilestoneEntity> findByActivityIdAndStateIn(@Param("activityId") Long activityId, @Param("states") List<MilestoneState> states);
 
-    @Query("SELECT m.milestoneRule.participantLimit FROM MilestoneEntity m " +
+    @Query("SELECT m.milestoneRule.contestantLimit FROM MilestoneEntity m " +
             "WHERE m.milestoneOrder = :milestoneOrder " +
             "AND m.activity.id = :activityId")
-    Integer getParticipantLimitForNextMilestone(Long activityId, Integer milestoneOrder);
+    Integer getContestantLimitForNextMilestone(Long activityId, Integer milestoneOrder);
 
     default MilestoneEntity getByIdOrThrow(Long id) {
         return findById(id).orElseThrow(() -> new EntityNotFoundException("Этап не найден: " + id));

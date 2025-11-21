@@ -33,8 +33,11 @@ public class RoundDto extends BaseDto {
     @Schema(description = "Этап, к которому принадлежит раунд")
     private EntityLinkDto milestone;
 
-    @Schema(description = "Список участников раунда")
-    private Set<EntityLinkDto> participants;
+    @Schema(description = "Список конкурсантов раунда")
+    private Set<EntityLinkDto> contestants;
+
+    @Schema(description = "Список пар раунда")
+    private Set<EntityLinkDto> couples;
 
     @Schema(description = "Статус раунда", example = "DRAFT")
     private RoundState state;

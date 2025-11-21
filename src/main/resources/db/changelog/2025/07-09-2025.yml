@@ -19,7 +19,7 @@ databaseChangeLog:
         - sql:
             sql: |
               DROP TABLE IF EXISTS users_organizations_association;
-  # Create rounds_participants_association
+  # Create contestants_rounds_association
   - changeSet:
       id: 2025-09-07-2
       author: belkanaphan
@@ -28,18 +28,18 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              CREATE TABLE IF NOT EXISTS rounds_participants_association (
-                participant_id BIGINT NOT NULL,
+              CREATE TABLE IF NOT EXISTS contestants_rounds_association (
+                contestant_id BIGINT NOT NULL,
                 round_id BIGINT NOT NULL,
-                PRIMARY KEY (participant_id, round_id),
-                FOREIGN KEY (participant_id) REFERENCES participant(id) ON DELETE CASCADE,
+                PRIMARY KEY (contestant_id, round_id),
+                FOREIGN KEY (contestant_id) REFERENCES contestant(id) ON DELETE CASCADE,
                 FOREIGN KEY (round_id) REFERENCES round(id) ON DELETE CASCADE
               );
       rollback:
         - sql:
             sql: |
-              DROP TABLE IF EXISTS rounds_participants_association;
-  # Create milestones_participants_association
+              DROP TABLE IF EXISTS contestants_rounds_association;
+  # Create contestants_milestones_association
   - changeSet:
       id: 2025-09-07-3
       author: belkanaphan
@@ -48,14 +48,34 @@ databaseChangeLog:
       changes:
         - sql:
             sql: |
-              CREATE TABLE IF NOT EXISTS milestones_participants_association (
-                participant_id BIGINT NOT NULL,
+              CREATE TABLE IF NOT EXISTS contestants_milestones_association (
+                contestant_id BIGINT NOT NULL,
                 milestone_id BIGINT NOT NULL,
-                PRIMARY KEY (participant_id, milestone_id),
-                FOREIGN KEY (participant_id) REFERENCES participant(id) ON DELETE CASCADE,
+                PRIMARY KEY (contestant_id, milestone_id),
+                FOREIGN KEY (contestant_id) REFERENCES contestant(id) ON DELETE CASCADE,
                 FOREIGN KEY (milestone_id) REFERENCES milestone(id) ON DELETE CASCADE
               );
       rollback:
         - sql:
             sql: |
-              DROP TABLE IF EXISTS milestones_participants_association;
+              DROP TABLE IF EXISTS contestants_milestones_association;
+  # Create contestants_participants_association
+  - changeSet:
+      id: 2025-09-07-4
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS contestants_participants_association (
+                contestant_id BIGINT NOT NULL,
+                participant_id BIGINT NOT NULL,
+                PRIMARY KEY (contestant_id, participant_id),
+                FOREIGN KEY (contestant_id) REFERENCES contestant(id) ON DELETE CASCADE,
+                FOREIGN KEY (participant_id) REFERENCES participant(id) ON DELETE CASCADE
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS contestants_participants_association;

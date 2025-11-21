@@ -2,7 +2,7 @@ package org.bn.sensation.core.activityresult.entity;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.common.entity.BaseEntity;
-import org.bn.sensation.core.participant.entity.ParticipantEntity;
+import org.bn.sensation.core.contestant.entity.ContestantEntity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,8 +24,8 @@ public class ActivityResultEntity extends BaseEntity {
     private Integer place;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "participant_id")
-    private ParticipantEntity participant;
+    @JoinColumn(name = "contestant_id")
+    private ContestantEntity contestant;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "activity_id")

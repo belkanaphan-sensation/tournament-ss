@@ -25,7 +25,7 @@ public class ActivityResultDto extends BaseDto {
     private EntityLinkDto activity;
 
     @Schema(description = "Участник")
-    private EntityLinkDto participant;
+    private EntityLinkDto contestant;
 
     @Schema(description = "Место, который занял участник в активности", example = "1")
     private Integer place;

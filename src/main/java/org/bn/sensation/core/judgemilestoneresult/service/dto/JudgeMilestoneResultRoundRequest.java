@@ -21,8 +21,8 @@ import lombok.experimental.SuperBuilder;
 @Schema(description = "Запрос на создание результатов судьи для раунда в этапе")
 public class JudgeMilestoneResultRoundRequest extends BaseDto {
 
-    @Schema(description = "Участник. При апдейте игнорируется, т.к. не может быть изменен")
-    private Long participantId;
+    @Schema(description = "Конкурсант. При апдейте игнорируется, т.к. не может быть изменен")
+    private Long contestantId;
 
     @Schema(description = "Раунд. При апдейте игнорируется, т.к. не может быть изменен")
     private Long roundId;
@@ -31,12 +31,9 @@ public class JudgeMilestoneResultRoundRequest extends BaseDto {
     private Long milestoneCriterionId;
 
     @NotNull
-    @Schema(description = "Значение оценки для данного участника данным судьей по данному критерию", example = "5")
+    @Schema(description = "Значение оценки для данного конкурсанта данным судьей по данному критерию", example = "5")
     private Integer score;
 
-    @Schema(description = "Добавление участника в избранные (возможные кандидаты)", example = "true", defaultValue = "false")
-    private Boolean isFavorite;
-
-    @Schema(description = "Участник - возможный кандидат для выбора в этапе", example = "true", defaultValue = "false")
+    @Schema(description = "Конкурсант - возможный кандидат для выбора в этапе", example = "true", defaultValue = "false")
     private Boolean isCandidate;
 }

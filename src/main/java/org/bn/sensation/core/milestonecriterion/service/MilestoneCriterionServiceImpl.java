@@ -89,6 +89,10 @@ public class MilestoneCriterionServiceImpl implements MilestoneCriterionService 
         log.debug("Найдены правило этапа={} и критерий={} для создания назначения",
                 milestoneRule.getId(), criteria.getId());
 
+        if (!milestoneRule.getContestantType().hasPartnerSide()) {
+            Preconditions.checkArgument(request.getPartnerSide() == null,
+                    "Критерий оценки не может иметь сторону, т.к. правила этапа это не разрешают");
+        }
         // Создаем сущность назначения
         MilestoneCriterionEntity assignment = createMilestoneCriterionRequestMapper.toEntity(request);
         assignment.setMilestoneRule(milestoneRule);
@@ -140,6 +144,10 @@ public class MilestoneCriterionServiceImpl implements MilestoneCriterionService 
                 .orElseThrow(() -> new EntityNotFoundException("Назначение не найдено с id: " + id));
 
         // Обновляем поля назначения
+        if (!assignment.getMilestoneRule().getContestantType().hasPartnerSide()) {
+            Preconditions.checkArgument(request.getPartnerSide() == null,
+                    "Критерий оценки не может иметь сторону, т.к. правила этапа это не разрешают");
+        }
         updateMilestoneCriterionRequestMapper.updateMilestoneCriterionAssignmentFromRequest(request, assignment);
         validateScale(assignment.getMilestoneRule(), assignment);
 

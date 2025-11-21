@@ -3,10 +3,7 @@ package org.bn.sensation.core.participant.presentation;
 import java.util.List;
 
 import org.bn.sensation.core.participant.service.ParticipantService;
-import org.bn.sensation.core.participant.service.dto.CreateParticipantRequest;
-import org.bn.sensation.core.participant.service.dto.ParticipantDto;
-import org.bn.sensation.core.participant.service.dto.RoundParticipantsDto;
-import org.bn.sensation.core.participant.service.dto.UpdateParticipantRequest;
+import org.bn.sensation.core.participant.service.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -72,65 +69,18 @@ public class ParticipantController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Получить всех участников по ID раунда")
-    @GetMapping(path = "/round/{roundId}")
-    public ResponseEntity<List<ParticipantDto>> getByRoundId(@PathVariable("roundId") Long roundId) {
-        return ResponseEntity.ok(participantService.findByRoundId(roundId));
-    }
-
     @Operation(summary = "Получить всех участников по ID активности")
     @GetMapping(path = "/activity/{activityId}")
     public ResponseEntity<List<ParticipantDto>> getByActivityId(@PathVariable("activityId") Long activityId) {
         return ResponseEntity.ok(participantService.findByActivityId(activityId));
     }
 
-    @Operation(summary = "Получить участников, расформированных по раундам по ID раунда для текущего пользователя")
-    @GetMapping(path = "/by-round/round/{roundId}/currentUser")
-    public ResponseEntity<List<ParticipantDto>> getByRoundByRoundIdForCurrentUser(@PathVariable("roundId") Long roundId) {
-        return ResponseEntity.ok(participantService.getByRoundByRoundIdForCurrentUser(roundId));
-    }
+//    @Operation(summary = "Получить всех участников по ID раунда")
+//    @GetMapping(path = "/round/{roundId}")
+//    public ResponseEntity<List<ParticipantDto>> getByRoundId(@PathVariable("roundId") Long roundId) {
+//        return ResponseEntity.ok(participantService.findByRoundId(roundId));
 
-    @Operation(summary = "Получить всех участников, расформированных по раундам по ID этапа для текущего пользователя")
-    @GetMapping(path = "/by-round/milestone/{milestoneId}/currentUser")
-    public ResponseEntity<List<RoundParticipantsDto>> getByRoundByMilestoneIdForCurrentUser(@PathVariable("milestoneId") Long milestoneId) {
-        return ResponseEntity.ok(participantService.getByRoundByMilestoneIdForCurrentUser(milestoneId));
-    }
-
-    @Operation(summary = "Привязать участника к раунду")
-    @PostMapping("/{participantId}/rounds/{roundId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
-    public ResponseEntity<ParticipantDto> addParticipantToRound(@PathVariable Long participantId,
-                                                                @PathVariable Long roundId) {
-        ParticipantDto updated = participantService.assignParticipantToRound(participantId, roundId);
-        return ResponseEntity.ok(updated);
-    }
-
-    @Operation(summary = "Отвязать участника от раунда")
-    @DeleteMapping("/{participantId}/rounds/{roundId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
-    public ResponseEntity<ParticipantDto> removeParticipantFromRound(@PathVariable Long participantId,
-                                                                     @PathVariable Long roundId) {
-        ParticipantDto updated = participantService.removeParticipantFromRound(participantId, roundId);
-        return ResponseEntity.ok(updated);
-    }
-
-    @Operation(summary = "Привязать участника к этапу")
-    @PostMapping("/{participantId}/milestones/{milestoneId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
-    public ResponseEntity<ParticipantDto> addParticipantToMilestone(@PathVariable Long participantId,
-                                                                @PathVariable Long milestoneId) {
-        ParticipantDto updated = participantService.assignParticipantToMilestone(participantId, milestoneId);
-        return ResponseEntity.ok(updated);
-    }
-
-    @Operation(summary = "Отвязать участника от этапа")
-    @DeleteMapping("/{participantId}/milestones/{milestoneId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
-    public ResponseEntity<ParticipantDto> removeParticipantFromMilestone(@PathVariable Long participantId,
-                                                                     @PathVariable Long milestoneId) {
-        ParticipantDto updated = participantService.removeParticipantFromMilestone(participantId, milestoneId);
-        return ResponseEntity.ok(updated);
-    }
+//    }
 
     @Operation(summary = "Зарегистрировать участника")
     @PostMapping("/{participantId}/register/{number}")

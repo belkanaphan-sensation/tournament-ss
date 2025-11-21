@@ -39,4 +39,3 @@ public class ActivityTransitionSupport implements TransitionSupport<ActivityEnti
         return entity.getState();
     }
 }
-

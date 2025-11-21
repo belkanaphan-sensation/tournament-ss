@@ -1,7 +1,5 @@
 package org.bn.sensation.core.participant.service.dto;
 
-import java.util.Set;
-
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.dto.PersonDto;
@@ -39,10 +37,4 @@ public class ParticipantDto extends BaseDto {
 
     @Schema(description = "Активность участника")
     private EntityLinkDto activity;
-
-    @Schema(description = "Список этапов")
-    private Set<EntityLinkDto> milestones;
-
-    @Schema(description = "Список раундов участника")
-    private Set<EntityLinkDto> rounds;
 }

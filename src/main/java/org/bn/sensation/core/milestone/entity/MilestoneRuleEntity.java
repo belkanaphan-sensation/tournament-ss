@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.bn.sensation.core.common.entity.BaseEntity;
+import org.bn.sensation.core.contestant.entity.ContestantType;
 import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
 
 import jakarta.persistence.*;
@@ -25,14 +26,18 @@ public class MilestoneRuleEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private AssessmentMode assessmentMode;
 
+    @Column(name = "contestant_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ContestantType contestantType;
+
     //TODO вероятно в будущем заменится на какой-то объект
-    @Column(name = "participant_limit", nullable = false)
-    private Integer participantLimit;
+    @Column(name = "contestant_limit", nullable = false)
+    private Integer contestantLimit;
 
-    @Column(name = "round_participant_limit", nullable = false)
-    private Integer roundParticipantLimit;
+    @Column(name = "round_contestant_limit", nullable = false)
+    private Integer roundContestantLimit;
 
-    @Column(name = "strict_pass_mode")
+    @Column(name = "strict_pass_mode", nullable = false)
     private Boolean strictPassMode;
 
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})

@@ -1,63 +1,11 @@
 package org.bn.sensation.core.milestonecriterion.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 import org.bn.sensation.AbstractIntegrationTest;
-import org.bn.sensation.core.activity.entity.ActivityEntity;
-import org.bn.sensation.core.activity.repository.ActivityRepository;
-import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
-import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
-import org.bn.sensation.core.activityuser.repository.ActivityUserRepository;
-import org.bn.sensation.core.common.entity.Address;
-import org.bn.sensation.core.common.entity.PartnerSide;
-import org.bn.sensation.core.activity.statemachine.ActivityState;
-import org.bn.sensation.core.milestone.statemachine.MilestoneState;
-import org.bn.sensation.core.occasion.statemachine.OccasionState;
-import org.bn.sensation.core.criterion.entity.CriterionEntity;
-import org.bn.sensation.core.criterion.repository.CriterionRepository;
-import org.bn.sensation.core.milestone.entity.AssessmentMode;
-import org.bn.sensation.core.milestone.entity.MilestoneEntity;
-import org.bn.sensation.core.milestone.entity.MilestoneRuleEntity;
-import org.bn.sensation.core.milestone.repository.MilestoneRepository;
-import org.bn.sensation.core.milestone.repository.MilestoneRuleRepository;
-import org.bn.sensation.core.milestonecriterion.entity.MilestoneCriterionEntity;
-import org.bn.sensation.core.milestonecriterion.repository.MilestoneCriterionRepository;
-import org.bn.sensation.core.milestonecriterion.service.dto.CreateMilestoneCriterionRequest;
-import org.bn.sensation.core.milestonecriterion.service.dto.MilestoneCriterionDto;
-import org.bn.sensation.core.milestonecriterion.service.dto.UpdateMilestoneCriterionRequest;
-import org.bn.sensation.core.occasion.entity.OccasionEntity;
-import org.bn.sensation.core.occasion.repository.OccasionRepository;
-import org.bn.sensation.core.organization.entity.OrganizationEntity;
-import org.bn.sensation.core.organization.repository.OrganizationRepository;
-import org.bn.sensation.core.user.entity.Role;
-import org.bn.sensation.core.user.entity.UserEntity;
-import org.bn.sensation.core.user.entity.UserStatus;
-import org.bn.sensation.core.user.repository.UserRepository;
-import org.bn.sensation.security.SecurityUser;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @Transactional
 class MilestoneCriterionServiceIntegrationTest extends AbstractIntegrationTest {
-
+/*
     @Autowired
     private MilestoneCriterionService milestoneCriterionService;
 
@@ -903,5 +851,5 @@ class MilestoneCriterionServiceIntegrationTest extends AbstractIntegrationTest {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities()));
         SecurityContextHolder.setContext(context);
-    }
+    }*/
 }

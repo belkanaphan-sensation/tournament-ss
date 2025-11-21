@@ -3,40 +3,22 @@ package org.bn.sensation.core.participant.service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.activity.statemachine.ActivityState;
-import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
-import org.bn.sensation.core.activityuser.service.ActivityUserUtil;
 import org.bn.sensation.core.common.dto.PersonDto;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.judgemilestonestatus.service.JudgeMilestoneStatusCacheService;
-import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
-import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatusEntity;
-import org.bn.sensation.core.judgeroundstatus.repository.JudgeRoundStatusRepository;
-import org.bn.sensation.core.judgeroundstatus.service.JudgeRoundStatusService;
-import org.bn.sensation.core.milestone.entity.MilestoneEntity;
-import org.bn.sensation.core.milestone.repository.MilestoneRepository;
-import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
 import org.bn.sensation.core.participant.service.dto.CreateParticipantRequest;
 import org.bn.sensation.core.participant.service.dto.ParticipantDto;
-import org.bn.sensation.core.participant.service.dto.RoundParticipantsDto;
 import org.bn.sensation.core.participant.service.dto.UpdateParticipantRequest;
 import org.bn.sensation.core.participant.service.mapper.CreateParticipantRequestMapper;
 import org.bn.sensation.core.participant.service.mapper.ParticipantDtoMapper;
-import org.bn.sensation.core.participant.service.mapper.RoundParticipantsDtoMapper;
 import org.bn.sensation.core.participant.service.mapper.UpdateParticipantRequestMapper;
-import org.bn.sensation.core.round.entity.RoundEntity;
-import org.bn.sensation.core.round.repository.RoundRepository;
-import org.bn.sensation.core.round.statemachine.RoundState;
-import org.bn.sensation.security.CurrentUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -54,17 +36,10 @@ import lombok.extern.slf4j.Slf4j;
 public class ParticipantServiceImpl implements ParticipantService {
 
     private final ParticipantRepository participantRepository;
-    private final RoundRepository roundRepository;
     private final ActivityRepository activityRepository;
     private final ParticipantDtoMapper participantDtoMapper;
     private final CreateParticipantRequestMapper createParticipantRequestMapper;
     private final UpdateParticipantRequestMapper updateParticipantRequestMapper;
-    private final JudgeRoundStatusRepository judgeRoundStatusRepository;
-    private final JudgeRoundStatusService judgeRoundStatusService;
-    private final JudgeMilestoneStatusCacheService judgeMilestoneStatusCacheService;
-    private final RoundParticipantsDtoMapper roundParticipantsDtoMapper;
-    private final CurrentUser currentUser;
-    private final MilestoneRepository milestoneRepository;
 
     @Override
     public BaseRepository<ParticipantEntity> getRepository() {
@@ -84,17 +59,16 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ParticipantDto> findByRoundId(Long roundId) {
-        return participantRepository.findByRoundId(roundId).stream()
-                .map(p -> participantDtoMapper.toDto(p))
-                .sorted(Comparator.comparing(ParticipantDto::getNumber))
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public List<ParticipantDto> findByActivityId(Long activityId) {
-        return getSortedParticipantDtos(participantRepository.findByActivityId(activityId));
+        return participantRepository.findByActivityId(activityId).stream()
+                .map(p -> participantDtoMapper.toDto(p))
+                .sorted(Comparator.comparing(
+                        dto -> Optional.ofNullable(dto.getPerson())
+                                .map(PersonDto::getSurname)
+                                .map(String::toLowerCase)
+                                .orElse(null),
+                        Comparator.nullsLast(String::compareToIgnoreCase)))
+                .toList();
     }
 
     @Override
@@ -128,7 +102,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         if (Boolean.TRUE.equals(request.getIsRegistered())) {
             Preconditions.checkArgument(Strings.isNotBlank(request.getNumber()), "Участник должен иметь стартовый номер");
-        } else if (Boolean.FALSE.equals(request.getIsRegistered())){
+        } else if (Boolean.FALSE.equals(request.getIsRegistered())) {
             participant.setNumber(null);
         }
         if (request.getActivityId() != null) {
@@ -153,6 +127,16 @@ public class ParticipantServiceImpl implements ParticipantService {
         participantRepository.deleteById(id);
     }
 
+/*    @Override
+    @Transactional(readOnly = true)
+    public List<ParticipantDto> findByRoundId(Long roundId) {
+        return participantRepository.findByRoundId(roundId).stream()
+                .map(p -> participantDtoMapper.toDto(p))
+                .sorted(Comparator.comparing(ParticipantDto::getNumber))
+                .toList();
+    }*/
+
+/*
     @Override
     @Transactional
     public ParticipantDto assignParticipantToRound(Long participantId, Long roundId) {
@@ -232,9 +216,9 @@ public class ParticipantServiceImpl implements ParticipantService {
         participant.getMilestones().remove(milestone);
         participantRepository.save(participant);
         return participantDtoMapper.toDto(participant);
-    }
+    }*/
 
-    @Override
+/*    @Override
     @Transactional(readOnly = true)
     public List<ParticipantDto> getByRoundByRoundIdForCurrentUser(Long roundId) {
         log.info("Получение участников раунда={} для текущего пользователя={}",
@@ -242,14 +226,16 @@ public class ParticipantServiceImpl implements ParticipantService {
 
         Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
         RoundEntity round = roundRepository.getByIdWithUserOrThrow(roundId);
+        return getParticipantDtos(round);
+    }
+
+    private List<ParticipantDto> getParticipantDtos(RoundEntity round) {
         Long userId = currentUser.getSecurityUser().getId();
         ActivityUserEntity activityUser = ActivityUserUtil.getFromActivity(
                 round.getMilestone().getActivity(), userId, uaa -> uaa.getUser().getId().equals(userId));
 
-        log.debug("Найдено назначение пользователя={} для раунда={}, сторона={}",
-                userId, roundId, activityUser.getPartnerSide());
-
-        List<ParticipantEntity> participants = participantRepository.findByRoundId(roundId).stream()
+        log.debug("Найден activity user={} для раунда={}, сторона={}", userId, round.getId(), activityUser.getPartnerSide());
+        List<ParticipantEntity> participants = participantRepository.findByRoundId(round.getId()).stream()
                 .filter(p -> {
                     if (activityUser.getPartnerSide() != null) {
                         boolean matches = p.getPartnerSide() == activityUser.getPartnerSide();
@@ -261,11 +247,12 @@ public class ParticipantServiceImpl implements ParticipantService {
                 })
                 .sorted(Comparator.comparing(p -> p.getNumber())).toList();
 
-        log.debug("Найдено {} участников для раунда={} после фильтрации", participants.size(), roundId);
+        log.debug("Найдено {} участников для раунда={} после фильтрации", participants.size(), round.getId());
 
         return getSortedParticipantDtos(participants);
-    }
+    }*/
 
+/*
     @Override
     public List<RoundParticipantsDto> getByRoundByMilestoneIdForCurrentUser(Long milestoneId) {
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
@@ -289,16 +276,5 @@ public class ParticipantServiceImpl implements ParticipantService {
                     return roundParticipantsDtoMapper.toDto(re, participants);
                 }).toList();
     }
-
-    private List<ParticipantDto> getSortedParticipantDtos(List<ParticipantEntity> entities) {
-        return entities.stream()
-                .map(p -> participantDtoMapper.toDto(p))
-                .sorted(Comparator.comparing(
-                        dto -> Optional.ofNullable(dto.getPerson())
-                                .map(PersonDto::getSurname)
-                                .map(String::toLowerCase)
-                                .orElse(null),
-                        Comparator.nullsLast(String::compareToIgnoreCase)))
-                .toList();
-    }
+*/
 }

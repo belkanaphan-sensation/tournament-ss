@@ -27,6 +27,6 @@ public class UpdateRoundRequest extends EmptyDto {
     @Schema(description = "Название раунда", example = "Первый раунд")
     private String name;
 
-    @Schema(description = "Список ID участников для раунда. Доступно только для суперадмина")
-    private List<Long> participantIds;
+    @Schema(description = "Список ID конкурсантов для раунда. Доступно только для суперадмина")
+    private List<Long> contestantIds;
 }

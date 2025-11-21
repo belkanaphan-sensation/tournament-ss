@@ -39,4 +39,3 @@ public class MilestoneTransitionSupport implements TransitionSupport<MilestoneEn
         return entity.getState();
     }
 }
-

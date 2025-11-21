@@ -18,4 +18,3 @@ public interface TransitionSupport<
 
     S currentState(T entity);
 }
-

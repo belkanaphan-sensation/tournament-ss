@@ -24,16 +24,6 @@ databaseChangeLog:
       author: belkanaphan
       relativeToChangelogFile: true
       file: 2025/04-10-2025.yml
-#  - include:
-#      id: 08-10-2025-bn-0
-#      author: belkanaphan
-#      relativeToChangelogFile: true
-#      file: 2025/08-10-2025-test-data.yml
-#  - include:
-#      id: 08-10-2025-bn-0
-#      author: belkanaphan
-#      relativeToChangelogFile: true
-#      file: 2025/08-10-2025-1-test-data.yml
   - include:
       id: 04-11-2025-bn-0
       author: belkanaphan
@@ -49,8 +39,3 @@ databaseChangeLog:
       author: belkanaphan
       relativeToChangelogFile: true
       file: 2025/07-11-2025-sense-1.yml
-  - include:
-      id: 12-11-2025-bn-0
-      author: belkanaphan
-      relativeToChangelogFile: true
-      file: 2025/12-11-2025-states-update.yml

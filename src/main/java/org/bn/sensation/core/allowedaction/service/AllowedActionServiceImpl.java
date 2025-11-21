@@ -80,4 +80,3 @@ public class AllowedActionServiceImpl implements AllowedActionService {
         return classSimpleName.replace("Entity", "");
     }
 }
-

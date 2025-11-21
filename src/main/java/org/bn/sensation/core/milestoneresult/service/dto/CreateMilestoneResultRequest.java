@@ -28,21 +28,21 @@ public class CreateMilestoneResultRequest extends EmptyDto {
     private Long milestoneId;
 
     @NotNull
-    @Schema(description = "ID участника", example = "1")
-    private Long participantId;
+    @Schema(description = "ID конкурсанта", example = "1")
+    private Long contestantId;
 
     @NotNull
     @Schema(description = "ID раунда", example = "1")
     private Long roundId;
 
     @NotNull
-    @Schema(description = "Прошел участник в следующий этап или нет по результатам оценок")
+    @Schema(description = "Прошел конкурсант в следующий этап или нет по результатам оценок")
     private PassStatus judgePassed;
 
-    @Schema(description = "Прошел участник в следующий этап или нет по решению организатора")
+    @Schema(description = "Прошел конкурсант в следующий этап или нет по решению организатора")
     private Boolean finallyApproved;
 
     @NotNull
-    @Schema(description = "Суммарный балл этапа для участника", example = "5")
+    @Schema(description = "Суммарный балл этапа для конкурсанта", example = "5")
     private BigDecimal totalScore;
 }

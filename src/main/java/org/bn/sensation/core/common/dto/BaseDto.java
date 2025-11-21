@@ -4,13 +4,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @NoArgsConstructor
+@AllArgsConstructor
 @Data
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)

@@ -32,4 +32,3 @@ public class RoundTransitionPolicy implements TransitionPolicy<RoundEvent> {
         return rolePermissions.getOrDefault(role, Collections.emptySet());
     }
 }
-

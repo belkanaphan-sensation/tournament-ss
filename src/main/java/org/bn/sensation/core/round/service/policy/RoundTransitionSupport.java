@@ -39,4 +39,3 @@ public class RoundTransitionSupport implements TransitionSupport<RoundEntity, Ro
         return entity.getState();
     }
 }
-
