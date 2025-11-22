@@ -46,11 +46,7 @@ public class ActivityStateServiceImpl implements BaseStateService<ActivityEntity
                     .formatted(event == ActivityEvent.CLOSE_REGISTRATION ? "закрыть регистрацию" : "начать",
                             activity.getOccasion().getState())
                     : null;
-            case SUM_UP -> activity.getMilestones().stream()
-                    .anyMatch(ms -> ms.getState() != MilestoneState.COMPLETED && ms.getState() != MilestoneState.SUMMARIZING)
-                    ? "Нельзя завершить активность, т.к. есть незавершенные этапы"
-                    : null;
-            case COMPLETE -> activity.getMilestones().stream()
+            case SUM_UP, COMPLETE -> activity.getMilestones().stream()
                     .anyMatch(ms -> ms.getState() != MilestoneState.COMPLETED)
                     ? "Нельзя завершить активность, т.к. есть незавершенные этапы"
                     : null;

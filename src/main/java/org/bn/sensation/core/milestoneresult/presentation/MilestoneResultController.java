@@ -1,6 +1,7 @@
 package org.bn.sensation.core.milestoneresult.presentation;
 
 import java.util.List;
+import java.util.Map;
 
 import org.bn.sensation.core.milestoneresult.service.MilestoneResultService;
 import org.bn.sensation.core.milestoneresult.service.dto.CreateMilestoneResultRequest;
@@ -84,5 +85,11 @@ public class MilestoneResultController {
     @GetMapping("/{milestoneId}")
     public ResponseEntity<List<MilestoneResultDto>> getByMilestoneId(@PathVariable("milestoneId") @NotNull Long milestoneId) {
         return ResponseEntity.ok(milestoneResultService.getByMilestoneId(milestoneId));
+    }
+
+    @Operation(summary = "Получить результаты этапов по ID активности в порядке этапов от финала к отборочным")
+    @GetMapping("/{activityId}")
+    public ResponseEntity<Map<Integer, List<MilestoneResultDto>>> getByActivityId(@PathVariable("activityId") @NotNull Long activityId) {
+        return ResponseEntity.ok(milestoneResultService.getByActivityId(activityId));
     }
 }

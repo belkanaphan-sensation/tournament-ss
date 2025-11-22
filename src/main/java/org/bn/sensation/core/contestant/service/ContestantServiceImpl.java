@@ -71,6 +71,8 @@ public class ContestantServiceImpl implements ContestantService {
                 "Нельзя использовать незарегистрированных участников");
         Preconditions.checkArgument(participants.stream().allMatch(p -> p.getActivity().getId().equals(milestone.getActivity().getId())),
                 "Участники относятся к другой активности");
+        Preconditions.checkArgument(milestone.getContestants().stream().flatMap(c -> c.getParticipants().stream()).noneMatch(participants::contains),
+                "Данные участники уже являются конкурсантами в данном этапе");
         ContestantEntity entity = new ContestantEntity();
         entity.setContestantType(milestone.getMilestoneRule().getContestantType());
         entity.getParticipants().addAll(participants);

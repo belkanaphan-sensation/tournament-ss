@@ -66,6 +66,9 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
                     return "Нельзя подготовить раунды, т.к. предыдущий этап находится в состоянии %s"
                             .formatted(previous.get().getState());
                 }
+                if (milestone.getContestants().isEmpty()) {
+                    return "Нельзя подготовить раунды, т.к. в этапе отсутствуют конкурсанты";
+                }
                 return null;
             }
             case START -> {
@@ -136,19 +139,16 @@ public class MilestoneStateServiceImpl implements BaseStateService<MilestoneEnti
                 case START -> currentState;
 //                case PREPARE_ROUNDS -> MilestoneState.PENDING;
                 case SUM_UP -> MilestoneState.SUMMARIZING;
-                case SKIP -> MilestoneState.SKIPPED;
                 default -> null;
             };
             case SUMMARIZING -> switch (event) {
                 case START -> MilestoneState.IN_PROGRESS;
                 case SUM_UP -> currentState;
                 case COMPLETE -> MilestoneState.COMPLETED;
-                case SKIP -> MilestoneState.SKIPPED;
                 default -> null;
             };
             case COMPLETED -> switch (event) {
                 case COMPLETE -> currentState;
-                case SKIP -> MilestoneState.SKIPPED;
                 default -> null;
             };
             case SKIPPED -> switch (event) {

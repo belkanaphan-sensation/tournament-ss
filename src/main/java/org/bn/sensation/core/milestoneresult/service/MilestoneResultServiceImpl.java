@@ -452,4 +452,14 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         milestoneResultRepository.deleteById(id);
     }
 
+    @Override
+    public Map<Integer, List<MilestoneResultDto>> getByActivityId(Long activityId) {
+        return milestoneResultRepository.findAllByActivityId(activityId)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        res -> res.getMilestone().getMilestoneOrder().intValue(),
+                        TreeMap::new,
+                        Collectors.mapping(milestoneResultDtoMapper::toDto, Collectors.toList())
+                ));
+    }
 }

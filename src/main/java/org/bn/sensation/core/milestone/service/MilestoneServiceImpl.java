@@ -97,7 +97,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Transactional(readOnly = true)
     public Optional<MilestoneDto> findById(Long id) {
         log.debug("Поиск этапа по id={}", id);
-        Optional<MilestoneDto> result = milestoneRepository.findById(id)
+        Optional<MilestoneDto> result = milestoneRepository.findByIdFull(id)
                 .map(this::enrichMilestoneDtoWithStatistics);
         if (result.isPresent()) {
             log.debug("Этап найден: id={}, название={}", id, result.get().getName());
@@ -133,7 +133,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Transactional
     public MilestoneDto update(Long id, UpdateMilestoneRequest request) {
         log.info("Обновление этапа: id={}, название={}", id, request.getName());
-        MilestoneEntity milestone = milestoneRepository.getByIdOrThrow(id);
+        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(id);
         log.debug("Найден этап={} для обновления", milestone.getId());
 
         updateMilestoneRequestMapper.updateMilestoneFromRequest(request, milestone);
@@ -176,7 +176,8 @@ public class MilestoneServiceImpl implements MilestoneService {
     public List<MilestoneDto> findByActivityIdInLifeStates(Long id) {
         log.debug("Поиск этапов в жизненных состояниях для активности={}", id);
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
-        List<MilestoneDto> result = milestoneRepository.findByActivityIdAndStateIn(id, MilestoneState.LIFE_MILESTONE_STATES).stream()
+        List<MilestoneDto> result = milestoneRepository.findByActivityIdOrderByMilestoneOrderDesc(id).stream()
+                .filter(m -> MilestoneState.LIFE_MILESTONE_STATES.contains(m.getState()))
                 .map(this::enrichMilestoneDtoWithStatistics)
                 .toList();
         log.debug("Найдено {} этапов в жизненных состояниях для активности={}", result.size(), id);
@@ -199,6 +200,16 @@ public class MilestoneServiceImpl implements MilestoneService {
         dto.setCompletedRoundsCount(completedCount);
         dto.setTotalRoundsCount(totalCount);
 
+        if (milestone.getMilestoneRule().getContestantType().hasPartnerSide()) {
+            dto.setContestantCount(Map.of(
+                    PartnerSide.LEADER.name(),
+                    milestone.getContestants().stream().filter(c -> c.getParticipants().iterator().next().getPartnerSide() == PartnerSide.LEADER).count(),
+                    PartnerSide.FOLLOWER.name(),
+                    milestone.getContestants().stream().filter(c -> c.getParticipants().iterator().next().getPartnerSide() == PartnerSide.FOLLOWER).count()
+            ));
+        } else {
+            dto.setContestantCount(Map.of(milestone.getMilestoneRule().getContestantType().getContestantType(), milestone.getContestants().size()));
+        }
         return dto;
     }
 

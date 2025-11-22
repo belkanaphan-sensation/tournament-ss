@@ -1,5 +1,6 @@
 package org.bn.sensation.core.judgeroundstatus.service;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.bn.sensation.core.activityuser.entity.ActivityUserEntity;
@@ -92,9 +93,19 @@ public class JudgeRoundStatusServiceImpl implements JudgeRoundStatusService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = "judgeRoundStatus", key = "#roundId", sync = true)
-    public List<JudgeRoundStatusEntity> getByRoundId(Long roundId) {
+    public List<JudgeRoundStatusEntity> getCachedByRoundId(Long roundId) {
         log.trace("Получение статусов всех судей для раунда: roundId={}", roundId);
         return judgeRoundStatusRepository.findByRoundId(roundId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<JudgeRoundStatusDto> getByRoundId(Long roundId) {
+        return getCachedByRoundId(roundId)
+                .stream()
+                .map(judgeRoundStatusDtoMapper::toDto)
+                .sorted(Comparator.comparing(dto -> dto.getJudge().getValue()))
+                .toList();
     }
 
     @Override
