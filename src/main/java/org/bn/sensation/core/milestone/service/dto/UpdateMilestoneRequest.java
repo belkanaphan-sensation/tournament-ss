@@ -5,7 +5,6 @@ import org.bn.sensation.core.common.dto.EmptyDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,8 +28,4 @@ public class UpdateMilestoneRequest extends EmptyDto {
     @Size(max = 2000)
     @Schema(description = "Описание этапа", example = "Квалификационный этап соревнования")
     private String description;
-
-    @PositiveOrZero
-    @Schema(description = "Порядок этапа в рамках активности", example = "1")
-    private Integer milestoneOrder;
 }

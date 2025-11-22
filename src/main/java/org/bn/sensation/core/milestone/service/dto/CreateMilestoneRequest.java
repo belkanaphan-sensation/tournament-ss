@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -36,9 +35,5 @@ public class CreateMilestoneRequest extends EmptyDto {
     @NotNull
     @Schema(description = "ID активности, частью которой является этап")
     private Long activityId;
-
-    @PositiveOrZero
-    @Schema(description = "Порядок этапа в рамках активности (если не указан, будет рассчитан автоматически)", example = "1")
-    private Integer milestoneOrder;
 
 }

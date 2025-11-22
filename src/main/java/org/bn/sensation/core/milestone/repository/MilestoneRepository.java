@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -60,4 +60,7 @@ public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
     default MilestoneEntity getByIdOrThrow(Long id) {
         return findById(id).orElseThrow(() -> new EntityNotFoundException("Этап не найден: " + id));
     }
+
+    @Query("SELECT m FROM MilestoneEntity m WHERE m.activity.id = :activityId and m.milestoneOrder > :milestoneOrder")
+    List<MilestoneEntity> findByActivityIdAndGtMilestoneOrder(@Param("activityId") Long activityId, @Param("milestoneOrder") Integer milestoneOrder);
 }

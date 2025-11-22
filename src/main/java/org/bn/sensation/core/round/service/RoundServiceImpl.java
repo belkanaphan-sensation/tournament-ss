@@ -89,7 +89,7 @@ public class RoundServiceImpl implements RoundService {
         round.setExtraRound(true);
         round.setState(RoundState.OPENED);
         round.setMilestone(milestone);
-        round.setRoundOrder(roundRepository.getLastRoundOrder(milestone.getId()).orElse(0) + 1);
+        round.setRoundOrder(milestone.getRounds().size());
         checkContestants(request.getContestantIds(), milestone);
         addContestants(request.getContestantIds(), milestone, round);
 
@@ -142,7 +142,7 @@ public class RoundServiceImpl implements RoundService {
         RoundEntity round = roundRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + id));
         Integer roundOrder = round.getRoundOrder();
-        Set<RoundEntity> reordered = roundRepository.findByMilestoneIdAndRoundOrder(round.getMilestone().getId(), roundOrder)
+        Set<RoundEntity> reordered = roundRepository.findByMilestoneIdAndGtRoundOrder(round.getMilestone().getId(), roundOrder)
                 .stream().sorted(Comparator.comparing(RoundEntity::getRoundOrder))
                 .peek(r -> r.setRoundOrder(r.getRoundOrder() - 1))
                 .collect(Collectors.toSet());
