@@ -221,7 +221,32 @@ public class MilestoneServiceImpl implements MilestoneService {
         milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.SKIP);
         if (milestone.getMilestoneOrder() != 0) {
             MilestoneEntity nextMilestone = milestoneRepository.getByActivityIdAndMilestoneOrderOrThrow(milestone.getActivity().getId(), milestone.getMilestoneOrder() - 1);
-            nextMilestone.setContestants(milestone.getContestants());
+            Set<ContestantEntity> contestants = new HashSet<>(milestone.getContestants());
+            log.info("Найдено конкурсантов для переноса при пропуске этапа: {}", contestants.size());
+            
+            if (!contestants.isEmpty()) {
+                ContestantType type = milestone.getMilestoneRule().getContestantType();
+                ContestantType nextType = nextMilestone.getMilestoneRule().getContestantType();
+                
+                if (type == nextType) {
+                    nextMilestone.getContestants().addAll(contestants);
+                    contestants.forEach(c -> {
+                        c.getMilestones().remove(milestone);
+                        c.getMilestones().add(nextMilestone);
+                    });
+                    milestone.getContestants().clear();
+                    contestantRepository.saveAll(contestants);
+                } else {
+                    List<ParticipantEntity> participants = contestants.stream()
+                            .flatMap(c -> c.getParticipants().stream())
+                            .toList();
+                    contestantService.createContestants(nextMilestone, participants);
+                    participantRepository.saveAll(participants);
+                    contestantRepository.deleteAll(contestants);
+                    log.debug("Удалено {} старых конкурсантов при пропуске этапа (типы не совпадают)", contestants.size());
+                }
+            }
+            milestoneRepository.save(milestone);
             milestoneRepository.save(nextMilestone);
         }
         log.info("Пропуск запущен: id={}", id);
@@ -260,6 +285,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     @Override
+    @Transactional
     public List<RoundDto> regenerateRounds(Long milestoneId, PrepareRoundsRequest request) {
         log.info("Перегенерация раундов для этапа ID={}, количество конкурсантов в раунде={}",
                 milestoneId, request.getRoundContestantLimit());
@@ -325,7 +351,7 @@ public class MilestoneServiceImpl implements MilestoneService {
         ContestantType type = milestone.getMilestoneRule().getContestantType();
         ContestantType nextType = nextMilestone.getMilestoneRule().getContestantType();
         if (type == nextType && nextType.isPersistent()) {
-            nextMilestone.setContestants(contestants);
+            nextMilestone.setContestants(new HashSet<>(contestants));
             contestants.forEach(c -> c.getMilestones().add(nextMilestone));
             contestantRepository.saveAll(contestants);
         } else {

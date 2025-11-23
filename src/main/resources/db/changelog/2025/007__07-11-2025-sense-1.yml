@@ -311,7 +311,7 @@ databaseChangeLog:
               ('Евгений', 'Кортов', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Даниил', 'Керженцев', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Дмитрий', 'Орлов', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('Валерий', 'Холодков', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('Валерий', 'Холодков', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
 
               -- Фоловеры
               ('Анна', 'Таланина', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
@@ -341,7 +341,7 @@ databaseChangeLog:
               ('Олеся', 'Мешкова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Элина', 'Хазина', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ('Анастасия', 'Старших', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
-              ('Анастасия', 'Кирсанова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              ('Анастасия', 'Кирсанова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'Sense', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               
               -- Профессионалы
               -- Лидеры 

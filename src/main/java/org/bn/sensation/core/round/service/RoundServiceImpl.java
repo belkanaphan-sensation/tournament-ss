@@ -19,6 +19,8 @@ import org.bn.sensation.core.judgeroundstatus.service.JudgeRoundStatusService;
 import org.bn.sensation.core.milestone.entity.AssessmentMode;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.bn.sensation.core.milestone.service.MilestoneStateMachineService;
+import org.bn.sensation.core.milestone.statemachine.MilestoneEvent;
 import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 import org.bn.sensation.core.round.entity.RoundEntity;
 import org.bn.sensation.core.round.repository.RoundRepository;
@@ -55,6 +57,7 @@ public class RoundServiceImpl implements RoundService {
     private final RoundRepository roundRepository;
     private final RoundWithJRStatusMapper roundWithJRStatusMapper;
     private final ContestantRepository contestantRepository;
+    private final MilestoneStateMachineService milestoneStateMachineService;
 
     @Override
     public BaseRepository<RoundEntity> getRepository() {
@@ -103,7 +106,7 @@ public class RoundServiceImpl implements RoundService {
         Long milestoneId = milestone.getId();
         judgeMilestoneStatusCacheService.invalidateForMilestone(milestoneId);
         log.debug("Инвалидирован кэш статуса этапа milestoneId={} после создания статусов судей для нового раунда", milestoneId);
-
+        milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.START);
         return roundDtoMapper.toDto(saved);
     }
 
@@ -208,6 +211,11 @@ public class RoundServiceImpl implements RoundService {
         if (!reGenerate) {
             Preconditions.checkArgument(milestone.getRounds().isEmpty(), "Этап уже содержит раунды");
         } else {
+            // Очищаем связи у конкурсантов
+            milestone.getContestants().forEach(contestant -> 
+                contestant.getRounds().removeAll(milestone.getRounds())
+            );
+            // Удаляем раунды
             roundRepository.deleteAll(milestone.getRounds());
             milestone.getRounds().clear();
         }
@@ -226,8 +234,15 @@ public class RoundServiceImpl implements RoundService {
 
     private List<RoundEntity> generate(MilestoneEntity milestone, int roundLimit) {
         log.debug("Начало генерации раундов для {} конкурсантов", milestone.getContestants().size());
-        //TODO ограничение для strictPassMode
-        if (milestone.getMilestoneOrder().equals(0) || milestone.getMilestoneRule().getStrictPassMode() || milestone.getMilestoneRule().getAssessmentMode() == AssessmentMode.PLACE) {
+        //TODO ограничение для strictPassMode у следующего этапа
+        boolean isLastMilestone = milestone.getMilestoneOrder().intValue() == 0;
+        boolean isAssessmentPlaces = milestone.getMilestoneRule().getAssessmentMode() == AssessmentMode.PLACE;
+        boolean isStrictPassMode = false;
+        if (!isLastMilestone) {
+            MilestoneEntity nextMilestone = milestoneRepository.getByActivityIdAndMilestoneOrderOrThrow(milestone.getActivity().getId(), milestone.getMilestoneOrder() - 1);
+            isStrictPassMode = nextMilestone.getMilestoneRule().getStrictPassMode();
+        }
+        if (isLastMilestone || isStrictPassMode || isAssessmentPlaces) {
             log.debug("Генерация финального раунда. Количество конкурсантов {} лимит финального этапа {}",
                     milestone.getContestants().size(), milestone.getMilestoneRule().getContestantLimit());
             RoundEntity finalRound = RoundEntity.builder()

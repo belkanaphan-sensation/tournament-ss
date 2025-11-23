@@ -70,7 +70,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
                 roundId, requests != null ? requests.size() : 0);
         RoundEntity round = roundRepository.getByIdFullOrThrow(roundId);
         Preconditions.checkState(round.getMilestone().getState() == MilestoneState.IN_PROGRESS || round.getMilestone().getState() == MilestoneState.SUMMARIZING,
-                "Результаты не могут быть сохранены, т.к. этап в состоянии %s", round.getState().name());
+                "Результаты не могут быть сохранены, т.к. этап в состоянии %s", round.getMilestone().getState().name());
 
         Long userId = currentUser.getSecurityUser().getId();
         ActivityUserEntity activityUser = ActivityUserUtil.getFromActivity(
@@ -177,7 +177,8 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
         ContestantEntity contestant = contestantRepository.getByIdOrThrow(request.getContestantId());
         log.debug("Найден конкурсант={} и критерий={} для создания результата", contestant.getId(), milestoneCriterion.getId());
-
+        Preconditions.checkArgument(roundEntity.getContestants().stream().anyMatch(c -> c.getId().equals(contestant.getId())),
+                "Участник не относится к данному раунду");
         //TODO тут должно быть применено правило, если судьи меняются сторонами, пока оно не учитывается
         Preconditions.checkArgument(milestoneCriterion.getPartnerSide() == null
                         || activityUser.getPartnerSide() == null
@@ -292,9 +293,15 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
             Preconditions.checkArgument(result.getScore().intValue() == 0 || result.getScore().intValue() == 1,
                     "Для режима PASS оценка может быть только 0 или 1, получена: %s", result.getScore());
         }
-        if (milestone.getMilestoneRule().getStrictPassMode()) {
+        boolean isLastMilestone = milestone.getMilestoneOrder().intValue() == 0;
+        boolean isStrictPassMode = milestone.getMilestoneRule().getStrictPassMode();
+        if (!isLastMilestone) {
+            MilestoneEntity nextMilestone = milestoneRepository.getByActivityIdAndMilestoneOrderOrThrow(milestone.getActivity().getId(), milestone.getMilestoneOrder() - 1);
+            isStrictPassMode = nextMilestone.getMilestoneRule().getStrictPassMode();
+        }
+        if (isStrictPassMode) {
             //сейчас эта проверка корректна т.к. для режима strictPassMode всегда 1 раунд
-            int contestantLimit = milestone.getMilestoneOrder().equals(0)
+            int contestantLimit = isLastMilestone
                     ? 1
                     : milestoneRepository.getContestantLimitForNextMilestone(milestone.getActivity().getId(), milestone.getMilestoneOrder() - 1);
             Preconditions.checkArgument(allResults.stream().filter(result -> result.getScore().intValue() == 1).count() == contestantLimit,

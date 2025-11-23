@@ -29,13 +29,18 @@ databaseChangeLog:
       author: belkanaphan
       relativeToChangelogFile: true
       file: 2025/006__04-11-2025.yml
-  - include:
-      id: 07-11-2025-bn-0
-      author: belkanaphan
-      relativeToChangelogFile: true
-      file: 2025/007__07-11-2025-sense-1.yml
+#  - include:
+#      id: 07-11-2025-bn-0
+#      author: belkanaphan
+#      relativeToChangelogFile: true
+#      file: 2025/007__07-11-2025-sense-1.yml
   - include:
       id: 08-11-2025-bn-0
       author: belkanaphan
       relativeToChangelogFile: true
       file: 2025/008__08-11-2025.yml
+  - include:
+      id: 23-11-2025-bn-0
+      author: belkanaphan
+      relativeToChangelogFile: true
+      file: 2025/009__23-11-2025-test.yml

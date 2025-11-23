@@ -358,12 +358,14 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
                     entity.getMilestoneResult().setFinallyApproved(true);
                 });
                 remainingSlots -= entitiesWithScore.size();
-            } else {
+            } else if (remainingSlots > 0) {
                 log.debug("Конкурсанты с оценкой={} получают статус PENDING (не все проходят)", score);
                 entitiesWithScore.forEach(entity -> {
                     entity.setJudgePassed(PassStatus.PENDING);
                     entity.getMilestoneResult().setFinallyApproved(false);
                 });
+                break;
+            } else {
                 break;
             }
         }

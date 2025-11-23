@@ -19,6 +19,8 @@ public interface MilestoneResultRepository extends BaseRepository<MilestoneResul
     List<MilestoneResultEntity> findAllByActivityId(@Param("activityId") Long activityId);
 
     @EntityGraph(attributePaths = {"milestone", "contestant", "roundResults.round"})
+    @Query("select mr from MilestoneResultEntity mr " +
+            "where mr.milestone.id = :milestoneId")
     List<MilestoneResultEntity> findAllByMilestoneId(Long milestoneId);
 
     default MilestoneResultEntity getByIdOrThrow(Long id) {

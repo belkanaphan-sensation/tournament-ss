@@ -82,13 +82,13 @@ public class MilestoneResultController {
     }
 
     @Operation(summary = "Получить результаты этапов по ID этапа")
-    @GetMapping("/{milestoneId}")
+    @GetMapping("/milestone/{milestoneId}")
     public ResponseEntity<List<MilestoneResultDto>> getByMilestoneId(@PathVariable("milestoneId") @NotNull Long milestoneId) {
         return ResponseEntity.ok(milestoneResultService.getByMilestoneId(milestoneId));
     }
 
     @Operation(summary = "Получить результаты этапов по ID активности в порядке этапов от финала к отборочным")
-    @GetMapping("/{activityId}")
+    @GetMapping("/activity/{activityId}")
     public ResponseEntity<Map<Integer, List<MilestoneResultDto>>> getByActivityId(@PathVariable("activityId") @NotNull Long activityId) {
         return ResponseEntity.ok(milestoneResultService.getByActivityId(activityId));
     }

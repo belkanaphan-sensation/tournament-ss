@@ -3,6 +3,7 @@ package org.bn.sensation.core.round.presentation;
 import java.util.List;
 
 import org.bn.sensation.core.round.service.RoundService;
+import org.bn.sensation.core.round.service.dto.CreateRoundRequest;
 import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.bn.sensation.core.round.service.dto.RoundWithJRStatusDto;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
@@ -42,6 +44,14 @@ public class RoundController {
     public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
         roundService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Создать дополнительный раунд раунд")
+    @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
+    public ResponseEntity<RoundDto> create(@Valid @RequestBody CreateRoundRequest request) {
+        RoundDto created = roundService.createExtraRound(request);
+        return ResponseEntity.ok(created);
     }
 
     @Operation(summary = "Получить раунды по ID этапа")
