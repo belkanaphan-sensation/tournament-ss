@@ -1,6 +1,10 @@
 package org.bn.sensation.core.activityresult;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activityresult.entity.ActivityResultEntity;
@@ -10,9 +14,13 @@ import org.bn.sensation.core.activityresult.service.dto.CreateActivityResultRequ
 import org.bn.sensation.core.activityresult.service.mapper.ActivityResultDtoMapper;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
+import org.bn.sensation.core.contestant.entity.ContestantEntity;
+import org.bn.sensation.core.contestant.repository.ContestantRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.base.Preconditions;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +32,7 @@ public class ActivityResultServiceImpl implements ActivityResultService {
 
     private final ActivityResultRepository activityResultRepository;
     private final ActivityResultDtoMapper activityResultDtoMapper;
+    private final ContestantRepository contestantRepository;
 
     @Override
     public BaseRepository<ActivityResultEntity> getRepository() {
@@ -38,18 +47,16 @@ public class ActivityResultServiceImpl implements ActivityResultService {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public List<ActivityResultDto> createActivityResults(ActivityEntity activity, List<CreateActivityResultRequest> requests) {
-        return List.of();
-        /*Map<Long, ParticipantEntity> participantMap = participantRepository.findAllByIdWithActivity(requests.stream().map(CreateActivityResultRequest::getParticipantId).toList())
-                .stream().collect(Collectors.toMap(p -> p.getId(), p -> p));
+        Map<Long, ContestantEntity> contestants = contestantRepository.findAllById(requests.stream().map(CreateActivityResultRequest::getContestantId).toList())
+                .stream()
+                .collect(Collectors.toMap(ContestantEntity::getId, Function.identity()));
         List<ActivityResultEntity> results = requests.stream()
                 .map(req -> {
-                    ParticipantEntity participant = Optional.ofNullable(participantMap.get(req.getParticipantId()))
-                            .orElseThrow(() -> new IllegalArgumentException("Участник с ID %s не найден".formatted(req.getParticipantId())));
-                    Preconditions.checkArgument(participant.getActivity().getId().longValue() == activity.getId().longValue(),
-                            "Участник %s не принадлежит активности %s".formatted(participant.getId(), activity.getId()));
+                    ContestantEntity contestant = contestants.get(req.getContestantId());
+                    Preconditions.checkArgument(contestant != null, "Конкурсант с id %s не найден".formatted(req.getContestantId()));
                     ActivityResultEntity result = ActivityResultEntity.builder()
                             .activity(activity)
-                            .participant(participant)
+                            .contestant(contestant)
                             .place(req.getPlace())
                             .build();
                     return result;
@@ -58,6 +65,6 @@ public class ActivityResultServiceImpl implements ActivityResultService {
         return saved.stream()
                 .sorted(Comparator.comparing(ActivityResultEntity::getPlace))
                 .map(activityResultDtoMapper::toDto)
-                .toList();*/
+                .toList();
     }
 }

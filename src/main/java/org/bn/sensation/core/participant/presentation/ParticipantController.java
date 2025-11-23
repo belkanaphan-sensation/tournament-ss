@@ -75,13 +75,6 @@ public class ParticipantController {
         return ResponseEntity.ok(participantService.findByActivityId(activityId));
     }
 
-//    @Operation(summary = "Получить всех участников по ID раунда")
-//    @GetMapping(path = "/round/{roundId}")
-//    public ResponseEntity<List<ParticipantDto>> getByRoundId(@PathVariable("roundId") Long roundId) {
-//        return ResponseEntity.ok(participantService.findByRoundId(roundId));
-
-//    }
-
     @Operation(summary = "Зарегистрировать участника")
     @PostMapping("/{participantId}/register/{number}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER', 'ADMINISTRATOR')")

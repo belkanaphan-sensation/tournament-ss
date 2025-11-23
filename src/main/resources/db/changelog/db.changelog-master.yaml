@@ -3,39 +3,39 @@ databaseChangeLog:
       id: 02-09-2025-bn-0
       author: belkanaphan
       relativeToChangelogFile: true
-      file: init/init-db.yml
+      file: 2025/001__01-02-2025.yml
   - include:
       id: 07-09-2025-bn-0
       author: belkanaphan
       relativeToChangelogFile: true
-      file: 2025/07-09-2025.yml
+      file: 2025/002__07-09-2025.yml
   - include:
       id: 16-09-2025-bn-0
       author: belkanaphan
       relativeToChangelogFile: true
-      file: 2025/15-09-2025.yml
+      file: 2025/003__15-09-2025.yml
   - include:
       id: 25-09-2025-bn-0
       author: belkanaphan
       relativeToChangelogFile: true
-      file: 2025/25-09-2025.yml
+      file: 2025/004__25-09-2025.yml
   - include:
       id: 04-10-2025-bn-0
       author: belkanaphan
       relativeToChangelogFile: true
-      file: 2025/04-10-2025.yml
+      file: 2025/005__04-10-2025.yml
   - include:
       id: 04-11-2025-bn-0
       author: belkanaphan
       relativeToChangelogFile: true
-      file: 2025/04-11-2025.yml
-  - include:
-      id: 08-11-2025-bn-0
-      author: belkanaphan
-      relativeToChangelogFile: true
-      file: 2025/08-11-2025.yml
+      file: 2025/006__04-11-2025.yml
   - include:
       id: 07-11-2025-bn-0
       author: belkanaphan
       relativeToChangelogFile: true
-      file: 2025/07-11-2025-sense-1.yml
+      file: 2025/007__07-11-2025-sense-1.yml
+  - include:
+      id: 08-11-2025-bn-0
+      author: belkanaphan
+      relativeToChangelogFile: true
+      file: 2025/008__08-11-2025.yml

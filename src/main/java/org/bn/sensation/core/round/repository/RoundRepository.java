@@ -35,7 +35,7 @@ public interface RoundRepository extends BaseRepository<RoundEntity> {
     Optional<Integer> getLastRoundOrder(@Param("milestoneId") Long milestoneId);
 
     @Query("SELECT r FROM RoundEntity r WHERE r.milestone.id = :milestoneId AND r.roundOrder > :roundOrder")
-    List<RoundEntity> findByMilestoneIdAndRoundOrder(@Param("milestoneId") Long milestoneId, @Param("roundOrder") Integer roundOrder);
+    List<RoundEntity> findByMilestoneIdAndGtRoundOrder(@Param("milestoneId") Long milestoneId, @Param("roundOrder") Integer roundOrder);
 
     default RoundEntity getByIdOrThrow(Long id) {
         return findById(id).orElseThrow(() -> new EntityNotFoundException("Раунд не найден: " + id));

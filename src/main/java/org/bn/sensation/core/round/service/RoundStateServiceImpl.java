@@ -43,7 +43,7 @@ public class RoundStateServiceImpl implements BaseStateService<RoundEntity, Roun
                     return "Нельзя завершить раунд, т.к. этап находится в статусе %s"
                             .formatted(round.getMilestone().getState());
                 }
-                boolean allJudgesReady = judgeRoundStatusService.getByRoundId(round.getId())
+                boolean allJudgesReady = judgeRoundStatusService.getCachedByRoundId(round.getId())
                         .stream().allMatch(jrs -> jrs.getStatus() == JudgeRoundStatus.READY);
                 if (!allJudgesReady) {
                     return "Нельзя завершить раунд, т.к. не все судьи проставили результаты";

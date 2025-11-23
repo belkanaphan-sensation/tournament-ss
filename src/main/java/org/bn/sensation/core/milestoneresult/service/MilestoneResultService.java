@@ -1,6 +1,7 @@
 package org.bn.sensation.core.milestoneresult.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.bn.sensation.core.common.service.BaseCrudService;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
@@ -24,4 +25,6 @@ public interface MilestoneResultService extends BaseCrudService<
     MilestoneRoundResultDto createMilestoneRoundResult(CreateMilestoneRoundResultRequest request);
 
     List<MilestoneResultDto> getByMilestoneId(@NotNull Long milestoneId);
+
+    Map<Integer, List<MilestoneResultDto>> getByActivityId(@NotNull Long activityId);
 }

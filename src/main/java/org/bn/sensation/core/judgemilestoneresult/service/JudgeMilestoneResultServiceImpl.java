@@ -215,6 +215,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<JudgeMilestoneResultDto> findByRoundIdForCurrentUser(Long roundId) {
         RoundEntity round = roundRepository.getByIdWithUserOrThrow(roundId);
         Long userId = currentUser.getSecurityUser().getId();
@@ -226,6 +227,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<JudgeMilestoneResultDto> findByMilestoneIdForCurrentUser(Long milestoneId) {
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
         Long userId = currentUser.getSecurityUser().getId();

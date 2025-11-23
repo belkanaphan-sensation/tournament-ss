@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.bn.sensation.core.common.repository.BaseRepository;
-import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
@@ -14,9 +13,11 @@ import jakarta.persistence.EntityNotFoundException;
 
 public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
 
+    @EntityGraph(attributePaths = {"rounds", "milestoneRule", "contestants"})
+    @Query("SELECT m FROM MilestoneEntity m WHERE m.activity.id = :activityId")
     List<MilestoneEntity> findByActivityIdOrderByMilestoneOrderDesc(Long activityId);
 
-    @EntityGraph(attributePaths = {"activity.activityUsers.user", "rounds.contestants", "milestoneRule", "contestants", "results"})
+    @EntityGraph(attributePaths = {"activity.activityUsers.user", "rounds", "milestoneRule", "contestants", "results"})
     @Query("SELECT m FROM MilestoneEntity m WHERE m.id = :id")
     Optional<MilestoneEntity> findByIdFull(@Param("id") Long id);
 
@@ -48,10 +49,6 @@ public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
         return findByIdWithActivityUsers(id).orElseThrow(() -> new EntityNotFoundException("Этап не найден: " + id));
     }
 
-    @EntityGraph(attributePaths = {"activity", "milestoneRule"})
-    @Query("SELECT m FROM MilestoneEntity m WHERE m.activity.id = :activityId AND m.state IN :states")
-    List<MilestoneEntity> findByActivityIdAndStateIn(@Param("activityId") Long activityId, @Param("states") List<MilestoneState> states);
-
     @Query("SELECT m.milestoneRule.contestantLimit FROM MilestoneEntity m " +
             "WHERE m.milestoneOrder = :milestoneOrder " +
             "AND m.activity.id = :activityId")
@@ -60,4 +57,7 @@ public interface MilestoneRepository extends BaseRepository<MilestoneEntity> {
     default MilestoneEntity getByIdOrThrow(Long id) {
         return findById(id).orElseThrow(() -> new EntityNotFoundException("Этап не найден: " + id));
     }
+
+    @Query("SELECT m FROM MilestoneEntity m WHERE m.activity.id = :activityId and m.milestoneOrder > :milestoneOrder")
+    List<MilestoneEntity> findByActivityIdAndGtMilestoneOrder(@Param("activityId") Long activityId, @Param("milestoneOrder") Integer milestoneOrder);
 }

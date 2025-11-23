@@ -5,7 +5,6 @@ import java.util.List;
 import org.bn.sensation.core.judgeroundstatus.entity.JudgeRoundStatus;
 import org.bn.sensation.core.judgeroundstatus.service.JudgeRoundStatusService;
 import org.bn.sensation.core.judgeroundstatus.service.dto.JudgeRoundStatusDto;
-import org.bn.sensation.core.judgeroundstatus.service.mapper.JudgeRoundStatusDtoMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -28,15 +27,6 @@ import lombok.RequiredArgsConstructor;
 public class JudgeRoundStatusController {
 
     private final JudgeRoundStatusService judgeRoundStatusService;
-    private final JudgeRoundStatusDtoMapper judgeRoundStatusDtoMapper;
-
-    //Меняется при отправлении результатов
-/*    @Operation(summary = "Принять результаты раунда",
-            description = "Результаты раунда принимаются для текущего пользователя который должен являться судьей раунда")
-    @GetMapping(path = "/ready/{roundId}")
-    public ResponseEntity<JudgeRoundStatusDto> readyRound(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
-        return ResponseEntity.ok(judgeRoundStatusService.changeJudgeRoundStatus(roundId, JudgeRoundStatus.READY));
-    }*/
 
     @Operation(summary = "Отменить результаты раунда",
             description = "Результаты раунда отменяются для текущего пользователя который должен являться судьей раунда")
@@ -56,8 +46,7 @@ public class JudgeRoundStatusController {
             description = "Получить статусы раунда по судьям")
     @GetMapping(path = "/round/{roundId}")
     public ResponseEntity<List<JudgeRoundStatusDto>> getByRoundId(@Parameter @PathVariable("roundId") @NotNull Long roundId) {
-        return ResponseEntity.ok(judgeRoundStatusService.getByRoundId(roundId)
-                .stream().map(judgeRoundStatusDtoMapper::toDto).toList());
+        return ResponseEntity.ok(judgeRoundStatusService.getByRoundId(roundId));
     }
 
     @Operation(summary = "Получить статусы всех раундов текущего пользователя по id этапа",
