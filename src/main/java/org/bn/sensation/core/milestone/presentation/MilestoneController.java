@@ -56,6 +56,12 @@ public class MilestoneController {
         return ResponseEntity.ok(milestoneService.findByActivityIdInLifeStates(id));
     }
 
+    @Operation(summary = "Получить этапы по ID активности в InProgress стейте")
+    @GetMapping(path = "/activity/{id}/inProgress/currentUser")
+    public ResponseEntity<List<MilestoneDto>> getByActivityIdInInProgressState(@Parameter @PathVariable("id") @NotNull Long id) {
+        return ResponseEntity.ok(milestoneService.findByActivityIdInInProgressStates(id));
+    }
+
     @Operation(summary = "Получить все этапы с пагинацией")
     @GetMapping
     public ResponseEntity<Page<MilestoneDto>> getAll(Pageable pageable) {

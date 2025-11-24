@@ -64,6 +64,12 @@ public class ActivityController {
         return ResponseEntity.ok(activityService.findByOccasionIdInLifeStatesForCurrentUser(id));
     }
 
+    @Operation(summary = "Получить активности по ID мероприятия в InProgress стейте для текущего пользователя")
+    @GetMapping(path = "/occasion/{id}/inProgress/currentUser")
+    public ResponseEntity<List<ActivityDto>> getByOccasionIdInInProgressState(@Parameter @PathVariable("id") @NotNull Long id) {
+        return ResponseEntity.ok(activityService.findByOccasionIdInInProgressStateForCurrentUser(id));
+    }
+
     @Operation(summary = "Получить все активности с пагинацией")
     @GetMapping
     public ResponseEntity<Page<ActivityDto>> getAll(Pageable pageable) {

@@ -122,6 +122,22 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<ActivityDto> findByOccasionIdInInProgressStateForCurrentUser(Long id) {
+        log.info("Поиск активностей в InProgress состояниянии для мероприятия={}, пользователь={}",
+                id, currentUser.getSecurityUser().getId());
+
+        Preconditions.checkArgument(id != null, "ID мероприятия не может быть null");
+        List<ActivityDto> result = activityRepository.findByOccasionIdAndUserIdAndStateIn(
+                        id, currentUser.getSecurityUser().getId(), List.of(ActivityState.IN_PROGRESS)).stream()
+                .map(this::enrichActivityDtoWithStatistics)
+                .toList();
+
+        log.debug("Найдено {} активностей в InProgress состояниянии для мероприятия={}", result.size(), id);
+        return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Optional<ActivityDto> findById(Long id) {
         log.debug("Поиск активности по id={}", id);
         Optional<ActivityDto> result = activityRepository.findById(id)

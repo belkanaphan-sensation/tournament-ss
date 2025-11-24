@@ -166,6 +166,9 @@ public class MilestoneServiceImpl implements MilestoneService {
         Preconditions.checkArgument(id != null, "ID активности не может быть null");
         List<MilestoneDto> result = milestoneRepository.findByActivityIdOrderByMilestoneOrderDesc(id).stream()
                 .map(this::enrichMilestoneDtoWithStatistics)
+                .sorted(Comparator.comparing(
+                        (MilestoneDto milestone) -> Optional.ofNullable(milestone.getMilestoneOrder()).orElse(Integer.MIN_VALUE),
+                        Comparator.reverseOrder()))
                 .toList();
         log.debug("Найдено {} этапов для активности={}", result.size(), id);
         return result;
@@ -181,6 +184,18 @@ public class MilestoneServiceImpl implements MilestoneService {
                 .map(this::enrichMilestoneDtoWithStatistics)
                 .toList();
         log.debug("Найдено {} этапов в жизненных состояниях для активности={}", result.size(), id);
+        return result;
+    }
+
+    @Override
+    public List<MilestoneDto> findByActivityIdInInProgressStates(Long id) {
+        log.debug("Поиск этапов в InProgress состоянии для активности={}", id);
+        Preconditions.checkArgument(id != null, "ID активности не может быть null");
+        List<MilestoneDto> result = milestoneRepository.findByActivityIdOrderByMilestoneOrderDesc(id).stream()
+                .filter(m -> MilestoneState.IN_PROGRESS.equals(m.getState()))
+                .map(this::enrichMilestoneDtoWithStatistics)
+                .toList();
+        log.debug("Найдено {} этапов в InProgress состоянии для активности={}", result.size(), id);
         return result;
     }
 
