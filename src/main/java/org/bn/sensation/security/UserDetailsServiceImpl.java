@@ -23,18 +23,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     log.debug("Загрузка пользователя по имени: {}", username);
 
+    String normalizedUsername = username.toLowerCase();
     UserEntity user =
         userRepository
-            .findByUsername(username)
+            .findByUsername(normalizedUsername)
             .or(() -> {
-                log.debug("Пользователь не найден по username={}, поиск по email", username);
-                return userRepository.findByPersonEmail(username);
+                log.debug("Пользователь не найден по username={}, поиск по email", normalizedUsername);
+                return userRepository.findByPersonEmail(normalizedUsername);
             })
             .orElseThrow(
                 () -> {
-                    log.warn("Пользователь не найден ни по username, ни по email: {}", username);
+                    log.warn("Пользователь не найден ни по username, ни по email: {}", normalizedUsername);
                     return new UsernameNotFoundException(
-                        String.format("User %s doesn't exists", username));
+                        String.format("User %s doesn't exists", normalizedUsername));
                 });
 
     log.debug("Пользователь найден: id={}, username={}", user.getId(), user.getUsername());
