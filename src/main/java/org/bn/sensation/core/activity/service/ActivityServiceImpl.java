@@ -1,8 +1,7 @@
 package org.bn.sensation.core.activity.service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
@@ -23,6 +22,7 @@ import org.bn.sensation.core.common.entity.Address;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.contestant.entity.ContestantEntity;
+import org.bn.sensation.core.contestant.repository.ContestantRepository;
 import org.bn.sensation.core.contestant.service.ContestantService;
 import org.bn.sensation.core.contestant.service.dto.ContestantDto;
 import org.bn.sensation.core.contestant.service.mapper.ContestantDtoMapper;
@@ -61,6 +61,7 @@ public class ActivityServiceImpl implements ActivityService {
     private final ActivityStateMachineService activityStateMachineService;
     private final ParticipantRepository participantRepository;
     private final ContestantService contestantService;
+    private final ContestantRepository contestantRepository;
     private final ContestantDtoMapper contestantDtoMapper;
     private final MilestoneRepository milestoneRepository;
 
@@ -249,6 +250,10 @@ public class ActivityServiceImpl implements ActivityService {
         log.info("Планирование активности: id={}", id);
         ActivityEntity activity = activityRepository.getByIdOrThrow(id);
         activityStateMachineService.sendEvent(activity, ActivityEvent.PLAN);
+        //если переход разрешен, значит этапы находятся в правильном состоянии и среди них нет уже начатых или завершенных
+        Set<ContestantEntity> contestants = activity.getMilestones().stream()
+                .flatMap(m -> m.getContestants().stream()).collect(Collectors.toSet());
+        contestantRepository.deleteAll(contestants);
         log.info("Активность запланирована: id={}", id);
     }
 
