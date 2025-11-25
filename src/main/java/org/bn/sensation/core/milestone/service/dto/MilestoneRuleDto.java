@@ -2,6 +2,7 @@ package org.bn.sensation.core.milestone.service.dto;
 
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
+import org.bn.sensation.core.contestant.entity.ContestantType;
 import org.bn.sensation.core.milestone.entity.AssessmentMode;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -36,4 +37,7 @@ public class MilestoneRuleDto extends BaseDto {
 
     @Schema(description = "Этап, к которому относится правило")
     private EntityLinkDto milestone;
+
+    @Schema(description = "Тип уцениваемых участников, пары, одиночки и тд")
+    private ContestantType contestantType;
 }

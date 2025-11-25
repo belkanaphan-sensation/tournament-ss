@@ -60,6 +60,7 @@ databaseChangeLog:
               ('admin2', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Админ', 'Админов', 'admin2@test.kz', '+7 777 000 00 01', '2025-01-01 10:00:00', 'system', '2025-01-01 10:00:00', 'system'),
               ('admin3', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Админ', 'Админов', 'admin3@test.kz', '+7 777 000 00 01', '2025-01-01 10:00:00', 'system', '2025-01-01 10:00:00', 'system'),
               ('administrator', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Администратор', 'Админчиков', 'administrator@test.kz', '+7 777 000 00 08', '2025-01-01 10:00:00', 'system', '2025-01-01 10:00:00', 'system'),
+              ('announcer', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Ведущий', 'Дикторович', 'announcer@test.kz', '+7 777 000 00 08', '2025-01-01 10:00:00', 'system', '2025-01-01 10:00:00', 'system'),
 
               -- Судьи для лидеров
               ('bogdan', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Богдан', 'Болдырев', 'bogdan@test.kz', '+7 777 201 00 01', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
@@ -87,6 +88,7 @@ databaseChangeLog:
               ((SELECT id FROM users WHERE username = 'admin2'), 'SUPERADMIN'),
               ((SELECT id FROM users WHERE username = 'admin3'), 'SUPERADMIN'),
               ((SELECT id FROM users WHERE username = 'administrator'), 'ADMINISTRATOR'),
+              ((SELECT id FROM users WHERE username = 'announcer'), 'ANNOUNCER'),
               ((SELECT id FROM users WHERE username = 'bogdan'), 'USER'),
               ((SELECT id FROM users WHERE username = 'kevin'), 'USER'),
               ((SELECT id FROM users WHERE username = 'egor'), 'USER'),
@@ -110,12 +112,16 @@ databaseChangeLog:
               ((SELECT id FROM users WHERE username = 'bogdan'), (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'JUDGE', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Судьи для фоловеров
               ((SELECT id FROM users WHERE username = 'yana'), (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              --Ведущий
+              ((SELECT id FROM users WHERE username = 'announcer'), (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'OBSERVER', null, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Любители
               -- Судьи для лидеров
               ((SELECT id FROM users WHERE username = 'kevin'), (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'JUDGE_CHIEF', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               ((SELECT id FROM users WHERE username = 'bogdan'), (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'JUDGE', 'LEADER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
               -- Судьи для фоловеров
-              ((SELECT id FROM users WHERE username = 'yana'), (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
+              ((SELECT id FROM users WHERE username = 'yana'), (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'JUDGE', 'FOLLOWER', '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin'),
+              -- Ведущий
+              ((SELECT id FROM users WHERE username = 'announcer'), (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'OBSERVER', null, '2025-10-01 10:00:00', 'org1_admin', '2025-10-01 10:00:00', 'org1_admin');
 
   # Test data for users_organizations_association (judges to organization)
   - changeSet:
