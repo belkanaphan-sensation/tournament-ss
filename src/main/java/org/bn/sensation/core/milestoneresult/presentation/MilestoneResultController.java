@@ -4,11 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.bn.sensation.core.milestoneresult.service.MilestoneResultService;
-import org.bn.sensation.core.milestoneresult.service.dto.CreateMilestoneResultRequest;
 import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
 import org.bn.sensation.core.milestoneresult.service.dto.UpdateMilestoneResultRequest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -48,37 +45,6 @@ public class MilestoneResultController {
         return milestoneResultService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).build());
-    }
-
-    @Operation(summary = "Получить все результаты этапов")
-    @GetMapping
-    public ResponseEntity<Page<MilestoneResultDto>> getAll(Pageable pageable) {
-        return ResponseEntity.ok(milestoneResultService.findAll(pageable));
-    }
-
-    @Operation(summary = "Создать новый результат этапа")
-    @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
-    public ResponseEntity<MilestoneResultDto> create(@Valid @RequestBody CreateMilestoneResultRequest request) {
-        MilestoneResultDto created = milestoneResultService.create(request);
-        return ResponseEntity.ok(created);
-    }
-
-    @Operation(summary = "Обновить результат этапа по ID")
-    @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
-    public ResponseEntity<MilestoneResultDto> update(@PathVariable("id") @NotNull Long id,
-                                                    @Valid @RequestBody UpdateMilestoneResultRequest request) {
-        MilestoneResultDto updated = milestoneResultService.update(id, request);
-        return ResponseEntity.ok(updated);
-    }
-
-    @Operation(summary = "Удалить результат этапа по ID")
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
-    public ResponseEntity<Void> delete(@PathVariable("id") @NotNull Long id) {
-        milestoneResultService.deleteById(id);
-        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Получить результаты этапов по ID этапа")

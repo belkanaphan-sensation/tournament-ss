@@ -1,0 +1,611 @@
+databaseChangeLog:
+  # Organization table
+  - changeSet:
+      id: 2025-09-02-1
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS organization (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255),
+                description TEXT,
+                phone_number VARCHAR(50),
+                email VARCHAR(255),
+                country VARCHAR(100),
+                city VARCHAR(100),
+                street_name VARCHAR(255),
+                street_number VARCHAR(50),
+                comment TEXT,
+                created_at TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP,
+                modified_by VARCHAR(255)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS organization;
+
+  # Users table
+  - changeSet:
+      id: 2025-09-02-2
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS users (
+                id BIGSERIAL PRIMARY KEY,
+                username VARCHAR(100) NOT NULL UNIQUE,
+                password VARCHAR(500) NOT NULL,
+                status VARCHAR(20) NOT NULL,
+                name VARCHAR(255),
+                surname VARCHAR(255),
+                second_name VARCHAR(255),
+                email VARCHAR(255),
+                phone_number VARCHAR(50),
+                organization_id BIGINT,
+                created_at TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP,
+                modified_by VARCHAR(255),
+                FOREIGN KEY (organization_id) REFERENCES organization(id)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS users;
+
+  # User-Roles table (ElementCollection for enum roles)
+  - changeSet:
+      id: 2025-09-02-3
+      author: belkanaphan
+      context: prod
+      onFail: WARN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS user_roles (
+                user_id BIGINT NOT NULL,
+                role VARCHAR(50) NOT NULL,
+                PRIMARY KEY (user_id, role),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS user_roles;
+
+  # Occasion table
+  - changeSet:
+      id: 2025-09-02-4
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS occasion (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255),
+                description TEXT,
+                state VARCHAR(20) NOT NULL,
+                start_date DATE,
+                end_date DATE,
+                organization_id BIGINT,
+                created_at TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP,
+                modified_by VARCHAR(255),
+                FOREIGN KEY (organization_id) REFERENCES organization(id)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS occasion;
+
+  # Activity table
+  - changeSet:
+      id: 2025-09-02-5
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS activity (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255),
+                description TEXT,
+                state VARCHAR(20) NOT NULL,
+                start_date_time TIMESTAMP,
+                end_date_time TIMESTAMP,
+                country VARCHAR(100),
+                city VARCHAR(100),
+                street_name VARCHAR(255),
+                street_number VARCHAR(50),
+                comment TEXT,
+                occasion_id BIGINT,
+                created_at TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP,
+                modified_by VARCHAR(255),
+                FOREIGN KEY (occasion_id) REFERENCES occasion(id)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS activity;
+  # Create contestant table
+  - changeSet:
+      id: 2025-09-02-6
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS contestant (
+                id BIGSERIAL PRIMARY KEY,
+                number VARCHAR(255) NOT NULL,
+                contestant_type VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP,
+                modified_by VARCHAR(255)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS contestant;
+  # Milestone table
+  - changeSet:
+      id: 2025-09-02-7
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS milestone (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255),
+                description TEXT,
+                state VARCHAR(20) NOT NULL,
+                activity_id BIGINT,
+                milestone_order INTEGER NOT NULL DEFAULT 0,
+                created_at TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP,
+                modified_by VARCHAR(255),
+                FOREIGN KEY (activity_id) REFERENCES activity(id)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS milestone;
+
+  # Milestone Rule table
+  - changeSet:
+      id: 2025-09-02-8
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS milestone_rule (
+                id BIGSERIAL PRIMARY KEY,
+                assessment_mode VARCHAR(255) NOT NULL,
+                contestant_type VARCHAR(255) NOT NULL,
+                contestant_limit INTEGER NOT NULL,
+                round_contestant_limit INTEGER NOT NULL,
+                strict_pass_mode BOOLEAN NOT NULL DEFAULT false,
+                milestone_id BIGINT,
+                created_at TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP,
+                modified_by VARCHAR(255),
+                FOREIGN KEY (milestone_id) REFERENCES milestone(id)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS milestone_rule;
+
+  # Round table
+  - changeSet:
+      id: 2025-09-02-9
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS round (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255),
+                state VARCHAR(20) NOT NULL,
+                milestone_id BIGINT,
+                extra_round BOOLEAN,
+                round_order INTEGER NOT NULL DEFAULT 0,
+                created_at TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP,
+                modified_by VARCHAR(255),
+                FOREIGN KEY (milestone_id) REFERENCES milestone(id)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS round;
+
+  # Participant table
+  - changeSet:
+      id: 2025-09-02-10
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS participant (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255),
+                surname VARCHAR(255),
+                second_name VARCHAR(255),
+                email VARCHAR(255),
+                phone_number VARCHAR(50),
+                school VARCHAR(255),
+                number VARCHAR(100),
+                partner_side VARCHAR(20) NOT NULL,
+                is_registered BOOLEAN NOT NULL,
+                activity_id BIGINT,
+                created_at TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP,
+                modified_by VARCHAR(255),
+                FOREIGN KEY (activity_id) REFERENCES activity(id)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS participant;
+
+  # Add unique index for participant activity and number
+  - changeSet:
+      id: 2025-09-02-11
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE UNIQUE INDEX IF NOT EXISTS idx_participant_activity_number_unique
+              ON participant(activity_id, number)
+              WHERE number IS NOT NULL;
+      rollback:
+        - sql:
+            sql: |
+              DROP INDEX IF EXISTS idx_participant_activity_number_unique;
+
+  # Create users_organizations_association
+  - changeSet:
+      id: 2025-09-02-12
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS users_organizations_association (
+                organization_id BIGINT NOT NULL,
+                user_id BIGINT NOT NULL,
+                PRIMARY KEY (organization_id, user_id),
+                FOREIGN KEY (organization_id) REFERENCES organization(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS users_organizations_association;
+  # Create contestants_rounds_association
+  - changeSet:
+      id: 2025-09-02-13
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS contestants_rounds_association (
+                contestant_id BIGINT NOT NULL,
+                round_id BIGINT NOT NULL,
+                PRIMARY KEY (contestant_id, round_id),
+                FOREIGN KEY (contestant_id) REFERENCES contestant(id) ON DELETE CASCADE,
+                FOREIGN KEY (round_id) REFERENCES round(id) ON DELETE CASCADE
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS contestants_rounds_association;
+  # Create contestants_milestones_association
+  - changeSet:
+      id: 2025-09-02-14
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS contestants_milestones_association (
+                contestant_id BIGINT NOT NULL,
+                milestone_id BIGINT NOT NULL,
+                PRIMARY KEY (contestant_id, milestone_id),
+                FOREIGN KEY (contestant_id) REFERENCES contestant(id) ON DELETE CASCADE,
+                FOREIGN KEY (milestone_id) REFERENCES milestone(id) ON DELETE CASCADE
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS contestants_milestones_association;
+  # Create contestants_participants_association
+  - changeSet:
+      id: 2025-09-02-15
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS contestants_participants_association (
+                contestant_id BIGINT NOT NULL,
+                participant_id BIGINT NOT NULL,
+                PRIMARY KEY (contestant_id, participant_id),
+                FOREIGN KEY (contestant_id) REFERENCES contestant(id) ON DELETE CASCADE,
+                FOREIGN KEY (participant_id) REFERENCES participant(id) ON DELETE CASCADE
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS contestants_participants_association;
+
+  # Create activity_user table
+  - changeSet:
+      id: 2025-09-02-16
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS activity_user (
+                id BIGSERIAL PRIMARY KEY,
+                user_id BIGINT NOT NULL,
+                activity_id BIGINT NOT NULL,
+                position VARCHAR(50) NOT NULL,
+                partner_side VARCHAR(20),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                modified_by VARCHAR(255),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (activity_id) REFERENCES activity(id) ON DELETE CASCADE,
+                UNIQUE (user_id, activity_id)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS activity_user;
+
+  # Create criterion table
+  - changeSet:
+      id: 2025-09-02-17
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS criterion (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                modified_by VARCHAR(255)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS criterion;
+
+  # Create milestone_criterion table
+  - changeSet:
+      id: 2025-09-02-18
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS milestone_criterion (
+                id BIGSERIAL PRIMARY KEY,
+                milestone_rule_id BIGINT NOT NULL,
+                criterion_id BIGINT NOT NULL,
+                partner_side VARCHAR(20),
+                weight DECIMAL(10,2) NOT NULL DEFAULT 1.0,
+                scale INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                modified_by VARCHAR(255),
+                FOREIGN KEY (milestone_rule_id) REFERENCES milestone_rule(id) ON DELETE CASCADE,
+                FOREIGN KEY (criterion_id) REFERENCES criterion(id) ON DELETE CASCADE,
+                UNIQUE (milestone_rule_id, criterion_id, partner_side)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS milestone_criterion;
+
+  # Create activity_result table
+  - changeSet:
+      id: 2025-09-02-19
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS activity_result (
+                id BIGSERIAL PRIMARY KEY,
+                place INTEGER,
+                contestant_id BIGINT NOT NULL,
+                activity_id BIGINT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                modified_by VARCHAR(255),
+                FOREIGN KEY (contestant_id) REFERENCES contestant(id) ON DELETE CASCADE,
+                FOREIGN KEY (activity_id) REFERENCES activity(id) ON DELETE CASCADE
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS activity_result;
+
+  # Create milestone_result table
+  - changeSet:
+      id: 2025-09-02-20
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS milestone_result (
+                id BIGSERIAL PRIMARY KEY,
+                contestant_id BIGINT NOT NULL,
+                finally_approved BOOLEAN NOT NULL DEFAULT FALSE,
+                milestone_id BIGINT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                modified_by VARCHAR(255),
+                FOREIGN KEY (contestant_id) REFERENCES contestant(id) ON DELETE CASCADE,
+                FOREIGN KEY (milestone_id) REFERENCES milestone(id) ON DELETE CASCADE
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS milestone_result;
+
+  # Create judge_milestone_result table
+  - changeSet:
+      id: 2025-09-02-21
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS judge_milestone_result (
+                id BIGSERIAL PRIMARY KEY,
+                score INTEGER,
+                is_candidate BOOLEAN DEFAULT FALSE,
+                contestant_id BIGINT NOT NULL,
+                round_id BIGINT NOT NULL,
+                milestone_criterion_id BIGINT NOT NULL,
+                activity_user_id BIGINT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                modified_by VARCHAR(255),
+                FOREIGN KEY (contestant_id) REFERENCES contestant(id) ON DELETE CASCADE,
+                FOREIGN KEY (round_id) REFERENCES round(id) ON DELETE CASCADE,
+                FOREIGN KEY (milestone_criterion_id) REFERENCES milestone_criterion(id) ON DELETE CASCADE,
+                FOREIGN KEY (activity_user_id) REFERENCES activity_user(id) ON DELETE CASCADE
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS judge_milestone_result;
+
+  # Create judge_round_status table
+  - changeSet:
+      id: 2025-09-02-22
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS judge_round_status (
+                id BIGSERIAL PRIMARY KEY,
+                judge_id BIGINT NOT NULL,
+                round_id BIGINT NOT NULL,
+                status VARCHAR(20) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                modified_by VARCHAR(255),
+                FOREIGN KEY (judge_id) REFERENCES activity_user(id) ON DELETE CASCADE,
+                FOREIGN KEY (round_id) REFERENCES round(id) ON DELETE CASCADE,
+                UNIQUE(judge_id, round_id)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS judge_round_status;
+
+  # Create index for better performance
+  - changeSet:
+      id: 2025-09-02-23
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE INDEX IF NOT EXISTS idx_judge_round_status_round_id ON judge_round_status(round_id);
+              CREATE INDEX IF NOT EXISTS idx_judge_round_status_judge_id ON judge_round_status(judge_id);
+              CREATE INDEX IF NOT EXISTS idx_judge_round_status_status ON judge_round_status(status);
+      rollback:
+        - sql:
+            sql: |
+              DROP INDEX IF EXISTS idx_judge_round_status_round_id;
+              DROP INDEX IF EXISTS idx_judge_round_status_judge_id;
+              DROP INDEX IF EXISTS idx_judge_round_status_status;
+
+  # Create milestone_round_result table
+  - changeSet:
+      id: 2025-09-02-24
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS milestone_round_result (
+                id BIGSERIAL PRIMARY KEY,
+                total_score DECIMAL(10,2),
+                judge_passed VARCHAR(255) NOT NULL,
+                round_id BIGINT NOT NULL,
+                milestone_result_id BIGINT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                modified_by VARCHAR(255),
+                FOREIGN KEY (milestone_result_id) REFERENCES milestone_result(id) ON DELETE CASCADE,
+                FOREIGN KEY (round_id) REFERENCES round(id) ON DELETE CASCADE
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS milestone_round_result;
+              

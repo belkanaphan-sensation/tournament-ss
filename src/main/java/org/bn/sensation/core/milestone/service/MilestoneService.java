@@ -9,7 +9,6 @@ import org.bn.sensation.core.milestone.service.dto.MilestoneDto;
 import org.bn.sensation.core.milestone.service.dto.PrepareRoundsRequest;
 import org.bn.sensation.core.milestone.service.dto.UpdateMilestoneRequest;
 import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
-import org.bn.sensation.core.milestoneresult.service.dto.UpdateMilestoneResultRequest;
 import org.bn.sensation.core.round.service.dto.RoundDto;
 
 import jakarta.validation.Valid;
@@ -39,7 +38,7 @@ public interface MilestoneService extends BaseCrudService<
 
     List<MilestoneResultDto> sumUpMilestone(Long id);
 
-    void completeMilestone(Long milestoneId, List<UpdateMilestoneResultRequest> request);
+    void completeMilestone(Long milestoneId);
 
     void skipMilestone(@NotNull Long id);
 }

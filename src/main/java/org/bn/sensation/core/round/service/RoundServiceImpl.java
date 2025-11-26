@@ -229,7 +229,7 @@ public class RoundServiceImpl implements RoundService {
         rounds.forEach(r -> createJudgeStatusesForRound(milestone, r));
 
         log.info("Успешно сгенерировано {} раундов для этапа ID={}", rounds.size(), milestone.getId());
-        return rounds.stream().map(roundDtoMapper::toDto).toList();
+        return rounds.stream().sorted(Comparator.comparing(RoundEntity::getRoundOrder)).map(roundDtoMapper::toDto).toList();
     }
 
     private List<RoundEntity> generate(MilestoneEntity milestone, int roundLimit) {

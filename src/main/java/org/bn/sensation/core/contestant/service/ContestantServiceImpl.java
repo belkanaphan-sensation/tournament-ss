@@ -89,7 +89,7 @@ public class ContestantServiceImpl implements ContestantService {
         return milestone.getMilestoneRule().getContestantType() == ContestantType.SINGLE
                 ? participants.iterator().next().getNumber()
                 : "#" + (milestone.getContestants().size() + 1) + participants.stream()
-                .sorted(Comparator.comparing(ParticipantEntity::getPartnerSide).reversed())
+                .sorted(Comparator.comparing(ParticipantEntity::getPartnerSide))
                 .map(ParticipantEntity::getNumber)
                 .collect(Collectors.joining(":", " (", ")"));
     }

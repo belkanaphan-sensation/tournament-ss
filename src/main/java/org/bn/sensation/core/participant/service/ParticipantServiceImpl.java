@@ -127,15 +127,6 @@ public class ParticipantServiceImpl implements ParticipantService {
         participantRepository.deleteById(id);
     }
 
-/*    @Override
-    @Transactional(readOnly = true)
-    public List<ParticipantDto> findByRoundId(Long roundId) {
-        return participantRepository.findByRoundId(roundId).stream()
-                .map(p -> participantDtoMapper.toDto(p))
-                .sorted(Comparator.comparing(ParticipantDto::getNumber))
-                .toList();
-    }*/
-
 /*
     @Override
     @Transactional
@@ -218,63 +209,4 @@ public class ParticipantServiceImpl implements ParticipantService {
         return participantDtoMapper.toDto(participant);
     }*/
 
-/*    @Override
-    @Transactional(readOnly = true)
-    public List<ParticipantDto> getByRoundByRoundIdForCurrentUser(Long roundId) {
-        log.info("Получение участников раунда={} для текущего пользователя={}",
-                roundId, currentUser.getSecurityUser().getId());
-
-        Preconditions.checkArgument(roundId != null, "ID раунда не может быть null");
-        RoundEntity round = roundRepository.getByIdWithUserOrThrow(roundId);
-        return getParticipantDtos(round);
-    }
-
-    private List<ParticipantDto> getParticipantDtos(RoundEntity round) {
-        Long userId = currentUser.getSecurityUser().getId();
-        ActivityUserEntity activityUser = ActivityUserUtil.getFromActivity(
-                round.getMilestone().getActivity(), userId, uaa -> uaa.getUser().getId().equals(userId));
-
-        log.debug("Найден activity user={} для раунда={}, сторона={}", userId, round.getId(), activityUser.getPartnerSide());
-        List<ParticipantEntity> participants = participantRepository.findByRoundId(round.getId()).stream()
-                .filter(p -> {
-                    if (activityUser.getPartnerSide() != null) {
-                        boolean matches = p.getPartnerSide() == activityUser.getPartnerSide();
-                        log.debug("Участник={} со стороной={} соответствует стороне судьи={}: {}",
-                                p.getId(), p.getPartnerSide(), activityUser.getPartnerSide(), matches);
-                        return matches;
-                    }
-                    return true;
-                })
-                .sorted(Comparator.comparing(p -> p.getNumber())).toList();
-
-        log.debug("Найдено {} участников для раунда={} после фильтрации", participants.size(), round.getId());
-
-        return getSortedParticipantDtos(participants);
-    }*/
-
-/*
-    @Override
-    public List<RoundParticipantsDto> getByRoundByMilestoneIdForCurrentUser(Long milestoneId) {
-        Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
-        MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
-        Long userId = currentUser.getSecurityUser().getId();
-        ActivityUserEntity activityUser = ActivityUserUtil.getFromActivity(
-                milestone.getActivity(), userId, uaa -> uaa.getUser().getId().equals(userId));
-
-        return milestone.getRounds()
-                .stream()
-                .sorted(Comparator.comparing(RoundEntity::getRoundOrder))
-                .map(re -> {
-                    List<ParticipantEntity> participants = re.getParticipants().stream()
-                            .filter(p -> {
-                                if (activityUser.getPartnerSide() != null) {
-                                    return p.getPartnerSide() == activityUser.getPartnerSide();
-                                }
-                                return true;
-                            })
-                            .sorted(Comparator.comparing(p -> p.getNumber())).toList();
-                    return roundParticipantsDtoMapper.toDto(re, participants);
-                }).toList();
-    }
-*/
 }

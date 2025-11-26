@@ -10,33 +10,28 @@ import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.contestant.entity.ContestantEntity;
-import org.bn.sensation.core.contestant.repository.ContestantRepository;
-import org.bn.sensation.core.milestone.statemachine.MilestoneState;
-import org.bn.sensation.core.round.statemachine.RoundState;
 import org.bn.sensation.core.judgemilestoneresult.entity.JudgeMilestoneResultEntity;
 import org.bn.sensation.core.judgemilestoneresult.repository.JudgeMilestoneResultRepository;
 import org.bn.sensation.core.milestone.entity.AssessmentMode;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
 import org.bn.sensation.core.milestone.repository.MilestoneRepository;
+import org.bn.sensation.core.milestone.statemachine.MilestoneState;
 import org.bn.sensation.core.milestoneresult.entity.MilestoneResultEntity;
 import org.bn.sensation.core.milestoneresult.entity.MilestoneRoundResultEntity;
 import org.bn.sensation.core.milestoneresult.entity.PassStatus;
 import org.bn.sensation.core.milestoneresult.repository.MilestoneResultRepository;
 import org.bn.sensation.core.milestoneresult.repository.MilestoneRoundResultRepository;
-import org.bn.sensation.core.milestoneresult.service.dto.*;
+import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
+import org.bn.sensation.core.milestoneresult.service.dto.UpdateMilestoneResultRequest;
 import org.bn.sensation.core.milestoneresult.service.mapper.MilestoneResultDtoMapper;
-import org.bn.sensation.core.milestoneresult.service.mapper.MilestoneRoundResultDtoMapper;
 import org.bn.sensation.core.round.entity.RoundEntity;
-import org.bn.sensation.core.round.repository.RoundRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.bn.sensation.core.round.statemachine.RoundState;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Preconditions;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,10 +46,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
     private final MilestoneResultRepository milestoneResultRepository;
     private final MilestoneRoundResultRepository milestoneRoundResultRepository;
     private final MilestoneResultDtoMapper milestoneResultDtoMapper;
-    private final MilestoneRoundResultDtoMapper milestoneRoundResultDtoMapper;
     private final MilestoneRepository milestoneRepository;
-    private final RoundRepository roundRepository;
-    private final ContestantRepository contestantRepository;
 
     @Override
     public BaseRepository<MilestoneResultEntity> getRepository() {
@@ -75,17 +67,10 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
     @Override
     @Transactional
     public List<MilestoneResultDto> acceptResults(Long milestoneId, List<UpdateMilestoneResultRequest> request) {
+        log.info("Принятие результатов этапа: milestoneId={}, количество запросов={}", milestoneId, request.size());
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(milestoneId);
         Preconditions.checkState(milestone.getState() == MilestoneState.IN_PROGRESS || milestone.getState() == MilestoneState.SUMMARIZING,
                 "Недопустимое состояние этапа %s для обновления результатов".formatted(milestone.getState()));
-        return acceptResults(milestone, request).stream().map(milestoneResultDtoMapper::toDto).toList();
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.MANDATORY)
-    public List<MilestoneResultEntity> acceptResults(MilestoneEntity milestone, List<UpdateMilestoneResultRequest> request) {
-        log.info("Принятие результатов этапа: milestoneId={}, количество запросов={}", milestone.getId(), request.size());
-
         Map<Long, MilestoneResultEntity> resultEntityMap = milestone.getResults().stream()
                 .collect(Collectors.toMap(MilestoneResultEntity::getId, Function.identity()));
         List<MilestoneResultEntity> toSave = request.stream().map(r -> {
@@ -98,21 +83,15 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
             return resultEntity;
         }).toList();
 
-        if (Boolean.TRUE.equals(milestone.getMilestoneRule().getStrictPassMode())) {
-            long approvedCount = milestone.getResults().stream()
-                    .filter(res -> res.getFinallyApproved())
-                    .count();
-            Integer contestantLimit = milestone.getMilestoneRule().getContestantLimit();
-            log.debug("Проверка strictPassMode: одобрено конкурсантов={}, лимит={}", approvedCount, contestantLimit);
-
-            Preconditions.checkArgument(contestantLimit.longValue() >= approvedCount,
-                    "Количество одобренных конкурсантов больше чем требуется");
-        }
-
         milestoneResultRepository.saveAll(toSave);
         log.info("Сохранено {} результатов этапа milestoneId={}", toSave.size(), milestone.getId());
 
-        return milestoneResultRepository.findAllByMilestoneId(milestone.getId());
+        return milestoneResultRepository.findAllByMilestoneId(milestone.getId())
+                .stream()
+                .sorted(Comparator.comparing(MilestoneResultEntity::getFinallyApproved, Comparator.reverseOrder())
+                        .thenComparing(mr -> mr.getContestant().getNumber()))
+                .map(milestoneResultDtoMapper::toDto)
+                .toList();
     }
 
     @Override
@@ -136,6 +115,8 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
                 return calculateExtraResults(milestone, extraRounds.get(0));
             }
             return milestone.getResults().stream()
+                    .sorted(Comparator.comparing(MilestoneResultEntity::getFinallyApproved, Comparator.reverseOrder())
+                            .thenComparing(mr -> mr.getContestant().getNumber()))
                     .map(milestoneResultDtoMapper::toDto)
                     .toList();
         }
@@ -175,7 +156,12 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
             distributeForExtra(milestone, round, roundJudgeResults, pIdToResult, toDistribute, toSave, remainingPlaces);
             milestoneResultRepository.saveAll(toSave);
         }
-        return milestoneResultRepository.findAllByMilestoneId(milestone.getId()).stream().map(milestoneResultDtoMapper::toDto).toList();
+        return milestoneResultRepository.findAllByMilestoneId(milestone.getId())
+                .stream()
+                .sorted(Comparator.comparing(MilestoneResultEntity::getFinallyApproved, Comparator.reverseOrder())
+                        .thenComparing(mr -> mr.getContestant().getNumber()))
+                .map(milestoneResultDtoMapper::toDto)
+                .toList();
     }
 
     private void distributeForExtra(MilestoneEntity milestone, RoundEntity round, Map<Long, List<JudgeMilestoneResultEntity>> roundJudgeResults, Map<Long, MilestoneResultEntity> pIdToResult, List<MilestoneRoundResultEntity> toDistribute, List<MilestoneResultEntity> toSave, long remainingPlaces) {
@@ -246,6 +232,8 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         milestone.getResults().addAll(savedEntities);
 
         return savedEntities.stream()
+                .sorted(Comparator.comparing(MilestoneResultEntity::getFinallyApproved, Comparator.reverseOrder())
+                        .thenComparing(mr -> mr.getContestant().getNumber()))
                 .map(milestoneResultDtoMapper::toDto)
                 .toList();
     }
@@ -374,84 +362,9 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<MilestoneResultDto> findAll(Pageable pageable) {
-        return milestoneResultRepository.findAll(pageable).map(milestoneResultDtoMapper::toDto);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Optional<MilestoneResultDto> findById(Long id) {
         return milestoneResultRepository.findById(id)
                 .map(milestoneResultDtoMapper::toDto);
-    }
-
-    @Override
-    @Transactional
-    public MilestoneResultDto create(CreateMilestoneResultRequest request) {
-        Preconditions.checkArgument(request.getMilestoneId() != null, "Milestone ID не может быть null");
-        Preconditions.checkArgument(request.getContestantId() != null, "Contestant ID не может быть null");
-        Preconditions.checkArgument(request.getRoundId() != null, "Round ID не может быть null");
-
-        MilestoneEntity milestone = milestoneRepository.getByIdOrThrow(request.getMilestoneId());
-        ContestantEntity contestant = contestantRepository.getByIdOrThrow(request.getContestantId());
-        RoundEntity round = roundRepository.getByIdOrThrow(request.getRoundId());
-
-        MilestoneResultEntity result = MilestoneResultEntity.builder()
-                .contestant(contestant)
-                .milestone(milestone)
-                .finallyApproved(request.getFinallyApproved())
-                .build();
-        MilestoneResultEntity savedMR = milestoneResultRepository.save(result);
-        MilestoneRoundResultEntity roundResult = MilestoneRoundResultEntity.builder()
-                .round(round)
-                .milestoneResult(savedMR)
-                .totalScore(request.getTotalScore())
-                .judgePassed(request.getJudgePassed())
-                .build();
-        MilestoneRoundResultEntity savedMRR = milestoneRoundResultRepository.save(roundResult);
-        savedMR.getRoundResults().add(savedMRR);
-        return milestoneResultDtoMapper.toDto(savedMR);
-    }
-
-    @Override
-    @Transactional
-    public MilestoneRoundResultDto createMilestoneRoundResult(CreateMilestoneRoundResultRequest request) {
-        Preconditions.checkArgument(request.getMilestoneResultId() != null, "Milestone result ID не может быть null");
-        Preconditions.checkArgument(request.getRoundId() != null, "Round ID не может быть null");
-
-        MilestoneResultEntity milestoneResult = milestoneResultRepository.getByIdOrThrow(request.getMilestoneResultId());
-        RoundEntity round = roundRepository.getByIdOrThrow(request.getRoundId());
-
-        MilestoneRoundResultEntity roundResult = MilestoneRoundResultEntity.builder()
-                .round(round)
-                .milestoneResult(milestoneResult)
-                .totalScore(request.getTotalScore())
-                .judgePassed(request.getJudgePassed())
-                .build();
-        MilestoneRoundResultEntity savedMRR = milestoneRoundResultRepository.save(roundResult);
-        return milestoneRoundResultDtoMapper.toDto(savedMRR);
-    }
-
-    @Override
-    @Transactional
-    public MilestoneResultDto update(Long id, UpdateMilestoneResultRequest request) {
-        Preconditions.checkArgument(id != null, "ID результата не может быть null");
-
-        MilestoneResultEntity result = milestoneResultRepository.getByIdOrThrow(id);
-        result.setFinallyApproved(request.getFinallyApproved());
-
-        MilestoneResultEntity saved = milestoneResultRepository.save(result);
-        return milestoneResultDtoMapper.toDto(saved);
-    }
-
-    @Override
-    @Transactional
-    public void deleteById(Long id) {
-        Preconditions.checkArgument(id != null, "ID результата не может быть null");
-        if (!milestoneResultRepository.existsById(id)) {
-            throw new EntityNotFoundException("Результат этапа не найден с id: " + id);
-        }
-        milestoneResultRepository.deleteById(id);
     }
 
     @Override
