@@ -61,7 +61,16 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
     @Override
     @Transactional(readOnly = true)
     public List<MilestoneResultDto> getByMilestoneId(Long milestoneId) {
-        return milestoneResultRepository.findAllByMilestoneId(milestoneId).stream().map(milestoneResultDtoMapper::toDto).toList();
+        return milestoneResultRepository.findAllByMilestoneId(milestoneId)
+                .stream()
+                .sorted(Comparator.comparing(MilestoneResultEntity::getFinallyApproved, Comparator.reverseOrder())
+                        .thenComparing(mr -> mr.getRoundResults().stream()
+                                .map(MilestoneRoundResultEntity::getJudgePassed)
+                                .min(Comparator.naturalOrder())
+                                .get())
+                        .thenComparing(mr -> mr.getContestant().getNumber()))
+                .map(milestoneResultDtoMapper::toDto)
+                .toList();
     }
 
     @Override
@@ -89,6 +98,10 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         return milestoneResultRepository.findAllByMilestoneId(milestone.getId())
                 .stream()
                 .sorted(Comparator.comparing(MilestoneResultEntity::getFinallyApproved, Comparator.reverseOrder())
+                        .thenComparing(mr -> mr.getRoundResults().stream()
+                                .map(MilestoneRoundResultEntity::getJudgePassed)
+                                .min(Comparator.naturalOrder())
+                                .get())
                         .thenComparing(mr -> mr.getContestant().getNumber()))
                 .map(milestoneResultDtoMapper::toDto)
                 .toList();
@@ -114,8 +127,13 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
                         "Одновременно может быть только один активный дополнительный раунд");
                 return calculateExtraResults(milestone, extraRounds.get(0));
             }
-            return milestone.getResults().stream()
+            return milestone.getResults()
+                    .stream()
                     .sorted(Comparator.comparing(MilestoneResultEntity::getFinallyApproved, Comparator.reverseOrder())
+                            .thenComparing(mr -> mr.getRoundResults().stream()
+                                    .map(MilestoneRoundResultEntity::getJudgePassed)
+                                    .min(Comparator.naturalOrder())
+                                    .get())
                             .thenComparing(mr -> mr.getContestant().getNumber()))
                     .map(milestoneResultDtoMapper::toDto)
                     .toList();
@@ -159,6 +177,10 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         return milestoneResultRepository.findAllByMilestoneId(milestone.getId())
                 .stream()
                 .sorted(Comparator.comparing(MilestoneResultEntity::getFinallyApproved, Comparator.reverseOrder())
+                        .thenComparing(mr -> mr.getRoundResults().stream()
+                                .map(MilestoneRoundResultEntity::getJudgePassed)
+                                .min(Comparator.naturalOrder())
+                                .get())
                         .thenComparing(mr -> mr.getContestant().getNumber()))
                 .map(milestoneResultDtoMapper::toDto)
                 .toList();
@@ -231,8 +253,13 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         log.info("Сохранено {} результатов этапа в базу данных", savedEntities.size());
         milestone.getResults().addAll(savedEntities);
 
-        return savedEntities.stream()
+        return savedEntities
+                .stream()
                 .sorted(Comparator.comparing(MilestoneResultEntity::getFinallyApproved, Comparator.reverseOrder())
+                        .thenComparing(mr -> mr.getRoundResults().stream()
+                                .map(MilestoneRoundResultEntity::getJudgePassed)
+                                .min(Comparator.naturalOrder())
+                                .get())
                         .thenComparing(mr -> mr.getContestant().getNumber()))
                 .map(milestoneResultDtoMapper::toDto)
                 .toList();
@@ -371,6 +398,12 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
     public Map<Integer, List<MilestoneResultDto>> getByActivityId(Long activityId) {
         return milestoneResultRepository.findAllByActivityId(activityId)
                 .stream()
+                .sorted(Comparator.comparing(MilestoneResultEntity::getFinallyApproved, Comparator.reverseOrder())
+                        .thenComparing(mr -> mr.getRoundResults().stream()
+                                .map(MilestoneRoundResultEntity::getJudgePassed)
+                                .min(Comparator.naturalOrder())
+                                .get())
+                        .thenComparing(mr -> mr.getContestant().getNumber()))
                 .collect(Collectors.groupingBy(
                         res -> res.getMilestone().getMilestoneOrder().intValue(),
                         TreeMap::new,

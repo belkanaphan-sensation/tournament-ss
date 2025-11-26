@@ -25,6 +25,9 @@ public class MilestoneRoundResultDto extends BaseDto {
     @Schema(description = "Раунд")
     private EntityLinkDto round;
 
+    @Schema(description = "Порядок раунда в рамках этапа", example = "1")
+    private Integer roundOrder;
+
     @Schema(description = "Результат дополнительного раунда")
     private Boolean fromExtraRound;
 

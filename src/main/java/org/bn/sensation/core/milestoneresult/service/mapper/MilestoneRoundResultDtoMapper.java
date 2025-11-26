@@ -16,5 +16,6 @@ public interface MilestoneRoundResultDtoMapper extends BaseDtoMapper<MilestoneRo
 
     @Override
     @Mapping(target = "fromExtraRound", source = "round.extraRound")
+    @Mapping(target = "roundOrder", source = "round.roundOrder")
     MilestoneRoundResultDto toDto(MilestoneRoundResultEntity entity);
 }
