@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.mapper.EntityLinkMapper;
+import org.bn.sensation.core.contestant.service.mapper.ContestantDtoMapper;
 import org.bn.sensation.core.milestoneresult.entity.MilestoneResultEntity;
 import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
 import org.bn.sensation.core.milestoneresult.service.dto.MilestoneRoundResultDto;
@@ -14,7 +15,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(config = BaseDtoMapper.class, uses = {EntityLinkMapper.class, MilestoneRoundResultDtoMapper.class})
+@Mapper(config = BaseDtoMapper.class, uses = {EntityLinkMapper.class, MilestoneRoundResultDtoMapper.class, ContestantDtoMapper.class})
 public interface MilestoneResultDtoMapper extends BaseDtoMapper<MilestoneResultEntity, MilestoneResultDto> {
 
     @Override

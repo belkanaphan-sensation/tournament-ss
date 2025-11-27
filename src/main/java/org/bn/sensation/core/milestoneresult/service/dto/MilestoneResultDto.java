@@ -13,6 +13,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.bn.sensation.core.contestant.service.dto.ContestantDto;
 
 @Data
 @NoArgsConstructor
@@ -27,7 +28,7 @@ public class MilestoneResultDto extends BaseDto {
     private EntityLinkDto milestone;
 
     @Schema(description = "Конкурсант")
-    private EntityLinkDto contestant;
+    private ContestantDto contestant;
 
     @Schema(description = "Прошел конкурсант в следующий этап или нет по решению организатора")
     private Boolean finallyApproved;
