@@ -38,5 +38,5 @@ public class ContestantDto extends BaseDto {
     private List<EntityLinkDto> milestones;
 
     @Schema(description = "Список раундов конкурсанта")
-    private Set<EntityLinkDto> rounds;
+    private List<EntityLinkDto> rounds;
 }

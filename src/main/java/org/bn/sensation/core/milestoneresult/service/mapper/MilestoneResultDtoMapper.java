@@ -34,4 +34,16 @@ public interface MilestoneResultDtoMapper extends BaseDtoMapper<MilestoneResultE
             dto.setMilestoneRoundResults(sortedResults);
         }
     }
+
+    @AfterMapping
+    default void setJudgePassedFromMaxRoundOrder(@MappingTarget MilestoneResultDto dto) {
+        if (dto.getMilestoneRoundResults() != null && !dto.getMilestoneRoundResults().isEmpty()) {
+            MilestoneRoundResultDto maxRoundResult = dto.getMilestoneRoundResults().stream()
+                    .max(Comparator.comparing(MilestoneRoundResultDto::getRoundOrder))
+                    .orElse(null);
+            if (maxRoundResult != null) {
+                dto.setJudgePassed(maxRoundResult.getJudgePassed());
+            }
+        }
+    }
 }

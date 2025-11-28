@@ -46,6 +46,13 @@ public class MilestoneRuleController {
         return ResponseEntity.ok(rule);
     }
 
+    @Operation(summary = "Получить правило следующего этапа по ID текущего этапа")
+    @GetMapping(path = "/next/milestone/{milestoneId}")
+    public ResponseEntity<MilestoneRuleDto> getForNextMilestoneByMilestoneId(@Parameter @PathVariable("milestoneId") @NotNull Long milestoneId) {
+        MilestoneRuleDto rule = milestoneRuleService.findForNextMilestoneByMilestoneId(milestoneId);
+        return ResponseEntity.ok(rule);
+    }
+
     @Operation(summary = "Получить все правила этапов")
     @GetMapping
     public ResponseEntity<Page<MilestoneRuleDto>> getAll(Pageable pageable) {

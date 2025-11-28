@@ -1,6 +1,7 @@
 package org.bn.sensation.core.milestone.service;
 
 
+import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
 import org.bn.sensation.core.milestone.entity.MilestoneEntity;
@@ -33,6 +34,7 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
     private final CreateMilestoneRuleRequestMapper createMilestoneRuleRequestMapper;
     private final UpdateMilestoneRuleRequestMapper updateMilestoneRuleRequestMapper;
     private final MilestoneRepository milestoneRepository;
+    private final ActivityRepository activityRepository;
 
     @Override
     public BaseRepository<MilestoneRuleEntity> getRepository() {
@@ -90,9 +92,9 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
         MilestoneRuleEntity rule = milestoneRuleRepository.getByIdOrThrow(id);
 
         Integer participantLimit = request.getContestantLimit() != null ?
-            request.getContestantLimit() : rule.getContestantLimit();
+                request.getContestantLimit() : rule.getContestantLimit();
         Integer roundParticipantLimit = request.getRoundContestantLimit() != null ?
-            request.getRoundContestantLimit() : rule.getRoundContestantLimit();
+                request.getRoundContestantLimit() : rule.getRoundContestantLimit();
 
         validateRoundContestantLimit(participantLimit, roundParticipantLimit);
 
@@ -127,12 +129,25 @@ public class MilestoneRuleServiceImpl implements MilestoneRuleService {
         return milestoneRuleDtoMapper.toDto(rule);
     }
 
+    @Override
+    public MilestoneRuleDto findForNextMilestoneByMilestoneId(Long milestoneId) {
+        MilestoneEntity milestone = milestoneRepository.getByIdOrThrow(milestoneId);
+        if (milestone.getMilestoneOrder() > 0) {
+            MilestoneRuleEntity nextMilestoneRule = milestoneRepository.getByActivityIdAndMilestoneOrderOrThrow(
+                            milestone.getActivity().getId(), (milestone.getMilestoneOrder() - 1))
+                    .getMilestoneRule();
+            Preconditions.checkArgument(nextMilestoneRule != null, "Правило для этапа с порядковым номером %s не найдено".formatted(milestone.getMilestoneOrder() - 1));
+            return milestoneRuleDtoMapper.toDto(nextMilestoneRule);
+        }
+        return null;
+    }
+
     private void validateRoundContestantLimit(Integer contestantLimit, Integer roundContestantLimit) {
         log.debug("Валидация лимитов участников: лимит этапа={}, лимит раунда={}",
                 contestantLimit, roundContestantLimit);
 
         if (contestantLimit != null && roundContestantLimit != null &&
-            roundContestantLimit > contestantLimit) {
+                roundContestantLimit > contestantLimit) {
             log.warn("Недопустимые лимиты: лимит раунда={} больше лимита этапа={}",
                     roundContestantLimit, contestantLimit);
             throw new IllegalArgumentException("roundContestantLimit должен быть меньше или равен contestantLimit");

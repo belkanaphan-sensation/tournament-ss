@@ -15,4 +15,6 @@ public interface MilestoneRuleService extends BaseCrudService<
         UpdateMilestoneRuleRequest> {
 
     MilestoneRuleDto findByMilestoneId(@NotNull Long milestoneId);
+
+    MilestoneRuleDto findForNextMilestoneByMilestoneId(@NotNull Long milestoneId);
 }

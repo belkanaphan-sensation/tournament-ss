@@ -26,6 +26,9 @@ public class MilestoneRuleDto extends BaseDto {
     @Schema(description = "Режим оценивания конкурсанта", example = "PASS")
     private AssessmentMode assessmentMode;
 
+    @Schema(description = "Тип уцениваемых участников, пары, одиночки и тд")
+    private ContestantType contestantType;
+
     @Schema(description = "Максимальное количество конкурсантов в этапе", example = "10")
     private Integer contestantLimit;
 
@@ -37,7 +40,4 @@ public class MilestoneRuleDto extends BaseDto {
 
     @Schema(description = "Этап, к которому относится правило")
     private EntityLinkDto milestone;
-
-    @Schema(description = "Тип уцениваемых участников, пары, одиночки и тд")
-    private ContestantType contestantType;
 }
