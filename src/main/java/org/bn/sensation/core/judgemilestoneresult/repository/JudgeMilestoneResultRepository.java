@@ -1,5 +1,6 @@
 package org.bn.sensation.core.judgemilestoneresult.repository;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.bn.sensation.core.common.repository.BaseRepository;
@@ -34,6 +35,14 @@ public interface JudgeMilestoneResultRepository extends BaseRepository<JudgeMile
             WHERE jm.contestant.id = :contestantId
             """)
     List<JudgeMilestoneResultEntity> findByContestantId(Long contestantId);
+
+    @Query("""
+            SELECT DISTINCT jm
+            FROM JudgeMilestoneResultEntity jm
+            WHERE jm.contestant.id in :contestantIds
+              AND jm.round.milestone.id = :milestoneId
+            """)
+    List<JudgeMilestoneResultEntity> findByContestantIdAndMilestoneId(@Param("contestantIds") Collection<Long> contestantIds, @Param("milestoneId") Long milestoneId);
 
     @EntityGraph(attributePaths = {"contestant", "round", "milestoneCriterion", "activityUser"})
     @Query("""

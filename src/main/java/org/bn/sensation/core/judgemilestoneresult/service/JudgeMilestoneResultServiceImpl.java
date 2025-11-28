@@ -242,8 +242,16 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
 
     @Override
     @Transactional(readOnly = true)
-    public List<JudgeMilestoneResultDto> findByContestantId(Long participantId) {
-        List<JudgeMilestoneResultEntity> entities = judgeMilestoneResultRepository.findByContestantId(participantId);
+    public List<JudgeMilestoneResultDto> findByContestantId(Long contestantId) {
+        List<JudgeMilestoneResultEntity> entities = judgeMilestoneResultRepository.findByContestantId(contestantId);
+        return entities.stream()
+                .map(judgeMilestoneResultDtoMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    public List<JudgeMilestoneResultDto> findByContestantIdAndMilestoneId(Collection<Long> contestantIds, Long milestoneId) {
+        List<JudgeMilestoneResultEntity> entities = judgeMilestoneResultRepository.findByContestantIdAndMilestoneId(contestantIds, milestoneId);
         return entities.stream()
                 .map(judgeMilestoneResultDtoMapper::toDto)
                 .toList();

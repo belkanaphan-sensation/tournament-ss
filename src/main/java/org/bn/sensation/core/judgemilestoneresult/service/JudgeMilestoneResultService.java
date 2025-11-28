@@ -1,5 +1,6 @@
 package org.bn.sensation.core.judgemilestoneresult.service;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.bn.sensation.core.common.service.BaseService;
@@ -20,6 +21,8 @@ public interface JudgeMilestoneResultService extends BaseService<
     List<JudgeMilestoneResultDto> findByMilestoneIdForCurrentUser(Long milestoneId);
 
     List<JudgeMilestoneResultDto> findByContestantId(Long participantId);
+
+    List<JudgeMilestoneResultDto> findByContestantIdAndMilestoneId(Collection<Long> participantIds, Long milestoneId);
 
     List<JudgeMilestoneResultDto> findByActivityUserId(Long activityUserId);
 
