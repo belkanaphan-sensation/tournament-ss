@@ -342,9 +342,14 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
 
     private long getContestantLimit(MilestoneEntity milestone) {
         return milestone.getMilestoneOrder().intValue() > 0
-                ? milestoneRepository.getContestantLimitForNextMilestone(
-                milestone.getActivity().getId(), milestone.getMilestoneOrder().intValue() - 1).longValue()
-                : FINAL_RESULT_LIMIT;
+                ? milestoneRepository.getContestantLimitForNextMilestone(milestone.getActivity().getId(), milestone.getMilestoneOrder().intValue() - 1).longValue()
+                : getFinalResultCount(milestone) > FINAL_RESULT_LIMIT ? FINAL_RESULT_LIMIT : getFinalResultCount(milestone) - 1;
+    }
+
+    private int getFinalResultCount(MilestoneEntity milestone) {
+        return milestone.getMilestoneRule().getContestantType().hasPartnerSide()
+                ? milestone.getContestants().size()/2
+                : milestone.getContestants().size();
     }
 
     private Comparator<BigDecimal> getScoreComparator(MilestoneEntity milestone) {

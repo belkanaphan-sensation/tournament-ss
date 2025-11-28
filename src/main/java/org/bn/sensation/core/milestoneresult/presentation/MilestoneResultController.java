@@ -3,9 +3,14 @@ package org.bn.sensation.core.milestoneresult.presentation;
 import java.util.List;
 import java.util.Map;
 
+import org.bn.sensation.core.milestoneresult.service.MilestoneResultReportService;
 import org.bn.sensation.core.milestoneresult.service.MilestoneResultService;
 import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
 import org.bn.sensation.core.milestoneresult.service.dto.UpdateMilestoneResultRequest;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -29,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class MilestoneResultController {
 
     private final MilestoneResultService milestoneResultService;
+    private final MilestoneResultReportService milestoneResultReportService;
 
     @Operation(summary = "Обновить результаты этапа")
     @PostMapping("/update/milestone/{milestoneId}")
@@ -57,5 +63,24 @@ public class MilestoneResultController {
     @GetMapping("/activity/{activityId}")
     public ResponseEntity<Map<Integer, List<MilestoneResultDto>>> getByActivityId(@PathVariable("activityId") @NotNull Long activityId) {
         return ResponseEntity.ok(milestoneResultService.getByActivityId(activityId));
+    }
+
+    @Operation(summary = "Скачать Excel-отчет по результатам этапов активности")
+    @GetMapping("/activity/{activityId}/report")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
+    public ResponseEntity<Resource> getInReportByActivityId(
+            @Parameter(description = "ID активности")
+            @PathVariable("activityId") @NotNull Long activityId) {
+
+        Map<Integer, List<MilestoneResultDto>> milestoneResults = milestoneResultService.getByActivityId(activityId);
+        byte[] report = milestoneResultReportService.generateMilestoneResultReport(milestoneResults);
+        ByteArrayResource resource = new ByteArrayResource(report);
+        String filename = String.format("milestone-results-activity-%d-report.xlsx", activityId);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.parseMediaType(milestoneResultReportService.getContentType()))
+                .contentLength(report.length)
+                .body(resource);
     }
 }
