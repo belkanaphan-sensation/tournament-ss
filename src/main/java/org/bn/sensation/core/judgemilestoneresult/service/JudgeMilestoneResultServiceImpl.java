@@ -104,7 +104,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
                 }
             });
 
-            validateScores(round.getMilestone(), activityUser, toCreate, resultsByRound.values());
+            validateScores(round.getExtraRound(), round.getMilestone(), activityUser, toCreate, resultsByRound.values());
 
             toSave.addAll(toCreate);
             dtos.addAll(judgeMilestoneResultRepository.saveAll(toSave)
@@ -258,12 +258,12 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
                 .toList();
     }
 
-    private void validateScores(MilestoneEntity milestone, ActivityUserEntity activityUser, List<JudgeMilestoneResultEntity> resultsToCreate, Collection<JudgeMilestoneResultEntity> resultsByRound) {
+    private void validateScores(Boolean isExtraRound, MilestoneEntity milestone, ActivityUserEntity activityUser, List<JudgeMilestoneResultEntity> resultsToCreate, Collection<JudgeMilestoneResultEntity> resultsByRound) {
         List<JudgeMilestoneResultEntity> allResults = new ArrayList<>(resultsByRound);
         allResults.addAll(resultsToCreate);
         switch (milestone.getMilestoneRule().getAssessmentMode()) {
             case SCORE -> validateScoreMode(allResults);
-            case PASS -> validatePassMode(milestone, allResults);
+            case PASS -> validatePassMode(isExtraRound, milestone, allResults);
             case PLACE -> validatePlaceMode(milestone, activityUser, allResults);
         }
     }
@@ -286,7 +286,7 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
         log.debug("Проверка режима SCORE завершена успешно");
     }
 
-    private void validatePassMode(MilestoneEntity milestone, List<JudgeMilestoneResultEntity> allResults) {
+    private void validatePassMode(Boolean isExtraRound, MilestoneEntity milestone, List<JudgeMilestoneResultEntity> allResults) {
         for (JudgeMilestoneResultEntity result : allResults) {
             Preconditions.checkArgument(result.getScore() != null,
                     "Оценка не может быть null для режима PASS");
@@ -294,10 +294,10 @@ public class JudgeMilestoneResultServiceImpl implements JudgeMilestoneResultServ
                     "Для режима PASS оценка может быть только 0 или 1, получена: %s", result.getScore());
         }
         boolean isLastMilestone = milestone.getMilestoneOrder().intValue() == 0;
-        boolean isStrictPassMode = milestone.getMilestoneRule().getStrictPassMode();
+        boolean isStrictPassMode = !isExtraRound && milestone.getMilestoneRule().getStrictPassMode();
         if (!isLastMilestone) {
             MilestoneEntity nextMilestone = milestoneRepository.getByActivityIdAndMilestoneOrderOrThrow(milestone.getActivity().getId(), milestone.getMilestoneOrder() - 1);
-            isStrictPassMode = nextMilestone.getMilestoneRule().getStrictPassMode();
+            isStrictPassMode = !isExtraRound && nextMilestone.getMilestoneRule().getStrictPassMode();
         }
         if (isStrictPassMode) {
             //сейчас эта проверка корректна т.к. для режима strictPassMode всегда 1 раунд
