@@ -325,6 +325,8 @@ databaseChangeLog:
               ('Мария', 'Михайлова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense'),
               ('Ирина', 'Атаджанова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense'),
               ('Екатерина', 'Девятова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense'),
+              ('Евгения', 'Дедерчук', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense'),
+              ('Валерия', 'Мавлютова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense'),
               
               -- Начинающие
               -- Лидеры 5
@@ -374,6 +376,10 @@ databaseChangeLog:
               ('Дмитрий', 'Тетиков', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'Sense'),
               ('Николай', 'Фирсов', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'Sense'),
               ('Дамир', 'Залялиев', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'Sense'),
+              ('Дмитрий', 'Пыжов', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'Sense'),
+              ('Юрий', 'Шиянов', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'Sense'),
+              ('Александр', 'Бантос', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'Sense'),
+              ('Сергей', 'Рудь', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'Sense'),
 
               -- Фоловеры 9
               ('Александра', 'Дрейер', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'Sense'),
