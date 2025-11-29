@@ -347,6 +347,7 @@ databaseChangeLog:
               ('Александра', 'Тищенко', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Елена', 'Чистопольцева', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Лариса', 'Галочкина', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
+              ('Ирина', 'Полякова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Мадина', 'Адзуллаева', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Анастасия', 'Клюшина', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Гуля', 'Тюльпина', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
