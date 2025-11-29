@@ -159,15 +159,15 @@ databaseChangeLog:
               ((SELECT id FROM users WHERE username = 'announcer'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'OBSERVER', null),
               -- Судьи для лидеров
               ((SELECT id FROM users WHERE username = 'kevin'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE_CHIEF', 'LEADER'),
-              -- ((SELECT id FROM users WHERE username = 'bogdan'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'LEADER'),
-              -- ((SELECT id FROM users WHERE username = 'egor'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'LEADER'),
-              -- ((SELECT id FROM users WHERE username = 'fedor'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'LEADER'),
-              -- ((SELECT id FROM users WHERE username = 'andrey'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'bogdan'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'egor'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'fedor'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'andrey'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'LEADER'),
               -- Судьи для фоловеров
-              -- ((SELECT id FROM users WHERE username = 'polina'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE_CHIEF', 'FOLLOWER'),
-              -- ((SELECT id FROM users WHERE username = 'yana'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'FOLLOWER'),
-              -- ((SELECT id FROM users WHERE username = 'mila'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'FOLLOWER'),
-              -- ((SELECT id FROM users WHERE username = 'masha'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'polina'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE_CHIEF', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'yana'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'mila'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'masha'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'FOLLOWER'),
               ((SELECT id FROM users WHERE username = 'darya'), (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'JUDGE', 'FOLLOWER');
 
   # Test data for users_organizations_association (judges to organization)
@@ -228,19 +228,19 @@ databaseChangeLog:
               INSERT INTO milestone_rule (assessment_mode, contestant_type, contestant_limit, round_contestant_limit, strict_pass_mode, milestone_id) VALUES
               -- Дебютанты
               -- ('PASS', 'SINGLE', 8, 8, false, (SELECT id FROM milestone WHERE name = 'Отборочный Дебютанты')),
-              ('PASS', 'SINGLE', 8, 8, false, (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты')),
-              ('SCORE', 'SINGLE', 3, 3, false, (SELECT id FROM milestone WHERE name = 'Финал Дебютанты')),
+              ('PASS', 'SINGLE', 90, 5, false, (SELECT id FROM milestone WHERE name = 'Полуфинал Дебютанты')),
+              ('SCORE', 'SINGLE', 5, 5, false, (SELECT id FROM milestone WHERE name = 'Финал Дебютанты')),
               -- Начинающие
               -- ('PASS', 'SINGLE', 12, 12, false, (SELECT id FROM milestone WHERE name = 'Отборочный Начинающие')),
-              ('PASS', 'SINGLE', 12, 4, false, (SELECT id FROM milestone WHERE name = 'Полуфинал Начинающие')),
-              ('SCORE', 'SINGLE', 3, 3, false, (SELECT id FROM milestone WHERE name = 'Финал Начинающие')),
+              ('PASS', 'SINGLE', 90, 6, false, (SELECT id FROM milestone WHERE name = 'Полуфинал Начинающие')),
+              ('SCORE', 'SINGLE', 5, 5, false, (SELECT id FROM milestone WHERE name = 'Финал Начинающие')),
               -- Любители
               -- ('PASS', 'SINGLE', 12, 12, false, (SELECT id FROM milestone WHERE name = 'Отборочный Любители')),
-              ('PASS', 'SINGLE', 12, 6, false, (SELECT id FROM milestone WHERE name = 'Полуфинал Любители')),
-              ('SCORE', 'SINGLE', 3, 3, false, (SELECT id FROM milestone WHERE name = 'Финал Любители')),
+              ('PASS', 'SINGLE', 90, 4, false, (SELECT id FROM milestone WHERE name = 'Полуфинал Любители')),
+              ('SCORE', 'SINGLE', 5, 5, false, (SELECT id FROM milestone WHERE name = 'Финал Любители')),
               -- Профессионалы
-              ('PASS', 'SINGLE', 50, 6, false, (SELECT id FROM milestone WHERE name = 'Отборочный Профессионалы')),
-              ('PASS', 'SINGLE', 12, 7, false, (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы')),
+              -- ('PASS', 'SINGLE', 50, 6, false, (SELECT id FROM milestone WHERE name = 'Отборочный Профессионалы')),
+              ('PASS', 'SINGLE', 90, 5, false, (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы')),
               ('PASS', 'COUPLE_TRANSIENT', 5, 5, false, (SELECT id FROM milestone WHERE name = 'Финал Профессионалы 5 пар')),
               ('PASS', 'COUPLE_TRANSIENT', 4, 4, true, (SELECT id FROM milestone WHERE name = 'Финал Профессионалы 4 пары')),
               ('PASS', 'COUPLE_TRANSIENT', 3, 3, true, (SELECT id FROM milestone WHERE name = 'Финал Профессионалы 3 пары')),
@@ -311,13 +311,14 @@ databaseChangeLog:
             sql: |
               INSERT INTO participant (name, surname, partner_side, is_registered, activity_id, school) VALUES
               -- Дебютанты
-              -- Лидеры 4
+              -- Лидеры 5
               ('Александр', 'Давитьян', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense'),
               ('Даниил', 'Бородулин', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense'),
               ('Павел', 'Мишов', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense'),
               ('Александр', 'Пальмов', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense'),
+              ('Сергей', 'Кауров', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense'),
               
-              -- Фоловеры 7
+              -- Фоловеры 9
               ('Ольга', 'Рожнова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense'),
               ('Елена', 'Потеряхина', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense'),
               ('Татьяна', 'Обухова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense'),
@@ -329,14 +330,15 @@ databaseChangeLog:
               ('Валерия', 'Мавлютова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты'), 'Sense'),
               
               -- Начинающие
-              -- Лидеры 5
+              -- Лидеры 6
               ('Даниил', 'Керженцев', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Евгений', 'Кортов', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Константин', 'Курнев', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Вячеслав', 'Лыков', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Сергей', 'Земзерев', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
+              ('Андрей', 'Мадюжин', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
 
-              -- Фоловеры 13
+              -- Фоловеры 12
               ('Дарья', 'Бабкина', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Полина', 'Магомедова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Анна', 'Кубуткина', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
@@ -346,8 +348,6 @@ databaseChangeLog:
               ('Марина', 'Костырева', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Александра', 'Тищенко', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Елена', 'Чистопольцева', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
-              ('Лариса', 'Галочкина', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
-              ('Ирина', 'Полякова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Мадина', 'Адзуллаева', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Анастасия', 'Клюшина', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
               ('Гуля', 'Тюльпина', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие'), 'Sense'),
@@ -370,7 +370,7 @@ databaseChangeLog:
               ('Валерия', 'Бугакова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 'Sense'),
               
               -- Профессионалы
-              -- Лидеры 6
+              -- Лидеры 10
               ('Сергей', 'Мытько', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'Sense'),
               ('Андрей', 'Ходоренко', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'Sense'),
               ('Владлен', 'Учаев', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 'Sense'),
