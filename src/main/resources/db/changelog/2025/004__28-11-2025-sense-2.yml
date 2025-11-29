@@ -211,7 +211,7 @@ databaseChangeLog:
               ('Полуфинал Любители', 'Полуфинал', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 1),
               ('Финал Любители', 'Финал', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Любители'), 0),
               -- Профессионалы
-              ('Отборочный Профессионалы', 'Отборочный этап', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 5),
+              -- ('Отборочный Профессионалы', 'Отборочный этап', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 5),
               ('Полуфинал Профессионалы', 'Полуфинал', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 4),
               ('Финал Профессионалы 5 пар', 'Финал', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 3),
               ('Финал Профессионалы 4 пары', 'Финал', 'PLANNED', (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы'), 2),
@@ -289,7 +289,7 @@ databaseChangeLog:
               
               -- Профессионалы
               -- Этап 1
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Отборочный Профессионалы')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1),
+              -- ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Отборочный Профессионалы')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1),
               -- Этап 2
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE name = 'Полуфинал Профессионалы')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1),
               -- Этап 3
