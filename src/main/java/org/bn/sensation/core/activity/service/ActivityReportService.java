@@ -96,6 +96,7 @@ public class ActivityReportService {
 
                 int counter = 1;
                 for (ActivityUserEntity activityUser : activity.getActivityUsers().stream()
+                        .filter(au -> au.getPosition().isJudge())
                         .sorted(Comparator
                                 .comparing((ActivityUserEntity au) -> partnerSideOrder(au.getPartnerSide()))
                                 .thenComparing(au -> Optional.ofNullable(au.getUser())
@@ -448,12 +449,8 @@ public class ActivityReportService {
                     .sorted(Comparator
                             .comparing((MilestoneResultEntity result) -> {
                                 ContestantEntity c = result.getContestant();
-                                if (c == null || c.getParticipants().isEmpty()) {
-                                    return Integer.MAX_VALUE;
-                                }
-                                // Берем первую сторону из участников конкурсанта
-                                PartnerSide firstSide = c.getParticipants().iterator().next().getPartnerSide();
-                                return partnerSideOrder(firstSide);
+                                PartnerSide side = c.getContestantType().hasPartnerSide() ? c.getParticipants().iterator().next().getPartnerSide() : null;
+                                return partnerSideOrder(side);
                             })
                             .thenComparing(result -> totalsByContestant.getOrDefault(result.getContestant().getId(), BigDecimal.ZERO),
                                     Comparator.nullsLast(Comparator.reverseOrder()))
@@ -462,124 +459,21 @@ public class ActivityReportService {
 
             Map<Long, Map<Long, Map<Long, Integer>>> contestantScores = aggregateJudgeScores(mainRoundJudgeResults);
 
-            for (PartnerSide side : sortedPartnerSides()) {
-                List<MilestoneResultEntity> resultsForSide = sortedResults.stream()
-                        .filter(result -> {
-                            ContestantEntity c = result.getContestant();
-                            if (c == null || c.getParticipants().isEmpty()) {
-                                return side == null;
-                            }
-                            // Проверяем, есть ли участник с нужной стороной
-                            return c.getParticipants().stream()
-                                    .anyMatch(p -> Objects.equals(p.getPartnerSide(), side));
-                        })
-                        .toList();
+            // Проверяем, нужно ли разделять по сторонам
+            boolean hasPartnerSide = milestone.getMilestoneRule() != null 
+                    && milestone.getMilestoneRule().getContestantType() != null
+                    && milestone.getMilestoneRule().getContestantType().hasPartnerSide();
 
-                if (resultsForSide.isEmpty()) {
-                    continue;
+            if (hasPartnerSide) {
+                // Разделяем по сторонам
+                for (PartnerSide side : sortedPartnerSides()) {
+                    rowIndex = createMilestoneResultsForSide(sheet, sortedResults, totalsByContestant, contestantScores,
+                            judgeColumns, side, rowIndex, headerStyle, valueStyle);
                 }
-
-                Row sideHeaderRow = sheet.createRow(rowIndex++);
-                Cell sideHeaderCell = sideHeaderRow.createCell(0);
-                sideHeaderCell.setCellValue("Сторона: " + mapPartnerSide(side));
-                sideHeaderCell.setCellStyle(headerStyle);
-                sheet.addMergedRegion(new CellRangeAddress(sideHeaderRow.getRowNum(), sideHeaderRow.getRowNum(), 0, 3));
-
-                List<JudgeColumn> judgeColumnsForSide = judgeColumns.stream()
-                        .filter(column -> isJudgeRelevantForSide(column.judge(), side))
-                        .toList();
-                if (judgeColumnsForSide.isEmpty()) {
-                    continue;
-                }
-
-                Row judgeHeader = sheet.createRow(rowIndex++);
-                Row criteriaHeader = sheet.createRow(rowIndex++);
-
-                int colIndex = 0;
-                colIndex = createMergedHeader(judgeHeader, criteriaHeader, colIndex, "#", headerStyle);
-                colIndex = createMergedHeader(judgeHeader, criteriaHeader, colIndex, "Конкурсант", headerStyle);
-                colIndex = createMergedHeader(judgeHeader, criteriaHeader, colIndex, "Сумма баллов", headerStyle);
-                colIndex = createMergedHeader(judgeHeader, criteriaHeader, colIndex, "Финально утвержден", headerStyle);
-
-                for (JudgeColumn judgeColumn : judgeColumnsForSide) {
-                    List<MilestoneCriterionEntity> criteria = judgeColumn.criteria();
-
-                    int startCol = colIndex;
-                    Cell judgeCell = judgeHeader.createCell(colIndex);
-                    judgeCell.setCellValue(buildJudgeDisplayName(judgeColumn.judge()));
-                    judgeCell.setCellStyle(headerStyle);
-
-                    if (criteria.isEmpty()) {
-                        Cell criterionCell = criteriaHeader.createCell(colIndex++);
-                        criterionCell.setCellValue("—");
-                        criterionCell.setCellStyle(headerStyle);
-                    } else {
-                        for (MilestoneCriterionEntity criterion : criteria) {
-                            Cell criterionCell = criteriaHeader.createCell(colIndex++);
-                            criterionCell.setCellValue(defaultString(criterion.getCriterion() != null
-                                    ? criterion.getCriterion().getName()
-                                    : null));
-                            criterionCell.setCellStyle(headerStyle);
-                        }
-                    }
-
-                    if (colIndex - startCol > 1) {
-                        sheet.addMergedRegion(new CellRangeAddress(
-                                judgeHeader.getRowNum(),
-                                judgeHeader.getRowNum(),
-                                startCol,
-                                colIndex - 1));
-                    }
-                }
-
-                int contestantIndex = 1;
-                for (MilestoneResultEntity result : resultsForSide) {
-                    ContestantEntity contestant = result.getContestant();
-                    if (contestant == null) {
-                        continue;
-                    }
-
-                    Row dataRow = sheet.createRow(rowIndex++);
-                    int cellIndex = 0;
-                    createCell(dataRow, cellIndex++, contestantIndex++, valueStyle);
-                    
-                    // Формируем строку: Конкурсант №X: участник1, номер, участник2, номер
-                    String contestantDisplay = "К. " + defaultString(contestant.getNumber());
-                    if (!contestant.getParticipants().isEmpty()) {
-                        String participantsInfo = contestant.getParticipants().stream()
-                                .sorted(Comparator.comparing(ParticipantEntity::getPartnerSide, Comparator.nullsLast(Enum::compareTo))
-                                        .thenComparing(ParticipantEntity::getNumber, Comparator.nullsLast(String::compareTo)))
-                                .map(p -> {
-                                    String name = buildParticipantFullName(p);
-                                    String number = defaultString(p.getNumber());
-                                    return name + (number.isEmpty() ? "" : ", #" + number);
-                                })
-                                .collect(java.util.stream.Collectors.joining("; "));
-                        contestantDisplay += ": " + participantsInfo;
-                    }
-                    createCell(dataRow, cellIndex++, contestantDisplay, valueStyle);
-
-                    BigDecimal totalScore = totalsByContestant.getOrDefault(contestant.getId(), BigDecimal.ZERO);
-                    createCell(dataRow, cellIndex++, totalScore, valueStyle);
-
-                    createCell(dataRow, cellIndex++, Boolean.TRUE.equals(result.getFinallyApproved()) ? "Да" : "", valueStyle);
-
-                    Map<Long, Map<Long, Integer>> judgeScoreMap = contestantScores.getOrDefault(contestant.getId(), Map.of());
-                    for (JudgeColumn judgeColumn : judgeColumnsForSide) {
-                        Map<Long, Integer> criterionScores = judgeScoreMap.getOrDefault(judgeColumn.judge().getId(), Map.of());
-                        List<MilestoneCriterionEntity> criteria = judgeColumn.criteria();
-                        if (criteria.isEmpty()) {
-                            createCell(dataRow, cellIndex++, "", valueStyle);
-                        } else {
-                            for (MilestoneCriterionEntity criterion : criteria) {
-                                Integer score = criterionScores.get(criterion.getId());
-                                createCell(dataRow, cellIndex++, score, valueStyle);
-                            }
-                        }
-                    }
-                }
-
-                rowIndex++;
+            } else {
+                // Не разделяем по сторонам - показываем все результаты вместе
+                rowIndex = createMilestoneResultsForSide(sheet, sortedResults, totalsByContestant, contestantScores,
+                        judgeColumns, null, rowIndex, headerStyle, valueStyle);
             }
 
             // Секция для перетанцовочных раундов
@@ -627,11 +521,8 @@ public class ActivityReportService {
                             .sorted(Comparator
                                     .comparing((MilestoneResultEntity result) -> {
                                         ContestantEntity c = result.getContestant();
-                                        if (c == null || c.getParticipants().isEmpty()) {
-                                            return Integer.MAX_VALUE;
-                                        }
-                                        PartnerSide firstSide = c.getParticipants().iterator().next().getPartnerSide();
-                                        return partnerSideOrder(firstSide);
+                                        PartnerSide side = c.getContestantType().hasPartnerSide() ? c.getParticipants().iterator().next().getPartnerSide() : null;
+                                        return partnerSideOrder(side);
                                     })
                                     .thenComparing(result -> {
                                         MilestoneRoundResultEntity roundResult = result.getRoundResults().stream()
@@ -647,131 +538,306 @@ public class ActivityReportService {
 
                     Map<Long, Map<Long, Map<Long, Integer>>> extraRoundContestantScores = aggregateJudgeScores(roundJudgeResults);
 
-                    for (PartnerSide side : sortedPartnerSides()) {
-                        List<MilestoneResultEntity> resultsForSide = extraRoundResults.stream()
-                                .filter(result -> {
-                                    ContestantEntity c = result.getContestant();
-                                    if (c == null || c.getParticipants().isEmpty()) {
-                                        return side == null;
-                                    }
-                                    return c.getParticipants().stream()
-                                            .anyMatch(p -> Objects.equals(p.getPartnerSide(), side));
-                                })
-                                .toList();
+                    // Проверяем, нужно ли разделять по сторонам для перетанцовочных раундов
+                    boolean extraRoundHasPartnerSide = milestone.getMilestoneRule() != null 
+                            && milestone.getMilestoneRule().getContestantType() != null
+                            && milestone.getMilestoneRule().getContestantType().hasPartnerSide();
 
-                        if (resultsForSide.isEmpty()) {
-                            continue;
+                    if (extraRoundHasPartnerSide) {
+                        // Разделяем по сторонам
+                        for (PartnerSide side : sortedPartnerSides()) {
+                            rowIndex = createExtraRoundResultsForSide(sheet, extraRoundResults, extraRoundContestantScores,
+                                    extraRoundJudgeColumns, side, roundId, rowIndex, headerStyle, valueStyle);
                         }
-
-                        Row sideHeaderRow = sheet.createRow(rowIndex++);
-                        Cell sideHeaderCell = sideHeaderRow.createCell(0);
-                        sideHeaderCell.setCellValue("Сторона: " + mapPartnerSide(side));
-                        sideHeaderCell.setCellStyle(headerStyle);
-                        sheet.addMergedRegion(new CellRangeAddress(sideHeaderRow.getRowNum(), sideHeaderRow.getRowNum(), 0, 3));
-
-                        List<JudgeColumn> extraRoundJudgeColumnsForSide = extraRoundJudgeColumns.stream()
-                                .filter(column -> isJudgeRelevantForSide(column.judge(), side))
-                                .toList();
-                        if (extraRoundJudgeColumnsForSide.isEmpty()) {
-                            continue;
-                        }
-
-                        Row extraRoundJudgeHeader = sheet.createRow(rowIndex++);
-                        Row extraRoundCriteriaHeader = sheet.createRow(rowIndex++);
-
-                        int colIndex = 0;
-                        colIndex = createMergedHeader(extraRoundJudgeHeader, extraRoundCriteriaHeader, colIndex, "#", headerStyle);
-                        colIndex = createMergedHeader(extraRoundJudgeHeader, extraRoundCriteriaHeader, colIndex, "Конкурсант", headerStyle);
-                        colIndex = createMergedHeader(extraRoundJudgeHeader, extraRoundCriteriaHeader, colIndex, "Баллы раунда", headerStyle);
-
-                        for (JudgeColumn judgeColumn : extraRoundJudgeColumnsForSide) {
-                            List<MilestoneCriterionEntity> criteria = judgeColumn.criteria();
-
-                            int startCol = colIndex;
-                            Cell judgeCell = extraRoundJudgeHeader.createCell(colIndex);
-                            judgeCell.setCellValue(buildJudgeDisplayName(judgeColumn.judge()));
-                            judgeCell.setCellStyle(headerStyle);
-
-                            if (criteria.isEmpty()) {
-                                Cell criterionCell = extraRoundCriteriaHeader.createCell(colIndex++);
-                                criterionCell.setCellValue("—");
-                                criterionCell.setCellStyle(headerStyle);
-                            } else {
-                                for (MilestoneCriterionEntity criterion : criteria) {
-                                    Cell criterionCell = extraRoundCriteriaHeader.createCell(colIndex++);
-                                    criterionCell.setCellValue(defaultString(criterion.getCriterion() != null
-                                            ? criterion.getCriterion().getName()
-                                            : null));
-                                    criterionCell.setCellStyle(headerStyle);
-                                }
-                            }
-
-                            if (colIndex - startCol > 1) {
-                                sheet.addMergedRegion(new CellRangeAddress(
-                                        extraRoundJudgeHeader.getRowNum(),
-                                        extraRoundJudgeHeader.getRowNum(),
-                                        startCol,
-                                        colIndex - 1));
-                            }
-                        }
-
-                        int contestantIndex = 1;
-                        for (MilestoneResultEntity result : resultsForSide) {
-                            ContestantEntity contestant = result.getContestant();
-                            if (contestant == null) {
-                                continue;
-                            }
-
-                            Row dataRow = sheet.createRow(rowIndex++);
-                            int cellIndex = 0;
-                            createCell(dataRow, cellIndex++, contestantIndex++, valueStyle);
-
-                            String contestantDisplay = "К. " + defaultString(contestant.getNumber());
-                            if (!contestant.getParticipants().isEmpty()) {
-                                String participantsInfo = contestant.getParticipants().stream()
-                                        .sorted(Comparator.comparing(ParticipantEntity::getPartnerSide, Comparator.nullsLast(Enum::compareTo))
-                                                .thenComparing(ParticipantEntity::getNumber, Comparator.nullsLast(String::compareTo)))
-                                        .map(p -> {
-                                            String name = buildParticipantFullName(p);
-                                            String number = defaultString(p.getNumber());
-                                            return name + (number.isEmpty() ? "" : " (#" + number + ")");
-                                        })
-                                        .collect(java.util.stream.Collectors.joining("; "));
-                                contestantDisplay += ": " + participantsInfo;
-                            }
-                            createCell(dataRow, cellIndex++, contestantDisplay, valueStyle);
-
-                            // Баллы только для этого перетанцовочного раунда
-                            MilestoneRoundResultEntity roundResult = result.getRoundResults().stream()
-                                    .filter(rr -> rr.getRound() != null && Objects.equals(rr.getRound().getId(), roundId))
-                                    .findFirst()
-                                    .orElse(null);
-                            BigDecimal roundScore = roundResult != null && roundResult.getTotalScore() != null 
-                                    ? roundResult.getTotalScore() 
-                                    : BigDecimal.ZERO;
-                            createCell(dataRow, cellIndex++, roundScore, valueStyle);
-
-                            Map<Long, Map<Long, Integer>> judgeScoreMap = extraRoundContestantScores.getOrDefault(contestant.getId(), Map.of());
-                            for (JudgeColumn judgeColumn : extraRoundJudgeColumnsForSide) {
-                                Map<Long, Integer> criterionScores = judgeScoreMap.getOrDefault(judgeColumn.judge().getId(), Map.of());
-                                List<MilestoneCriterionEntity> criteria = judgeColumn.criteria();
-                                if (criteria.isEmpty()) {
-                                    createCell(dataRow, cellIndex++, "", valueStyle);
-                                } else {
-                                    for (MilestoneCriterionEntity criterion : criteria) {
-                                        Integer score = criterionScores.get(criterion.getId());
-                                        createCell(dataRow, cellIndex++, score, valueStyle);
-                                    }
-                                }
-                            }
-                        }
-
-                        rowIndex++;
+                    } else {
+                        // Не разделяем по сторонам - показываем все результаты вместе
+                        rowIndex = createExtraRoundResultsForSide(sheet, extraRoundResults, extraRoundContestantScores,
+                                extraRoundJudgeColumns, null, roundId, rowIndex, headerStyle, valueStyle);
                     }
                 }
             }
         }
 
+        return rowIndex;
+    }
+
+    private int createMilestoneResultsForSide(
+            Sheet sheet,
+            List<MilestoneResultEntity> sortedResults,
+            Map<Long, BigDecimal> totalsByContestant,
+            Map<Long, Map<Long, Map<Long, Integer>>> contestantScores,
+            List<JudgeColumn> judgeColumns,
+            PartnerSide side,
+            int startRow,
+            CellStyle headerStyle,
+            CellStyle valueStyle) {
+        int rowIndex = startRow;
+
+        List<MilestoneResultEntity> resultsForSide = sortedResults.stream()
+                .filter(result -> {
+                    if (side == null) {
+                        // Если side == null, показываем все результаты
+                        return true;
+                    }
+                    ContestantEntity c = result.getContestant();
+                    if (c == null || c.getParticipants().isEmpty()) {
+                        return false;
+                    }
+                    // Проверяем, есть ли участник с нужной стороной
+                    return c.getParticipants().stream()
+                            .anyMatch(p -> Objects.equals(p.getPartnerSide(), side));
+                })
+                .toList();
+
+        if (resultsForSide.isEmpty()) {
+            return rowIndex;
+        }
+
+        // Добавляем заголовок стороны только если side != null
+        if (side != null) {
+            Row sideHeaderRow = sheet.createRow(rowIndex++);
+            Cell sideHeaderCell = sideHeaderRow.createCell(0);
+            sideHeaderCell.setCellValue("Сторона: " + mapPartnerSide(side));
+            sideHeaderCell.setCellStyle(headerStyle);
+            sheet.addMergedRegion(new CellRangeAddress(sideHeaderRow.getRowNum(), sideHeaderRow.getRowNum(), 0, 3));
+        }
+
+        List<JudgeColumn> judgeColumnsForSide = judgeColumns.stream()
+                .filter(column -> side == null || isJudgeRelevantForSide(column.judge(), side))
+                .toList();
+        if (judgeColumnsForSide.isEmpty()) {
+            return rowIndex;
+        }
+
+        Row judgeHeader = sheet.createRow(rowIndex++);
+        Row criteriaHeader = sheet.createRow(rowIndex++);
+
+        int colIndex = 0;
+        colIndex = createMergedHeader(judgeHeader, criteriaHeader, colIndex, "#", headerStyle);
+        colIndex = createMergedHeader(judgeHeader, criteriaHeader, colIndex, "Конкурсант", headerStyle);
+        colIndex = createMergedHeader(judgeHeader, criteriaHeader, colIndex, "Сумма баллов", headerStyle);
+        colIndex = createMergedHeader(judgeHeader, criteriaHeader, colIndex, "Финально утвержден", headerStyle);
+
+        for (JudgeColumn judgeColumn : judgeColumnsForSide) {
+            List<MilestoneCriterionEntity> criteria = judgeColumn.criteria();
+
+            int startCol = colIndex;
+            Cell judgeCell = judgeHeader.createCell(colIndex);
+            judgeCell.setCellValue(buildJudgeDisplayName(judgeColumn.judge()));
+            judgeCell.setCellStyle(headerStyle);
+
+            if (criteria.isEmpty()) {
+                Cell criterionCell = criteriaHeader.createCell(colIndex++);
+                criterionCell.setCellValue("—");
+                criterionCell.setCellStyle(headerStyle);
+            } else {
+                for (MilestoneCriterionEntity criterion : criteria) {
+                    Cell criterionCell = criteriaHeader.createCell(colIndex++);
+                    criterionCell.setCellValue(defaultString(criterion.getCriterion() != null
+                            ? criterion.getCriterion().getName()
+                            : null));
+                    criterionCell.setCellStyle(headerStyle);
+                }
+            }
+
+            if (colIndex - startCol > 1) {
+                sheet.addMergedRegion(new CellRangeAddress(
+                        judgeHeader.getRowNum(),
+                        judgeHeader.getRowNum(),
+                        startCol,
+                        colIndex - 1));
+            }
+        }
+
+        int contestantIndex = 1;
+        for (MilestoneResultEntity result : resultsForSide) {
+            ContestantEntity contestant = result.getContestant();
+            if (contestant == null) {
+                continue;
+            }
+
+            Row dataRow = sheet.createRow(rowIndex++);
+            int cellIndex = 0;
+            createCell(dataRow, cellIndex++, contestantIndex++, valueStyle);
+            
+            // Формируем строку: Конкурсант №X: участник1, номер, участник2, номер
+            String contestantDisplay = "К. " + defaultString(contestant.getNumber());
+            if (!contestant.getParticipants().isEmpty()) {
+                String participantsInfo = contestant.getParticipants().stream()
+                        .sorted(Comparator.comparing(ParticipantEntity::getPartnerSide, Comparator.nullsLast(Enum::compareTo))
+                                .thenComparing(ParticipantEntity::getNumber, Comparator.nullsLast(String::compareTo)))
+                        .map(p -> {
+                            String name = buildParticipantFullName(p);
+                            String number = defaultString(p.getNumber());
+                            return name + (number.isEmpty() ? "" : ", #" + number);
+                        })
+                        .collect(java.util.stream.Collectors.joining("; "));
+                contestantDisplay += ": " + participantsInfo;
+            }
+            createCell(dataRow, cellIndex++, contestantDisplay, valueStyle);
+
+            BigDecimal totalScore = totalsByContestant.getOrDefault(contestant.getId(), BigDecimal.ZERO);
+            createCell(dataRow, cellIndex++, totalScore, valueStyle);
+
+            createCell(dataRow, cellIndex++, Boolean.TRUE.equals(result.getFinallyApproved()) ? "Да" : "", valueStyle);
+
+            Map<Long, Map<Long, Integer>> judgeScoreMap = contestantScores.getOrDefault(contestant.getId(), Map.of());
+            for (JudgeColumn judgeColumn : judgeColumnsForSide) {
+                Map<Long, Integer> criterionScores = judgeScoreMap.getOrDefault(judgeColumn.judge().getId(), Map.of());
+                List<MilestoneCriterionEntity> criteria = judgeColumn.criteria();
+                if (criteria.isEmpty()) {
+                    createCell(dataRow, cellIndex++, "", valueStyle);
+                } else {
+                    for (MilestoneCriterionEntity criterion : criteria) {
+                        Integer score = criterionScores.get(criterion.getId());
+                        createCell(dataRow, cellIndex++, score, valueStyle);
+                    }
+                }
+            }
+        }
+
+        rowIndex++;
+        return rowIndex;
+    }
+
+    private int createExtraRoundResultsForSide(
+            Sheet sheet,
+            List<MilestoneResultEntity> extraRoundResults,
+            Map<Long, Map<Long, Map<Long, Integer>>> extraRoundContestantScores,
+            List<JudgeColumn> extraRoundJudgeColumns,
+            PartnerSide side,
+            Long roundId,
+            int startRow,
+            CellStyle headerStyle,
+            CellStyle valueStyle) {
+        int rowIndex = startRow;
+
+        List<MilestoneResultEntity> resultsForSide = extraRoundResults.stream()
+                .filter(result -> {
+                    if (side == null) {
+                        // Если side == null, показываем все результаты
+                        return true;
+                    }
+                    ContestantEntity c = result.getContestant();
+                    if (c == null || c.getParticipants().isEmpty()) {
+                        return false;
+                    }
+                    return c.getParticipants().stream()
+                            .anyMatch(p -> Objects.equals(p.getPartnerSide(), side));
+                })
+                .toList();
+
+        if (resultsForSide.isEmpty()) {
+            return rowIndex;
+        }
+
+        // Добавляем заголовок стороны только если side != null
+        if (side != null) {
+            Row sideHeaderRow = sheet.createRow(rowIndex++);
+            Cell sideHeaderCell = sideHeaderRow.createCell(0);
+            sideHeaderCell.setCellValue("Сторона: " + mapPartnerSide(side));
+            sideHeaderCell.setCellStyle(headerStyle);
+            sheet.addMergedRegion(new CellRangeAddress(sideHeaderRow.getRowNum(), sideHeaderRow.getRowNum(), 0, 3));
+        }
+
+        List<JudgeColumn> extraRoundJudgeColumnsForSide = extraRoundJudgeColumns.stream()
+                .filter(column -> side == null || isJudgeRelevantForSide(column.judge(), side))
+                .toList();
+        if (extraRoundJudgeColumnsForSide.isEmpty()) {
+            return rowIndex;
+        }
+
+        Row extraRoundJudgeHeader = sheet.createRow(rowIndex++);
+        Row extraRoundCriteriaHeader = sheet.createRow(rowIndex++);
+
+        int colIndex = 0;
+        colIndex = createMergedHeader(extraRoundJudgeHeader, extraRoundCriteriaHeader, colIndex, "#", headerStyle);
+        colIndex = createMergedHeader(extraRoundJudgeHeader, extraRoundCriteriaHeader, colIndex, "Конкурсант", headerStyle);
+        colIndex = createMergedHeader(extraRoundJudgeHeader, extraRoundCriteriaHeader, colIndex, "Баллы раунда", headerStyle);
+
+        for (JudgeColumn judgeColumn : extraRoundJudgeColumnsForSide) {
+            List<MilestoneCriterionEntity> criteria = judgeColumn.criteria();
+
+            int startCol = colIndex;
+            Cell judgeCell = extraRoundJudgeHeader.createCell(colIndex);
+            judgeCell.setCellValue(buildJudgeDisplayName(judgeColumn.judge()));
+            judgeCell.setCellStyle(headerStyle);
+
+            if (criteria.isEmpty()) {
+                Cell criterionCell = extraRoundCriteriaHeader.createCell(colIndex++);
+                criterionCell.setCellValue("—");
+                criterionCell.setCellStyle(headerStyle);
+            } else {
+                for (MilestoneCriterionEntity criterion : criteria) {
+                    Cell criterionCell = extraRoundCriteriaHeader.createCell(colIndex++);
+                    criterionCell.setCellValue(defaultString(criterion.getCriterion() != null
+                            ? criterion.getCriterion().getName()
+                            : null));
+                    criterionCell.setCellStyle(headerStyle);
+                }
+            }
+
+            if (colIndex - startCol > 1) {
+                sheet.addMergedRegion(new CellRangeAddress(
+                        extraRoundJudgeHeader.getRowNum(),
+                        extraRoundJudgeHeader.getRowNum(),
+                        startCol,
+                        colIndex - 1));
+            }
+        }
+
+        int contestantIndex = 1;
+        for (MilestoneResultEntity result : resultsForSide) {
+            ContestantEntity contestant = result.getContestant();
+            if (contestant == null) {
+                continue;
+            }
+
+            Row dataRow = sheet.createRow(rowIndex++);
+            int cellIndex = 0;
+            createCell(dataRow, cellIndex++, contestantIndex++, valueStyle);
+
+            String contestantDisplay = "К. " + defaultString(contestant.getNumber());
+            if (!contestant.getParticipants().isEmpty()) {
+                String participantsInfo = contestant.getParticipants().stream()
+                        .sorted(Comparator.comparing(ParticipantEntity::getPartnerSide, Comparator.nullsLast(Enum::compareTo))
+                                .thenComparing(ParticipantEntity::getNumber, Comparator.nullsLast(String::compareTo)))
+                        .map(p -> {
+                            String name = buildParticipantFullName(p);
+                            String number = defaultString(p.getNumber());
+                            return name + (number.isEmpty() ? "" : " (#" + number + ")");
+                        })
+                        .collect(java.util.stream.Collectors.joining("; "));
+                contestantDisplay += ": " + participantsInfo;
+            }
+            createCell(dataRow, cellIndex++, contestantDisplay, valueStyle);
+
+            // Баллы только для этого перетанцовочного раунда
+            MilestoneRoundResultEntity roundResult = result.getRoundResults().stream()
+                    .filter(rr -> rr.getRound() != null && Objects.equals(rr.getRound().getId(), roundId))
+                    .findFirst()
+                    .orElse(null);
+            BigDecimal roundScore = roundResult != null && roundResult.getTotalScore() != null 
+                    ? roundResult.getTotalScore() 
+                    : BigDecimal.ZERO;
+            createCell(dataRow, cellIndex++, roundScore, valueStyle);
+
+            Map<Long, Map<Long, Integer>> judgeScoreMap = extraRoundContestantScores.getOrDefault(contestant.getId(), Map.of());
+            for (JudgeColumn judgeColumn : extraRoundJudgeColumnsForSide) {
+                Map<Long, Integer> criterionScores = judgeScoreMap.getOrDefault(judgeColumn.judge().getId(), Map.of());
+                List<MilestoneCriterionEntity> criteria = judgeColumn.criteria();
+                if (criteria.isEmpty()) {
+                    createCell(dataRow, cellIndex++, "", valueStyle);
+                } else {
+                    for (MilestoneCriterionEntity criterion : criteria) {
+                        Integer score = criterionScores.get(criterion.getId());
+                        createCell(dataRow, cellIndex++, score, valueStyle);
+                    }
+                }
+            }
+        }
+
+        rowIndex++;
         return rowIndex;
     }
 
@@ -784,11 +850,8 @@ public class ActivityReportService {
         Comparator<ActivityResultEntity> activityResultComparator = Comparator
                 .comparing((ActivityResultEntity result) -> {
                     ContestantEntity c = result.getContestant();
-                    if (c == null || c.getParticipants().isEmpty()) {
-                        return Integer.MAX_VALUE;
-                    }
-                    PartnerSide firstSide = c.getParticipants().iterator().next().getPartnerSide();
-                    return partnerSideOrder(firstSide);
+                    PartnerSide side = c.getContestantType().hasPartnerSide() ? c.getParticipants().iterator().next().getPartnerSide() : null;
+                    return partnerSideOrder(side);
                 })
                 .thenComparing(ActivityResultEntity::getPlace, Comparator.nullsLast(Integer::compareTo))
                 .thenComparing(result -> defaultString(result.getContestant() != null ? result.getContestant().getNumber() : null));

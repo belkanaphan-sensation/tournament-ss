@@ -29,6 +29,7 @@ import org.bn.sensation.core.milestoneresult.service.MilestoneResultService;
 import org.bn.sensation.core.milestoneresult.service.dto.MilestoneResultDto;
 import org.bn.sensation.core.participant.entity.ParticipantEntity;
 import org.bn.sensation.core.participant.repository.ParticipantRepository;
+import org.bn.sensation.core.round.repository.RoundRepository;
 import org.bn.sensation.core.round.service.RoundService;
 import org.bn.sensation.core.round.service.RoundStateMachineService;
 import org.bn.sensation.core.round.service.dto.RoundDto;
@@ -62,6 +63,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     private final UpdateMilestoneRequestMapper updateMilestoneRequestMapper;
     private final ContestantService contestantService;
     private final ContestantRepository contestantRepository;
+    private final RoundRepository roundRepository;
 
     @Override
     public BaseRepository<MilestoneEntity> getRepository() {
@@ -233,6 +235,11 @@ public class MilestoneServiceImpl implements MilestoneService {
         log.info("Пропуск этапа: id={}", id);
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(id);
         milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.SKIP);
+        milestone.getContestants().forEach(contestant ->
+                contestant.getRounds().removeAll(milestone.getRounds())
+        );
+        roundRepository.deleteAll(milestone.getRounds());
+        milestone.getRounds().clear();
         if (milestone.getMilestoneOrder() != 0) {
             MilestoneEntity nextMilestone = milestoneRepository.getByActivityIdAndMilestoneOrderOrThrow(milestone.getActivity().getId(), milestone.getMilestoneOrder() - 1);
             Set<ContestantEntity> contestants = new HashSet<>(milestone.getContestants());

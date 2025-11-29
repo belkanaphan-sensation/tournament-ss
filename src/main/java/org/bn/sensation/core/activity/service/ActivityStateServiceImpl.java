@@ -47,7 +47,7 @@ public class ActivityStateServiceImpl implements BaseStateService<ActivityEntity
                             activity.getOccasion().getState())
                     : null;
             case SUM_UP, COMPLETE -> activity.getMilestones().stream()
-                    .anyMatch(ms -> ms.getState() != MilestoneState.COMPLETED)
+                    .anyMatch(ms -> ms.getState() != MilestoneState.COMPLETED || ms.getState() != MilestoneState.SKIPPED)
                     ? "Нельзя завершить активность, т.к. есть незавершенные этапы"
                     : null;
         };

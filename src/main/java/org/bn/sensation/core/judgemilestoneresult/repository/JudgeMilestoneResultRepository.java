@@ -36,6 +36,7 @@ public interface JudgeMilestoneResultRepository extends BaseRepository<JudgeMile
             """)
     List<JudgeMilestoneResultEntity> findByContestantId(Long contestantId);
 
+    @EntityGraph(attributePaths = {"contestant", "round", "milestoneCriterion", "activityUser"})
     @Query("""
             SELECT DISTINCT jm
             FROM JudgeMilestoneResultEntity jm

@@ -1,8 +1,11 @@
 package org.bn.sensation.core.user.service.dto;
 
+import org.bn.sensation.core.user.entity.Role;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 public record RegistrationRequest(
@@ -26,6 +29,10 @@ public record RegistrationRequest(
 
         @Schema(description = "Номер телефона", example = "+7 777 123-45-67")
         @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Некорректный номер телефона")
-        String phoneNumber
+        String phoneNumber,
+
+        @NotNull
+        @Schema(description = "Роль пользователя", example = "USER")
+        Role role
 ) {
 }

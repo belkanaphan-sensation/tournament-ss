@@ -61,16 +61,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
     @Override
     @Transactional(readOnly = true)
     public List<MilestoneResultDto> getByMilestoneId(Long milestoneId) {
-        return milestoneResultRepository.findAllByMilestoneId(milestoneId)
-                .stream()
-                .sorted(Comparator.comparing(MilestoneResultEntity::getFinallyApproved, Comparator.reverseOrder())
-                        .thenComparing(mr -> mr.getRoundResults().stream()
-                                .map(MilestoneRoundResultEntity::getJudgePassed)
-                                .min(Comparator.naturalOrder())
-                                .get())
-                        .thenComparing(mr -> mr.getContestant().getNumber()))
-                .map(milestoneResultDtoMapper::toDto)
-                .toList();
+        return getSortedDtos(milestoneResultRepository.findAllByMilestoneId(milestoneId));
     }
 
     @Override
@@ -95,16 +86,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         milestoneResultRepository.saveAll(toSave);
         log.info("Сохранено {} результатов этапа milestoneId={}", toSave.size(), milestone.getId());
 
-        return milestoneResultRepository.findAllByMilestoneId(milestone.getId())
-                .stream()
-                .sorted(Comparator.comparing(MilestoneResultEntity::getFinallyApproved, Comparator.reverseOrder())
-                        .thenComparing(mr -> mr.getRoundResults().stream()
-                                .map(MilestoneRoundResultEntity::getJudgePassed)
-                                .min(Comparator.naturalOrder())
-                                .get())
-                        .thenComparing(mr -> mr.getContestant().getNumber()))
-                .map(milestoneResultDtoMapper::toDto)
-                .toList();
+        return getSortedDtos(milestoneResultRepository.findAllByMilestoneId(milestone.getId()));
     }
 
     @Override
@@ -127,16 +109,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
                         "Одновременно может быть только один активный дополнительный раунд");
                 return calculateExtraResults(milestone, extraRounds.get(0));
             }
-            return milestone.getResults()
-                    .stream()
-                    .sorted(Comparator.comparing(MilestoneResultEntity::getFinallyApproved, Comparator.reverseOrder())
-                            .thenComparing(mr -> mr.getRoundResults().stream()
-                                    .map(MilestoneRoundResultEntity::getJudgePassed)
-                                    .min(Comparator.naturalOrder())
-                                    .get())
-                            .thenComparing(mr -> mr.getContestant().getNumber()))
-                    .map(milestoneResultDtoMapper::toDto)
-                    .toList();
+            return getSortedDtos(milestone.getResults());
         }
     }
 
@@ -148,8 +121,6 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         Map<Long, MilestoneResultEntity> pIdToResult = milestone.getResults().stream()
                 .collect(Collectors.toMap(mr -> mr.getContestant().getId(), Function.identity()));
         long limit = getContestantLimit(milestone);
-        List<MilestoneRoundResultEntity> toDistribute = new ArrayList<>();
-        List<MilestoneResultEntity> toSave = new ArrayList<>();
         if (milestone.getMilestoneRule().getContestantType().hasPartnerSide()) {
             //Map<PartnerSide, Map<ContestantId, List<JudgeMilestoneResultEntity>>>
             Map<PartnerSide, Map<Long, List<JudgeMilestoneResultEntity>>> resultsMap = judgeMilestoneResultRepository.findByRoundId(round.getId())
@@ -158,32 +129,33 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
                                     Collectors.groupingBy(jmr -> jmr.getContestant().getId())));
             for (Map.Entry<PartnerSide, Map<Long, List<JudgeMilestoneResultEntity>>> entry : resultsMap.entrySet()) {
                 log.debug("Результаты сгруппированы по уникальным оценкам для стороны {}", entry.getKey());
-                Map<Long, List<JudgeMilestoneResultEntity>> roundJudgeResults = entry.getValue();
-                long remainingPlaces = limit - milestone.getResults().stream()
-                        .filter(res -> Boolean.TRUE.equals(res.getFinallyApproved())
-                                && res.getContestant().getParticipants().iterator().next().getPartnerSide() == entry.getKey()).count();
-                distributeForExtra(milestone, round, roundJudgeResults, pIdToResult, toDistribute, toSave, remainingPlaces);
-                milestoneResultRepository.saveAll(toSave);
+                calculate(milestone, round, entry.getValue(), limit, pIdToResult, entry.getKey());
             }
         } else {
-            //Map<ContestantId, List<JudgeMilestoneResultEntity>>
+            log.debug("Результаты без partnerSide");
             Map<Long, List<JudgeMilestoneResultEntity>> roundJudgeResults = judgeMilestoneResultRepository.findByRoundId(round.getId())
                     .stream().collect(Collectors.groupingBy(jmr -> jmr.getContestant().getId()));
-            long remainingPlaces = limit - milestone.getResults().stream()
-                    .filter(res -> Boolean.TRUE.equals(res.getFinallyApproved())).count();
-            distributeForExtra(milestone, round, roundJudgeResults, pIdToResult, toDistribute, toSave, remainingPlaces);
-            milestoneResultRepository.saveAll(toSave);
+            calculate(milestone, round, roundJudgeResults, limit, pIdToResult, null);
         }
-        return milestoneResultRepository.findAllByMilestoneId(milestone.getId())
-                .stream()
-                .sorted(Comparator.comparing(MilestoneResultEntity::getFinallyApproved, Comparator.reverseOrder())
-                        .thenComparing(mr -> mr.getRoundResults().stream()
-                                .map(MilestoneRoundResultEntity::getJudgePassed)
-                                .min(Comparator.naturalOrder())
-                                .get())
-                        .thenComparing(mr -> mr.getContestant().getNumber()))
-                .map(milestoneResultDtoMapper::toDto)
-                .toList();
+        return getSortedDtos(milestoneResultRepository.findAllByMilestoneId(milestone.getId()));
+    }
+
+    private void calculate(
+            MilestoneEntity milestone,
+            RoundEntity round,
+            Map<Long, List<JudgeMilestoneResultEntity>> roundJudgeResults,
+            long limit,
+            Map<Long, MilestoneResultEntity> pIdToResult,
+            PartnerSide partnerSide) {
+        List<MilestoneRoundResultEntity> toDistribute = new ArrayList<>();
+        List<MilestoneResultEntity> toSave = new ArrayList<>();
+        long approvedAlready = milestone.getResults().stream()
+                .filter(res -> Boolean.TRUE.equals(res.getFinallyApproved())
+                        && (partnerSide == null || res.getContestant().getParticipants().iterator().next().getPartnerSide() == partnerSide)).count();
+        long remainingPlaces = limit - approvedAlready;
+        log.debug("Для стороны {} было всего мест {}, осталось {}", partnerSide, limit, remainingPlaces);
+        distributeForExtra(milestone, round, roundJudgeResults, pIdToResult, toDistribute, toSave, remainingPlaces);
+        milestoneResultRepository.saveAll(toSave);
     }
 
     private void distributeForExtra(MilestoneEntity milestone, RoundEntity round, Map<Long, List<JudgeMilestoneResultEntity>> roundJudgeResults, Map<Long, MilestoneResultEntity> pIdToResult, List<MilestoneRoundResultEntity> toDistribute, List<MilestoneResultEntity> toSave, long remainingPlaces) {
@@ -253,7 +225,11 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
         log.info("Сохранено {} результатов этапа в базу данных", savedEntities.size());
         milestone.getResults().addAll(savedEntities);
 
-        return savedEntities
+        return getSortedDtos(savedEntities);
+    }
+
+    private List<MilestoneResultDto> getSortedDtos(Collection<MilestoneResultEntity> results) {
+        return results
                 .stream()
                 .sorted(Comparator.comparing(MilestoneResultEntity::getFinallyApproved, Comparator.reverseOrder())
                         .thenComparing(mr -> mr.getRoundResults().stream()
@@ -348,7 +324,7 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
 
     private int getFinalResultCount(MilestoneEntity milestone) {
         return milestone.getMilestoneRule().getContestantType().hasPartnerSide()
-                ? milestone.getContestants().size()/2
+                ? milestone.getContestants().size() / 2
                 : milestone.getContestants().size();
     }
 

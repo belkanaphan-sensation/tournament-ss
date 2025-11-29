@@ -155,7 +155,7 @@ public class UserServiceImpl implements UserService {
                 .username(request.username())
                 .password(passwordEncoder.encode(request.password()))
                 .status(UserStatus.ACTIVE)
-                .roles(Set.of(Role.USER))
+                .roles(Set.of(request.role()))
                 .person(Person.builder()
                         .name(request.name())
                         .surname(request.surname())
