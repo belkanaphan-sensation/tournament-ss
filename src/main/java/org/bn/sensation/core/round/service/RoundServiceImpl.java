@@ -258,7 +258,6 @@ public class RoundServiceImpl implements RoundService {
             return List.of(finalRound);
         }
 
-        boolean distribute = false;
         log.debug("Лимит конкурсантов на раунд: {}", roundLimit);
         List<ContestantEntity> contestants = new ArrayList<>(milestone.getContestants());
         List<ContestantEntity> leaders = new ArrayList<>();
@@ -280,10 +279,7 @@ public class RoundServiceImpl implements RoundService {
         int remainder = dividend % roundLimit;
         log.debug("Расчет раундов: всего конкурсантов={}, раундов={}, остаток={}",
                 dividend, roundCount, remainder);
-        if (remainder <= roundLimit / 2 && remainder <= roundCount) {
-            distribute = true;
-            log.debug("Остаток будет распределен по существующим раундам");
-        } else {
+        if (remainder > 0) {
             roundCount++;
             log.debug("Создается дополнительный раунд для остатка");
         }
@@ -308,20 +304,11 @@ public class RoundServiceImpl implements RoundService {
                     j++;
                     log.trace("Добавлены конкурсанты в раунд {}, всего конкурсантов распределенных по сторонам: {}", i + 1, round.getContestants().size());
                 }
-                if (distribute) {
-                    addToRound(leaders, round);
-                    addToRound(followers, round);
-                    log.debug("Добавлен дополнительный конкурсант в раунд {} (распределение остатка)", i + 1);
-                }
             } else {
                 while (j < roundLimit && !contestants.isEmpty()) {
                     addToRound(contestants, round);
                     j++;
                     log.trace("Добавлен конкурсант в раунд {}, всего конкурсантов: {}", i + 1, round.getContestants().size());
-                }
-                if (distribute) {
-                    addToRound(contestants, round);
-                    log.debug("Добавлен дополнительный конкурсант в раунд {} (распределение остатка)", i + 1);
                 }
             }
             log.debug("Раунд {} сформирован: {} конкурсантов", i, round.getContestants().size());

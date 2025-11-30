@@ -616,7 +616,7 @@ public class ActivityReportService {
         colIndex = createMergedHeader(judgeHeader, criteriaHeader, colIndex, "#", headerStyle);
         colIndex = createMergedHeader(judgeHeader, criteriaHeader, colIndex, "Конкурсант", headerStyle);
         colIndex = createMergedHeader(judgeHeader, criteriaHeader, colIndex, "Сумма баллов", headerStyle);
-        colIndex = createMergedHeader(judgeHeader, criteriaHeader, colIndex, "Финально утвержден", headerStyle);
+        colIndex = createMergedHeader(judgeHeader, criteriaHeader, colIndex, "Финальное решение судей", headerStyle);
 
         for (JudgeColumn judgeColumn : judgeColumnsForSide) {
             List<MilestoneCriterionEntity> criteria = judgeColumn.criteria();

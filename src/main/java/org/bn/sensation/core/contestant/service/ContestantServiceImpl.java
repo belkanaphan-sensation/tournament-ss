@@ -112,14 +112,33 @@ public class ContestantServiceImpl implements ContestantService {
                     })
                     .toList();
             case COUPLE_TRANSIENT, COUPLE_PERSISTENT -> {
-                List<ParticipantEntity> leaders = participants.stream().filter(p -> p.getPartnerSide() == PartnerSide.LEADER).toList();
+                MilestoneEntity previousMilestone = milestoneRepository.findByActivityIdAndMilestoneOrder(milestone.getActivity().getId(), milestone.getMilestoneOrder() + 1).orElse(null);
+                Map<Long, Long> previousCouples = new HashMap<>();
+                if (previousMilestone != null
+                        && previousMilestone.getState() != MilestoneState.SKIPPED
+                        && previousMilestone.getMilestoneRule().getContestantType() == milestone.getMilestoneRule().getContestantType()) {
+                    previousMilestone.getContestants().forEach(c -> {
+                        Iterator<ParticipantEntity> iterator = c.getParticipants().iterator();
+                        ParticipantEntity p1 = iterator.next();
+                        ParticipantEntity p2 = iterator.next();
+                        previousCouples.put(p1.getId(), p2.getId());
+                        previousCouples.put(p2.getId(), p1.getId());
+                    });
+                }
+                List<ParticipantEntity> leaders = new ArrayList<>(participants.stream().filter(p -> p.getPartnerSide() == PartnerSide.LEADER).toList());
                 List<ParticipantEntity> followers = new ArrayList<>(participants.stream().filter(p -> p.getPartnerSide() == PartnerSide.FOLLOWER).toList());
                 Preconditions.checkArgument(leaders.size() == followers.size(), "Количество партнеров и партнерш должно быть одинаковое");
+                Collections.shuffle(leaders);
                 Collections.shuffle(followers);
                 List<ContestantEntity> c = new ArrayList<>();
                 for (int i = 0; i < leaders.size(); i++) {
                     ParticipantEntity leader = leaders.get(i);
                     ParticipantEntity follower = followers.remove(0);
+                    Long prevFollowerId = previousCouples.get(leader.getId());
+                    if (prevFollowerId != null && follower.getId().equals(prevFollowerId)) {
+                        followers.add(follower);
+                        follower = followers.remove(0);
+                    }
                     ContestantEntity entity = new ContestantEntity();
                     entity.setNumber(getNumber(milestone, List.of(leader, follower)));
                     entity.setContestantType(type);
