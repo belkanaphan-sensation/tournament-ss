@@ -1,5 +1,6 @@
 package org.bn.sensation.core.contestant.service.dto;
 
+import org.bn.sensation.core.assistant.service.dto.AssistantDto;
 import org.bn.sensation.core.common.dto.EmptyDto;
 import org.bn.sensation.core.common.entity.PartnerSide;
 
@@ -31,4 +32,7 @@ public class ContestParticipantDto extends EmptyDto {
 
     @Schema(description = "Фамилия")
     private String surname;
+
+    @Schema(description = "Ассистент")
+    private AssistantDto assistant;
 }

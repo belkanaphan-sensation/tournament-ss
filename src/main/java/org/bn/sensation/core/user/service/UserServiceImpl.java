@@ -55,11 +55,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<UserDto> findById(Long id) {
         log.debug("Поиск пользователя по id={}", id);
-        Optional<UserDto> result = UserService.super.findById(id)
-                .map(userDto -> {
+        Optional<UserDto> result = UserService.super.findById(id);
+                /*.map(userDto -> {
                     userDto.setPassword(passwordEncoder.decrypt(userDto.getPassword()));
                     return userDto;
-                });
+                });*/
         if (result.isPresent()) {
             log.debug("Пользователь найден: id={}, username={}", id, result.get().getUsername());
         } else {

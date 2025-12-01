@@ -8,6 +8,8 @@ import org.apache.logging.log4j.util.Strings;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.activity.statemachine.ActivityState;
+import org.bn.sensation.core.assistant.entity.AssistantEntity;
+import org.bn.sensation.core.assistant.repository.AssistantRepository;
 import org.bn.sensation.core.common.dto.PersonDto;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
@@ -37,6 +39,7 @@ public class ParticipantServiceImpl implements ParticipantService {
 
     private final ParticipantRepository participantRepository;
     private final ActivityRepository activityRepository;
+    private final AssistantRepository assistantRepository;
     private final ParticipantDtoMapper participantDtoMapper;
     private final CreateParticipantRequestMapper createParticipantRequestMapper;
     private final UpdateParticipantRequestMapper updateParticipantRequestMapper;
@@ -81,6 +84,10 @@ public class ParticipantServiceImpl implements ParticipantService {
         ParticipantEntity participant = createParticipantRequestMapper.toEntity(request);
         participant.setActivity(activity);
 
+        if (request.getAssistantId() != null) {
+            AssistantEntity assistant = assistantRepository.getByIdOrThrow(request.getAssistantId());
+            participant.setAssistant(assistant);
+        }
         if (Boolean.TRUE.equals(participant.getIsRegistered())) {
             Preconditions.checkArgument(Strings.isNotBlank(participant.getNumber()), "Участник должен иметь стартовый номер");
         } else {
@@ -112,6 +119,10 @@ public class ParticipantServiceImpl implements ParticipantService {
             Preconditions.checkState(ActivityState.PLANNED == activity.getState(),
                     "Участник не может быть привязан к активности %s т.к. она находится в неподходящем состоянии %s", request.getActivityId(), activity.getState());
             participant.setActivity(activity);
+        }
+        if (request.getAssistantId() != null) {
+            AssistantEntity assistant = assistantRepository.getByIdOrThrow(request.getAssistantId());
+            participant.setAssistant(assistant);
         }
 
         participantRepository.save(participant);

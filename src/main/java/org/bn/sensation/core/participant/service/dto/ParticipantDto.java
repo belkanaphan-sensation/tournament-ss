@@ -1,5 +1,6 @@
 package org.bn.sensation.core.participant.service.dto;
 
+import org.bn.sensation.core.assistant.service.dto.AssistantDto;
 import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.dto.PersonDto;
@@ -37,4 +38,7 @@ public class ParticipantDto extends BaseDto {
 
     @Schema(description = "Активность участника")
     private EntityLinkDto activity;
+
+    @Schema(description = "Ассистент")
+    private AssistantDto assistant;
 }
