@@ -72,21 +72,21 @@ public class RoundServiceImpl implements RoundService {
     @Override
     @Transactional
     public RoundDto createExtraRound(CreateRoundRequest request) {
-        log.info("Создание раунда: название={}, этап={}", request.getName(), request.getMilestoneId());
+        log.info("Создание захода: название={}, этап={}", request.getName(), request.getMilestoneId());
 
         // Проверяем существование этапа
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(request.getMilestoneId());
-        log.debug("Найден этап={} для создания раунда", milestone.getId());
+        log.debug("Найден этап={} для создания захода", milestone.getId());
         Preconditions.checkState(milestone.getState() == MilestoneState.SUMMARIZING,
-                "Невозможно создать дополнительный раунд, т.к. этап в состоянии %s".formatted(milestone.getState()));
+                "Невозможно создать дополнительный заход, т.к. этап в состоянии %s".formatted(milestone.getState()));
         if (milestone.getMilestoneOrder().equals(0) && !milestone.getRounds().isEmpty()) {
-            throw new IllegalArgumentException("Раунд не может быть создан для этапа %s, т.к этап финальный и уже имеет раунд".formatted(milestone.getId()));
+            throw new IllegalArgumentException("заход не может быть создан для этапа %s, т.к этап финальный и уже имеет заход".formatted(milestone.getId()));
         }
 
-        // Создаем сущность раунда
+        // Создаем сущность захода
         RoundEntity round = new RoundEntity();
         String name = Strings.isNullOrEmpty(request.getName())
-                ? "*Раунд " + (milestone.getRounds().size() + 1)
+                ? "*Заход " + (milestone.getRounds().size() + 1)
                 : request.getName();
         round.setName(name);
         round.setExtraRound(true);
@@ -97,7 +97,7 @@ public class RoundServiceImpl implements RoundService {
         addContestants(request.getContestantIds(), milestone, round);
 
         RoundEntity saved = roundRepository.save(round);
-        log.info("Сохранен раунд с id={}", saved.getId());
+        log.info("Сохранен заход с id={}", saved.getId());
 
         // Создаем статусы для судей
         createJudgeStatusesForRound(milestone, saved);
@@ -105,7 +105,7 @@ public class RoundServiceImpl implements RoundService {
         // Инвалидируем кэш статуса этапа при создании новых статусов судей
         Long milestoneId = milestone.getId();
         judgeMilestoneStatusCacheService.invalidateForMilestone(milestoneId);
-        log.debug("Инвалидирован кэш статуса этапа milestoneId={} после создания статусов судей для нового раунда", milestoneId);
+        log.debug("Инвалидирован кэш статуса этапа milestoneId={} после создания статусов судей для нового захода", milestoneId);
         milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.START);
         return roundDtoMapper.toDto(saved);
     }
@@ -118,18 +118,18 @@ public class RoundServiceImpl implements RoundService {
                             res -> res.getFinallyApproved()))
                     .get(pId)).orElseThrow(() -> new IllegalArgumentException("Для конкурсанта с ID %s не существует результата этапа".formatted(pId)));
             Preconditions.checkArgument(!Boolean.TRUE.equals(finallyApproved),
-                    "Конкурсант %s прошел в следующий этап по результатам основного раунда и не может быть добавлен в дополнительный"
+                    "Конкурсант %s прошел в следующий этап по результатам основного захода и не может быть добавлен в дополнительный"
                             .formatted(pId));
         });
     }
 
     private void addContestants(List<Long> contestantIds, MilestoneEntity milestone, RoundEntity round) {
-        log.warn("Добавление конкурсантов в раунд: milestone={}, round={}, contestantIds={}", milestone.getId(), round.getId(), contestantIds);
+        log.warn("Добавление конкурсантов в заход: milestone={}, round={}, contestantIds={}", milestone.getId(), round.getId(), contestantIds);
         Set<ContestantEntity> contestants = contestantRepository.findAllByIdFull(contestantIds)
                 .stream()
                 .peek(contestant -> {
                     Preconditions.checkArgument(contestant.getMilestones().stream().anyMatch(m -> m.getId().equals(milestone.getId())),
-                            "Конкурсант с ID %s должен быть сначала добавлен в этап раунда с ID: %s", contestant.getId(), milestone.getId());
+                            "Конкурсант с ID %s должен быть сначала добавлен в этап захода с ID: %s", contestant.getId(), milestone.getId());
                 })
                 .collect(Collectors.toSet());
         Preconditions.checkArgument(contestantIds.size() == contestants.size(), "Не все из заявленных конкурсантов найдены");
@@ -141,9 +141,9 @@ public class RoundServiceImpl implements RoundService {
     @Override
     @Transactional
     public void deleteById(Long id) {
-        Preconditions.checkArgument(id != null, "ID раунда не может быть null");
+        Preconditions.checkArgument(id != null, "ID захода не может быть null");
         RoundEntity round = roundRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Раунд не найден с id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("заход не найден с id: " + id));
         Integer roundOrder = round.getRoundOrder();
         Set<RoundEntity> reordered = roundRepository.findByMilestoneIdAndGtRoundOrder(round.getMilestone().getId(), roundOrder)
                 .stream().sorted(Comparator.comparing(RoundEntity::getRoundOrder))
@@ -166,7 +166,7 @@ public class RoundServiceImpl implements RoundService {
     @Override
     @Transactional(readOnly = true)
     public List<RoundWithJRStatusDto> findByMilestoneIdInLifeStates(Long milestoneId) {
-        log.info("Поиск раундов в жизненных состояниях для этапа={}, пользователь={}",
+        log.info("Поиск заходов в жизненных состояниях для этапа={}, пользователь={}",
                 milestoneId, currentUser.getSecurityUser().getId());
 
         Preconditions.checkArgument(milestoneId != null, "ID этапа не может быть null");
@@ -192,7 +192,7 @@ public class RoundServiceImpl implements RoundService {
                 .stream()
                 .filter(round -> {
                     boolean isLifeState = RoundState.LIFE_ROUND_STATES.contains(round.getState());
-                    log.debug("Раунд={} со статусом={} в жизненных состояниях: {}",
+                    log.debug("заход={} со статусом={} в жизненных состояниях: {}",
                             round.getId(), round.getState(), isLifeState);
                     return isLifeState;
                 })
@@ -200,22 +200,22 @@ public class RoundServiceImpl implements RoundService {
                 .sorted(Comparator.comparing(RoundWithJRStatusDto::getRoundOrder))
                 .toList();
 
-        log.info("Найдено {} раундов в жизненных состояниях для этапа={}", result.size(), milestoneId);
+        log.info("Найдено {} заходов в жизненных состояниях для этапа={}", result.size(), milestoneId);
         return result;
     }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public List<RoundDto> generateRounds(@NotNull MilestoneEntity milestone, boolean reGenerate, Integer roundParticipantLimit) {
-        Preconditions.checkArgument(!milestone.getContestants().isEmpty(), "Отсутствуют конкурсанты для генерации раундов");
+        Preconditions.checkArgument(!milestone.getContestants().isEmpty(), "Отсутствуют конкурсанты для генерации заходов");
         if (!reGenerate) {
-            Preconditions.checkArgument(milestone.getRounds().isEmpty(), "Этап уже содержит раунды");
+            Preconditions.checkArgument(milestone.getRounds().isEmpty(), "Этап уже содержит заходы");
         } else {
             // Очищаем связи у конкурсантов
             milestone.getContestants().forEach(contestant -> 
                 contestant.getRounds().removeAll(milestone.getRounds())
             );
-            // Удаляем раунды
+            // Удаляем заходы
             roundRepository.deleteAll(milestone.getRounds());
             milestone.getRounds().clear();
         }
@@ -228,12 +228,12 @@ public class RoundServiceImpl implements RoundService {
         contestantRepository.saveAll(milestone.getContestants());
         rounds.forEach(r -> createJudgeStatusesForRound(milestone, r));
 
-        log.info("Успешно сгенерировано {} раундов для этапа ID={}", rounds.size(), milestone.getId());
+        log.info("Успешно сгенерировано {} заходов для этапа ID={}", rounds.size(), milestone.getId());
         return rounds.stream().sorted(Comparator.comparing(RoundEntity::getRoundOrder)).map(roundDtoMapper::toDto).toList();
     }
 
     private List<RoundEntity> generate(MilestoneEntity milestone, int roundLimit) {
-        log.debug("Начало генерации раундов для {} конкурсантов", milestone.getContestants().size());
+        log.debug("Начало генерации заходов для {} конкурсантов", milestone.getContestants().size());
         //TODO ограничение для strictPassMode у следующего этапа
         boolean isLastMilestone = milestone.getMilestoneOrder().intValue() == 0;
         boolean isAssessmentPlaces = milestone.getMilestoneRule().getAssessmentMode() == AssessmentMode.PLACE;
@@ -243,7 +243,7 @@ public class RoundServiceImpl implements RoundService {
             isStrictPassMode = nextMilestone.getMilestoneRule().getStrictPassMode();
         }
         if (isLastMilestone || isStrictPassMode || isAssessmentPlaces) {
-            log.debug("Генерация финального раунда. Количество конкурсантов {} лимит финального этапа {}",
+            log.debug("Генерация финального захода. Количество конкурсантов {} лимит финального этапа {}",
                     milestone.getContestants().size(), milestone.getMilestoneRule().getContestantLimit());
             RoundEntity finalRound = RoundEntity.builder()
                     .roundOrder(0)
@@ -258,7 +258,7 @@ public class RoundServiceImpl implements RoundService {
             return List.of(finalRound);
         }
 
-        log.debug("Лимит конкурсантов на раунд: {}", roundLimit);
+        log.debug("Лимит конкурсантов на заход: {}", roundLimit);
         List<ContestantEntity> contestants = new ArrayList<>(milestone.getContestants());
         List<ContestantEntity> leaders = new ArrayList<>();
         List<ContestantEntity> followers = new ArrayList<>();
@@ -277,13 +277,13 @@ public class RoundServiceImpl implements RoundService {
                 : contestants.size();
         int roundCount = dividend / roundLimit;
         int remainder = dividend % roundLimit;
-        log.debug("Расчет раундов: всего конкурсантов={}, раундов={}, остаток={}",
+        log.debug("Расчет заходов: всего конкурсантов={}, заходов={}, остаток={}",
                 dividend, roundCount, remainder);
         if (remainder > 0) {
             roundCount++;
-            log.debug("Создается дополнительный раунд для остатка");
+            log.debug("Создается дополнительный заход для остатка");
         }
-        log.info("Будет создано {} раундов", roundCount);
+        log.info("Будет создано {} заходов", roundCount);
 
         List<RoundEntity> roundEntities = new ArrayList<>();
         for (int i = 0; i < roundCount; i++) {
@@ -292,29 +292,29 @@ public class RoundServiceImpl implements RoundService {
                     .extraRound(false)
                     .milestone(milestone)
                     .state(RoundState.OPENED)
-                    .name("Раунд %s".formatted(i + 1))
+                    .name("Заход %s".formatted(i + 1))
                     .build();
 
-            log.debug("Создание раунда {}", round.getName());
+            log.debug("Создание захода {}", round.getName());
             int j = 0;
             if (milestone.getMilestoneRule().getContestantType().hasPartnerSide()) {
                 while (j < roundLimit && (!leaders.isEmpty() || !followers.isEmpty())) {
                     addToRound(leaders, round);
                     addToRound(followers, round);
                     j++;
-                    log.trace("Добавлены конкурсанты в раунд {}, всего конкурсантов распределенных по сторонам: {}", i + 1, round.getContestants().size());
+                    log.trace("Добавлены конкурсанты в заход {}, всего конкурсантов распределенных по сторонам: {}", i + 1, round.getContestants().size());
                 }
             } else {
                 while (j < roundLimit && !contestants.isEmpty()) {
                     addToRound(contestants, round);
                     j++;
-                    log.trace("Добавлен конкурсант в раунд {}, всего конкурсантов: {}", i + 1, round.getContestants().size());
+                    log.trace("Добавлен конкурсант в заход {}, всего конкурсантов: {}", i + 1, round.getContestants().size());
                 }
             }
-            log.debug("Раунд {} сформирован: {} конкурсантов", i, round.getContestants().size());
+            log.debug("Заход {} сформирован: {} конкурсантов", i, round.getContestants().size());
             roundEntities.add(round);
         }
-        log.info("Генерация завершена: создано {} раундов", roundEntities.size());
+        log.info("Генерация завершена: создано {} заходов", roundEntities.size());
         return roundEntities;
     }
 
@@ -323,7 +323,7 @@ public class RoundServiceImpl implements RoundService {
             ContestantEntity contestant = contestants.remove(0);
             contestant.getRounds().add(round);
             round.getContestants().add(contestant);
-            log.trace("Добавлен конкурсант ID={} в раунд {}", contestant.getId(), round.getName());
+            log.trace("Добавлен конкурсант ID={} в заход {}", contestant.getId(), round.getName());
         }
     }
 
@@ -348,7 +348,7 @@ public class RoundServiceImpl implements RoundService {
         }
         judgeRoundStatusRepository.saveAll(judgeRoundStatusEntities);
         judgeRoundStatusService.invalidateForRound(round.getId());
-        log.debug("Инвалидирован кэш статуса раунда roundId={}", round.getId());
-        log.info("Создано {} статусов судей для раунда={}", judgeStatusCount, round.getId());
+        log.debug("Инвалидирован кэш статуса захода roundId={}", round.getId());
+        log.info("Создано {} статусов судей для захода={}", judgeStatusCount, round.getId());
     }
 }
