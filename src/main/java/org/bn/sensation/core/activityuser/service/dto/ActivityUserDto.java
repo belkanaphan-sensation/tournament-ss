@@ -4,6 +4,7 @@ import org.bn.sensation.core.common.dto.BaseDto;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
+import org.bn.sensation.core.user.service.dto.UserDto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -24,7 +25,7 @@ import lombok.experimental.SuperBuilder;
 public class ActivityUserDto extends BaseDto {
 
     @Schema(description = "Пользователь")
-    private EntityLinkDto user;
+    private UserDto user;
 
     @Schema(description = "Активность")
     private EntityLinkDto activity;

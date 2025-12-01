@@ -1,14 +1,12 @@
-package org.bn.sensation.core.participant.service.dto;
+package org.bn.sensation.core.assistant.service.dto;
 
 import org.bn.sensation.core.common.dto.EmptyDto;
-import org.bn.sensation.core.common.entity.PartnerSide;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,8 +20,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Запрос на создание участника")
-public class CreateParticipantRequest extends EmptyDto {
+@Schema(description = "Запрос на создание ассистента")
+public class CreateAssistantRequest extends EmptyDto {
 
     @NotBlank
     @Size(max = 100)
@@ -48,25 +46,8 @@ public class CreateParticipantRequest extends EmptyDto {
     @Schema(description = "Номер телефона", example = "+7 777 123 45 67")
     private String phoneNumber;
 
-    @Size(max = 50)
-    @Schema(description = "Стартовый номер участника", example = "A-102")
-    private String number;
-
     @Size(max = 255)
     @Schema(description = "Название школы", example = "Sense")
     private String school;
 
-    @NotNull
-    @Schema(description = "Сторона участника в соревновании", example = "LEADER")
-    private PartnerSide partnerSide;
-
-    @Schema(description = "Пометка о том что участник прошел регистрацию")
-    private Boolean isRegistered;
-
-    @NotNull
-    @Schema(description = "ID активности", example = "1")
-    private Long activityId;
-
-    @Schema(description = "ID ассистента", example = "1")
-    private Long assistantId;
 }

@@ -60,4 +60,7 @@ public class UpdateParticipantRequest extends EmptyDto {
 
     @Schema(description = "ID активности")
     private Long activityId;
+
+    @Schema(description = "ID ассистента", example = "1")
+    private Long assistantId;
 }

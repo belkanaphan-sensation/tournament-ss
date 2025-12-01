@@ -410,12 +410,12 @@ public class ActivityReportService {
             List<MilestoneResultEntity> milestoneResults = milestoneResultRepository.findAllByMilestoneId(milestone.getId());
             List<JudgeMilestoneResultEntity> judgeResults = judgeMilestoneResultRepository.findByMilestoneId(milestone.getId());
             
-            // Фильтруем judgeResults для основных раундов
+            // Фильтруем judgeResults для основных заходов
             List<JudgeMilestoneResultEntity> mainRoundJudgeResults = judgeResults.stream()
                     .filter(jr -> jr.getRound() != null && !Boolean.TRUE.equals(jr.getRound().getExtraRound()))
                     .toList();
             
-            // Фильтруем judgeResults для перетанцовочных раундов
+            // Фильтруем judgeResults для перетанцовочных заходов
             List<JudgeMilestoneResultEntity> extraRoundJudgeResults = judgeResults.stream()
                     .filter(jr -> jr.getRound() != null && Boolean.TRUE.equals(jr.getRound().getExtraRound()))
                     .toList();
@@ -476,9 +476,9 @@ public class ActivityReportService {
                         judgeColumns, null, rowIndex, headerStyle, valueStyle);
             }
 
-            // Секция для перетанцовочных раундов
+            // Секция для перетанцовочных заходов
             if (!extraRoundJudgeResults.isEmpty()) {
-                // Группируем по раундам
+                // Группируем по заходам
                 Map<Long, List<JudgeMilestoneResultEntity>> extraRoundResultsByRound = extraRoundJudgeResults.stream()
                         .collect(java.util.stream.Collectors.groupingBy(jr -> jr.getRound().getId()));
 
@@ -486,12 +486,12 @@ public class ActivityReportService {
                     Long roundId = roundEntry.getKey();
                     List<JudgeMilestoneResultEntity> roundJudgeResults = roundEntry.getValue();
                     
-                    // Находим раунд для получения его названия
+                    // Находим заход для получения его названия
                     RoundEntity extraRound = roundJudgeResults.get(0).getRound();
                     
                     Row extraRoundHeader = sheet.createRow(rowIndex++);
                     Cell extraRoundCell = extraRoundHeader.createCell(0);
-                    extraRoundCell.setCellValue("Перетанцовочный раунд: " + defaultString(extraRound.getName()));
+                    extraRoundCell.setCellValue("Перетанцовочный заход: " + defaultString(extraRound.getName()));
                     extraRoundCell.setCellStyle(headerStyle);
                     
                     List<JudgeColumn> extraRoundJudgeColumns = buildJudgeColumns(roundJudgeResults);
@@ -509,7 +509,7 @@ public class ActivityReportService {
                                     java.util.function.Function.identity(),
                                     (r1, r2) -> r1));
 
-                    // Получаем уникальных конкурсантов из этого раунда
+                    // Получаем уникальных конкурсантов из этого захода
                     Set<Long> contestantIdsInRound = roundJudgeResults.stream()
                             .map(jr -> jr.getContestant() != null ? jr.getContestant().getId() : null)
                             .filter(Objects::nonNull)
@@ -538,7 +538,7 @@ public class ActivityReportService {
 
                     Map<Long, Map<Long, Map<Long, Integer>>> extraRoundContestantScores = aggregateJudgeScores(roundJudgeResults);
 
-                    // Проверяем, нужно ли разделять по сторонам для перетанцовочных раундов
+                    // Проверяем, нужно ли разделять по сторонам для перетанцовочных заходов
                     boolean extraRoundHasPartnerSide = milestone.getMilestoneRule() != null 
                             && milestone.getMilestoneRule().getContestantType() != null
                             && milestone.getMilestoneRule().getContestantType().hasPartnerSide();
@@ -753,7 +753,7 @@ public class ActivityReportService {
         int colIndex = 0;
         colIndex = createMergedHeader(extraRoundJudgeHeader, extraRoundCriteriaHeader, colIndex, "#", headerStyle);
         colIndex = createMergedHeader(extraRoundJudgeHeader, extraRoundCriteriaHeader, colIndex, "Конкурсант", headerStyle);
-        colIndex = createMergedHeader(extraRoundJudgeHeader, extraRoundCriteriaHeader, colIndex, "Баллы раунда", headerStyle);
+        colIndex = createMergedHeader(extraRoundJudgeHeader, extraRoundCriteriaHeader, colIndex, "Баллы захода", headerStyle);
 
         for (JudgeColumn judgeColumn : extraRoundJudgeColumnsForSide) {
             List<MilestoneCriterionEntity> criteria = judgeColumn.criteria();
@@ -812,7 +812,7 @@ public class ActivityReportService {
             }
             createCell(dataRow, cellIndex++, contestantDisplay, valueStyle);
 
-            // Баллы только для этого перетанцовочного раунда
+            // Баллы только для этого перетанцовочного захода
             MilestoneRoundResultEntity roundResult = result.getRoundResults().stream()
                     .filter(rr -> rr.getRound() != null && Objects.equals(rr.getRound().getId(), roundId))
                     .findFirst()

@@ -244,9 +244,36 @@ databaseChangeLog:
             sql: |
               DROP TABLE IF EXISTS round;
 
-  # Participant table
+    # Assistant table
   - changeSet:
       id: 2025-09-02-10
+      author: belkanaphan
+      context: prod
+      onFail: MARK_RAN
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS assistant (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255),
+                surname VARCHAR(255),
+                second_name VARCHAR(255),
+                email VARCHAR(255),
+                phone_number VARCHAR(50),
+                school VARCHAR(255),
+                created_at TIMESTAMP,
+                created_by VARCHAR(255),
+                modified_at TIMESTAMP,
+                modified_by VARCHAR(255)
+              );
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS assistant;            
+
+  # Participant table
+  - changeSet:
+      id: 2025-09-02-11
       author: belkanaphan
       context: prod
       onFail: MARK_RAN
@@ -265,11 +292,13 @@ databaseChangeLog:
                 partner_side VARCHAR(20) NOT NULL,
                 is_registered BOOLEAN NOT NULL,
                 activity_id BIGINT,
+                assistant_id BIGINT,
                 created_at TIMESTAMP,
                 created_by VARCHAR(255),
                 modified_at TIMESTAMP,
                 modified_by VARCHAR(255),
-                FOREIGN KEY (activity_id) REFERENCES activity(id)
+                FOREIGN KEY (activity_id) REFERENCES activity(id),
+                FOREIGN KEY (assistant_id) REFERENCES assistant(id)
               );
       rollback:
         - sql:
@@ -278,7 +307,7 @@ databaseChangeLog:
 
   # Add unique index for participant activity and number
   - changeSet:
-      id: 2025-09-02-11
+      id: 2025-09-02-12
       author: belkanaphan
       context: prod
       onFail: MARK_RAN
@@ -295,7 +324,7 @@ databaseChangeLog:
 
   # Create users_organizations_association
   - changeSet:
-      id: 2025-09-02-12
+      id: 2025-09-02-13
       author: belkanaphan
       context: prod
       onFail: MARK_RAN
@@ -315,7 +344,7 @@ databaseChangeLog:
               DROP TABLE IF EXISTS users_organizations_association;
   # Create contestants_rounds_association
   - changeSet:
-      id: 2025-09-02-13
+      id: 2025-09-02-14
       author: belkanaphan
       context: prod
       onFail: MARK_RAN
@@ -335,7 +364,7 @@ databaseChangeLog:
               DROP TABLE IF EXISTS contestants_rounds_association;
   # Create contestants_milestones_association
   - changeSet:
-      id: 2025-09-02-14
+      id: 2025-09-02-15
       author: belkanaphan
       context: prod
       onFail: MARK_RAN
@@ -355,7 +384,7 @@ databaseChangeLog:
               DROP TABLE IF EXISTS contestants_milestones_association;
   # Create contestants_participants_association
   - changeSet:
-      id: 2025-09-02-15
+      id: 2025-09-02-16
       author: belkanaphan
       context: prod
       onFail: MARK_RAN
@@ -376,7 +405,7 @@ databaseChangeLog:
 
   # Create activity_user table
   - changeSet:
-      id: 2025-09-02-16
+      id: 2025-09-02-17
       author: belkanaphan
       context: prod
       onFail: MARK_RAN
@@ -404,7 +433,7 @@ databaseChangeLog:
 
   # Create criterion table
   - changeSet:
-      id: 2025-09-02-17
+      id: 2025-09-02-18
       author: belkanaphan
       context: prod
       onFail: MARK_RAN
@@ -426,7 +455,7 @@ databaseChangeLog:
 
   # Create milestone_criterion table
   - changeSet:
-      id: 2025-09-02-18
+      id: 2025-09-02-19
       author: belkanaphan
       context: prod
       onFail: MARK_RAN
@@ -455,7 +484,7 @@ databaseChangeLog:
 
   # Create activity_result table
   - changeSet:
-      id: 2025-09-02-19
+      id: 2025-09-02-20
       author: belkanaphan
       context: prod
       onFail: MARK_RAN
@@ -481,7 +510,7 @@ databaseChangeLog:
 
   # Create milestone_result table
   - changeSet:
-      id: 2025-09-02-20
+      id: 2025-09-02-21
       author: belkanaphan
       context: prod
       onFail: MARK_RAN
@@ -507,7 +536,7 @@ databaseChangeLog:
 
   # Create judge_milestone_result table
   - changeSet:
-      id: 2025-09-02-21
+      id: 2025-09-02-22
       author: belkanaphan
       context: prod
       onFail: MARK_RAN
@@ -538,7 +567,7 @@ databaseChangeLog:
 
   # Create judge_round_status table
   - changeSet:
-      id: 2025-09-02-22
+      id: 2025-09-02-23
       author: belkanaphan
       context: prod
       onFail: MARK_RAN
@@ -565,7 +594,7 @@ databaseChangeLog:
 
   # Create index for better performance
   - changeSet:
-      id: 2025-09-02-23
+      id: 2025-09-02-24
       author: belkanaphan
       context: prod
       onFail: MARK_RAN
@@ -584,7 +613,7 @@ databaseChangeLog:
 
   # Create milestone_round_result table
   - changeSet:
-      id: 2025-09-02-24
+      id: 2025-09-02-25
       author: belkanaphan
       context: prod
       onFail: MARK_RAN
