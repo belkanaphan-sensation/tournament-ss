@@ -30,6 +30,7 @@ import org.bn.sensation.core.round.service.dto.RoundWithJRStatusDto;
 import org.bn.sensation.core.round.service.mapper.RoundDtoMapper;
 import org.bn.sensation.core.round.service.mapper.RoundWithJRStatusMapper;
 import org.bn.sensation.core.round.statemachine.RoundState;
+import org.bn.sensation.core.sse.NotificationService;
 import org.bn.sensation.security.CurrentUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -58,6 +59,7 @@ public class RoundServiceImpl implements RoundService {
     private final RoundWithJRStatusMapper roundWithJRStatusMapper;
     private final ContestantRepository contestantRepository;
     private final MilestoneStateMachineService milestoneStateMachineService;
+    private final NotificationService notificationService;
 
     @Override
     public BaseRepository<RoundEntity> getRepository() {
@@ -107,6 +109,11 @@ public class RoundServiceImpl implements RoundService {
         judgeMilestoneStatusCacheService.invalidateForMilestone(milestoneId);
         log.debug("Инвалидирован кэш статуса этапа milestoneId={} после создания статусов судей для нового захода", milestoneId);
         milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.START);
+        milestone.getActivity().getActivityUsers().forEach(
+                au -> notificationService.sendNotificationToUser(
+                        au.getUser().getId(),
+                        "Создан перетанцовочный раунд этапа %s".formatted(milestone.getName()))
+        );
         return roundDtoMapper.toDto(saved);
     }
 

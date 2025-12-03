@@ -326,7 +326,9 @@ public class MilestoneServiceImpl implements MilestoneService {
         log.info("Запуск этапа: id={}", id);
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(id);
         milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.START);
-        notificationService.sendNotificationToAll("Стартовал этап %s".formatted(milestone.getName()));
+        milestone.getActivity().getActivityUsers().forEach(
+                au -> notificationService.sendNotificationToUser(au.getUser().getId(), "Стартовал этап %s".formatted(milestone.getName()))
+        );
         log.info("Этап запущен: id={}", id);
     }
 
