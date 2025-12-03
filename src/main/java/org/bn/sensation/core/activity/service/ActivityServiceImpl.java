@@ -91,7 +91,7 @@ public class ActivityServiceImpl implements ActivityService {
         Preconditions.checkArgument(id != null, "ID мероприятия не может быть null");
         List<ActivityDto> result = activityRepository.findByOccasionId(id).stream()
                 .map(this::enrichActivityDtoWithStatistics)
-                .sorted(Comparator.comparing(ActivityDto::getName))
+                .sorted(Comparator.comparing(ActivityDto::getStartDateTime))
                 .toList();
         log.debug("Найдено {} активностей для мероприятия={}", result.size(), id);
         return result;
@@ -117,7 +117,7 @@ public class ActivityServiceImpl implements ActivityService {
         List<ActivityDto> result = activityRepository.findByOccasionIdAndUserIdAndStateIn(
                         id, currentUser.getSecurityUser().getId(), ActivityState.LIFE_ACTIVITY_STATES).stream()
                 .map(this::enrichActivityDtoWithStatistics)
-                .sorted(Comparator.comparing(ActivityDto::getName))
+                .sorted(Comparator.comparing(ActivityDto::getStartDateTime))
                 .toList();
 
         log.debug("Найдено {} активностей в жизненных состояниях для мероприятия={}", result.size(), id);
@@ -134,7 +134,7 @@ public class ActivityServiceImpl implements ActivityService {
         List<ActivityDto> result = activityRepository.findByOccasionIdAndUserIdAndStateIn(
                         id, currentUser.getSecurityUser().getId(), List.of(ActivityState.IN_PROGRESS)).stream()
                 .map(this::enrichActivityDtoWithStatistics)
-                .sorted(Comparator.comparing(ActivityDto::getName))
+                .sorted(Comparator.comparing(ActivityDto::getStartDateTime))
                 .toList();
 
         log.debug("Найдено {} активностей в InProgress состояниянии для мероприятия={}", result.size(), id);

@@ -42,9 +42,9 @@ databaseChangeLog:
         - sql:
             sql: |
               INSERT INTO activity (name, description, state, start_date_time, end_date_time, country, city, street_name, street_number, comment, occasion_id) VALUES
-              ('J&J. Категория Начинающие', 'Jack & Jill. Начинающие', 'PLANNED', '2025-11-01 09:00:00', '2025-11-03 18:00:00', 'Россия', 'Самара', 'ул. Киевская', '1', 'Sense Samara', (SELECT id FROM occasion WHERE name = 'Sense school J&J')),
+              ('J&J. Категория Начинающие', 'Jack & Jill. Начинающие', 'PLANNED', '2025-11-01 10:00:00', '2025-11-03 18:00:00', 'Россия', 'Самара', 'ул. Киевская', '1', 'Sense Samara', (SELECT id FROM occasion WHERE name = 'Sense school J&J')),
               ('J&J. Категория Любители', 'Jack & Jill. Любители', 'PLANNED', '2025-11-01 09:00:00', '2025-11-03 18:00:00', 'Россия', 'Самара', 'ул. Киевская', '1', 'Sense Samara', (SELECT id FROM occasion WHERE name = 'Sense school J&J')),
-              ('ProAm', 'ProAm', 'PLANNED', '2025-11-01 09:00:00', '2025-11-03 18:00:00', 'Россия', 'Самара', 'ул. Киевская', '1', 'Sense Samara', (SELECT id FROM occasion WHERE name = 'Sense school J&J'));
+              ('ProAm', 'ProAm', 'PLANNED', '2025-11-01 08:00:00', '2025-11-01 18:00:00', 'Россия', 'Самара', 'ул. Киевская', '1', 'Sense Samara', (SELECT id FROM occasion WHERE name = 'Sense school J&J'));
   # Test data for judges
   - changeSet:
       id: 2025-11-07-5
