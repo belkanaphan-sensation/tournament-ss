@@ -1,7 +1,8 @@
 package org.bn.sensation.security;
 
 import java.util.List;
-
+import lombok.RequiredArgsConstructor;
+import org.bn.sensation.config.CorsProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +19,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import lombok.RequiredArgsConstructor;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -31,6 +30,8 @@ public class SecurityConfiguration {
 
     @Value("${server.servlet.session.cookie.name:JSESSIONID}")
     private String sessionCookieName;
+
+    private final CorsProperties corsProperties;
 
     // todo проверить какие именно эндпоинты здесь действительно нужны
     private static final String[] WHITE_LIST_URL = {
@@ -117,22 +118,7 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of(
-                "http://localhost:*",
-                // это адрес компа вместо localhost, можно его глянуть в ipconfig (на винде). Что бы при перезагрузке роутера
-                //он оставался тем же, надо его в роутере задать как статический для MAC адреса компа, на котором запускается сервер
-                //его надо будет вынести в отдельную переменную в application.properties. Нужен конкретный адрес UI сервера, чтобы cors работал
-                //ifconfig строчка с inet
-                "http://192.168.0.103:5173",
-                "http://192.168.31.65:5173",
-                "http://192.168.64.1:5173",
-                "http://192.168.1.72:5173",
-                "http://192.168.31.60:5173",
-                "http://192.168.31.232:5173",
-                "http://192.168.31.28:5173"
-                //hamachi
-                //, "http://25.3.135.219:5173"
-        ));
+        configuration.setAllowedOriginPatterns(corsProperties.getAllowedOrigins());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

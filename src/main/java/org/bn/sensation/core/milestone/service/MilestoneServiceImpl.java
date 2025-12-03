@@ -35,7 +35,7 @@ import org.bn.sensation.core.round.service.RoundStateMachineService;
 import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.bn.sensation.core.round.statemachine.RoundEvent;
 import org.bn.sensation.core.round.statemachine.RoundState;
-import org.bn.sensation.sse.NotificationService;
+import org.bn.sensation.core.sse.NotificationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
