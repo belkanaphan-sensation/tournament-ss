@@ -35,6 +35,7 @@ import org.bn.sensation.core.round.service.RoundStateMachineService;
 import org.bn.sensation.core.round.service.dto.RoundDto;
 import org.bn.sensation.core.round.statemachine.RoundEvent;
 import org.bn.sensation.core.round.statemachine.RoundState;
+import org.bn.sensation.sse.NotificationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -64,6 +65,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     private final ContestantService contestantService;
     private final ContestantRepository contestantRepository;
     private final RoundRepository roundRepository;
+    private final NotificationService notificationService;
 
     @Override
     public BaseRepository<MilestoneEntity> getRepository() {
@@ -324,6 +326,7 @@ public class MilestoneServiceImpl implements MilestoneService {
         log.info("Запуск этапа: id={}", id);
         MilestoneEntity milestone = milestoneRepository.getByIdFullOrThrow(id);
         milestoneStateMachineService.sendEvent(milestone, MilestoneEvent.START);
+        notificationService.sendNotificationToAll("Стартовал этап %s".formatted(milestone.getName()));
         log.info("Этап запущен: id={}", id);
     }
 

@@ -9,11 +9,11 @@ databaseChangeLog:
 #      author: belkanaphan
 #      relativeToChangelogFile: true
 #      file: 2025/002__07-11-2025-sense-1.yml
-#  - include:
-#      id: 23-11-2025-bn-0
-#      author: belkanaphan
-#      relativeToChangelogFile: true
-#      file: 2025/003__23-11-2025-test.yml
+  - include:
+      id: 23-11-2025-bn-0
+      author: belkanaphan
+      relativeToChangelogFile: true
+      file: 2025/003__23-11-2025-test.yml
 #  - include:
 #      id: 28-11-2025-bn-0
 #      author: belkanaphan
