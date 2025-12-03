@@ -255,6 +255,7 @@ databaseChangeLog:
             sql: |
               CREATE TABLE IF NOT EXISTS assistant (
                 id BIGSERIAL PRIMARY KEY,
+                nick_name VARCHAR(255),
                 name VARCHAR(255),
                 surname VARCHAR(255),
                 second_name VARCHAR(255),

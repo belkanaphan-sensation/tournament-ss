@@ -20,6 +20,9 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class AssistantEntity extends BaseEntity {
 
+    @Column(name = "nick_name")
+    private String nickName;
+
     @Embedded
     private Person person;
 
