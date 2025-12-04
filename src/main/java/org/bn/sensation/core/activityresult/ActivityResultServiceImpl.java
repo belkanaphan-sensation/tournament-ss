@@ -67,4 +67,13 @@ public class ActivityResultServiceImpl implements ActivityResultService {
                 .map(activityResultDtoMapper::toDto)
                 .toList();
     }
+
+    @Override
+    public List<ActivityResultDto> getByActivityId(Long activityId) {
+        return activityResultRepository.findAllByActivityId(activityId)
+                .stream()
+                .map(activityResultDtoMapper::toDto)
+                .sorted(Comparator.comparing(ActivityResultDto::getPlace))
+                .toList();
+    }
 }

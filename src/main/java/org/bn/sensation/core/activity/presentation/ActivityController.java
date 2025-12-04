@@ -7,6 +7,7 @@ import org.bn.sensation.core.activity.service.ActivityService;
 import org.bn.sensation.core.activity.service.dto.ActivityDto;
 import org.bn.sensation.core.activity.service.dto.CreateActivityRequest;
 import org.bn.sensation.core.activity.service.dto.UpdateActivityRequest;
+import org.bn.sensation.core.activityresult.ActivityResultService;
 import org.bn.sensation.core.activityresult.service.dto.ActivityResultDto;
 import org.bn.sensation.core.activityresult.service.dto.CreateActivityResultRequest;
 import org.bn.sensation.core.common.dto.EntityLinkDto;
@@ -40,6 +41,7 @@ import lombok.RequiredArgsConstructor;
 public class ActivityController {
 
     private final ActivityService activityService;
+    private final ActivityResultService activityResultService;
     private final ActivityReportService activityReportService;
 
     @Operation(summary = "Получить активность по ID")
@@ -136,6 +138,15 @@ public class ActivityController {
     public ResponseEntity<List<ActivityResultDto>> sumUpActivity(@Parameter @PathVariable("id") @NotNull Long id,
                                                                  @Valid @RequestBody List<CreateActivityResultRequest> request) {
         List<ActivityResultDto> dtos = activityService.sumUpActivity(id, request);
+        return ResponseEntity.ok(dtos);
+    }
+
+    @Operation(summary = "Получить итоги активности по ID",
+            description = "доступно для администратора")
+    @GetMapping(path = "/results/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'MANAGER')")
+    public ResponseEntity<List<ActivityResultDto>> getActivityResults(@Parameter @PathVariable("id") @NotNull Long id) {
+        List<ActivityResultDto> dtos = activityResultService.getByActivityId(id);
         return ResponseEntity.ok(dtos);
     }
 
