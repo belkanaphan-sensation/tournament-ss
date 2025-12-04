@@ -81,9 +81,9 @@ public class RoundServiceImpl implements RoundService {
         log.debug("Найден этап={} для создания захода", milestone.getId());
         Preconditions.checkState(milestone.getState() == MilestoneState.SUMMARIZING,
                 "Невозможно создать дополнительный заход, т.к. этап в состоянии %s".formatted(milestone.getState()));
-        if (milestone.getMilestoneOrder().equals(0) && !milestone.getRounds().isEmpty()) {
-            throw new IllegalArgumentException("заход не может быть создан для этапа %s, т.к этап финальный и уже имеет заход".formatted(milestone.getId()));
-        }
+//        if (milestone.getMilestoneOrder().equals(0) && !milestone.getRounds().isEmpty()) {
+//            throw new IllegalArgumentException("заход не может быть создан для этапа %s, т.к этап финальный и уже имеет заход".formatted(milestone.getId()));
+//        }
 
         // Создаем сущность захода
         RoundEntity round = new RoundEntity();
