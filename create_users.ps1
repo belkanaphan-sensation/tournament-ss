@@ -11,7 +11,7 @@ function Create-User {
         [string]$password
     )
     
-    # Формируем JSON с учетом пустых значений
+    # Формируем JSON
     $body = @{
         username = $username
         password = $password
@@ -23,20 +23,35 @@ function Create-User {
         $body.surname = $surname
     }
     
-    $jsonBody = $body | ConvertTo-Json
+    $jsonBody = $body | ConvertTo-Json -Compress
     
     Write-Host "Creating user: $username ($name $surname) with role: $role, password: $password"
     
     try {
+        # Конвертируем в байты с явным указанием UTF-8
+        $utf8 = [System.Text.Encoding]::UTF8
+        $bodyBytes = $utf8.GetBytes($jsonBody)
+        
         $response = Invoke-RestMethod -Uri "http://$HOST_PORT/api/v1/auth/register" `
             -Method Post `
-            -ContentType "application/json" `
-            -Body $jsonBody
+            -ContentType "application/json; charset=utf-8" `
+            -Body $bodyBytes
         
-        Write-Host "User created successfully: $($response.username)"
+        Write-Host "User created successfully: $($response.username)" -ForegroundColor Green
     }
     catch {
         Write-Host "Error creating user $username : $($_.Exception.Message)" -ForegroundColor Red
+        if ($_.Exception.Response) {
+            try {
+                $stream = $_.Exception.Response.GetResponseStream()
+                $reader = New-Object System.IO.StreamReader($stream)
+                $responseBody = $reader.ReadToEnd()
+                Write-Host "Response: $responseBody" -ForegroundColor Yellow
+            }
+            catch {
+                Write-Host "Could not read response body" -ForegroundColor Yellow
+            }
+        }
     }
     
     Write-Host "---"
@@ -49,12 +64,12 @@ Write-Host ""
 # Основные пользователи
 Create-User -username "lena" -name "Елена" -surname "Васильева" -role "SUPERADMIN" -password "123456"
 Create-User -username "dima" -name "Дмитрий" -surname "Пыльцов" -role "SUPERADMIN" -password "123456"
-Create-User -username "admin" -name "Админ" -surname "" -role "SUPERADMIN" -password "345678"
-Create-User -username "admin1" -name "Админ" -surname "" -role "SUPERADMIN" -password "456789"
-Create-User -username "admin2" -name "Админ" -surname "" -role "SUPERADMIN" -password "567890"
-Create-User -username "admin3" -name "Админ" -surname "" -role "SUPERADMIN" -password "678901"
-Create-User -username "administrator" -name "Администратор" -surname "" -role "ADMINISTRATOR" -password "789012"
-Create-User -username "announcer" -name "Ведущий" -surname "" -role "ANNOUNCER" -password "890123"
+Create-User -username "admin" -name "Админ" -surname "" -role "SUPERADMIN" -password "123456"
+Create-User -username "admin1" -name "Админ" -surname "" -role "SUPERADMIN" -password "123456"
+Create-User -username "admin2" -name "Админ" -surname "" -role "SUPERADMIN" -password "123456"
+Create-User -username "admin3" -name "Админ" -surname "" -role "SUPERADMIN" -password "123456"
+Create-User -username "administrator" -name "Администратор" -surname "" -role "ADMINISTRATOR" -password "098765"
+Create-User -username "announcer" -name "Ведущий" -surname "" -role "ANNOUNCER" -password "098765"
 
 # Судьи для лидеров
 Create-User -username "bogdan" -name "Богдан" -surname "Болдырев" -role "USER" -password "901234"
@@ -72,4 +87,3 @@ Create-User -username "masha" -name "Мария" -surname "Болдырева" -
 
 Write-Host ""
 Write-Host "All users created!"
-

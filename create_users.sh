@@ -47,12 +47,12 @@ echo ""
 # Основные пользователи
 create_user "lena" "Елена" "Васильева" "SUPERADMIN" "123456"
 create_user "dima" "Дмитрий" "Пыльцов" "SUPERADMIN" "123456"
-create_user "admin" "Админ" "" "SUPERADMIN" "345678"
-create_user "admin1" "Админ" "" "SUPERADMIN" "456789"
-create_user "admin2" "Админ" "" "SUPERADMIN" "567890"
-create_user "admin3" "Админ" "" "SUPERADMIN" "678901"
-create_user "administrator" "Администратор" "" "ADMINISTRATOR" "789012"
-create_user "announcer" "Ведущий" "" "ANNOUNCER" "890123"
+create_user "admin" "Админ" "" "SUPERADMIN" "123456"
+create_user "admin1" "Админ" "" "SUPERADMIN" "123456"
+create_user "admin2" "Админ" "" "SUPERADMIN" "123456"
+create_user "admin3" "Админ" "" "SUPERADMIN" "123456"
+create_user "administrator" "Администратор" "" "ADMINISTRATOR" "098765"
+create_user "announcer" "Ведущий" "" "ANNOUNCER" "098765"
 
 # Судьи для лидеров
 create_user "bogdan" "Богдан" "Болдырев" "USER" "901234"
