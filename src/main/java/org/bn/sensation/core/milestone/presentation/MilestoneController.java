@@ -140,7 +140,6 @@ public class MilestoneController {
     @PostMapping(path = "/sum-up/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPERADMIN')")
     public ResponseEntity<List<MilestoneResultDto>> sumUpMilestone(@Parameter @PathVariable("id") @NotNull Long id) {
-        //TODO проверить или рассчитать участников и раунды
         List<MilestoneResultDto> milestoneResults = milestoneService.sumUpMilestone(id);
         return ResponseEntity.ok(milestoneResults);
     }

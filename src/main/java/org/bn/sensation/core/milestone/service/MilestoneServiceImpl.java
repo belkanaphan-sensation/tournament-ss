@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.bn.sensation.core.activity.entity.ActivityEntity;
 import org.bn.sensation.core.activity.repository.ActivityRepository;
 import org.bn.sensation.core.activity.statemachine.ActivityState;
+import org.bn.sensation.core.activityuser.entity.UserActivityPosition;
 import org.bn.sensation.core.common.entity.PartnerSide;
 import org.bn.sensation.core.common.mapper.BaseDtoMapper;
 import org.bn.sensation.core.common.repository.BaseRepository;
@@ -343,6 +344,12 @@ public class MilestoneServiceImpl implements MilestoneService {
                 .forEach(round -> {
                     roundStateMachineService.sendEvent(round, RoundEvent.CLOSE);
                 });
+        milestone.getActivity().getActivityUsers()
+                .stream()
+                .filter(au -> au.getPosition() == UserActivityPosition.OBSERVER)
+                .forEach(au -> notificationService.sendNotificationToUser(
+                        au.getUser().getId(),
+                        "Подведены итоги этапа %s".formatted(milestone.getName())));
         log.info("Предварительные итоги этапа подведены: id={}", id);
         return milestoneResultDtos;
     }
