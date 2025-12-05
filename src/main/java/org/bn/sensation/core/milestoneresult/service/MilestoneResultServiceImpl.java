@@ -324,7 +324,9 @@ public class MilestoneResultServiceImpl implements MilestoneResultService {
 
     private int getFinalResultCount(MilestoneEntity milestone) {
         return milestone.getMilestoneRule().getContestantType().hasPartnerSide()
-                ? milestone.getContestants().size() / 2
+                ? (int) Math.max(
+                milestone.getContestants().stream().filter(c -> c.getParticipants().iterator().next().getPartnerSide() == PartnerSide.LEADER).count(),
+                milestone.getContestants().stream().filter(c -> c.getParticipants().iterator().next().getPartnerSide() == PartnerSide.FOLLOWER).count())
                 : milestone.getContestants().size();
     }
 
