@@ -1,0 +1,392 @@
+databaseChangeLog:
+  # Test data for organizations
+  - changeSet:
+      id: 2025-11-28-1
+      author: system
+      context: sense_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO organization (name, description, phone_number, email, country, city, street_name, street_number) VALUES
+              ('Sense Samara', 'Самарская школа социальных танцев Sense', '+7 777 111 11 11', 'org1@test.ru', 'Россия', 'Самара', 'ул. Киевская', '1');
+  # Test data for criterion
+  - changeSet:
+      id: 2025-11-28-2
+      author: system
+      context: sense_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO criterion (name) VALUES
+              ('Прохождение'),
+              ('Техника'),
+              ('Музыкальность'),
+              ('Имидж'),
+              ('Взаимодействие');
+  # Test data for occasion
+  - changeSet:
+      id: 2025-11-28-3
+      author: system
+      context: sense_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO occasion (name, description, state, start_date, end_date, organization_id) VALUES
+              ('SBF', 'SENSATION BACHATA FESTIVAL 2025', 'IN_PROGRESS', '2025-12-05', '2025-12-07', (SELECT id FROM organization WHERE name = 'Sense Samara'));
+  # Test data for activity
+  - changeSet:
+      id: 2025-11-28-4
+      author: system
+      context: sense_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO activity (name, description, state, start_date_time, end_date_time, country, city, street_name, street_number, comment, occasion_id) VALUES
+              ('ProAm. Партнеры. Дебютанты', 'ProAm. Партнеры. Дебютанты', 'PLANNED', '2025-12-05 20:30:00', '2025-12-05 23:00:00', 'Россия', 'Самара', 'ул. Мичурина', '23а', 'Выставочный центр ЭКСПО-ВОЛГА', (SELECT id FROM occasion WHERE name = 'SBF')),
+              ('ProAm. Партнерши. Дебютанты', 'ProAm. Партнеры. Дебютанты', 'PLANNED', '2025-12-05 20:30:00', '2025-12-05 23:00:00', 'Россия', 'Самара', 'ул. Мичурина', '23а', 'Выставочный центр ЭКСПО-ВОЛГА', (SELECT id FROM occasion WHERE name = 'SBF')),
+              ('ProAm. Партнеры. Начинающие', 'ProAm. Партнеры. Начинающие', 'PLANNED', '2025-12-05 21:30:00', '2025-12-05 23:00:00', 'Россия', 'Самара', 'ул. Мичурина', '23а', 'Выставочный центр ЭКСПО-ВОЛГА', (SELECT id FROM occasion WHERE name = 'SBF')),
+              ('ProAm. Партнерши. Начинающие', 'ProAm. Партнеры. Начинающие', 'PLANNED', '2025-12-05 21:30:00', '2025-12-05 23:00:00', 'Россия', 'Самара', 'ул. Мичурина', '23а', 'Выставочный центр ЭКСПО-ВОЛГА', (SELECT id FROM occasion WHERE name = 'SBF')),
+              ('ProAm. Партнеры. Любители', 'ProAm. Партнеры. Любители', 'PLANNED', '2025-12-05 22:30:00', '2025-12-05 23:00:00', 'Россия', 'Самара', 'ул. Мичурина', '23а', 'Выставочный центр ЭКСПО-ВОЛГА', (SELECT id FROM occasion WHERE name = 'SBF')),
+              ('ProAm. Партнерши. Любители', 'ProAm. Партнеры. Любители', 'PLANNED', '2025-12-05 22:30:00', '2025-12-05 23:00:00', 'Россия', 'Самара', 'ул. Мичурина', '23а', 'Выставочный центр ЭКСПО-ВОЛГА', (SELECT id FROM occasion WHERE name = 'SBF'));
+
+#  # Test data for judges
+#  - changeSet:
+#      id: 2025-11-28-5
+#      author: system
+#      context: sense_data
+#      changes:
+#        - sql:
+#            sql: |
+#              INSERT INTO users (username, password, status, name, surname) VALUES
+#              ('lena', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Елена', 'Васильева'),
+#              ('dima', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Дмитрий', 'Пыльцов'),
+#              ('admin', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Админ', ''),
+#              ('admin1', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Админ', ''),
+#              ('admin2', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Админ', ''),
+#              ('admin3', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Админ', ''),
+#              ('administrator', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Администратор', ''),
+#              ('administrator1', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Администратор', ''),
+#              ('announcer', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Ведущий', ''),
+#              ('masha_a', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Ведущая', 'Маша'),
+#              ('bogdan_a', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Ведущий', 'Богдан'),
+#
+#              -- Судьи для лидеров
+#              ('bogdan', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Богдан', 'Болдырев'),
+#              ('kevin', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Кевин', 'Бака-Сегура'),
+#              ('egor', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Егор', 'Старков'),
+#              ('fedor', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Федор', 'Гришин'),
+#              ('andrey', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Андрей', 'Попов'),
+#              ('ruslan', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Руслан', 'Сагинбаев'),
+#              ('firgat', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Фиргат', 'Валеев'),
+#              ('andres', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Андрес', 'Барбоса'),
+#              ('maksim', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Максим', 'Лаврин'),
+#
+#              -- Судьи для фоловеров
+#              ('darya', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Дарья', 'Гаршина'),
+#              ('polina', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Полина', 'Горбачёва'),
+#              ('yana', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Яна', 'Ишмаева'),
+#              ('mila', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Мила', 'Пономаренко'),
+#              ('masha', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Мария', 'Болдырева'),
+#              ('albina', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Альбина', 'Ахметгалиева'),
+#              ('valery', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Валерия', 'Чехова'),
+#              ('mariya', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Мария', 'Никитина'),
+#              ('adelina', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Аделина', 'Гумирова'),
+#              ('natalya', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Наталья', 'Чеботарь'),
+#              ('elvira', '+etSGkTrknbP/ekwO4krGw==', 'ACTIVE', 'Эльвира', 'Акбашева');
+#  # Test data for judge roles
+#  - changeSet:
+#      id: 2025-11-28-6
+#      author: system
+#      context: sense_data
+#      changes:
+#        - sql:
+#            sql: |
+#              INSERT INTO user_roles (user_id, role) VALUES
+#              ((SELECT id FROM users WHERE username = 'lena'), 'SUPERADMIN'),
+#              ((SELECT id FROM users WHERE username = 'dima'), 'SUPERADMIN'),
+#              ((SELECT id FROM users WHERE username = 'admin'), 'SUPERADMIN'),
+#              ((SELECT id FROM users WHERE username = 'admin1'), 'SUPERADMIN'),
+#              ((SELECT id FROM users WHERE username = 'admin2'), 'SUPERADMIN'),
+#              ((SELECT id FROM users WHERE username = 'admin3'), 'SUPERADMIN'),
+#              ((SELECT id FROM users WHERE username = 'administrator'), 'ADMINISTRATOR'),
+#              ((SELECT id FROM users WHERE username = 'administrator1'), 'ADMINISTRATOR'),
+#              ((SELECT id FROM users WHERE username = 'announcer'), 'ANNOUNCER'),
+#              ((SELECT id FROM users WHERE username = 'masha_a'), 'ANNOUNCER'),
+#              ((SELECT id FROM users WHERE username = 'bogdan_a'), 'ANNOUNCER'),
+#              ((SELECT id FROM users WHERE username = 'bogdan'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'kevin'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'egor'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'fedor'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'polina'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'yana'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'mila'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'darya'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'andrey'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'masha'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'ruslan'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'firgat'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'andres'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'maksim'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'albina'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'valery'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'mariya'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'adelina'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'natalya'), 'USER'),
+#              ((SELECT id FROM users WHERE username = 'elvira'), 'USER');
+
+  # Test data for activity_user (judges for school activity)
+  - changeSet:
+      id: 2025-11-28-7
+      author: system
+      context: sense_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO activity_user (user_id, activity_id, position, partner_side) VALUES
+              -- Дебютанты Партнеры
+              ((SELECT id FROM users WHERE username = 'announcer'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Дебютанты'), 'OBSERVER', null),
+              ((SELECT id FROM users WHERE username = 'masha_a'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Дебютанты'), 'OBSERVER', null),
+              ((SELECT id FROM users WHERE username = 'bogdan_a'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Дебютанты'), 'OBSERVER', null),
+              -- Судьи для лидеров
+              ((SELECT id FROM users WHERE username = 'ruslan'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Дебютанты'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'andrey'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Дебютанты'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'firgat'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Дебютанты'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'andres'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Дебютанты'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'maksim'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Дебютанты'), 'JUDGE', 'LEADER'),
+              -- Дебютанты Партнерши
+              ((SELECT id FROM users WHERE username = 'announcer'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), 'OBSERVER', null),
+              ((SELECT id FROM users WHERE username = 'masha_a'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), 'OBSERVER', null),
+              ((SELECT id FROM users WHERE username = 'bogdan_a'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), 'OBSERVER', null),
+              -- Судьи для фоловеров
+              ((SELECT id FROM users WHERE username = 'natalya'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), 'JUDGE', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'darya'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), 'JUDGE', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'elvira'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), 'JUDGE', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'mariya'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), 'JUDGE', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'polina'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), 'JUDGE', 'FOLLOWER'),
+              -- Начинающие Партнеры
+              ((SELECT id FROM users WHERE username = 'announcer'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Начинающие'), 'OBSERVER', null),
+              ((SELECT id FROM users WHERE username = 'masha_a'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Начинающие'), 'OBSERVER', null),
+              ((SELECT id FROM users WHERE username = 'bogdan_a'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Начинающие'), 'OBSERVER', null),
+              -- Судьи для лидеров
+              ((SELECT id FROM users WHERE username = 'ruslan'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Начинающие'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'andrey'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Начинающие'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'firgat'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Начинающие'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'andres'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Начинающие'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'maksim'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Начинающие'), 'JUDGE', 'LEADER'),
+              -- Начинающие Партнерши
+              ((SELECT id FROM users WHERE username = 'announcer'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), 'OBSERVER', null),
+              ((SELECT id FROM users WHERE username = 'masha_a'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), 'OBSERVER', null),
+              ((SELECT id FROM users WHERE username = 'bogdan_a'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), 'OBSERVER', null),
+              -- Судьи для фоловеров
+              ((SELECT id FROM users WHERE username = 'natalya'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), 'JUDGE', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'darya'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), 'JUDGE', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'adelina'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), 'JUDGE', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'mariya'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), 'JUDGE', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'polina'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), 'JUDGE', 'FOLLOWER'),
+              -- Любители Партнеры
+              ((SELECT id FROM users WHERE username = 'announcer'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Любители'), 'OBSERVER', null),
+              ((SELECT id FROM users WHERE username = 'masha_a'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Любители'), 'OBSERVER', null),
+              ((SELECT id FROM users WHERE username = 'bogdan_a'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Любители'), 'OBSERVER', null),
+              -- Судьи для лидеров
+              ((SELECT id FROM users WHERE username = 'ruslan'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Любители'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'andrey'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Любители'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'firgat'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Любители'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'andres'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Любители'), 'JUDGE', 'LEADER'),
+              ((SELECT id FROM users WHERE username = 'maksim'), (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Любители'), 'JUDGE', 'LEADER'),
+              -- Любители Партнерши
+              ((SELECT id FROM users WHERE username = 'announcer'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), 'OBSERVER', null),
+              ((SELECT id FROM users WHERE username = 'masha_a'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), 'OBSERVER', null),
+              ((SELECT id FROM users WHERE username = 'bogdan_a'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), 'OBSERVER', null),
+              -- Судьи для фоловеров
+              ((SELECT id FROM users WHERE username = 'natalya'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), 'JUDGE', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'darya'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), 'JUDGE', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'valery'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), 'JUDGE', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'mariya'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), 'JUDGE', 'FOLLOWER'),
+              ((SELECT id FROM users WHERE username = 'elvira'), (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), 'JUDGE', 'FOLLOWER');
+
+  # Test data for milestones (3 stages with order 2, 1)
+  - changeSet:
+      id: 2025-11-28-9
+      author: system
+      context: sense_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO milestone (name, description, state, activity_id, milestone_order) VALUES
+              -- Дебютанты Партнеры
+              ('Полуфинал Дебютанты', 'Полуфинал Дебютанты Партнеры', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Дебютанты'), 1),
+              ('Финал Дебютанты', 'Финал Дебютанты Партнеры', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Дебютанты'), 0),
+              -- Дебютанты Партнерши
+              ('Полуфинал Дебютанты', 'Полуфинал Дебютанты Партнерши', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), 1),
+              ('Финал Дебютанты', 'Финал Дебютанты Партнерши', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), 0),
+              -- Начинающие Партнеры
+              ('Полуфинал Начинающие', 'Полуфинал Начинающие Партнеры', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Начинающие'), 1),
+              ('Финал Начинающие', 'Финал Начинающие Партнеры', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Начинающие'), 0),
+              -- Начинающие Партнерши
+              ('Полуфинал Начинающие', 'Полуфинал Начинающие Партнерши', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), 1),
+              ('Финал Начинающие', 'Финал Начинающие Партнерши', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), 0),
+              -- Любители Партнеры
+              ('Полуфинал Любители', 'Полуфинал Любители Партнеры', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Любители'), 1),
+              ('Финал Любители', 'Финал Любители Партнеры', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Любители'), 0),
+              -- Любители Партнерши
+              ('Полуфинал Любители', 'Полуфинал Любители Партнерши', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), 1),
+              ('Финал Любители', 'Финал Любители Партнерши', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), 0);
+  # Test data for milestone rules
+  - changeSet:
+      id: 2025-11-28-10
+      author: system
+      context: sense_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO milestone_rule (assessment_mode, contestant_type, contestant_limit, round_contestant_limit, strict_pass_mode, milestone_id) VALUES
+              -- Дебютанты Партнеры
+              ('PASS', 'SINGLE', 90, 4, false, (SELECT id FROM milestone WHERE description = 'Полуфинал Дебютанты Партнеры')),
+              ('SCORE', 'SINGLE', 5, 5, false, (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнеры')),
+              -- Дебютанты Партнерши
+              ('PASS', 'SINGLE', 90, 4, false, (SELECT id FROM milestone WHERE description = 'Полуфинал Дебютанты Партнерши')),
+              ('SCORE', 'SINGLE', 5, 5, false, (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнерши')),
+              -- Начинающие Партнеры
+              ('PASS', 'SINGLE', 90, 4, false, (SELECT id FROM milestone WHERE description = 'Полуфинал Начинающие Партнеры')),
+              ('SCORE', 'SINGLE', 5, 5, false, (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнеры')),
+              -- Начинающие Партнерши
+              ('PASS', 'SINGLE', 90, 4, false, (SELECT id FROM milestone WHERE description = 'Полуфинал Начинающие Партнерши')),
+              ('SCORE', 'SINGLE', 5, 5, false, (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнерши')),
+              -- Любители Партнеры
+              ('PASS', 'SINGLE', 90, 4, false, (SELECT id FROM milestone WHERE description = 'Полуфинал Любители Партнеры')),
+              ('SCORE', 'SINGLE', 5, 5, false, (SELECT id FROM milestone WHERE description = 'Финал Любители Партнеры')),
+              -- Любители Партнерши
+              ('PASS', 'SINGLE', 90, 4, false, (SELECT id FROM milestone WHERE description = 'Полуфинал Любители Партнерши')),
+              ('SCORE', 'SINGLE', 5, 5, false, (SELECT id FROM milestone WHERE description = 'Финал Любители Партнерши'));
+  # Test data for criterion assignments
+  - changeSet:
+      id: 2025-11-28-11
+      author: system
+      context: sense_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO milestone_criterion (milestone_rule_id, criterion_id, partner_side, weight, scale) VALUES
+              -- Дебютанты Партнеры
+              -- Этап 1
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Полуфинал Дебютанты Партнеры')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1),
+              -- Этап 2
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнеры')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 3.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнеры')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 4.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнеры')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнеры')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5),
+              -- Дебютанты Партнерши
+              -- Этап 1
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Полуфинал Дебютанты Партнерши')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1),
+              -- Этап 2
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнерши')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 3.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнерши')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 4.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнерши')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнерши')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5),
+              -- Начинающие Партнеры
+              -- Этап 1
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Полуфинал Начинающие Партнеры')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1),
+              -- Этап 2
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнеры')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 4.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнеры')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 3.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнеры')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнеры')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5),
+              -- Начинающие Партнерши
+              -- Этап 1
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Полуфинал Начинающие Партнерши')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1),
+              -- Этап 2
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнерши')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 4.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнерши')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 3.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнерши')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнерши')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5),
+              -- Любители Партнеры
+              -- Этап 1
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Полуфинал Любители Партнеры')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1),
+              -- Этап 2
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Любители Партнеры')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 4.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Любители Партнеры')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 3.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Любители Партнеры')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Любители Партнеры')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5),
+              -- Любители Партнерши
+              -- Этап 1
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Полуфинал Любители Партнерши')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1),
+              -- Этап 2
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Любители Партнерши')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 4.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Любители Партнерши')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 3.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Любители Партнерши')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5),
+              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Любители Партнерши')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5);
+
+  # Test data for assistant
+  - changeSet:
+      id: 2025-11-07-12
+      author: system
+      context: sense_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO assistant (nick_name, name, surname) VALUES
+              ('egor', 'Егор', 'Старков'),
+              ('bogdan', 'Богдан', 'Болдырев'),
+              ('kevin', 'Кевин', 'Бака Сегура'),
+              ('adelina', 'Аделина', 'Гумирова'),
+              ('misha', 'Михаил', 'Рабкин'),
+              ('ildar', 'Ильдар', 'Вагапов'),
+              ('daviel', 'Давиэль', 'Айяла'),
+              ('polina', 'Полина', 'Горбачева'),
+              ('valery', 'Валерия', 'Чехова'),
+              ('georgi', 'Георги', 'Коберидзе'),
+              ('german', 'Герман', 'Констанц'),
+              ('rinat', 'Ринат', 'Гильмутдинов'),
+              ('ayrat', 'Айрат', 'Хазиев');
+
+  # Test data for participants ProAm
+  - changeSet:
+      id: 2025-11-07-13
+      author: system
+      context: sense_data
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO participant (number, name, surname, partner_side, is_registered, activity_id, assistant_id) VALUES
+              -- Дебютанты Партнеры
+              ('8', 'Андрей', 'Трифонов', 'LEADER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Дебютанты'), (SELECT id FROM assistant WHERE nick_name = 'valery')),
+              ('9', 'Алексей', 'Кузьмин', 'LEADER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Дебютанты'), (SELECT id FROM assistant WHERE nick_name = 'adelina')),
+              
+              -- Дебютанты Партнерши
+              ('1', 'Гуля', 'Тюльпина', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), (SELECT id FROM assistant WHERE nick_name = 'egor')),
+              ('2', 'Дарья', 'Бабкина', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), (SELECT id FROM assistant WHERE nick_name = 'kevin')),
+              ('3', 'Мадина', 'Самадова', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), (SELECT id FROM assistant WHERE nick_name = 'bogdan')),
+              ('4', 'Кристина', 'Вольская', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), (SELECT id FROM assistant WHERE nick_name = 'bogdan')),
+              ('5', 'Екатерина', 'Юнина', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), (SELECT id FROM assistant WHERE nick_name = 'egor')),
+              ('6', 'Татьяна', 'Иванова', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), (SELECT id FROM assistant WHERE nick_name = 'kevin')),
+              ('7', 'Анастасия', 'Зуева', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), (SELECT id FROM assistant WHERE nick_name = 'georgi')),
+
+              -- Начинающие Партнеры
+              -- ('', 'Андрей', 'Трифонов', 'LEADER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Начинающие'), (SELECT id FROM assistant WHERE nick_name = '')),
+              
+              -- Начинающие Партнерши
+              ('10', 'Мадина', 'Адзуллаева', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), (SELECT id FROM assistant WHERE nick_name = 'kevin')),
+              ('11', 'Алина', 'Солдатова', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), (SELECT id FROM assistant WHERE nick_name = 'misha')),
+              ('12', 'Элина', 'Хазина', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), (SELECT id FROM assistant WHERE nick_name = 'bogdan')),
+              ('13', 'Земфина', 'Сафина', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), (SELECT id FROM assistant WHERE nick_name = 'ildar')),
+              ('14', 'Юлия', 'Тарасевич', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), (SELECT id FROM assistant WHERE nick_name = 'kevin')),              
+              ('15', 'Марина', 'Костырева', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), (SELECT id FROM assistant WHERE nick_name = 'bogdan')),
+              ('16', 'Полина', 'Магамедова', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), (SELECT id FROM assistant WHERE nick_name = 'egor')),
+              ('17', 'Карина', 'Хайруллина', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), (SELECT id FROM assistant WHERE nick_name = 'german')),  
+
+              -- Любители Партнеры
+              ('28', 'Николай', 'Фирсов', 'LEADER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Любители'), (SELECT id FROM assistant WHERE nick_name = 'polina')),
+              ('29', 'Идел', 'Янбулатов', 'LEADER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Любители'), (SELECT id FROM assistant WHERE nick_name = 'adelina')),
+              ('30', 'Сергей', 'Мытько', 'LEADER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Любители'), (SELECT id FROM assistant WHERE nick_name = 'polina')),
+              
+              -- Любители Партнерши
+              ('18', 'Алёна', 'Фионина', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), (SELECT id FROM assistant WHERE nick_name = 'daviel')),
+              ('19', 'Анастасия', 'Войнова', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), (SELECT id FROM assistant WHERE nick_name = 'kevin')),
+              ('20', 'Полина', 'Полинчук', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), (SELECT id FROM assistant WHERE nick_name = 'ildar')),
+              ('21', 'Ольга', 'Межова', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), (SELECT id FROM assistant WHERE nick_name = 'bogdan')),
+              ('22', 'Ольга', 'Перякина', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), (SELECT id FROM assistant WHERE nick_name = 'kevin')),
+              ('23', 'Валерия', 'Бугакова', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), (SELECT id FROM assistant WHERE nick_name = 'egor')),
+              ('24', 'Александра', 'Дрейер', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), (SELECT id FROM assistant WHERE nick_name = 'egor')),
+              ('25', 'Гузель', 'Фахрутдинова', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), (SELECT id FROM assistant WHERE nick_name = 'ildar')),
+              ('26', 'Наталья', 'Ефимова', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), (SELECT id FROM assistant WHERE nick_name = 'ayrat')),
+              ('27', 'Ирина', 'Зенченко', 'FOLLOWER', true, (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), (SELECT id FROM assistant WHERE nick_name = 'kevin'));
