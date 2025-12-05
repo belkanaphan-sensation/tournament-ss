@@ -214,19 +214,16 @@ databaseChangeLog:
             sql: |
               INSERT INTO milestone (name, description, state, activity_id, milestone_order) VALUES
               -- Дебютанты Партнеры
-              ('Полуфинал Дебютанты', 'Полуфинал Дебютанты Партнеры', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Дебютанты'), 1),
               ('Финал Дебютанты', 'Финал Дебютанты Партнеры', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Дебютанты'), 0),
               -- Дебютанты Партнерши
               ('Полуфинал Дебютанты', 'Полуфинал Дебютанты Партнерши', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), 1),
               ('Финал Дебютанты', 'Финал Дебютанты Партнерши', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Дебютанты'), 0),
               -- Начинающие Партнеры
-              ('Полуфинал Начинающие', 'Полуфинал Начинающие Партнеры', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Начинающие'), 1),
               ('Финал Начинающие', 'Финал Начинающие Партнеры', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Начинающие'), 0),
               -- Начинающие Партнерши
               ('Полуфинал Начинающие', 'Полуфинал Начинающие Партнерши', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), 1),
               ('Финал Начинающие', 'Финал Начинающие Партнерши', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Начинающие'), 0),
               -- Любители Партнеры
-              ('Полуфинал Любители', 'Полуфинал Любители Партнеры', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Любители'), 1),
               ('Финал Любители', 'Финал Любители Партнеры', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнеры. Любители'), 0),
               -- Любители Партнерши
               ('Полуфинал Любители', 'Полуфинал Любители Партнерши', 'PLANNED', (SELECT id FROM activity WHERE name = 'ProAm. Партнерши. Любители'), 1),
@@ -241,19 +238,16 @@ databaseChangeLog:
             sql: |
               INSERT INTO milestone_rule (assessment_mode, contestant_type, contestant_limit, round_contestant_limit, strict_pass_mode, milestone_id) VALUES
               -- Дебютанты Партнеры
-              ('PASS', 'SINGLE', 90, 4, false, (SELECT id FROM milestone WHERE description = 'Полуфинал Дебютанты Партнеры')),
               ('SCORE', 'SINGLE', 5, 5, false, (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнеры')),
               -- Дебютанты Партнерши
               ('PASS', 'SINGLE', 90, 4, false, (SELECT id FROM milestone WHERE description = 'Полуфинал Дебютанты Партнерши')),
               ('SCORE', 'SINGLE', 5, 5, false, (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнерши')),
               -- Начинающие Партнеры
-              ('PASS', 'SINGLE', 90, 4, false, (SELECT id FROM milestone WHERE description = 'Полуфинал Начинающие Партнеры')),
               ('SCORE', 'SINGLE', 5, 5, false, (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнеры')),
               -- Начинающие Партнерши
               ('PASS', 'SINGLE', 90, 4, false, (SELECT id FROM milestone WHERE description = 'Полуфинал Начинающие Партнерши')),
               ('SCORE', 'SINGLE', 5, 5, false, (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнерши')),
               -- Любители Партнеры
-              ('PASS', 'SINGLE', 90, 4, false, (SELECT id FROM milestone WHERE description = 'Полуфинал Любители Партнеры')),
               ('SCORE', 'SINGLE', 5, 5, false, (SELECT id FROM milestone WHERE description = 'Финал Любители Партнеры')),
               -- Любители Партнерши
               ('PASS', 'SINGLE', 90, 4, false, (SELECT id FROM milestone WHERE description = 'Полуфинал Любители Партнерши')),
@@ -268,8 +262,6 @@ databaseChangeLog:
             sql: |
               INSERT INTO milestone_criterion (milestone_rule_id, criterion_id, partner_side, weight, scale) VALUES
               -- Дебютанты Партнеры
-              -- Этап 1
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Полуфинал Дебютанты Партнеры')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1),
               -- Этап 2
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнеры')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 3.0, 5),
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнеры')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 4.0, 5),
@@ -284,8 +276,6 @@ databaseChangeLog:
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнерши')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5),
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Дебютанты Партнерши')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5),
               -- Начинающие Партнеры
-              -- Этап 1
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Полуфинал Начинающие Партнеры')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1),
               -- Этап 2
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнеры')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 4.0, 5),
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнеры')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 3.0, 5),
@@ -300,8 +290,6 @@ databaseChangeLog:
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнерши')), (SELECT id FROM criterion WHERE name = 'Музыкальность'), null, 2.0, 5),
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Начинающие Партнерши')), (SELECT id FROM criterion WHERE name = 'Имидж'), null, 1.0, 5),
               -- Любители Партнеры
-              -- Этап 1
-              ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Полуфинал Любители Партнеры')), (SELECT id FROM criterion WHERE name = 'Прохождение'), null, 1.0, 1),
               -- Этап 2
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Любители Партнеры')), (SELECT id FROM criterion WHERE name = 'Взаимодействие'), null, 4.0, 5),
               ((SELECT id FROM milestone_rule WHERE milestone_id = (SELECT id FROM milestone WHERE description = 'Финал Любители Партнеры')), (SELECT id FROM criterion WHERE name = 'Техника'), null, 3.0, 5),
