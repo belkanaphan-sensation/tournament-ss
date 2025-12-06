@@ -24,3 +24,8 @@ databaseChangeLog:
 #      author: belkanaphan
 #      relativeToChangelogFile: true
 #      file: 2025/005__05-12-2025-sbf-pro-am.yml
+#  - include:
+#      id: 04-12-2025-bn-0
+#      author: belkanaphan
+#      relativeToChangelogFile: true
+#      file: 2025/006__06-12-2025-sbf-jj.yml
