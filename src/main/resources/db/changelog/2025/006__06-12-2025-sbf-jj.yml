@@ -515,7 +515,6 @@ databaseChangeLog:
               ('Михаил', 'Токаренко', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы')),
               ('Роман', 'Точигин', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы')),
               ('Дамир', 'Залялиев', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы')),
-              ('Федор', 'Гришин', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы')),
               ('Кирилл', 'Моисеев', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы')),
 
               -- Фоловеры 
