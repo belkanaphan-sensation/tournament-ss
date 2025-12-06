@@ -80,6 +80,7 @@ create_user "yakov" "Яков" "Целищев" "USER" "567890"
 create_user "daniel" "Даниэль" "Торриенте" "USER" "678901"
 create_user "german" "Герман" "Констанц" "USER" "789012"
 create_user "gabriel" "Габриэль" "Аяла" "USER" "890123"
+create_user "evgeny" "Евгений" "Куликов" "USER" "890123"
 
 # Судьи для фоловеров
 create_user "darya" "Дарья" "Гаршина" "USER" "890123"

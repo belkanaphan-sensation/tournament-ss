@@ -97,6 +97,7 @@ Create-User -username "yakov" -name "Яков" -surname "Целищев" -role "
 Create-User -username "daniel" -name "Даниэль" -surname "Торриенте" -role "USER" -password "678901"
 Create-User -username "german" -name "Герман" -surname "Констанц" -role "USER" -password "789012"
 Create-User -username "gabriel" -name "Габриэль" -surname "Аяла" -role "USER" -password "890123"
+Create-User -username "evgeny" -name "Евгений" -surname "Куликов" -role "USER" -password "890123"
 
 # Судьи для фоловеров
 Create-User -username "darya" -name "Дарья" -surname "Гаршина" -role "USER" -password "890123"
