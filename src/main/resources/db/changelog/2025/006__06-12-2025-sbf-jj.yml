@@ -392,6 +392,7 @@ databaseChangeLog:
               ('Андрей', 'Трифонов', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты')),
               ('Альберт', 'Гилязов', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты')),
               ('Алексей', 'Кузьмин', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты')),
+              ('Андрей', 'Байда', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты')),
               
               -- Фоловеры 
               ('Наталья', 'Братова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Дебютанты')),
@@ -412,6 +413,8 @@ databaseChangeLog:
               ('Евгений', 'Кортов', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие')),
               ('Владислав', 'Сидоров', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие')),
               ('Константин', 'Курнев', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие')),
+              ('Александр', 'Давитьян', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие')),
+              ('Максим', 'Коновалов', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие')),
 
               -- Фоловеры 
               ('Гузель', 'Салихова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Начинающие')),
@@ -465,6 +468,7 @@ databaseChangeLog:
               ('Андрей', 'Хардин', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители')),
               ('Илья', 'Садыков', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители')),
               ('Артем', 'Романов', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители')),
+              ('Владлен', 'Учаев', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители')),
 
               -- Фоловеры 
               ('Ольга', 'Гудас', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Любители')),
@@ -516,6 +520,7 @@ databaseChangeLog:
               ('Роман', 'Точигин', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы')),
               ('Дамир', 'Залялиев', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы')),
               ('Кирилл', 'Моисеев', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы')),
+              ('Эдуард', 'Шайхадаров', 'LEADER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы')),
 
               -- Фоловеры 
               ('Яна', 'Ишмаева', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы')),
@@ -536,6 +541,7 @@ databaseChangeLog:
               ('Валерия', 'Ломова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы')),
               ('Марина', 'Ермолаева', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы')),
               ('Кристина', 'Чампалова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы')),
+              ('Алина', 'Галлямова', 'FOLLOWER', false, (SELECT id FROM activity WHERE name = 'J&J. Категория Профессионалы')),
               
               -- Мастера
               -- Лидеры 
